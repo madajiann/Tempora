@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/i18n"
+	"tempora/internal/event"
+	"tempora/internal/i18n"
 )
 
 const (

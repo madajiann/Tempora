@@ -11,8 +11,8 @@ import (
 	"reflect"
 	"strings"
 
-	"reasonix/internal/config"
-	"reasonix/internal/secrets"
+	"tempora/internal/config"
+	"tempora/internal/secrets"
 )
 
 // ModelSettingsChange is a closed set of model operations, never a replacement

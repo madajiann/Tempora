@@ -15,11 +15,11 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/fileutil"
-	"reasonix/internal/netclient"
+	"tempora/internal/fileutil"
+	"tempora/internal/netclient"
 )
 
-var endpoint = "https://crash.reasonix.io/v1"
+var endpoint = "https://crash.tempora.io/v1"
 
 var uploadSignals = map[string]bool{
 	"finish_reason": true, "empty_final": true, "provider_error": true,

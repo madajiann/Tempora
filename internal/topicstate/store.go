@@ -24,7 +24,7 @@ import (
 
 const schemaVersion = 1
 
-// FutureSchemaError means a newer Reasonix version owns this database. Callers
+// FutureSchemaError means a newer Tempora version owns this database. Callers
 // must leave the file untouched and may only use an explicitly compatible
 // legacy read path.
 type FutureSchemaError struct {

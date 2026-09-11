@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"reasonix/internal/taskmonitor"
+	"tempora/internal/taskmonitor"
 )
 
 func TestFilterTasksBySession(t *testing.T) {

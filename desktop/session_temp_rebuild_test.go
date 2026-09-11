@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/control"
+	"tempora/internal/control"
 )
 
 // TestDesktopHotRebuildPathsKeepSessionTemp covers the same-session rebuilds

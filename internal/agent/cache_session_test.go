@@ -3,7 +3,7 @@ package agent
 import (
 	"context"
 	"net/http"
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 	"strings"
 	"testing"
 )

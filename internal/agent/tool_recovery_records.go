@@ -12,9 +12,9 @@ import (
 	"slices"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 var ErrToolRecoveryRequired = errors.New("recovery_required: an external tool effect has not been confirmed")

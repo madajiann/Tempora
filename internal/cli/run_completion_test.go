@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 func TestClassifyRunCompletionNamesTheFailureClass(t *testing.T) {

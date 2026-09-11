@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/store"
+	"tempora/internal/store"
 )
 
 // ErrSessionHeadUnknown reports a head id that the log does not contain.

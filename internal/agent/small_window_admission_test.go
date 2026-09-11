@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/tool"
 )
 
 type largeSchemaTool struct {

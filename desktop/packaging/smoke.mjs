@@ -3,8 +3,8 @@
 // desktop/hello handshake reached ready, then uses Electron's normal app.quit
 // lifecycle through Playwright and checks both Electron and Go are gone.
 //
-// usage: node desktop/packaging/smoke.mjs <Reasonix.app|app-dir|executable>
-//        [--service <reasonix-desktop path>] [--hold <seconds>] [--timeout <seconds>] [--keep-home]
+// usage: node desktop/packaging/smoke.mjs <Tempora.app|app-dir|executable>
+//        [--service <tempora-desktop path>] [--hold <seconds>] [--timeout <seconds>] [--keep-home]
 import { spawnSync } from "node:child_process";
 import { appendFileSync, existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -25,7 +25,7 @@ const option = (name, fallback) => {
 };
 const targetArg = args.find((arg, index) => !arg.startsWith("--") && (index === 0 || !args[index - 1].startsWith("--") || args[index - 1] === "--keep-home"));
 if (!targetArg) {
-  console.error("usage: smoke.mjs <Reasonix.app|app-dir|executable> [--service <path>] [--hold <seconds>] [--timeout <seconds>] [--keep-home]");
+  console.error("usage: smoke.mjs <Tempora.app|app-dir|executable> [--service <path>] [--hold <seconds>] [--timeout <seconds>] [--keep-home]");
   process.exit(2);
 }
 const hold = Number(option("--hold", "5")) * 1000;
@@ -45,10 +45,10 @@ function executableOf(path) {
 
 const executable = executableOf(targetArg);
 if (!existsSync(executable)) throw new Error(`shell executable is missing: ${executable}`);
-const home = mkdtempSync(join(tmpdir(), "reasonix-smoke-"));
+const home = mkdtempSync(join(tmpdir(), "tempora-smoke-"));
 const logs = join(home, "desktop-shell", "logs");
 const env = packagedSmokeEnv(process.env, home);
-if (service !== "") env.REASONIX_DESKTOP_SERVICE = resolve(service);
+if (service !== "") env.TEMPORA_DESKTOP_SERVICE = resolve(service);
 const stdio = join(home, "smoke-stdio.log");
 const started = Date.now();
 let child;
@@ -90,7 +90,7 @@ try {
   // On Windows Playwright may own a cmd.exe wrapper. Read the Electron main
   // PID itself so a wrapper exit cannot pass the shell-liveness assertion.
   shellPid = await application.evaluate(() => process.pid);
-  const identity = await application.evaluate(({ app }) => ({ packaged: app.isPackaged, dev: process.env.REASONIX_DEV ?? "", resourcesPath: process.resourcesPath }));
+  const identity = await application.evaluate(({ app }) => ({ packaged: app.isPackaged, dev: process.env.TEMPORA_DEV ?? "", resourcesPath: process.resourcesPath }));
   if (!identity.packaged || identity.dev !== "") throw new Error("startup smoke must exercise a packaged app without development mode");
   while (!ready) {
     if (exit || !processAlive(shellPid)) throw new Error("shell exited before the handshake");
@@ -104,8 +104,8 @@ try {
   }
   console.log(`PASS  handshake ready after ${((Date.now() - started) / 1000).toFixed(1)}s: ${ready.line}`);
   const page = await application.firstWindow({ timeout });
-  await page.waitForFunction(() => Boolean(window.reasonixDesktop), null, { timeout });
-  const version = await page.evaluate(() => window.reasonixDesktop.invoke("Version", []));
+  await page.waitForFunction(() => Boolean(window.temporaDesktop), null, { timeout });
+  const version = await page.evaluate(() => window.temporaDesktop.invoke("Version", []));
   const expected = JSON.parse(readFileSync(join(identity.resourcesPath, "build.json"), "utf8")).version;
   if (version === "dev" || version !== expected) throw new Error(`packaged service version ${version} differs from manifest ${expected}`);
   console.log(`PASS  renderer invokes the production service: Version=${version}`);

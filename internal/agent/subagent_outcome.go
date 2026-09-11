@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/skill"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/skill"
 )
 
 type SubagentOutcomeStatus string

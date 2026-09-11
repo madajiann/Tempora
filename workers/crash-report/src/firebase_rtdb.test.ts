@@ -11,7 +11,7 @@ import {
 } from "./firebase_rtdb";
 
 const oauthURL = "https://oauth2.googleapis.com/token";
-const databaseHost = "reasonix-test.asia-southeast1.firebasedatabase.app";
+const databaseHost = "tempora-test.asia-southeast1.firebasedatabase.app";
 
 async function privateKeyPEM(): Promise<string> {
   const pair = await crypto.subtle.generateKey(

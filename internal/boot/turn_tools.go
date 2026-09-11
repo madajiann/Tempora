@@ -1,8 +1,8 @@
 package boot
 
 import (
-	"reasonix/internal/agent"
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/tool"
 )
 
 func registerInteractiveAgentTools(reg *tool.Registry) {

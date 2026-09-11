@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	udiff "github.com/aymanbagabas/go-udiff"
-	"reasonix/internal/diff"
-	"reasonix/internal/readcoord"
-	"reasonix/internal/tool"
+	"tempora/internal/diff"
+	"tempora/internal/readcoord"
+	"tempora/internal/tool"
 )
 
 // Evidence is resolved by the same preview implementation that validates the

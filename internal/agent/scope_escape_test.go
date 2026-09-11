@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"reasonix/internal/plancontract"
-	"reasonix/internal/tool"
+	"tempora/internal/plancontract"
+	"tempora/internal/tool"
 )
 
 func scopedAgent(t *testing.T, plan *plancontract.Plan) *Agent {

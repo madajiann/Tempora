@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/provider"
 )
 
 func TestCurrentMessageOriginIsAuthoritativeAcrossDesktopHistory(t *testing.T) {

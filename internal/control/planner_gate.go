@@ -8,9 +8,9 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/runtimepolicy"
-	"reasonix/internal/taskcontract"
+	"tempora/internal/agent"
+	"tempora/internal/runtimepolicy"
+	"tempora/internal/taskcontract"
 )
 
 const (

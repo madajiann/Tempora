@@ -12,8 +12,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 const (

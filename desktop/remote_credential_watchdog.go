@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/remote/bootstrap"
+	"tempora/internal/remote/bootstrap"
 )
 
 type credentialWatchdog struct {

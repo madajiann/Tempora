@@ -7,7 +7,7 @@ import (
 
 	"mvdan.cc/sh/v3/syntax"
 
-	"reasonix/internal/shellparse"
+	"tempora/internal/shellparse"
 )
 
 // Certainty reports whether the host could statically prove a command's

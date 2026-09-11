@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 type incompleteReadPhase uint8

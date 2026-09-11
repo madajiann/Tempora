@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/filelock"
-	"reasonix/internal/sessioninbox"
+	"tempora/internal/event"
+	"tempora/internal/filelock"
+	"tempora/internal/sessioninbox"
 )
 
 func TestInboxSnapshotRecoversUnownedInFlightItem(t *testing.T) {

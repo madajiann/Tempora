@@ -42,7 +42,7 @@ describe("Firebase retained-sample migration", () => {
 
   it("captures a full retained-report page without using Node's default child-process buffer", () => {
     let configuredMaxBuffer = 0;
-    const rows = runWrangler("/tmp/crash-worker", "reasonix-crash", "SELECT 1", (
+    const rows = runWrangler("/tmp/crash-worker", "tempora-crash", "SELECT 1", (
       _command: string,
       _args: string[],
       options: { maxBuffer?: number },

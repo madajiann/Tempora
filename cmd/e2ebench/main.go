@@ -17,8 +17,8 @@ import (
 
 	"github.com/BurntSushi/toml"
 
-	"reasonix/internal/ablation"
-	fileencoding "reasonix/internal/fileutil/encoding"
+	"tempora/internal/ablation"
+	fileencoding "tempora/internal/fileutil/encoding"
 )
 
 type task struct {
@@ -227,7 +227,7 @@ const defaultSuiteTokenBudget = 800_000
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(flag.CommandLine.Output(), "e2ebench — Reasonix end-to-end benchmark.\n\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "e2ebench — Tempora end-to-end benchmark.\n\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage of %s:\n", flag.CommandLine.Name())
 		flag.PrintDefaults()
 		fmt.Fprintf(flag.CommandLine.Output(), "\nExamples:\n")
@@ -241,7 +241,7 @@ func main() {
 	addr := flag.String("addr", "127.0.0.1:7480", "serve mode: live dashboard listen address")
 	subset := flag.String("subset", "benchmarks/swebench/subset.json", "swebench mode: instance subset file")
 	namespace := flag.String("namespace", "swebench", "swebench mode: registry namespace holding the evaluation images")
-	runID := flag.String("run-id", "reasonix", "swebench mode: run id passed to the official harness")
+	runID := flag.String("run-id", "tempora", "swebench mode: run id passed to the official harness")
 	harnessPy := flag.String("harness-python", "python3", "swebench mode: interpreter with the swebench package installed")
 	dataset := flag.String("dataset", "princeton-nlp/SWE-bench_Verified", "swebench mode: dataset name")
 	permission := flag.String("permission", "auto", "swebench mode: agent permission posture (auto | yolo)")
@@ -260,7 +260,7 @@ func main() {
 	bundles := flag.String("bundles", "", "fork mode: directory of captured bundles (<task-id>/bundle.json)")
 	forkArms := flag.String("arm", "control,treatment", "fork mode: comma-separated continuation arms (control | treatment)")
 	forkReps := flag.Int("reps", 1, "fork mode: continuation repetitions per bundle per arm")
-	bin := flag.String("bin", "reasonix", "path to the reasonix binary")
+	bin := flag.String("bin", "tempora", "path to the tempora binary")
 	model := flag.String("model", "", "provider/model name (default: config default)")
 	ablateFlag := flag.String("ablate", "", "ablation arm: subsystems to switch off (evidence, planner, subagent, retrieval, compaction; none|all)")
 	outMD := flag.String("out", "", "write the markdown report here (default: stdout)")

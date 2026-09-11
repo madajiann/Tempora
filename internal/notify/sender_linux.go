@@ -5,7 +5,7 @@ package notify
 import (
 	"os/exec"
 
-	"reasonix/internal/secrets"
+	"tempora/internal/secrets"
 )
 
 // PlatformSender delivers notifications through the host OS.

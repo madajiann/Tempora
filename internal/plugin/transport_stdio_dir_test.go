@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"testing"
 
-	"reasonix/internal/mcplaunch"
+	"tempora/internal/mcplaunch"
 )
 
 // TestNewStdioTransportDirExplicit verifies that explicit Spec.Dir takes

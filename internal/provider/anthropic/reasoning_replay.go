@@ -3,7 +3,7 @@ package anthropic
 import (
 	"encoding/json"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func (c *client) replayMessages(messages []provider.Message) []provider.Message {

@@ -15,12 +15,12 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/boot"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/eventwire"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/boot"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/eventwire"
+	"tempora/internal/provider"
 )
 
 // withForeignWriterLease models the local writer as a separate process. The
@@ -215,7 +215,7 @@ func TestHandoffReleasesLeaseAndGatesMutations(t *testing.T) {
 	}
 
 	status, body = f.post(t, "/submit", map[string]string{"input": "hello"})
-	if status != http.StatusConflict || !strings.Contains(body, "taken over by a local Reasonix") {
+	if status != http.StatusConflict || !strings.Contains(body, "taken over by a local Tempora") {
 		t.Fatalf("mirrored submit = %d %q, want 409 takeover refusal", status, body)
 	}
 
@@ -845,13 +845,13 @@ func TestResumeSpectatorMountOnMirroredSession(t *testing.T) {
 	payload, _ := json.Marshal(map[string]string{"input": "hello"})
 	req, _ := http.NewRequest(http.MethodPost, f.srv.URL+"/submit", strings.NewReader(string(payload)))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Reasonix-Expected-Session-Path", agent.CanonicalSessionPath(other))
+	req.Header.Set("X-Tempora-Expected-Session-Path", agent.CanonicalSessionPath(other))
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatal(err)
 	}
 	body, _ = readAll(resp)
-	if resp.StatusCode != http.StatusConflict || !strings.Contains(body, "taken over by a local Reasonix") {
+	if resp.StatusCode != http.StatusConflict || !strings.Contains(body, "taken over by a local Tempora") {
 		t.Fatalf("spectator submit = %d %q, want 409 takeover refusal", resp.StatusCode, body)
 	}
 }
@@ -881,7 +881,7 @@ func TestSpectatorSwitchCommandsPassTheFence(t *testing.T) {
 	payload, _ := json.Marshal(map[string]any{})
 	req, _ := http.NewRequest(http.MethodPost, f.srv.URL+"/new", strings.NewReader(string(payload)))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Reasonix-Expected-Session-Path", agent.CanonicalSessionPath(other))
+	req.Header.Set("X-Tempora-Expected-Session-Path", agent.CanonicalSessionPath(other))
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatal(err)

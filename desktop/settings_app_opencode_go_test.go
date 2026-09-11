@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 func TestProviderViewFromEntryUsesOpenCodeGoDeepSeekWebSearch(t *testing.T) {

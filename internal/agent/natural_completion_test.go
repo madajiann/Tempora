@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 func TestNaturalCompletionAcceptsVisibleAnswerInOneRound(t *testing.T) {

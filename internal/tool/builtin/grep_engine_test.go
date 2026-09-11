@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	fileenc "reasonix/internal/fileutil/encoding"
-	"reasonix/internal/sandbox"
+	fileenc "tempora/internal/fileutil/encoding"
+	"tempora/internal/sandbox"
 )
 
 func TestGrepTimeoutClamp(t *testing.T) {

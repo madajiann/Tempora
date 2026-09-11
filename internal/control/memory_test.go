@@ -8,7 +8,7 @@ import (
 	"sync"
 	"testing"
 
-	"reasonix/internal/memory"
+	"tempora/internal/memory"
 )
 
 // TestMemoryWriteReflectsInSnapshot verifies that a memory write lands on disk

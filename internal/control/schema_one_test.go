@@ -3,7 +3,7 @@ package control
 import (
 	"testing"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 // schemaOneTempDir pins a test to the schema-1 session writer: it exercises

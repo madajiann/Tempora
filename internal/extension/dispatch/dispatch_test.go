@@ -10,9 +10,9 @@ import (
 	"sync"
 	"testing"
 
-	"reasonix/internal/extension"
-	"reasonix/internal/extension/protocol"
-	"reasonix/internal/extension/sidecar"
+	"tempora/internal/extension"
+	"tempora/internal/extension/protocol"
+	"tempora/internal/extension/sidecar"
 )
 
 // The production Client interface exists so the real sidecar client drops in

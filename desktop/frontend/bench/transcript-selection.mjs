@@ -10,7 +10,7 @@ process.env.PLAYWRIGHT_BROWSERS_PATH = !process.env.PLAYWRIGHT_BROWSERS_PATH || 
   ? path.join(frontendDir, ".pw-browsers")
   : process.env.PLAYWRIGHT_BROWSERS_PATH;
 const { chromium } = await import("playwright");
-const port = Number(process.env.REASONIX_TRANSCRIPT_BROWSER_PORT ?? 4618);
+const port = Number(process.env.TEMPORA_TRANSCRIPT_BROWSER_PORT ?? 4618);
 const url = `http://127.0.0.1:${port}/?mock=bench&bench=1`;
 
 function assert(condition, message) {
@@ -164,7 +164,7 @@ async function runWindowedSelection(page) {
 
   await page.evaluate(() => {
     window.__selectionWrites = [];
-    window.__REASONIX_TRANSCRIPT_SCROLL_WRITE__ = (write) => window.__selectionWrites.push(write);
+    window.__TEMPORA_TRANSCRIPT_SCROLL_WRITE__ = (write) => window.__selectionWrites.push(write);
     Object.defineProperty(navigator, "clipboard", {
       configurable: true,
       value: { writeText: async (text) => { window.__selectionClipboard = text; } },
@@ -229,7 +229,7 @@ async function runWindowedSelection(page) {
   await page.waitForFunction(() => document.querySelectorAll(".transcript-selection-overlay__rect").length === 0,
     undefined, { timeout: 5_000 });
   await page.evaluate(() => {
-    window.__REASONIX_TRANSCRIPT_SCROLL_WRITE__ = undefined;
+    window.__TEMPORA_TRANSCRIPT_SCROLL_WRITE__ = undefined;
     window.__selectionWrites = undefined;
     window.__selectionClipboard = undefined;
   });

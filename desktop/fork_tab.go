@@ -7,9 +7,9 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/worktree"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/worktree"
 )
 
 const rewindForkAttachError = "conversation fork was created but could not be opened; open the recovery branch from session history"

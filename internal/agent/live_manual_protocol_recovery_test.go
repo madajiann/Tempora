@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 // The proxy corrupts only the second outbound replay request. Rejections are

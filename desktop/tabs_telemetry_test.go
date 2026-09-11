@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/billing"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/billing"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 type usageProvider struct {

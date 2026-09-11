@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 type historyPerfCase struct {

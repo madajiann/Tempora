@@ -3,8 +3,8 @@ package boot
 import (
 	"testing"
 
-	"reasonix/internal/extension"
-	"reasonix/internal/extensioncontract"
+	"tempora/internal/extension"
+	"tempora/internal/extensioncontract"
 )
 
 func TestRebuildFromGraphUsesPreviousAsFrom(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 // recordingSharedWindowProvider logs every request before delegating to the

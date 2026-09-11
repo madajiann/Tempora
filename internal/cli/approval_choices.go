@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/i18n"
-	"reasonix/internal/permission"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/i18n"
+	"tempora/internal/permission"
 )
 
 type approvalChoice struct {

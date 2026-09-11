@@ -19,9 +19,9 @@ export function applicationMenuTemplate(deps: MenuDeps): MenuItemConstructorOpti
       submenu: [
         { label: "Settings", accelerator: "CmdOrCtrl+,", click: () => deps.openSettings() },
         { label: "Toggle Developer Tools", accelerator: "CmdOrCtrl+I", click: () => deps.toggleDevTools() },
-        { label: "Show Reasonix", click: () => deps.showWindow() },
+        { label: "Show Tempora", click: () => deps.showWindow() },
         { type: "separator" },
-        { label: "Quit Reasonix", accelerator: "CmdOrCtrl+Q", click: () => deps.quit() },
+        { label: "Quit Tempora", accelerator: "CmdOrCtrl+Q", click: () => deps.quit() },
       ],
     },
     { role: "editMenu" },

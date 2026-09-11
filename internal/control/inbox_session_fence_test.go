@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/event"
+	"tempora/internal/event"
 )
 
 func TestInboxExpectedSessionCannotSubmitOrConfirmReplacement(t *testing.T) {

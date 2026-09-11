@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 func TestReconcileRepairsPersistedReadyDirectoryMissingCatalogRows(t *testing.T) {

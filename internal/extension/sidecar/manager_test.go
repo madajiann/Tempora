@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/extension"
-	"reasonix/internal/extension/protocol"
-	"reasonix/internal/pluginpkg"
+	"tempora/internal/extension"
+	"tempora/internal/extension/protocol"
+	"tempora/internal/pluginpkg"
 )
 
 // installFakePlugin writes a v1 manifest for a fake sidecar package and

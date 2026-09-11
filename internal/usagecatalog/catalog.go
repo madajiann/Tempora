@@ -18,8 +18,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"reasonix/internal/config"
-	"reasonix/internal/projectiondb"
+	"tempora/internal/config"
+	"tempora/internal/projectiondb"
 )
 
 const SchemaVersion = 1

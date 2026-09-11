@@ -11,14 +11,14 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/agent/testutil"
-	"reasonix/internal/event"
-	"reasonix/internal/extension"
-	"reasonix/internal/extension/dispatch"
-	"reasonix/internal/extension/protocol"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/agent/testutil"
+	"tempora/internal/event"
+	"tempora/internal/extension"
+	"tempora/internal/extension/dispatch"
+	"tempora/internal/extension/protocol"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 // Stage 6b1 control wiring tests. The dispatcher under test is real; only its

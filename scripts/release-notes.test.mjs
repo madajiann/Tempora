@@ -26,7 +26,7 @@ test("GitHub rendering keeps product sections and source PR links", async () => 
   assert.match(markdown, /## 风险提示/);
   assert.match(markdown, /## 致谢/);
   assert.match(markdown, /\/pull\/6460/);
-  assert.match(markdown, /reasonix\.io\/changelog\/v1\.17\.13/);
+  assert.match(markdown, /tempora\.io\/changelog\/v1\.17\.13/);
 });
 
 test("targeted releases render Desktop and CLI sections from one shared item", async () => {
@@ -179,7 +179,7 @@ test("managed Preview records bind every surface to one exact ordinal", () => {
     links: {
       github: "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/v1.19.0-preview.3",
       compare: "https://github.com/esengine/DeepSeek-Reasonix/compare/v1.19.0-preview.2...v1.19.0-preview.3",
-      download: "https://reasonix.io/?download=desktop&channel=preview#start",
+      download: "https://tempora.io/?download=desktop&channel=preview#start",
     },
   };
 
@@ -210,7 +210,7 @@ test("publication marker is bound to reviewed version, channel, SHA, and builds"
     channel: "preview",
     candidateSha: release.candidateSha,
     publishedAt: "2026-07-31T00:00:00.000Z",
-    releaseNotesUrl: "https://reasonix.io/changelog/v1.19.0-preview.3/",
+    releaseNotesUrl: "https://tempora.io/changelog/v1.19.0-preview.3/",
     builds: release.builds,
   };
 

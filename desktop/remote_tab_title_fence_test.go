@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 func TestRemoteTabTitleRefreshRejectsDifferentServeCurrent(t *testing.T) {

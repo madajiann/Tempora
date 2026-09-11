@@ -21,5 +21,5 @@ export function topicDisplayTitle(tab?: TabMeta): string {
 
 export function safeFilename(name: string): string {
   const cleaned = name.trim().replace(/[\\/:*?"<>|]+/g, "-").replace(/\s+/g, " ").slice(0, 80);
-  return cleaned || "reasonix-session";
+  return cleaned || "tempora-session";
 }

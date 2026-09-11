@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/billing"
-	"reasonix/internal/provider"
+	"tempora/internal/billing"
+	"tempora/internal/provider"
 )
 
 // BillingConfig controls host-side cost display. It never changes provider

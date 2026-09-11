@@ -1,8 +1,8 @@
 package main
 
 import (
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
+	"tempora/internal/agent"
+	"tempora/internal/event"
 )
 
 func historySteerRows(content string, unapplied bool) ([]HistoryMessage, bool) {

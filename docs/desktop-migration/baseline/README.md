@@ -2,7 +2,7 @@
 
 Captured with `scripts/desktop-shell-metrics.sh` on the frozen baseline build
 (`wails build -platform darwin/arm64`, Apple silicon, macOS 26.6), three runs,
-fresh disposable data home each run, `REASONIX_DEV=1`. Medians below; the raw
+fresh disposable data home each run, `TEMPORA_DEV=1`. Medians below; the raw
 runs are the JSON files beside this file. Electron builds are measured with the
 same script and compared only against these figures.
 
@@ -13,7 +13,7 @@ same script and compared only against these figures.
 | Process-tree RSS, healthy + 2 s | 389 MiB |
 | Process-tree RSS, healthy + 10 s | 385 MiB |
 | Process-tree RSS, healthy + 30 s | 412 MiB |
-| Processes in the tree | 4 (com.apple.WebKit.GPU, com.apple.WebKit.Networking, com.apple.WebKit.WebContent, reasonix-desktop) |
+| Processes in the tree | 4 (com.apple.WebKit.GPU, com.apple.WebKit.Networking, com.apple.WebKit.WebContent, tempora-desktop) |
 | SIGTERM honoured within 10 s | no (the Wails shell ignores SIGTERM; the script had to SIGKILL it) |
 
 Run 1 includes first-launch work in a cold data home; runs 2 and 3 reuse the
@@ -38,12 +38,12 @@ included), so "ready" is later than the Wails figure, which started at Go
 | Process-tree RSS, healthy + 2 s | 389 MiB | 665 MiB | +276 MiB |
 | Process-tree RSS, healthy + 10 s | 385 MiB | 668 MiB | +283 MiB |
 | Process-tree RSS, healthy + 30 s | 412 MiB | 697 MiB | +285 MiB |
-| Processes in the tree | 4 | 5 (Electron, Electron Helper, Electron Helper (Renderer), reasonix-desktop-service-versioned) | |
+| Processes in the tree | 4 | 5 (Electron, Electron Helper, Electron Helper (Renderer), tempora-desktop-service-versioned) | |
 | SIGTERM honoured within 10 s | no | yes (247 ms) | |
 
 The fixed cost is the Chromium runtime and a second renderer-class process;
 time to a healthy frontend is unchanged within noise. The unpackaged shell
-loads the UI from `frontend/dist` through the `reasonix://app` handler, the
+loads the UI from `frontend/dist` through the `tempora://app` handler, the
 same path the packaged build uses. Idle growth between 2 s and 30 s is the
 same order for both shells and is re-measured over an hour in the phase F
 acceptance run.

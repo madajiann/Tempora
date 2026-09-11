@@ -14,8 +14,8 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/proc"
-	"reasonix/internal/tool"
+	"tempora/internal/proc"
+	"tempora/internal/tool"
 )
 
 // DefaultWaitDelay mirrors the bash tool's child-process wait grace.

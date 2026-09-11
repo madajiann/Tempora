@@ -19,11 +19,11 @@ func ShellExecutableName() string { return ShellExecutableNameFor(runtime.GOOS) 
 func ShellExecutableNameFor(goos string) string {
 	switch goos {
 	case "windows":
-		return "Reasonix.exe"
+		return "Tempora.exe"
 	case "darwin":
-		return "Reasonix"
+		return "Tempora"
 	default:
-		return "Reasonix"
+		return "Tempora"
 	}
 }
 

@@ -34,7 +34,7 @@ async function call(channel: string, ...args: unknown[]): Promise<unknown> {
 }
 
 function fire(channel: string, ...args: unknown[]): void {
-  void call(channel, ...args).catch((error: unknown) => console.warn(`[reasonixDesktop] ${channel} failed`, error));
+  void call(channel, ...args).catch((error: unknown) => console.warn(`[temporaDesktop] ${channel} failed`, error));
 }
 
 function readContract(): ContractInfo {
@@ -59,7 +59,7 @@ function emit(name: string, args: unknown[]): void {
     try {
       listener(...args);
     } catch (error) {
-      console.error(`[reasonixDesktop] listener for ${name} failed`, error);
+      console.error(`[temporaDesktop] listener for ${name} failed`, error);
     }
   }
 }
@@ -179,7 +179,7 @@ const browser = {
   onDownload,
 };
 
-contextBridge.exposeInMainWorld("reasonixDesktop", {
+contextBridge.exposeInMainWorld("temporaDesktop", {
   kind: "electron",
   contract: readContract(),
   platform: {

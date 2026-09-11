@@ -3,7 +3,7 @@ package remote
 import (
 	"testing"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 func TestParseTarget(t *testing.T) {

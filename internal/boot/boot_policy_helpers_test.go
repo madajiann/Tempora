@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/config"
-	"reasonix/internal/provider"
+	"tempora/internal/config"
+	"tempora/internal/provider"
 )
 
 func bootLastUser(req provider.Request) string {

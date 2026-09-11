@@ -13,8 +13,8 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"reasonix/internal/diff"
-	"reasonix/internal/provider"
+	"tempora/internal/diff"
+	"tempora/internal/provider"
 )
 
 // Tool is a capability the model can invoke.

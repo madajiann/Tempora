@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/tool"
 )
 
 func TestPressureCompactionDoesNotCallChunkedFold(t *testing.T) {

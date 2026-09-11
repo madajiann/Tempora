@@ -7,12 +7,12 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/extension"
-	"reasonix/internal/extension/protocol"
-	"reasonix/internal/imageinput"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/extension"
+	"tempora/internal/extension/protocol"
+	"tempora/internal/imageinput"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 type emptyImageProvider struct{}

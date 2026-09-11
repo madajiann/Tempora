@@ -1,11 +1,11 @@
 package boot
 
 import (
-	"reasonix/internal/command"
-	"reasonix/internal/extension"
-	"reasonix/internal/hook"
-	"reasonix/internal/skill"
-	"reasonix/internal/tool"
+	"tempora/internal/command"
+	"tempora/internal/extension"
+	"tempora/internal/hook"
+	"tempora/internal/skill"
+	"tempora/internal/tool"
 )
 
 // ReusedAssembly holds rediscovery-free inputs for narrow/no-op rebuilds.

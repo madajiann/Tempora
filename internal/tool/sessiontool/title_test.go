@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 func writeTitleTestSession(t *testing.T, dir, name string) string {

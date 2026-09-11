@@ -4,9 +4,9 @@ import (
 	"errors"
 	"path/filepath"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/sessioncatalog"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/sessioncatalog"
 )
 
 type RecoveryLineageMember struct {

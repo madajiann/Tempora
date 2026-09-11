@@ -7,11 +7,11 @@ import (
 	"log/slog"
 	"sync/atomic"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/checkpoint"
-	"reasonix/internal/diff"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/checkpoint"
+	"tempora/internal/diff"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 // ErrRewindCoverageConfirmationRequired is returned by the compatibility

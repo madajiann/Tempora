@@ -66,12 +66,12 @@ if [ ! -f "$manifest" ]; then
 fi
 
 required_assets='[
-  "reasonix-darwin-amd64.tar.gz",
-  "reasonix-darwin-arm64.tar.gz",
-  "reasonix-linux-amd64.tar.gz",
-  "reasonix-linux-arm64.tar.gz",
-  "reasonix-windows-amd64.zip",
-  "reasonix-windows-arm64.zip",
+  "tempora-darwin-amd64.tar.gz",
+  "tempora-darwin-arm64.tar.gz",
+  "tempora-linux-amd64.tar.gz",
+  "tempora-linux-arm64.tar.gz",
+  "tempora-windows-amd64.zip",
+  "tempora-windows-arm64.zip",
   "SHA256SUMS"
 ]'
 
@@ -92,8 +92,8 @@ jq -e \
 	(.html_url == ("https://github.com/" + $repository + "/releases/tag/" + $tag)) and
 	(if $legacy
 		then (.release_notes_url == null or
-			.release_notes_url == ("https://reasonix.io/changelog/" + $notes_tag + "/"))
-		else (.release_notes_url == ("https://reasonix.io/changelog/" + $notes_tag + "/"))
+			.release_notes_url == ("https://tempora.io/changelog/" + $notes_tag + "/"))
+		else (.release_notes_url == ("https://tempora.io/changelog/" + $notes_tag + "/"))
 	end) and
 	(.assets | type == "array") and
 	(.assets | length == ($required | length)) and

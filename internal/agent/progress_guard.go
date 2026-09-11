@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/i18n"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/i18n"
+	"tempora/internal/provider"
 )
 
 // The no-progress ladder is adaptive, not a fixed round count: rounds are

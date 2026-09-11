@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/runtimepolicy"
+	"tempora/internal/agent"
+	"tempora/internal/runtimepolicy"
 )
 
 func TestTaskWarrantsPlanner(t *testing.T) {

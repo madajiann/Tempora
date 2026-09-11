@@ -18,7 +18,7 @@ import (
 	"sync"
 	"unicode/utf8"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 const (

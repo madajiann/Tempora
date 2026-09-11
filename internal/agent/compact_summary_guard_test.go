@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/extension"
-	"reasonix/internal/extension/dispatch"
-	"reasonix/internal/extension/protocol"
+	"tempora/internal/event"
+	"tempora/internal/extension"
+	"tempora/internal/extension/dispatch"
+	"tempora/internal/extension/protocol"
 )
 
 func TestCompactionPrepareCannotExpandAutomaticSummaryPastWindow(t *testing.T) {

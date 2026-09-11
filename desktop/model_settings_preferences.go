@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
+	"tempora/internal/agent"
+	"tempora/internal/config"
 	"strings"
 )
 

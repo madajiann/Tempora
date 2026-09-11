@@ -7,7 +7,7 @@ Ordinary partial `inspect`/`range` reads do not block finalization; explicit
 
 <a href="./TOOL_CONTRACT.zh-CN.md">简体中文</a>
 
-This document records the provider-visible contract for Reasonix compile-time built-in tools. It is generated from the same canonical schema path used by the runtime registry.
+This document records the provider-visible contract for Tempora compile-time built-in tools. It is generated from the same canonical schema path used by the runtime registry.
 
 | Tool | Read-only | Description |
 | --- | --- | --- |
@@ -46,7 +46,7 @@ The test checks that every registered built-in tool has a documented name, read-
 
 ## Default Full Boot Surface
 
-In a default full-token boot, Reasonix sends the built-in tools above plus the
+In a default full-token boot, Tempora sends the built-in tools above plus the
 session, memory, skill, subagent, LSP, install, and slash-command tools below:
 
 Every session uses this exact executor tool surface plus one stable

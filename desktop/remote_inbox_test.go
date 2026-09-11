@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/serve"
-	"reasonix/internal/sessioninbox"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/serve"
+	"tempora/internal/sessioninbox"
 )
 
 type remoteInboxRunner struct {

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/filelock"
+	"tempora/internal/filelock"
 )
 
 func TestTryFreshSnapshotReloadsAnotherStoreCommit(t *testing.T) {

@@ -1,4 +1,4 @@
-// Reasonix Community forum API. Identity from id.reasonix.io; content + anti-abuse
+// Tempora Community forum API. Identity from id.tempora.io; content + anti-abuse
 // state in D1. The Hono app is itself the Workers fetch handler.
 import { Hono } from "hono";
 import type { Context } from "hono";

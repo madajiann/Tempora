@@ -3,7 +3,7 @@ package agent
 import (
 	"slices"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 // activeTurnKeepRounds is how many of the active turn's newest assistant

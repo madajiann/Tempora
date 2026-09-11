@@ -10,10 +10,10 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 // fakeNotifier captures Notify calls and answers Request via an injectable hook,
@@ -217,7 +217,7 @@ type approveCall struct {
 
 func invalidACPv1PermissionOptionKind(options []PermissionOption) (PermissionOption, bool) {
 	// ACP v1 schema only accepts these four PermissionOptionKind values. ACP hosts
-	// own cross-session persistence, so Reasonix-specific persistent approvals must
+	// own cross-session persistence, so Tempora-specific persistent approvals must
 	// not appear in session/request_permission options.
 	valid := map[PermissionOptionKind]bool{
 		OptAllowOnce:    true,
@@ -294,7 +294,7 @@ func TestUpdateSinkPermissionCarriesStructuredContext(t *testing.T) {
 		if len(p.ToolCall.Locations) != 1 || !strings.HasSuffix(filepath.ToSlash(p.ToolCall.Locations[0].Path), "/src/main.go") {
 			t.Fatalf("locations = %+v", p.ToolCall.Locations)
 		}
-		meta, ok := p.ToolCall.Meta["reasonix.io"].(map[string]any)
+		meta, ok := p.ToolCall.Meta["tempora.io"].(map[string]any)
 		if !ok || meta["tool"] != "write_file" || meta["approvalId"] != "structured" || meta["reason"] != "write requested by the active goal" {
 			t.Fatalf("metadata = %#v", p.ToolCall.Meta)
 		}
@@ -397,7 +397,7 @@ func TestPermissionMetaOnlyTrustsForegroundStaticBash(t *testing.T) {
 		{name: "expansion", rawInput: `{"command":"go test $PACKAGE"}`},
 		{name: "glob expansion", rawInput: `{"command":"go test ./*.go"}`},
 		{name: "brace expansion", rawInput: `{"command":"printf '%s' {a,b}"}`},
-		{name: "tilde expansion", rawInput: `{"command":"test -f ~/.config/reasonix.toml"}`},
+		{name: "tilde expansion", rawInput: `{"command":"test -f ~/.config/tempora.toml"}`},
 		{name: "control syntax", rawInput: `{"command":"go test ./... && git status"}`},
 		{name: "background", rawInput: `{"command":"go test ./...","run_in_background":true}`},
 		{name: "preserved descendants", rawInput: `{"command":"go test ./...","preserve_background_processes":true}`},
@@ -406,11 +406,11 @@ func TestPermissionMetaOnlyTrustsForegroundStaticBash(t *testing.T) {
 			meta := sink.permissionMeta(event.Approval{
 				ID: "command", Tool: "bash", Subject: "command", RawInput: json.RawMessage(tc.rawInput),
 			})
-			reasonix, ok := meta["reasonix.io"].(map[string]any)
+			tempora, ok := meta["tempora.io"].(map[string]any)
 			if !ok {
-				t.Fatalf("reasonix metadata = %#v", meta)
+				t.Fatalf("tempora metadata = %#v", meta)
 			}
-			argv, present := reasonix["argv"]
+			argv, present := tempora["argv"]
 			if len(tc.wantArgv) == 0 {
 				if present {
 					t.Fatalf("unsafe command received trusted argv: %#v", argv)
@@ -421,8 +421,8 @@ func TestPermissionMetaOnlyTrustsForegroundStaticBash(t *testing.T) {
 			if !ok || strings.Join(got, "\x00") != strings.Join(tc.wantArgv, "\x00") {
 				t.Fatalf("argv = %#v, want %#v", argv, tc.wantArgv)
 			}
-			if reasonix["commandSchemaVersion"] != 1 || reasonix["cwd"] != filepath.Clean(cwd) {
-				t.Fatalf("trusted command metadata = %#v", reasonix)
+			if tempora["commandSchemaVersion"] != 1 || tempora["cwd"] != filepath.Clean(cwd) {
+				t.Fatalf("trusted command metadata = %#v", tempora)
 			}
 		})
 	}
@@ -647,7 +647,7 @@ func TestApprovalOptionsFreshDynamicToolOnlyAllowOnceOrReject(t *testing.T) {
 }
 
 func TestDynamicBashApprovalOptionsUseExactSessionLiteral(t *testing.T) {
-	const command = "git status $(touch /tmp/reasonix-dynamic-approval)"
+	const command = "git status $(touch /tmp/tempora-dynamic-approval)"
 	options := approvalOptions("bash", command, false)
 	if len(options) != 3 || options[1].Kind != OptAllowAlways {
 		t.Fatalf("dynamic Bash options = %+v, want ordinary options with session grant", options)

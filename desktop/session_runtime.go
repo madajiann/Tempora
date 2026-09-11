@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 type SessionRuntimePhase string

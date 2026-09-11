@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/config"
-	"reasonix/internal/history"
-	"reasonix/internal/historycatalog"
-	"reasonix/internal/provider"
-	"reasonix/internal/sessioncatalog"
+	"tempora/internal/config"
+	"tempora/internal/history"
+	"tempora/internal/historycatalog"
+	"tempora/internal/provider"
+	"tempora/internal/sessioncatalog"
 )
 
 type HistorySessionPageRequest struct {

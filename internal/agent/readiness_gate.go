@@ -1,9 +1,9 @@
 package agent
 
 import (
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/taskcontract"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/taskcontract"
 )
 
 // readinessPauseActive reports whether an unmet final-readiness requirement may

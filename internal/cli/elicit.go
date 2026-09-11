@@ -7,8 +7,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"reasonix/internal/event"
-	"reasonix/internal/i18n"
+	"tempora/internal/event"
+	"tempora/internal/i18n"
 )
 
 // elicitCard is the CLI's MCP elicitation prompt: a flat form (string/number/

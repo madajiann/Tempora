@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 // OpenRemoteProjectTab adopts the clicked identity immediately; the Serve

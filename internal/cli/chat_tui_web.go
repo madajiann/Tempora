@@ -3,7 +3,7 @@ package cli
 import (
 	"os"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 
 	tea "charm.land/bubbletea/v2"
 )

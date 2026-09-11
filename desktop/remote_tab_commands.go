@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 func (a *App) RenameRemoteProjectSession(hostID, workspace, name, title string) error {

@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 	"strings"
 )
 

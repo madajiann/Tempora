@@ -12,22 +12,22 @@
 // a forced-GC retained-heap + cache-budget check against the warmup baseline.
 //
 // Usage:
-//   pnpm build            # once (the bench reuses dist/; REASONIX_BENCH_BUILD=1 forces a rebuild)
+//   pnpm build            # once (the bench reuses dist/; TEMPORA_BENCH_BUILD=1 forces a rebuild)
 //   pnpm test:bench
 //
 // Gates (env-overridable, defaults = plan values):
-//   REASONIX_BENCH_FIRST_PAINT_P95_MS   (100)
-//   REASONIX_BENCH_INTERACTIVE_P95_MS   (300)
-//   REASONIX_BENCH_INP_P95_MS           (200)
-//   REASONIX_BENCH_LONGTASK_P95_MS      (50)
-//   REASONIX_BENCH_LONGTASK_MAX_MS      (500)
-//   REASONIX_BENCH_MARKDOWN_PARSE_MAX_MS (3000)
-//   REASONIX_BENCH_IDLE_CPU_PERCENT     (3)
-//   REASONIX_BENCH_HEAP_GROWTH_MIB      (20)
-//   REASONIX_BENCH_SWITCHES             (100)
-//   REASONIX_BENCH_COLD_RUNS            (5)
-//   REASONIX_BENCH_WARMUP               (6)
-//   REASONIX_BENCH_PORT                 (4617)
+//   TEMPORA_BENCH_FIRST_PAINT_P95_MS   (100)
+//   TEMPORA_BENCH_INTERACTIVE_P95_MS   (300)
+//   TEMPORA_BENCH_INP_P95_MS           (200)
+//   TEMPORA_BENCH_LONGTASK_P95_MS      (50)
+//   TEMPORA_BENCH_LONGTASK_MAX_MS      (500)
+//   TEMPORA_BENCH_MARKDOWN_PARSE_MAX_MS (3000)
+//   TEMPORA_BENCH_IDLE_CPU_PERCENT     (3)
+//   TEMPORA_BENCH_HEAP_GROWTH_MIB      (20)
+//   TEMPORA_BENCH_SWITCHES             (100)
+//   TEMPORA_BENCH_COLD_RUNS            (5)
+//   TEMPORA_BENCH_WARMUP               (6)
+//   TEMPORA_BENCH_PORT                 (4617)
 //
 // Exit code is 0 when every gate passes, 1 otherwise. Results are written to
 // bench/results.json and summarized on stdout.
@@ -53,22 +53,22 @@ function numEnv(name, fallback) {
 }
 
 const GATES = {
-  firstPaintP95Ms: numEnv("REASONIX_BENCH_FIRST_PAINT_P95_MS", 100),
-  interactiveP95Ms: numEnv("REASONIX_BENCH_INTERACTIVE_P95_MS", 300),
-  inpP95Ms: numEnv("REASONIX_BENCH_INP_P95_MS", 200),
-  longTaskP95Ms: numEnv("REASONIX_BENCH_LONGTASK_P95_MS", 50),
-  longTaskMaxMs: numEnv("REASONIX_BENCH_LONGTASK_MAX_MS", 500),
-  markdownParseMaxMs: numEnv("REASONIX_BENCH_MARKDOWN_PARSE_MAX_MS", 3000),
-  idleCpuPercent: numEnv("REASONIX_BENCH_IDLE_CPU_PERCENT", 3),
-  heapGrowthMiB: numEnv("REASONIX_BENCH_HEAP_GROWTH_MIB", 20),
+  firstPaintP95Ms: numEnv("TEMPORA_BENCH_FIRST_PAINT_P95_MS", 100),
+  interactiveP95Ms: numEnv("TEMPORA_BENCH_INTERACTIVE_P95_MS", 300),
+  inpP95Ms: numEnv("TEMPORA_BENCH_INP_P95_MS", 200),
+  longTaskP95Ms: numEnv("TEMPORA_BENCH_LONGTASK_P95_MS", 50),
+  longTaskMaxMs: numEnv("TEMPORA_BENCH_LONGTASK_MAX_MS", 500),
+  markdownParseMaxMs: numEnv("TEMPORA_BENCH_MARKDOWN_PARSE_MAX_MS", 3000),
+  idleCpuPercent: numEnv("TEMPORA_BENCH_IDLE_CPU_PERCENT", 3),
+  heapGrowthMiB: numEnv("TEMPORA_BENCH_HEAP_GROWTH_MIB", 20),
 };
-const SWITCHES = Math.round(numEnv("REASONIX_BENCH_SWITCHES", 100));
-const COLD_RUNS = Math.round(numEnv("REASONIX_BENCH_COLD_RUNS", 5));
-const WARMUP_SWITCHES = Math.round(numEnv("REASONIX_BENCH_WARMUP", 6));
-const PORT = Math.round(numEnv("REASONIX_BENCH_PORT", 4617));
+const SWITCHES = Math.round(numEnv("TEMPORA_BENCH_SWITCHES", 100));
+const COLD_RUNS = Math.round(numEnv("TEMPORA_BENCH_COLD_RUNS", 5));
+const WARMUP_SWITCHES = Math.round(numEnv("TEMPORA_BENCH_WARMUP", 6));
+const PORT = Math.round(numEnv("TEMPORA_BENCH_PORT", 4617));
 
 // Cache budgets mirrored from transcriptStore.ts defaults (asserted via the
-// __reasonixPerf debug hook, which reports the store's own numbers).
+// __temporaPerf debug hook, which reports the store's own numbers).
 const BODY_BUDGET_BYTES = 32 << 20;
 const MARKDOWN_BUDGET_BYTES = 16 << 20;
 const MAX_RESIDENT_SESSIONS = 3;
@@ -125,7 +125,7 @@ async function waitForServer(url, timeoutMs = 30_000) {
 
 async function ensureBuild() {
   const distIndex = path.join(frontendDir, "dist", "index.html");
-  const force = process.env.REASONIX_BENCH_BUILD === "1";
+  const force = process.env.TEMPORA_BENCH_BUILD === "1";
   if (existsSync(distIndex) && !force) return;
   console.log("[bench] building frontend (vite build)…");
   await new Promise((resolve, reject) => {
@@ -269,7 +269,7 @@ async function switchTo(page, tab) {
 // AFTER the switch-latency measurement so click→first-render stays pure.
 async function settleMarkdownWorker(page, timeoutMs = 10_000) {
   await page
-    .waitForFunction(() => (window.__reasonixPerf?.stats()?.markdownWorker?.pending ?? 0) === 0, undefined, {
+    .waitForFunction(() => (window.__temporaPerf?.stats()?.markdownWorker?.pending ?? 0) === 0, undefined, {
       timeout: timeoutMs,
       polling: 100,
     })
@@ -340,7 +340,7 @@ async function main() {
     await page.addInitScript(COLLECTOR_INIT);
     await page.goto(PAGE_URL, { waitUntil: "domcontentloaded" });
     await page.waitForFunction(INTERACTIVE_FN, undefined, { timeout: 30_000, polling: "raf" });
-    await page.waitForFunction(() => Boolean(window.__reasonixPerf), { timeout: 10_000 });
+    await page.waitForFunction(() => Boolean(window.__temporaPerf), { timeout: 10_000 });
     const cdp = await context.newCDPSession(page);
 
     // Warmup: fill the LRU with both sessions, then settle back on the
@@ -352,11 +352,11 @@ async function main() {
     }
     await settleMarkdownMounts(page);
     const baseline = await forceGcAndHeap(cdp, page);
-    const baselineStats = await page.evaluate(() => window.__reasonixPerf.stats());
+    const baselineStats = await page.evaluate(() => window.__temporaPerf.stats());
     await page.evaluate(() => {
       window.__benchMetrics.longTasks.length = 0;
       window.__benchMetrics.events.length = 0;
-      window.__reasonixPerf.reset();
+      window.__temporaPerf.reset();
     });
 
     const switchLatencies = [];
@@ -391,8 +391,8 @@ async function main() {
     // The GC is part of retained-heap measurement, not the user switching
     // workflow, and can itself create a >50ms task on a loaded test host.
     const { finalStats, activations, benchMetrics } = await page.evaluate(() => ({
-      finalStats: window.__reasonixPerf.stats(),
-      activations: window.__reasonixPerf.activations(),
+      finalStats: window.__temporaPerf.stats(),
+      activations: window.__temporaPerf.activations(),
       benchMetrics: {
         longTasks: window.__benchMetrics.longTasks.map((t) => t.duration),
         events: window.__benchMetrics.events.map((e) => e.duration),

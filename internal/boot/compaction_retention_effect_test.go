@@ -6,8 +6,8 @@ import (
 	"sync"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 // compactionEffectProvider answers ordinary turns with enough text to drive the
@@ -62,7 +62,7 @@ func TestOldConstraintIsSummaryOwnedAfterCompactionThroughRealBuild(t *testing.T
 		return rec, nil
 	})
 	// 32000 leaves enough history outside the fixed 16% retained tail to fold.
-	writeFile(t, dir, "reasonix.toml", `
+	writeFile(t, dir, "tempora.toml", `
 default_model = "test-model"
 
 [agent]

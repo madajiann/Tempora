@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"reasonix/internal/evidence"
+	"tempora/internal/evidence"
 )
 
 const defaultReviewMaxSteps = 8

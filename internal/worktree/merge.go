@@ -301,7 +301,7 @@ func MergeBack(ctx context.Context, managedRoot string, request MergeRequest) (M
 			return mergeFailure(inspection, false, fmt.Errorf("re-inspect after auto-commit: %w", err))
 		}
 		if inspection.WorktreeHead != committedHead {
-			return mergeFailure(inspection, false, errors.New("worktree HEAD changed after Reasonix auto-commit; inspect again"))
+			return mergeFailure(inspection, false, errors.New("worktree HEAD changed after Tempora auto-commit; inspect again"))
 		}
 		request.ExpectedWorktreeHead = committedHead
 		request.ExpectedWorktreeStateToken = inspection.WorktreeStateToken

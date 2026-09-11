@@ -12,10 +12,10 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/provider/openai"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/provider/openai"
+	"tempora/internal/tool"
 )
 
 type liveLargeResultTool struct{}

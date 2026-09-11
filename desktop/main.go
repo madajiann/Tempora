@@ -1,9 +1,9 @@
-// Command reasonix-desktop is the Reasonix desktop service: the Go-side
+// Command tempora-desktop is the Tempora desktop service: the Go-side
 // control.Controller and platform integrations, driven by the Electron shell
 // over the desktop host protocol (--host-rpc on stdin/stdout). A plain launch
 // bootstraps the Electron shell installed beside this binary (app/) and exits;
 // the shell then restarts this binary as its --host-rpc service. It lives in a
-// nested module (reasonix/desktop) so the desktop build never touches the
+// nested module (tempora/desktop) so the desktop build never touches the
 // CLI's CGO_ENABLED=0 single-static-binary guarantee, while still importing
 // the same internal/* kernel.
 package main
@@ -14,15 +14,15 @@ import (
 	"strings"
 
 	// Blank imports wire compile-time built-ins into their registries, exactly as
-	// cmd/reasonix does — boot.Build resolves providers/tools from these registries.
-	_ "reasonix/internal/provider/anthropic"
-	_ "reasonix/internal/provider/openai"
-	_ "reasonix/internal/provider/responses"
-	_ "reasonix/internal/tool/builtin"
+	// cmd/tempora does — boot.Build resolves providers/tools from these registries.
+	_ "tempora/internal/provider/anthropic"
+	_ "tempora/internal/provider/openai"
+	_ "tempora/internal/provider/responses"
+	_ "tempora/internal/tool/builtin"
 )
 
 // version is injected at build time via `-ldflags "-X main.version=..."`,
-// mirroring cmd/reasonix/main.go. The auto-updater reads it (App.Version) to compare
+// mirroring cmd/tempora/main.go. The auto-updater reads it (App.Version) to compare
 // against the published manifest; an un-injected dev build stays "dev" and never
 // prompts to update.
 var version = "dev"
@@ -59,6 +59,6 @@ func main() {
 	}
 	exitIfShellBootstrapped(os.Args[1:])
 
-	fmt.Fprintln(os.Stderr, "reasonix-desktop: no Electron desktop shell (app/) is installed beside this binary; reinstall Reasonix or run the packaged desktop app")
+	fmt.Fprintln(os.Stderr, "tempora-desktop: no Electron desktop shell (app/) is installed beside this binary; reinstall Tempora or run the packaged desktop app")
 	os.Exit(1)
 }

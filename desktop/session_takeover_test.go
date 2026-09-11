@@ -14,12 +14,12 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/eventwire"
-	"reasonix/internal/remote/bootstrap"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/eventwire"
+	"tempora/internal/remote/bootstrap"
 )
 
 func TestTakeoverOwnershipEncodesOpaqueSessionPath(t *testing.T) {

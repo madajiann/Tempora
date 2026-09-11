@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 // TestBuildRequestWebSearchServerTool covers the tools-array shape when the

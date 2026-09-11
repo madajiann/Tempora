@@ -6,13 +6,13 @@ import (
 	"io"
 	"strings"
 
-	"reasonix/internal/billing"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/billing"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 // TextSink renders a turn's event stream to ANSI text on an io.Writer. It is
-// the reference terminal frontend: a headless `reasonix run` writes to stdout,
+// the reference terminal frontend: a headless `tempora run` writes to stdout,
 // and during the cache-first migration the chat TUI is fed through it too. The
 // output is byte-for-byte what the agent used to print directly, now driven by
 // typed events instead of inline Fprint calls.

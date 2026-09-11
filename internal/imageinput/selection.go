@@ -5,7 +5,7 @@ import (
 	"slices"
 	"strings"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func (s *Service) selectModel(current string, images []string) (string, error) {

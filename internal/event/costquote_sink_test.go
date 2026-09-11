@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/billing"
-	"reasonix/internal/provider"
+	"tempora/internal/billing"
+	"tempora/internal/provider"
 )
 
 func TestEnsureCostQuoteDoesNotUseRuntimeFX(t *testing.T) {

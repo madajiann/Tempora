@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/taskcatalog"
-	"reasonix/internal/taskmonitor"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/taskcatalog"
+	"tempora/internal/taskmonitor"
 )
 
 type TaskPageRequest struct {

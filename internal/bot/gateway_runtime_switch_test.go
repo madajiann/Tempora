@@ -10,9 +10,9 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/boot"
-	"reasonix/internal/control"
+	"tempora/internal/agent"
+	"tempora/internal/boot"
+	"tempora/internal/control"
 )
 
 type failureAtomicBotController struct {

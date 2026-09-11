@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 func (c *Controller) markInFlightTurn(startMessageIndex int, preserveUser bool) agent.InFlightTurnMeta {
@@ -314,7 +314,7 @@ func (c *Controller) emitHeadEvents() {
 		switch ev.Kind {
 		case agent.HeadEventForkedConcurrent:
 			c.sink.Emit(sessionRecoveryNotice(event.NoticeCodeSessionConcurrentWriter,
-				"another Reasonix window or process added to this conversation; its content is kept as a separate version"))
+				"another Tempora window or process added to this conversation; its content is kept as a separate version"))
 		case agent.HeadEventMultipleRecentHeads:
 			c.sink.Emit(sessionRecoveryNotice(event.NoticeCodeSessionHeadSwitched,
 				"opened the newest version of this conversation; other saved versions are available in View versions"))

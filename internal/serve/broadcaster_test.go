@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/eventwire"
+	"tempora/internal/event"
+	"tempora/internal/eventwire"
 )
 
 func TestBroadcasterFiltersSessions(t *testing.T) {

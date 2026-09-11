@@ -11,12 +11,12 @@ import (
 	"strings"
 	"syscall"
 
-	"reasonix/internal/boot"
-	"reasonix/internal/command"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/skill"
+	"tempora/internal/boot"
+	"tempora/internal/command"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/skill"
 )
 
 var setupSubagentCommand = func(ctx context.Context, modelName string, maxStepsOverride int, requireKey bool, sink event.Sink, workspaceRoot string) (*control.Controller, error) {
@@ -24,12 +24,12 @@ var setupSubagentCommand = func(ctx context.Context, modelName string, maxStepsO
 }
 
 const subagentUsageText = `usage:
-  reasonix subagent list [--dir PATH]
-  reasonix subagent create <name> --description TEXT (--prompt TEXT | --prompt-file PATH) [--scope project|global] [--model REF] [--effort LEVEL] [--tools a,b] [--color NAME] [--dir PATH]
-  reasonix subagent edit <name> [--description TEXT] [--prompt TEXT | --prompt-file PATH] [--model REF] [--effort LEVEL] [--tools a,b] [--color NAME] [--dir PATH]
-  reasonix subagent delete <name> --yes [--dir PATH]
-  reasonix subagent try <name> [--model REF] [--max-steps N] [--dir PATH] <task>
-  reasonix subagent run <name> [--model REF] [--max-steps N] [--dir PATH] <task>
+  tempora subagent list [--dir PATH]
+  tempora subagent create <name> --description TEXT (--prompt TEXT | --prompt-file PATH) [--scope project|global] [--model REF] [--effort LEVEL] [--tools a,b] [--color NAME] [--dir PATH]
+  tempora subagent edit <name> [--description TEXT] [--prompt TEXT | --prompt-file PATH] [--model REF] [--effort LEVEL] [--tools a,b] [--color NAME] [--dir PATH]
+  tempora subagent delete <name> --yes [--dir PATH]
+  tempora subagent try <name> [--model REF] [--max-steps N] [--dir PATH] <task>
+  tempora subagent run <name> [--model REF] [--max-steps N] [--dir PATH] <task>
 
 Use --prompt-file - or pipe stdin to read a system prompt from stdin.
 `

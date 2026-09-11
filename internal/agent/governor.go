@@ -7,16 +7,16 @@ package agent
 import (
 	"os"
 
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/i18n"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/i18n"
+	"tempora/internal/provider"
 )
 
 // governorEnabled gates enforcement for the A/B experiment; eligibility is
 // always recorded so baseline arms carry the same shadow. Env-scoped on
 // purpose — graduation to config waits on the experiment's verdict.
-var governorEnabled = os.Getenv("REASONIX_EXPERIMENT_GOVERNOR") == "1"
+var governorEnabled = os.Getenv("TEMPORA_EXPERIMENT_GOVERNOR") == "1"
 
 // governorEffort is the reduced depth the engaged governor asks of the
 // provider, only when that adapter explicitly declares the level.

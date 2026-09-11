@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/skill"
-	"reasonix/internal/tool"
+	"tempora/internal/skill"
+	"tempora/internal/tool"
 )
 
 func TestRoutePrefersReviewSkillForReviewRequest(t *testing.T) {

@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/worktree"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/worktree"
 )
 
 func TestForkWorktreeForTabCreatesIsolatedWorkspace(t *testing.T) {
@@ -36,7 +36,7 @@ func TestForkWorktreeForTabCreatesIsolatedWorkspace(t *testing.T) {
 			WorkspaceRoot: isolatedRoot,
 			WorktreeRoot:  filepath.Dir(isolatedRoot),
 			SourceRoot:    source,
-			Branch:        "reasonix/fork-test",
+			Branch:        "tempora/fork-test",
 		}, nil
 	}
 
@@ -171,7 +171,7 @@ func TestForkWorktreeForTabRollsBackUnusedCreation(t *testing.T) {
 		WorkspaceRoot: filepath.Join(t.TempDir(), "workspace"),
 		WorktreeRoot:  filepath.Join(t.TempDir(), "worktree"),
 		SourceRoot:    t.TempDir(),
-		Branch:        "reasonix/delivery-test",
+		Branch:        "tempora/delivery-test",
 		Head:          "deadbeef",
 	}
 	createDeliveryWorktree = func(context.Context, string, string) (worktree.Result, error) {
@@ -223,7 +223,7 @@ func TestForkWorktreeForTabPreservesReferencedWorkspaceWhenSourceCloses(t *testi
 		WorkspaceRoot: isolatedRoot,
 		WorktreeRoot:  worktreeRoot,
 		SourceRoot:    t.TempDir(),
-		Branch:        "reasonix/delivery-preserved",
+		Branch:        "tempora/delivery-preserved",
 		Head:          "deadbeef",
 	}
 	createDeliveryWorktree = func(context.Context, string, string) (worktree.Result, error) {

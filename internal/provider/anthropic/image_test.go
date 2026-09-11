@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/provider"
-	"reasonix/internal/provider/openai"
+	"tempora/internal/provider"
+	"tempora/internal/provider/openai"
 )
 
 func TestBuildRequestEmbedsImageBlockForVisionModel(t *testing.T) {

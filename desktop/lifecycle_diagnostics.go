@@ -12,10 +12,10 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/config"
-	"reasonix/internal/filelock"
-	"reasonix/internal/fileutil"
-	"reasonix/internal/repair"
+	"tempora/internal/config"
+	"tempora/internal/filelock"
+	"tempora/internal/fileutil"
+	"tempora/internal/repair"
 )
 
 const (

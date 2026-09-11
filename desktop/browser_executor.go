@@ -15,10 +15,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"reasonix/desktop/internal/browserops"
-	"reasonix/internal/browser"
-	"reasonix/internal/config"
-	"reasonix/internal/extension/rpcwire"
+	"tempora/desktop/internal/browserops"
+	"tempora/internal/browser"
+	"tempora/internal/config"
+	"tempora/internal/extension/rpcwire"
 )
 
 // Shell error codes for host/browser.* replies; anything else is transport
@@ -325,7 +325,7 @@ func (e *hostBrowserExecutor) Screenshot(ctx context.Context, req browser.Screen
 // captureDir is the task-owned scratch directory the shell writes captures
 // and downloads into; it lives outside the data home and is per tab.
 func (e *hostBrowserExecutor) captureDir() (string, error) {
-	dir := filepath.Join(os.TempDir(), "reasonix-browser", e.tabID)
+	dir := filepath.Join(os.TempDir(), "tempora-browser", e.tabID)
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return "", err
 	}

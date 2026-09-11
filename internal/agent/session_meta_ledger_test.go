@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 // shrinkMetaReadBackoffs keeps corrupt-sidecar tests fast. Only the pacing of

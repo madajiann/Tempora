@@ -1,8 +1,8 @@
 package main
 
 import (
-	"reasonix/internal/boot"
-	"reasonix/internal/control"
+	"tempora/internal/boot"
+	"tempora/internal/control"
 )
 
 func rebuildTabRuntime(a *App, tab *WorkspaceTab, old *control.Controller, opts boot.Options) (*boot.BuildResult, error) {
@@ -65,7 +65,7 @@ type RuntimeDoctorReport struct {
 }
 
 // RuntimeDoctor returns process-wide + active-tab extension runtime diagnostics
-// for the settings/status panel (mirrors `reasonix doctor runtime`).
+// for the settings/status panel (mirrors `tempora doctor runtime`).
 func (a *App) RuntimeDoctor() RuntimeDoctorReport {
 	var res *boot.BuildResult
 	if a != nil {

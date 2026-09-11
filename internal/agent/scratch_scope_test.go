@@ -5,12 +5,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/checkpoint"
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/provider"
-	"reasonix/internal/sessiontemp"
-	"reasonix/internal/tool"
+	"tempora/internal/checkpoint"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/provider"
+	"tempora/internal/sessiontemp"
+	"tempora/internal/tool"
 )
 
 func TestScratchScriptExecutionKeepsCheckpointCoverageFailClosed(t *testing.T) {

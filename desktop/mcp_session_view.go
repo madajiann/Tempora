@@ -1,6 +1,6 @@
 package main
 
-import "reasonix/internal/plugin"
+import "tempora/internal/plugin"
 
 func pluginServerToView(server plugin.ServerStatus) ServerView {
 	return ServerView{

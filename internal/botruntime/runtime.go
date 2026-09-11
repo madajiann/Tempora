@@ -8,12 +8,12 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/bot"
-	"reasonix/internal/bot/dingtalk"
-	"reasonix/internal/bot/feishu"
-	"reasonix/internal/bot/qq"
-	"reasonix/internal/bot/weixin"
-	"reasonix/internal/config"
+	"tempora/internal/bot"
+	"tempora/internal/bot/dingtalk"
+	"tempora/internal/bot/feishu"
+	"tempora/internal/bot/qq"
+	"tempora/internal/bot/weixin"
+	"tempora/internal/config"
 )
 
 // EnabledPlatforms resolves the requested channel list against the saved config.

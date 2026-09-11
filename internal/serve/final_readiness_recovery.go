@@ -3,8 +3,8 @@ package serve
 import (
 	"errors"
 
-	"reasonix/internal/control"
-	"reasonix/internal/provider"
+	"tempora/internal/control"
+	"tempora/internal/provider"
 )
 
 func validateSubmitAction(format, action string) error {

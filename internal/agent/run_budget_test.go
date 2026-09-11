@@ -6,10 +6,10 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"reasonix/internal/billing"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/billing"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 func TestRunBudgetUsesTheCanonicalOccurrenceTimeQuote(t *testing.T) {

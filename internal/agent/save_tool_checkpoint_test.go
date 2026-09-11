@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/provider"
-	"reasonix/internal/store"
+	"tempora/internal/provider"
+	"tempora/internal/store"
 )
 
 type checkpointObserver struct{ events []SessionPersistEvent }

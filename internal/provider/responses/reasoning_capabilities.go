@@ -1,6 +1,6 @@
 package responses
 
-import "reasonix/internal/provider"
+import "tempora/internal/provider"
 
 func (c *client) ReasoningReplayCapabilities() provider.ReasoningReplayCapabilities {
 	fallback := ""

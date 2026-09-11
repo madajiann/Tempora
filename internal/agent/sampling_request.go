@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 // samplingRequest is a once-prepared, frozen provider request for one model

@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	fileenc "reasonix/internal/fileutil/encoding"
-	"reasonix/internal/tool"
+	fileenc "tempora/internal/fileutil/encoding"
+	"tempora/internal/tool"
 )
 
 // editSource is the file state a read-modify-write tool works against, plus the

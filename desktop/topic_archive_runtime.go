@@ -4,7 +4,7 @@ import (
 	"errors"
 	"log/slog"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 func (a *App) captureTopicRuntimeBindings(topicID string) []removedSessionRuntime {

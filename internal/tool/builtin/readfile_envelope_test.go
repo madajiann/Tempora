@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 func writeEnvelopeFixture(t *testing.T, name string, lines int) (dir, path string) {

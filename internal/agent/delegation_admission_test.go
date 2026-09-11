@@ -3,8 +3,8 @@ package agent
 import (
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 func TestDelegationAdmissionVerdicts(t *testing.T) {

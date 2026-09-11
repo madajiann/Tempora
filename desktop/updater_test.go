@@ -22,9 +22,9 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/desktop/internal/update"
-	"reasonix/internal/installlayout"
-	"reasonix/internal/repair"
+	"tempora/desktop/internal/update"
+	"tempora/internal/installlayout"
+	"tempora/internal/repair"
 )
 
 func TestNormalizeVersion(t *testing.T) {
@@ -260,15 +260,15 @@ func TestExpectedUpdateVersionRejectsAdvancedPointer(t *testing.T) {
 
 func TestUpdateSiblingNamesCoverEveryReplacedEntryPoint(t *testing.T) {
 	windows := strings.Join(updateSiblingNames("windows"), "\x00")
-	for _, want := range []string{"reasonix-guard.exe", "reasonix-launcher.exe", "reasonix-update-helper.exe", "reasonix-cli.exe", "Reasonix.exe"} {
+	for _, want := range []string{"tempora-guard.exe", "tempora-launcher.exe", "tempora-update-helper.exe", "tempora-cli.exe", "Tempora.exe"} {
 		if !strings.Contains(windows, want) {
 			t.Errorf("Windows release unit omits %q: %q", want, windows)
 		}
 	}
-	if strings.Contains(windows, "reasonix.exe") {
+	if strings.Contains(windows, "tempora.exe") {
 		t.Fatalf("Windows release unit reintroduces the case-only CLI/launcher collision: %q", windows)
 	}
-	if got := updateSiblingNames("linux"); len(got) != 2 || got[0] != "reasonix-guard" || got[1] != "reasonix" {
+	if got := updateSiblingNames("linux"); len(got) != 2 || got[0] != "tempora-guard" || got[1] != "tempora" {
 		t.Fatalf("Linux release unit = %q", got)
 	}
 	if got := updateSiblingNames("darwin"); got != nil {
@@ -386,10 +386,10 @@ func TestLegacyChannelsSelectOfficialPointers(t *testing.T) {
 	if !reflect.DeepEqual(stable, want) || !reflect.DeepEqual(preview, want) {
 		t.Fatalf("manifest endpoints: stable=%q preview=%q want=%q", stable, preview, want)
 	}
-	if got := downloadPage("preview"); got != "https://reasonix.io/?download=desktop#start" {
+	if got := downloadPage("preview"); got != "https://tempora.io/?download=desktop#start" {
 		t.Errorf("legacy preview download page = %q", got)
 	}
-	if got := manifestDownloadPage("preview", "https://reasonix.io/?channel=preview&download=desktop#start"); got != "https://reasonix.io/?download=desktop#start" {
+	if got := manifestDownloadPage("preview", "https://tempora.io/?channel=preview&download=desktop#start"); got != "https://tempora.io/?download=desktop#start" {
 		t.Errorf("manifest official page = %q", got)
 	}
 	if got := manifestDownloadPage("preview", "https://example.com/releases"); got != "https://example.com/releases" {
@@ -397,8 +397,8 @@ func TestLegacyChannelsSelectOfficialPointers(t *testing.T) {
 	}
 	for _, unsafe := range []string{
 		"javascript:alert(1)",
-		"http://reasonix.io/#start",
-		"https://user@reasonix.io/#start",
+		"http://tempora.io/#start",
+		"https://user@tempora.io/#start",
 	} {
 		if got := manifestDownloadPage("preview", unsafe); got != downloadPage("stable") {
 			t.Errorf("unsafe manifest page %q = %q, want official fallback", unsafe, got)
@@ -481,7 +481,7 @@ func TestDesktopManifestValidation(t *testing.T) {
 			name: "wrong filename",
 			mutate: func(m *update.Manifest) {
 				asset := m.Platforms["darwin-arm64"]
-				asset.URL = strings.Replace(asset.URL, "Reasonix-", "Other-", 1)
+				asset.URL = strings.Replace(asset.URL, "Tempora-", "Other-", 1)
 				asset.Sig = asset.URL + ".minisig"
 				m.Platforms["darwin-arm64"] = asset
 			},
@@ -508,7 +508,7 @@ func TestDesktopManifestValidation(t *testing.T) {
 			name: "wrong asset host",
 			mutate: func(m *update.Manifest) {
 				asset := m.Platforms["darwin-arm64"]
-				asset.URL = strings.Replace(asset.URL, "dl.reasonix.io", "example.com", 1)
+				asset.URL = strings.Replace(asset.URL, "dl.tempora.io", "example.com", 1)
 				asset.Sig = asset.URL + ".minisig"
 				m.Platforms["darwin-arm64"] = asset
 			},
@@ -587,7 +587,7 @@ func TestDesktopManifestValidation(t *testing.T) {
 		{
 			name: "wrong download page",
 			mutate: func(m *update.Manifest) {
-				m.DownloadPage = "https://reasonix.io/?channel=stable&download=desktop#start"
+				m.DownloadPage = "https://tempora.io/?channel=stable&download=desktop#start"
 			},
 		},
 	}
@@ -638,7 +638,7 @@ func TestDesktopManifestValidation(t *testing.T) {
 	t.Run("unified GitHub release base", func(t *testing.T) {
 		manifest := validDesktopManifest(t, "stable", "v1.19.0")
 		oldBase := r2Base + "/desktop-v1.19.0/"
-		newBase := "https://github.com/esengine/DeepSeek-Reasonix/releases/download/v1.19.0/"
+		newBase := "https://github.com/tempora-dev/Tempora/releases/download/v1.19.0/"
 		for key, asset := range manifest.Platforms {
 			asset.URL = strings.Replace(asset.URL, oldBase, newBase, 1)
 			asset.Sig = asset.URL + ".minisig"
@@ -684,7 +684,7 @@ func TestDesktopManifestValidation(t *testing.T) {
 		asset.URL = strings.Replace(
 			asset.URL,
 			r2Base+"/desktop-v1.18.0/",
-			"https://github.com/esengine/DeepSeek-Reasonix/releases/download/desktop-v1.18.0/",
+			"https://github.com/tempora-dev/Tempora/releases/download/desktop-v1.18.0/",
 			1,
 		)
 		asset.Sig = asset.URL + ".minisig"
@@ -770,16 +770,16 @@ func TestValidateUpdateRedirect(t *testing.T) {
 		target    string
 		wantError bool
 	}{
-		{name: "Reasonix first-party redirect", target: "https://dl.reasonix.io/file"},
+		{name: "Tempora first-party redirect", target: "https://dl.tempora.io/file"},
 		{name: "GitHub redirect", target: "https://github.com/file"},
 		{name: "GitHub HTTPS asset redirect", target: "https://release-assets.githubusercontent.com/file"},
 		{name: "HTTPS downgrade", target: "http://release-assets.githubusercontent.com/file", wantError: true},
 		{name: "userinfo", target: "https://user@release-assets.githubusercontent.com/file", wantError: true},
 		{name: "missing hostname", target: "https:///file", wantError: true},
 		{name: "arbitrary HTTPS host", target: "https://example.com/file", wantError: true},
-		{name: "Reasonix suffix spoof", target: "https://dl.reasonix.io.evil.invalid/file", wantError: true},
+		{name: "Tempora suffix spoof", target: "https://dl.tempora.io.evil.invalid/file", wantError: true},
 		{name: "GitHub suffix spoof", target: "https://release-assets.githubusercontent.com.evil.invalid/file", wantError: true},
-		{name: "explicit port", target: "https://dl.reasonix.io:443/file", wantError: true},
+		{name: "explicit port", target: "https://dl.tempora.io:443/file", wantError: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -827,7 +827,7 @@ func TestSaveCachedUpdateMarksEvaluateDownloaded(t *testing.T) {
 
 	data := []byte("verified artifact")
 	asset := update.Asset{
-		URL:    "https://dl.reasonix.io/desktop-v9.9.9/Reasonix-linux-amd64.tar.gz",
+		URL:    "https://dl.tempora.io/desktop-v9.9.9/Tempora-linux-amd64.tar.gz",
 		Size:   int64(len(data)),
 		SHA256: sha256Hex(data),
 	}
@@ -859,7 +859,7 @@ func TestCachedUpdateRejectsTamperedArtifact(t *testing.T) {
 
 	data := []byte("verified artifact")
 	asset := update.Asset{
-		URL:    "https://dl.reasonix.io/desktop-v9.9.9/Reasonix-linux-amd64.tar.gz",
+		URL:    "https://dl.tempora.io/desktop-v9.9.9/Tempora-linux-amd64.tar.gz",
 		Size:   int64(len(data)),
 		SHA256: sha256Hex(data),
 	}
@@ -883,7 +883,7 @@ func TestCachedUpdateAcceptsLegacyChannelAlias(t *testing.T) {
 
 	data := []byte("verified artifact")
 	asset := update.Asset{
-		URL:    "https://dl.reasonix.io/desktop-v9.9.9/Reasonix-linux-amd64.tar.gz",
+		URL:    "https://dl.tempora.io/desktop-v9.9.9/Tempora-linux-amd64.tar.gz",
 		Size:   int64(len(data)),
 		SHA256: sha256Hex(data),
 	}
@@ -928,7 +928,7 @@ func TestDebCacheRequiresSignatureAndRejectsTarballReuse(t *testing.T) {
 
 	data := []byte("deb-bytes")
 	asset := update.Asset{
-		URL:    "https://dl.reasonix.io/desktop-v9.9.9/Reasonix-linux-amd64.deb",
+		URL:    "https://dl.tempora.io/desktop-v9.9.9/Tempora-linux-amd64.deb",
 		Size:   int64(len(data)),
 		SHA256: sha256Hex(data),
 	}
@@ -961,7 +961,7 @@ func TestDebCacheRequiresSignatureAndRejectsTarballReuse(t *testing.T) {
 	// Portable legacy cache (no artifactKind) remains valid for tarball.
 	tarball := []byte("tarball-bytes")
 	tAsset := update.Asset{
-		URL:    "https://dl.reasonix.io/desktop-v9.9.9/Reasonix-linux-amd64.tar.gz",
+		URL:    "https://dl.tempora.io/desktop-v9.9.9/Tempora-linux-amd64.tar.gz",
 		Size:   int64(len(tarball)),
 		SHA256: sha256Hex(tarball),
 	}
@@ -1012,11 +1012,11 @@ func TestCheckSHA256(t *testing.T) {
 }
 
 func TestExtractBinary(t *testing.T) {
-	want := []byte("#!/bin/sh\necho reasonix\n")
+	want := []byte("#!/bin/sh\necho tempora\n")
 	var buf bytes.Buffer
 	gz := gzip.NewWriter(&buf)
 	tw := tar.NewWriter(gz)
-	files := map[string][]byte{"README": []byte("ignore me"), "reasonix-desktop": want}
+	files := map[string][]byte{"README": []byte("ignore me"), "tempora-desktop": want}
 	for name, body := range files {
 		if err := tw.WriteHeader(&tar.Header{Name: name, Mode: 0o755, Size: int64(len(body)), Typeflag: tar.TypeReg}); err != nil {
 			t.Fatal(err)
@@ -1028,7 +1028,7 @@ func TestExtractBinary(t *testing.T) {
 	tw.Close()
 	gz.Close()
 
-	got, err := extractBinary(buf.Bytes(), "reasonix-desktop")
+	got, err := extractBinary(buf.Bytes(), "tempora-desktop")
 	if err != nil {
 		t.Fatalf("extractBinary: %v", err)
 	}
@@ -1068,17 +1068,17 @@ func TestExtractLinuxReleaseUnitRejectsAmbiguousMembers(t *testing.T) {
 		return tar.Header{Name: name, Mode: 0o755, Size: int64(len(body)), Typeflag: tar.TypeReg}
 	}
 	headers := []tar.Header{
-		base("reasonix-desktop", []byte("desktop")),
-		base("reasonix-guard", []byte("guard")),
-		base("reasonix", []byte("cli")),
+		base("tempora-desktop", []byte("desktop")),
+		base("tempora-guard", []byte("guard")),
+		base("tempora", []byte("cli")),
 	}
 	bodies := [][]byte{[]byte("desktop"), []byte("guard"), []byte("cli")}
 	if got, err := extractLinuxReleaseUnit(makeArchive(t, headers, bodies)); err != nil ||
-		string(got["reasonix-desktop"]) != "desktop" {
-		t.Fatalf("complete release extraction = %v, %q", err, got["reasonix-desktop"])
+		string(got["tempora-desktop"]) != "desktop" {
+		t.Fatalf("complete release extraction = %v, %q", err, got["tempora-desktop"])
 	}
 
-	duplicateHeaders := append(append([]tar.Header(nil), headers...), base("nested/reasonix", []byte("duplicate")))
+	duplicateHeaders := append(append([]tar.Header(nil), headers...), base("nested/tempora", []byte("duplicate")))
 	duplicateBodies := append(append([][]byte(nil), bodies...), []byte("duplicate"))
 	if _, err := extractLinuxReleaseUnit(makeArchive(t, duplicateHeaders, duplicateBodies)); err == nil ||
 		!strings.Contains(err.Error(), "appears more than once") {
@@ -1086,7 +1086,7 @@ func TestExtractLinuxReleaseUnitRejectsAmbiguousMembers(t *testing.T) {
 	}
 
 	nonRegular := append([]tar.Header(nil), headers...)
-	nonRegular[1] = tar.Header{Name: "reasonix-guard", Typeflag: tar.TypeSymlink, Linkname: "outside"}
+	nonRegular[1] = tar.Header{Name: "tempora-guard", Typeflag: tar.TypeSymlink, Linkname: "outside"}
 	nonRegularBodies := [][]byte{bodies[0], nil, bodies[2]}
 	if _, err := extractLinuxReleaseUnit(makeArchive(t, nonRegular, nonRegularBodies)); err == nil ||
 		!strings.Contains(err.Error(), "not a regular file") {
@@ -1098,7 +1098,7 @@ func TestApplyLinuxVersionedActivatesWithoutPersistingGuard(t *testing.T) {
 	root := robustTempDir(t)
 	source := robustTempDir(t)
 	// This fixture describes a Linux release even when the test host is Windows.
-	for _, name := range []string{"reasonix-desktop", "reasonix"} {
+	for _, name := range []string{"tempora-desktop", "tempora"} {
 		if err := os.WriteFile(filepath.Join(source, name), []byte("old-"+name), 0o700); err != nil {
 			t.Fatal(err)
 		}
@@ -1108,10 +1108,10 @@ func TestApplyLinuxVersionedActivatesWithoutPersistingGuard(t *testing.T) {
 		Version:     "v1.20.0",
 		RequestID:   "seed-linux",
 		Members: []installlayout.Member{
-			{Name: "reasonix-desktop", Path: filepath.Join(source, "reasonix-desktop")},
-			{Name: "reasonix", Path: filepath.Join(source, "reasonix")},
+			{Name: "tempora-desktop", Path: filepath.Join(source, "tempora-desktop")},
+			{Name: "tempora", Path: filepath.Join(source, "tempora")},
 		},
-		RequiredNames: []string{"reasonix-desktop", "reasonix"},
+		RequiredNames: []string{"tempora-desktop", "tempora"},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1128,14 +1128,14 @@ func TestApplyLinuxVersionedActivatesWithoutPersistingGuard(t *testing.T) {
 	if err != nil || ptr.ActiveVersion != "v1.20.1" {
 		t.Fatalf("pointer=%+v err=%v", ptr, err)
 	}
-	activeDesktop := filepath.Join(root, filepath.FromSlash(ptr.ActiveDir), "reasonix-desktop")
+	activeDesktop := filepath.Join(root, filepath.FromSlash(ptr.ActiveDir), "tempora-desktop")
 	data, err := os.ReadFile(activeDesktop)
-	if err != nil || string(data) != "new-reasonix-desktop" {
+	if err != nil || string(data) != "new-tempora-desktop" {
 		t.Fatalf("active desktop=%q err=%v", data, err)
 	}
 	for _, guardPath := range []string{
-		filepath.Join(root, "reasonix-guard"),
-		filepath.Join(root, "versions", "v1.20.1", "reasonix-guard"),
+		filepath.Join(root, "tempora-guard"),
+		filepath.Join(root, "versions", "v1.20.1", "tempora-guard"),
 	} {
 		if _, err := os.Lstat(guardPath); !os.IsNotExist(err) {
 			t.Fatalf("Guard persisted at %s: %v", guardPath, err)
@@ -1145,8 +1145,8 @@ func TestApplyLinuxVersionedActivatesWithoutPersistingGuard(t *testing.T) {
 
 func TestApplyLinuxHoldsReleaseUnitLockDuringReplace(t *testing.T) {
 	dir := robustTempDir(t)
-	t.Setenv("REASONIX_HOME", robustTempDir(t))
-	exe := filepath.Join(dir, "reasonix-desktop")
+	t.Setenv("TEMPORA_HOME", robustTempDir(t))
+	exe := filepath.Join(dir, "tempora-desktop")
 	releasePaths := releaseUnitPathsFor(dir, "linux")
 	for _, path := range releasePaths {
 		if err := os.WriteFile(path, []byte("old"), 0o700); err != nil {
@@ -1179,7 +1179,7 @@ func TestApplyLinuxHoldsReleaseUnitLockDuringReplace(t *testing.T) {
 	var buf bytes.Buffer
 	gz := gzip.NewWriter(&buf)
 	tw := tar.NewWriter(gz)
-	for _, name := range []string{"reasonix-desktop", "reasonix-guard", "reasonix"} {
+	for _, name := range []string{"tempora-desktop", "tempora-guard", "tempora"} {
 		body := []byte(name)
 		if err := tw.WriteHeader(&tar.Header{Name: name, Mode: 0o755, Size: int64(len(body)), Typeflag: tar.TypeReg}); err != nil {
 			t.Fatal(err)
@@ -1539,7 +1539,7 @@ func TestDownloadRejectsAssetSizeAboveMaximum(t *testing.T) {
 		context.Background(),
 		&http.Client{},
 		nil,
-		"https://dl.reasonix.io/file",
+		"https://dl.tempora.io/file",
 		maxDesktopReleaseAssetSize+1,
 		nil,
 	); err == nil {

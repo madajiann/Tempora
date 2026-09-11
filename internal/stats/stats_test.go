@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/billing"
-	"reasonix/internal/event"
-	"reasonix/internal/filelock"
-	"reasonix/internal/provider"
+	"tempora/internal/billing"
+	"tempora/internal/event"
+	"tempora/internal/filelock"
+	"tempora/internal/provider"
 )
 
 func flushRecorder(t *testing.T, recorder *Recorder) {

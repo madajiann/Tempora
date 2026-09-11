@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 type schemaShiftTransport struct {

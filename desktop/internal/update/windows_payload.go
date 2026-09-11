@@ -11,7 +11,7 @@ import (
 	"slices"
 	"strings"
 
-	"reasonix/internal/installlayout"
+	"tempora/internal/installlayout"
 )
 
 const (
@@ -19,24 +19,24 @@ const (
 	// file of the app/ shell tree; schema 1 manifests carry the flat list only.
 	WindowsPayloadManifestSchemaVersion = 2
 	windowsPayloadFlatSchemaVersion     = 1
-	WindowsPayloadManifestName          = "reasonix-payload.json"
+	WindowsPayloadManifestName          = "tempora-payload.json"
 	WindowsPayloadSignatureName         = WindowsPayloadManifestName + ".minisig"
 	// WindowsPayloadTreePrefix starts every shell tree entry name.
 	WindowsPayloadTreePrefix = installlayout.AppShellDirName + "/"
 )
 
 var windowsPayloadFileNames = [...]string{
-	"reasonix-desktop.exe",
-	"reasonix-guard.exe",
-	"reasonix-launcher.exe",
-	"reasonix-update-helper.exe",
-	"reasonix-cli.exe",
+	"tempora-desktop.exe",
+	"tempora-guard.exe",
+	"tempora-launcher.exe",
+	"tempora-update-helper.exe",
+	"tempora-cli.exe",
 }
 
 var windowsPayloadVersionFileNames = [...]string{
-	"reasonix-desktop.exe",
-	"reasonix-update-helper.exe",
-	"reasonix-cli.exe",
+	"tempora-desktop.exe",
+	"tempora-update-helper.exe",
+	"tempora-cli.exe",
 }
 
 type WindowsPayloadManifest struct {

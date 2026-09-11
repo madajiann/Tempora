@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
+	"tempora/internal/agent"
+	"tempora/internal/control"
 )
 
 // SessionClearResult is the post-clear session identity the frontend must apply

@@ -4,8 +4,8 @@ import (
 	"strings"
 	"sync"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/taskcontract"
+	"tempora/internal/evidence"
+	"tempora/internal/taskcontract"
 )
 
 // Engine owns the fact contract behind a dedicated mutex. Permission, tool

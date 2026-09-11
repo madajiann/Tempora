@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"reasonix/internal/config"
-	"reasonix/internal/fileutil"
+	"tempora/internal/config"
+	"tempora/internal/fileutil"
 )
 
 func themeStatePath() string {
@@ -357,7 +357,7 @@ func writeThemeStaging(m *ThemePackManifest, imagePath string, imageBytes []byte
 	if err := validateThemePackManifest(m); err != nil {
 		return "", err
 	}
-	staging, err = os.MkdirTemp("", "reasonix-theme-stage-*")
+	staging, err = os.MkdirTemp("", "tempora-theme-stage-*")
 	if err != nil {
 		return "", err
 	}

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/usagecatalog"
+	"tempora/internal/usagecatalog"
 )
 
 func TestUsageManagerCloseFencesOpenAndAllowsRestart(t *testing.T) {

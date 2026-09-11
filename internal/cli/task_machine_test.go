@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/event"
-	"reasonix/internal/jobs"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/event"
+	"tempora/internal/jobs"
 )
 
 func TestTaskMachineListUsesContentFreePersistedMetadata(t *testing.T) {

@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/bot"
-	"reasonix/internal/config"
+	"tempora/internal/bot"
+	"tempora/internal/config"
 )
 
 func TestStartReturnsMissingToken(t *testing.T) {

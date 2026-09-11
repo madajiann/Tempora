@@ -10,12 +10,12 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
-	"reasonix/internal/permission"
-	"reasonix/internal/provider"
-	"reasonix/internal/recovery"
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/event"
+	"tempora/internal/permission"
+	"tempora/internal/provider"
+	"tempora/internal/recovery"
+	"tempora/internal/tool"
 )
 
 type recoveryWriteTool struct {

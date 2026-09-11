@@ -5,7 +5,7 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func TestTruncateToolText(t *testing.T) {

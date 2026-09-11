@@ -10,27 +10,27 @@ import worker from "./index";
 const sha256 = "a".repeat(64);
 
 function desktopManifest(version: string, base?: string) {
-  const releaseBase = base ?? `https://dl.reasonix.io/desktop-${version}/`;
+  const releaseBase = base ?? `https://dl.tempora.io/desktop-${version}/`;
   const asset = (name: string) => {
     const url = releaseBase + name;
     return { url, sig: `${url}.minisig`, size: 42, sha256 };
   };
   return {
     version,
-    download_page: "https://reasonix.io/?download=desktop#start",
+    download_page: "https://tempora.io/?download=desktop#start",
     platforms: {
-      "darwin-arm64": asset("Reasonix-darwin-arm64.zip"),
-      "darwin-amd64": asset("Reasonix-darwin-amd64.zip"),
-      "windows-amd64": asset("Reasonix-windows-amd64-installer.exe"),
-      "windows-arm64": asset("Reasonix-windows-arm64-installer.exe"),
-      "linux-amd64": asset("Reasonix-linux-amd64.tar.gz"),
+      "darwin-arm64": asset("Tempora-darwin-arm64.zip"),
+      "darwin-amd64": asset("Tempora-darwin-amd64.zip"),
+      "windows-amd64": asset("Tempora-windows-amd64-installer.exe"),
+      "windows-arm64": asset("Tempora-windows-arm64-installer.exe"),
+      "linux-amd64": asset("Tempora-linux-amd64.tar.gz"),
     },
     native_packages: {
-      "linux-amd64": asset("Reasonix-linux-amd64.deb"),
+      "linux-amd64": asset("Tempora-linux-amd64.deb"),
     },
     downloads: {
-      "Reasonix-darwin-universal.dmg": asset("Reasonix-darwin-universal.dmg"),
-      "Reasonix-windows-amd64.zip": asset("Reasonix-windows-amd64.zip"),
+      "Tempora-darwin-universal.dmg": asset("Tempora-darwin-universal.dmg"),
+      "Tempora-windows-amd64.zip": asset("Tempora-windows-amd64.zip"),
     },
   };
 }
@@ -56,12 +56,12 @@ function githubDesktopRelease(version: string, overrides: Record<string, unknown
 }
 
 const cliAssets = [
-  "reasonix-darwin-amd64.tar.gz",
-  "reasonix-darwin-arm64.tar.gz",
-  "reasonix-linux-amd64.tar.gz",
-  "reasonix-linux-arm64.tar.gz",
-  "reasonix-windows-amd64.zip",
-  "reasonix-windows-arm64.zip",
+  "tempora-darwin-amd64.tar.gz",
+  "tempora-darwin-arm64.tar.gz",
+  "tempora-linux-amd64.tar.gz",
+  "tempora-linux-arm64.tar.gz",
+  "tempora-windows-amd64.zip",
+  "tempora-windows-arm64.zip",
   "SHA256SUMS",
 ];
 
@@ -97,15 +97,15 @@ describe("desktop Preview release gateway", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("access-control-allow-origin")).toBe("*");
-    expect(response.headers.get("x-reasonix-release-source")).toBe("r2-preview");
+    expect(response.headers.get("x-tempora-release-source")).toBe("r2-preview");
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("https://dl.reasonix.io/preview/latest.json");
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("https://dl.tempora.io/preview/latest.json");
   });
 
   it("keeps serving the signed rolling Preview manifest during pointer migration", async () => {
     const legacy = desktopManifest(
       "v1.18.0-preview.62",
-      "https://dl.reasonix.io/desktop-preview/",
+      "https://dl.tempora.io/desktop-preview/",
     );
     Reflect.deleteProperty(legacy, "downloads");
     const fetchMock = vi.fn(async () =>
@@ -116,14 +116,14 @@ describe("desktop Preview release gateway", () => {
     const response = await handleDesktopReleaseManifest("preview");
 
     expect(response.status).toBe(200);
-    expect(response.headers.get("x-reasonix-release-source")).toBe("r2-preview");
+    expect(response.headers.get("x-tempora-release-source")).toBe("r2-preview");
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("rejects a new-format Preview manifest that still uses rolling assets", async () => {
     const rolling = desktopManifest(
       "v1.18.0-preview.63",
-      "https://dl.reasonix.io/desktop-preview/",
+      "https://dl.tempora.io/desktop-preview/",
     );
     const fetchMock = vi
       .fn()
@@ -149,43 +149,43 @@ describe("desktop Preview release gateway", () => {
     const response = await handleDesktopReleaseManifest("preview");
 
     expect(response.status).toBe(200);
-    expect(response.headers.get("x-reasonix-release-source")).toBe("r2-canary-compat");
+    expect(response.headers.get("x-tempora-release-source")).toBe("r2-canary-compat");
     expect(fetchMock.mock.calls.map((call) => call[0])).toEqual([
-      "https://dl.reasonix.io/preview/latest.json",
-      "https://dl.reasonix.io/canary/latest.json",
+      "https://dl.tempora.io/preview/latest.json",
+      "https://dl.tempora.io/canary/latest.json",
     ]);
   });
 
   it("rejects hostile URLs and incomplete Desktop manifests", async () => {
     const cases: Array<[string, (manifest: ReturnType<typeof desktopManifest>) => void]> = [
       ["malicious host", (manifest) => {
-        const url = "https://evil.invalid/desktop-v1.2.0-preview.7/Reasonix-darwin-arm64.zip";
+        const url = "https://evil.invalid/desktop-v1.2.0-preview.7/Tempora-darwin-arm64.zip";
         Object.assign(manifest.platforms["darwin-arm64"], { url, sig: `${url}.minisig` });
       }],
       ["userinfo", (manifest) => {
-        const url = "https://dl.reasonix.io@evil.invalid/desktop-v1.2.0-preview.7/Reasonix-darwin-arm64.zip";
+        const url = "https://dl.tempora.io@evil.invalid/desktop-v1.2.0-preview.7/Tempora-darwin-arm64.zip";
         Object.assign(manifest.platforms["darwin-arm64"], { url, sig: `${url}.minisig` });
       }],
       ["http", (manifest) => {
-        const url = "http://dl.reasonix.io/desktop-v1.2.0-preview.7/Reasonix-darwin-arm64.zip";
+        const url = "http://dl.tempora.io/desktop-v1.2.0-preview.7/Tempora-darwin-arm64.zip";
         Object.assign(manifest.platforms["darwin-arm64"], { url, sig: `${url}.minisig` });
       }],
       ["wrong channel path", (manifest) => {
-        const url = "https://dl.reasonix.io/preview/Reasonix-darwin-arm64.zip";
+        const url = "https://dl.tempora.io/preview/Tempora-darwin-arm64.zip";
         Object.assign(manifest.platforms["darwin-arm64"], { url, sig: `${url}.minisig` });
       }],
       ["wrong filename", (manifest) => {
-        const url = "https://dl.reasonix.io/desktop-v1.2.0-preview.7/Reasonix-darwin-amd64.zip";
+        const url = "https://dl.tempora.io/desktop-v1.2.0-preview.7/Tempora-darwin-amd64.zip";
         Object.assign(manifest.platforms["darwin-arm64"], { url, sig: `${url}.minisig` });
       }],
       ["missing asset", (manifest) => {
         delete (manifest.platforms as Partial<typeof manifest.platforms>)["windows-arm64"];
       }],
       ["missing website download", (manifest) => {
-        delete (manifest.downloads as Partial<typeof manifest.downloads>)["Reasonix-darwin-universal.dmg"];
+        delete (manifest.downloads as Partial<typeof manifest.downloads>)["Tempora-darwin-universal.dmg"];
       }],
       ["invalid website download", (manifest) => {
-        manifest.downloads["Reasonix-windows-amd64.zip"].size = 0;
+        manifest.downloads["Tempora-windows-amd64.zip"].size = 0;
       }],
       ["bad SHA", (manifest) => {
         manifest.platforms["darwin-arm64"].sha256 = "A".repeat(64);
@@ -232,7 +232,7 @@ describe("desktop Stable GitHub fallback", () => {
     const response = await handleDesktopReleaseManifest("stable");
 
     expect(response.status).toBe(200);
-    expect(response.headers.get("x-reasonix-release-source")).toBe("r2-stable");
+    expect(response.headers.get("x-tempora-release-source")).toBe("r2-stable");
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
@@ -247,7 +247,7 @@ describe("desktop Stable GitHub fallback", () => {
     const response = await handleDesktopReleaseManifest("stable");
 
     expect(response.status).toBe(200);
-    expect(response.headers.get("x-reasonix-release-source")).toBe("r2-stable");
+    expect(response.headers.get("x-tempora-release-source")).toBe("r2-stable");
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
@@ -293,9 +293,9 @@ describe("desktop Stable GitHub fallback", () => {
 
     expect(response.status).toBe(200);
     expect(body.version).toBe("v1.18.0");
-    expect(response.headers.get("x-reasonix-release-source")).toBe("github-desktop-release");
+    expect(response.headers.get("x-tempora-release-source")).toBe("github-desktop-release");
     expect(fetchMock.mock.calls.map((call) => call[0])).toEqual([
-      "https://dl.reasonix.io/latest/latest.json",
+      "https://dl.tempora.io/latest/latest.json",
       "https://api.github.com/repos/esengine/DeepSeek-Reasonix/releases/latest",
       `${githubBase}latest.json`,
     ]);
@@ -356,7 +356,7 @@ describe("release gateway HTTP method contract", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const response = await worker.fetch(
-      new Request("https://crash.reasonix.io/v1/cli/releases/stable/latest.json", {
+      new Request("https://crash.tempora.io/v1/cli/releases/stable/latest.json", {
         method: "OPTIONS",
       }),
       env,
@@ -377,7 +377,7 @@ describe("release gateway HTTP method contract", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const response = await worker.fetch(
-      new Request("https://crash.reasonix.io/v1/desktop/releases/preview/latest.json", {
+      new Request("https://crash.tempora.io/v1/desktop/releases/preview/latest.json", {
         method: "HEAD",
       }),
       env,
@@ -386,7 +386,7 @@ describe("release gateway HTTP method contract", () => {
     expect(response.status).toBe(200);
     expect(await response.text()).toBe("");
     expect(response.headers.get("access-control-allow-origin")).toBe("*");
-    expect(response.headers.get("x-reasonix-release-source")).toBe("r2-preview");
+    expect(response.headers.get("x-tempora-release-source")).toBe("r2-preview");
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
@@ -395,7 +395,7 @@ describe("release gateway HTTP method contract", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const response = await worker.fetch(
-      new Request("https://crash.reasonix.io/v1/cli/releases/preview/latest.json", {
+      new Request("https://crash.tempora.io/v1/cli/releases/preview/latest.json", {
         method: "POST",
       }),
       env,
@@ -426,8 +426,8 @@ describe("CLI public release gateway", () => {
 
     expect(body.tag_name).toBe("v1.18.0-preview.1");
     expect(response.headers.get("access-control-allow-origin")).toBe("*");
-    expect(response.headers.get("x-reasonix-release-source")).toBe("r2-cli-preview");
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("https://dl.reasonix.io/cli/preview/latest.json");
+    expect(response.headers.get("x-tempora-release-source")).toBe("r2-cli-preview");
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("https://dl.tempora.io/cli/preview/latest.json");
   });
 
   it("rewrites release notes to the canonical repository tag URL", async () => {
@@ -466,17 +466,17 @@ describe("CLI public release gateway", () => {
     const body = await response.json() as { tag_name?: string };
 
     expect(body.tag_name).toBe("v1.18.0-preview.12");
-    expect(response.headers.get("x-reasonix-release-source")).toBe("github-cli-releases");
+    expect(response.headers.get("x-tempora-release-source")).toBe("github-cli-releases");
     expect(fetchMock.mock.calls[1]?.[0]).toContain("releases?per_page=100");
   });
 
   it("requires every CLI asset URL to be canonical", async () => {
     const invalidURLs = [
-      "https://evil.invalid/esengine/DeepSeek-Reasonix/releases/download/v1.20.0/reasonix-darwin-amd64.tar.gz",
-      "https://github.com@evil.invalid/esengine/DeepSeek-Reasonix/releases/download/v1.20.0/reasonix-darwin-amd64.tar.gz",
-      "http://github.com/esengine/DeepSeek-Reasonix/releases/download/v1.20.0/reasonix-darwin-amd64.tar.gz",
-      "https://github.com/esengine/DeepSeek-Reasonix/releases/download/v1.19.0/reasonix-darwin-amd64.tar.gz",
-      "https://github.com/esengine/DeepSeek-Reasonix/releases/download/v1.20.0/reasonix-darwin-arm64.tar.gz",
+      "https://evil.invalid/esengine/DeepSeek-Reasonix/releases/download/v1.20.0/tempora-darwin-amd64.tar.gz",
+      "https://github.com@evil.invalid/esengine/DeepSeek-Reasonix/releases/download/v1.20.0/tempora-darwin-amd64.tar.gz",
+      "http://github.com/esengine/DeepSeek-Reasonix/releases/download/v1.20.0/tempora-darwin-amd64.tar.gz",
+      "https://github.com/esengine/DeepSeek-Reasonix/releases/download/v1.19.0/tempora-darwin-amd64.tar.gz",
+      "https://github.com/esengine/DeepSeek-Reasonix/releases/download/v1.20.0/tempora-darwin-arm64.tar.gz",
     ];
 
     for (const browserDownloadURL of invalidURLs) {
@@ -492,7 +492,7 @@ describe("CLI public release gateway", () => {
       const body = await response.json() as { tag_name?: string };
 
       expect(body.tag_name).toBe("v1.19.0");
-      expect(response.headers.get("x-reasonix-release-source")).toBe("github-cli-releases");
+      expect(response.headers.get("x-tempora-release-source")).toBe("github-cli-releases");
       vi.unstubAllGlobals();
     }
   });
@@ -521,7 +521,7 @@ describe("CLI public release gateway", () => {
       const body = await response.json() as { tag_name?: string };
 
       expect(body.tag_name, `size ${String(size)}`).toBe("v1.19.0");
-      expect(response.headers.get("x-reasonix-release-source")).toBe("github-cli-releases");
+      expect(response.headers.get("x-tempora-release-source")).toBe("github-cli-releases");
       vi.unstubAllGlobals();
     }
   });
@@ -539,7 +539,7 @@ describe("CLI public release gateway", () => {
     const body = await response.json() as { tag_name?: string };
 
     expect(body.tag_name).toBe("v1.19.0");
-    expect(response.headers.get("x-reasonix-release-source")).toBe("github-cli-releases");
+    expect(response.headers.get("x-tempora-release-source")).toBe("github-cli-releases");
   });
 
   it("rejects incomplete releases and compares huge Stable versions exactly", async () => {
@@ -560,7 +560,7 @@ describe("CLI public release gateway", () => {
     const body = await response.json() as { tag_name?: string };
 
     expect(body.tag_name).toBe("v100000000000000000000.0.0");
-    expect(response.headers.get("x-reasonix-release-source")).toBe("github-cli-releases");
+    expect(response.headers.get("x-tempora-release-source")).toBe("github-cli-releases");
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });

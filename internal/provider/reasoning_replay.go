@@ -4,7 +4,7 @@ import (
 	"slices"
 	"strings"
 
-	"reasonix/internal/nilutil"
+	"tempora/internal/nilutil"
 )
 
 // AssistantReasoningReplayPolicy is optionally implemented by providers whose

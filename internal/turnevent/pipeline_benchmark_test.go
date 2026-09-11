@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/turnevent"
+	"tempora/internal/event"
+	"tempora/internal/turnevent"
 )
 
 type benchmarkLedgerSink struct {

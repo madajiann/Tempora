@@ -8,7 +8,7 @@ import (
 
 	"golang.org/x/sys/windows"
 
-	"reasonix/desktop/internal/instanceidentity"
+	"tempora/desktop/internal/instanceidentity"
 )
 
 func TestTrayIdentityRequiresVerifiedSignature(t *testing.T) {

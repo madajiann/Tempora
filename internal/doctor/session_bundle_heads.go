@@ -3,7 +3,7 @@ package doctor
 import (
 	"time"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 // SessionBundleHead is one head of a schema-2 session log as the bundle

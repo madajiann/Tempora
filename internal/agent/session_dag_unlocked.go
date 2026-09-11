@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	"reasonix/internal/store"
+	"tempora/internal/store"
 )
 
 const (

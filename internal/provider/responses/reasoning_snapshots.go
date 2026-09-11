@@ -3,7 +3,7 @@ package responses
 import (
 	"context"
 	"encoding/json"
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 type responseReasoningSnapshots struct{ items []json.RawMessage }

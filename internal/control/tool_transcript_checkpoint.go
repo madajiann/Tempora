@@ -2,8 +2,8 @@ package control
 
 import (
 	"context"
-	"reasonix/internal/extension"
-	"reasonix/internal/extension/dispatch"
+	"tempora/internal/extension"
+	"tempora/internal/extension/dispatch"
 )
 
 // checkpointToolTranscript persists execution evidence before another tool may

@@ -4,9 +4,9 @@ import (
 	"log/slog"
 	"time"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/provider"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/provider"
 )
 
 func (a *App) recordModelSwitchTiming(tabID string, timing *modelSwitchTiming, started time.Time, result *error) {

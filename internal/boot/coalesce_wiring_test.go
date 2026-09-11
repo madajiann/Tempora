@@ -7,8 +7,8 @@ import (
 	"sync"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 type coalesceWiringProvider struct{ deltas int }
@@ -57,7 +57,7 @@ func TestBuildCoalescesAgentStreamDeltas(t *testing.T) {
 	provider.Register("boot-coalesce-test", func(provider.Config) (provider.Provider, error) {
 		return &coalesceWiringProvider{deltas: deltas}, nil
 	})
-	writeFile(t, dir, "reasonix.toml", `
+	writeFile(t, dir, "tempora.toml", `
 default_model = "test-model"
 
 [agent]

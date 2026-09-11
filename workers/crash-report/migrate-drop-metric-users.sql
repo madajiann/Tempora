@@ -1,4 +1,4 @@
--- Apply: wrangler d1 execute reasonix-crash --remote --file=migrate-drop-metric-users.sql
+-- Apply: wrangler d1 execute tempora-crash --remote --file=migrate-drop-metric-users.sql
 --
 -- Retires per-install metric detail. The 30-day COUNT(DISTINCT install_id) it
 -- fed was the database's entire read bill: the primary key leads with `date`,

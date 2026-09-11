@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/checkpoint"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/provider"
+	"tempora/internal/checkpoint"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/provider"
 )
 
 type tabScopedActionController struct {

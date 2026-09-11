@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"reasonix/internal/instruction"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/instruction"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 func TestTargetedTurnReturnsIncompleteReceiptInsteadOfReadinessRecovery(t *testing.T) {

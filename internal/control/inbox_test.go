@@ -10,13 +10,13 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
-	"reasonix/internal/memory"
-	"reasonix/internal/provider"
-	"reasonix/internal/sessioninbox"
-	"reasonix/internal/skill"
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/event"
+	"tempora/internal/memory"
+	"tempora/internal/provider"
+	"tempora/internal/sessioninbox"
+	"tempora/internal/skill"
+	"tempora/internal/tool"
 )
 
 func TestEnqueueInboxDurableAndSnapshot(t *testing.T) {

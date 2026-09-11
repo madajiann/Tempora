@@ -4,15 +4,15 @@ import (
 	"context"
 	"os"
 	"path/filepath"
-	"reasonix/internal/config"
-	"reasonix/internal/event"
+	"tempora/internal/config"
+	"tempora/internal/event"
 	"strings"
 	"testing"
 )
 
 func TestBuildRestoresDeepSeekChatDefaultWithOneNotice(t *testing.T) {
 	home := isolateConfigHome(t)
-	t.Setenv("REASONIX_HOME", filepath.Join(home, "reasonix-home"))
+	t.Setenv("TEMPORA_HOME", filepath.Join(home, "tempora-home"))
 	userPath := config.UserConfigPath()
 	if err := os.MkdirAll(filepath.Dir(userPath), 0o700); err != nil {
 		t.Fatal(err)

@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/planmode"
-	"reasonix/internal/tool"
+	"tempora/internal/evidence"
+	"tempora/internal/planmode"
+	"tempora/internal/tool"
 )
 
 func TestTodoWriteAcceptsLevels(t *testing.T) {

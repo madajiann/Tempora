@@ -7,18 +7,18 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/agent/testutil"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/agent/testutil"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 func TestUnifiedSurfaceExposesUseCapabilityForAllRoleSettings(t *testing.T) {
 	isolateConfigHome(t)
 	dir := robustTempDir(t)
 	t.Chdir(dir)
-	writeFile(t, dir, "reasonix.toml", `
+	writeFile(t, dir, "tempora.toml", `
 default_model = "test-model"
 
 [agent]
@@ -84,7 +84,7 @@ func TestUseCapabilityCallDispatchesHiddenGrep(t *testing.T) {
 	dir := robustTempDir(t)
 	t.Chdir(dir)
 	writeFile(t, dir, "a.go", "package a\n// needle_token\n")
-	writeFile(t, dir, "reasonix.toml", `
+	writeFile(t, dir, "tempora.toml", `
 default_model = "test-model"
 
 [agent]
@@ -139,7 +139,7 @@ func TestUseCapabilitySetsOnlyTheCurrentSessionTitle(t *testing.T) {
 	dir := robustTempDir(t)
 	t.Chdir(dir)
 	sessionDir := robustTempDir(t)
-	writeFile(t, dir, "reasonix.toml", `
+	writeFile(t, dir, "tempora.toml", `
 default_model = "test-model"
 
 [agent]

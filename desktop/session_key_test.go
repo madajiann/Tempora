@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
+	"tempora/internal/agent"
+	"tempora/internal/control"
 )
 
 // The lease registry folds session paths through agent.CanonicalSessionPath

@@ -15,15 +15,15 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/i18n"
-	"reasonix/internal/netclient"
-	"reasonix/internal/notify"
-	"reasonix/internal/provider"
-	"reasonix/internal/telemetry"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/i18n"
+	"tempora/internal/netclient"
+	"tempora/internal/notify"
+	"tempora/internal/provider"
+	"tempora/internal/telemetry"
 )
 
 func TestChdirTo(t *testing.T) {
@@ -203,12 +203,12 @@ func isolateCLIConfigHome(t *testing.T) string {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 	// Keep tests on the default-path code path while preventing a caller's
-	// higher-priority REASONIX_HOME from escaping this temporary home.
-	t.Setenv("REASONIX_HOME", "")
-	if err := os.Unsetenv("REASONIX_HOME"); err != nil {
-		t.Fatalf("unset REASONIX_HOME: %v", err)
+	// higher-priority TEMPORA_HOME from escaping this temporary home.
+	t.Setenv("TEMPORA_HOME", "")
+	if err := os.Unsetenv("TEMPORA_HOME"); err != nil {
+		t.Fatalf("unset TEMPORA_HOME: %v", err)
 	}
-	t.Setenv("REASONIX_CREDENTIALS_STORE", "file")
+	t.Setenv("TEMPORA_CREDENTIALS_STORE", "file")
 	t.Setenv("USERPROFILE", home)
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
 	t.Setenv("AppData", filepath.Join(home, "AppData"))
@@ -216,9 +216,9 @@ func isolateCLIConfigHome(t *testing.T) string {
 	return home
 }
 
-func TestIsolateCLIConfigHomeOverridesExistingReasonixHome(t *testing.T) {
+func TestIsolateCLIConfigHomeOverridesExistingTemporaHome(t *testing.T) {
 	externalHome := t.TempDir()
-	t.Setenv("REASONIX_HOME", externalHome)
+	t.Setenv("TEMPORA_HOME", externalHome)
 
 	home := isolateCLIConfigHome(t)
 
@@ -232,7 +232,7 @@ func TestIsolateCLIConfigHomeOverridesExistingReasonixHome(t *testing.T) {
 func TestMCPMigrationWaitsForCLIWorkspace(t *testing.T) {
 	isolateCLIConfigHome(t)
 	cwd := mustGetwd(t)
-	if err := os.WriteFile(filepath.Join(cwd, "reasonix.toml"), []byte(`
+	if err := os.WriteFile(filepath.Join(cwd, "tempora.toml"), []byte(`
 [[plugins]]
 name = "cwd-project"
 command = "cwd-project-bin"
@@ -275,7 +275,7 @@ func TestMetadataCommandsDoNotProbeTerminalTheme(t *testing.T) {
 			t.Fatalf("version rc = %d, want 0", rc)
 		}
 	})
-	if !strings.Contains(out, "reasonix test-version") {
+	if !strings.Contains(out, "tempora test-version") {
 		t.Fatalf("version output = %q", out)
 	}
 
@@ -287,7 +287,7 @@ func TestMetadataCommandsDoNotProbeTerminalTheme(t *testing.T) {
 	if !strings.Contains(out, "Usage:") && !strings.Contains(out, "用法：") {
 		t.Fatalf("help output missing usage:\n%s", out)
 	}
-	if !strings.Contains(out, "reasonix run [--model NAME] [--max-steps N] [-c|--continue] [--resume PATH] [--copy] [--output-format FORMAT] <task>") {
+	if !strings.Contains(out, "tempora run [--model NAME] [--max-steps N] [-c|--continue] [--resume PATH] [--copy] [--output-format FORMAT] <task>") {
 		t.Fatalf("help output missing run resume flags:\n%s", out)
 	}
 }
@@ -380,7 +380,7 @@ func TestRunNoArgsNonInteractivePrintsUsage(t *testing.T) {
 			t.Fatalf("Run(nil) rc = %d, want 0", rc)
 		}
 	})
-	if !strings.Contains(out, "reasonix —") || !strings.Contains(out, "reasonix run") {
+	if !strings.Contains(out, "tempora —") || !strings.Contains(out, "tempora run") {
 		t.Fatalf("non-interactive no-arg Run should print usage, got:\n%s", out)
 	}
 }
@@ -459,7 +459,7 @@ func TestSubcommandHelpReturnsSuccess(t *testing.T) {
 		want string
 	}{
 		{name: "run", args: []string{"run", "--help"}, want: "Usage of run:"},
-		{name: "chat", args: []string{"chat", "--help"}, want: "Usage of reasonix:"},
+		{name: "chat", args: []string{"chat", "--help"}, want: "Usage of tempora:"},
 		{name: "serve", args: []string{"serve", "--help"}, want: "Usage of serve:"},
 		{name: "upgrade", args: []string{"upgrade", "--help"}, want: "Usage of upgrade:"},
 		{name: "remote connect", args: []string{"remote", "connect", "--help"}, want: "Usage of remote connect:"},
@@ -508,7 +508,7 @@ func TestRunPrintAliasDispatchesRunFlags(t *testing.T) {
 	}
 }
 
-// TestRunPrintFlagAfterLeadingFlagsDispatchesRun covers `reasonix --model X -p`:
+// TestRunPrintFlagAfterLeadingFlagsDispatchesRun covers `tempora --model X -p`:
 // a print flag trailing other top-level flags must still route to `run --print`,
 // not into the interactive session parser (which has no -p and returns 2).
 func TestRunPrintFlagAfterLeadingFlagsDispatchesRun(t *testing.T) {
@@ -588,7 +588,7 @@ func TestRunKeepsChatAndCodeCompatibilityAliases(t *testing.T) {
 
 func TestRunMigratesLegacyConfigBeforeConfigOnlyCommands(t *testing.T) {
 	isolateCLIConfigHome(t)
-	legacyPath := filepath.Join(filepath.Dir(config.UserConfigPath()), "reasonix.toml")
+	legacyPath := filepath.Join(filepath.Dir(config.UserConfigPath()), "tempora.toml")
 	if err := os.MkdirAll(filepath.Dir(legacyPath), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -649,7 +649,7 @@ func TestRunAppliesUserConfigUpgradesOnStartup(t *testing.T) {
 
 func TestRunMetadataCommandsDoNotMigrateLegacyConfig(t *testing.T) {
 	isolateCLIConfigHome(t)
-	legacyPath := filepath.Join(filepath.Dir(config.UserConfigPath()), "reasonix.toml")
+	legacyPath := filepath.Join(filepath.Dir(config.UserConfigPath()), "tempora.toml")
 	if err := os.MkdirAll(filepath.Dir(legacyPath), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -662,7 +662,7 @@ func TestRunMetadataCommandsDoNotMigrateLegacyConfig(t *testing.T) {
 			t.Fatalf("version rc = %d, want 0", rc)
 		}
 	})
-	if !strings.Contains(out, "reasonix test-version") {
+	if !strings.Contains(out, "tempora test-version") {
 		t.Fatalf("version output = %q", out)
 	}
 	if _, err := os.Stat(config.UserConfigPath()); !os.IsNotExist(err) {
@@ -672,7 +672,7 @@ func TestRunMetadataCommandsDoNotMigrateLegacyConfig(t *testing.T) {
 
 func TestConfigLoadIgnoresRetiredAutoPlan(t *testing.T) {
 	isolateCLIConfigHome(t)
-	if err := os.WriteFile("reasonix.toml", []byte("[agent]\nauto_plan = \"on\"\nauto_plan_classifier = \"deepseek-flash\"\n"), 0o644); err != nil {
+	if err := os.WriteFile("tempora.toml", []byte("[agent]\nauto_plan = \"on\"\nauto_plan_classifier = \"deepseek-flash\"\n"), 0o644); err != nil {
 		t.Fatalf("write project config: %v", err)
 	}
 
@@ -772,7 +772,7 @@ func TestConfigReasoningLanguageLocalCreatesMinimalProjectOverride(t *testing.T)
 		t.Fatalf("config reasoning-language --local output = %q", out)
 	}
 
-	body, err := os.ReadFile("reasonix.toml")
+	body, err := os.ReadFile("tempora.toml")
 	if err != nil {
 		t.Fatalf("read project config: %v", err)
 	}
@@ -899,7 +899,7 @@ func TestConfigCompactRatioLocalCreatesMinimalProjectOverride(t *testing.T) {
 		t.Fatalf("config compact-ratio --local output = %q", out)
 	}
 
-	body, err := os.ReadFile("reasonix.toml")
+	body, err := os.ReadFile("tempora.toml")
 	if err != nil {
 		t.Fatalf("read project config: %v", err)
 	}
@@ -1000,7 +1000,7 @@ func TestConfigCurrencyRejectsProjectScope(t *testing.T) {
 	if !strings.Contains(errOut, "user-level only") {
 		t.Fatalf("config currency --local stderr = %q", errOut)
 	}
-	if _, err := os.Stat("reasonix.toml"); !os.IsNotExist(err) {
+	if _, err := os.Stat("tempora.toml"); !os.IsNotExist(err) {
 		t.Fatalf("config currency --local wrote project config, stat err=%v", err)
 	}
 }
@@ -1117,7 +1117,7 @@ func TestConfigTelemetryCommandRoundTripAndOptOutCleanup(t *testing.T) {
 	if err != nil || cfg.CLITelemetryMode() != "on" {
 		t.Fatalf("saved telemetry mode = %q, err = %v", cfg.CLITelemetryMode(), err)
 	}
-	pending := filepath.Join(config.ReasonixHomeDir(), "cli-telemetry-pending")
+	pending := filepath.Join(config.TemporaHomeDir(), "cli-telemetry-pending")
 	if err := os.MkdirAll(pending, 0o700); err != nil {
 		t.Fatal(err)
 	}
@@ -1179,7 +1179,7 @@ func TestCLITelemetryConsentDefaultsYesAndPromptsOnlyOnce(t *testing.T) {
 	if got != want || starts != 1 {
 		t.Fatalf("first start = %p, calls=%d; want %p, 1", got, starts, want)
 	}
-	if !strings.Contains(out.String(), "crash.reasonix.io") || !strings.Contains(out.String(), "[Y/n]:") || !strings.Contains(out.String(), "reasonix config telemetry off") {
+	if !strings.Contains(out.String(), "crash.tempora.io") || !strings.Contains(out.String(), "[Y/n]:") || !strings.Contains(out.String(), "tempora config telemetry off") {
 		t.Fatalf("consent prompt is incomplete: %q", out.String())
 	}
 	if errOut.Len() != 0 {
@@ -1211,7 +1211,7 @@ func TestCLITelemetryConsentNoDisablesAndCleansPending(t *testing.T) {
 		starts++
 		return &telemetry.Reporter{}
 	}
-	home := config.ReasonixHomeDir()
+	home := config.TemporaHomeDir()
 	pending := filepath.Join(home, "cli-telemetry-pending")
 	if err := os.MkdirAll(pending, 0o700); err != nil {
 		t.Fatal(err)
@@ -1334,7 +1334,7 @@ func TestUndecidedCLITelemetryDoesNotPromptOrUploadWhenIneligible(t *testing.T) 
 		{name: "development", version: "dev", interactive: true},
 		{name: "CI", version: "v1.20.0", interactive: true, envKey: "CI", envValue: "1"},
 		{name: "do not track", version: "v1.20.0", interactive: true, envKey: "DO_NOT_TRACK", envValue: "1"},
-		{name: "environment opt out", version: "v1.20.0", interactive: true, envKey: "REASONIX_TELEMETRY", envValue: "0"},
+		{name: "environment opt out", version: "v1.20.0", interactive: true, envKey: "TEMPORA_TELEMETRY", envValue: "0"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			isolateCLIConfigHome(t)
@@ -1365,7 +1365,7 @@ func TestUndecidedCLITelemetryDoesNotPromptOrUploadWhenIneligible(t *testing.T) 
 func TestLegacySafeModeEnvDoesNotAlterConfiguredCLITelemetry(t *testing.T) {
 	isolateCLIConfigHome(t)
 	clearCLITelemetryPolicyEnv(t)
-	t.Setenv("REASONIX_SAFE_MODE", "1")
+	t.Setenv("TEMPORA_SAFE_MODE", "1")
 	cfg := config.Default()
 	if err := cfg.SetCLITelemetryMode("auto"); err != nil {
 		t.Fatal(err)
@@ -1400,7 +1400,7 @@ func TestCLITelemetryConsentPromptIsLocalized(t *testing.T) {
 		startCLITelemetryWithIO(config.Default(), telemetry.Options{
 			Version: "v1.20.0", Interactive: true, CLIMode: "tui",
 		}, strings.NewReader("\n"), &out, io.Discard)
-		for _, required := range []string{"crash.reasonix.io", "reasonix config telemetry off", "[Y/n]:"} {
+		for _, required := range []string{"crash.tempora.io", "tempora config telemetry off", "[Y/n]:"} {
 			if !strings.Contains(out.String(), required) {
 				t.Fatalf("%s consent prompt missing %q: %q", lang, required, out.String())
 			}
@@ -1411,7 +1411,7 @@ func TestCLITelemetryConsentPromptIsLocalized(t *testing.T) {
 func clearCLITelemetryPolicyEnv(t *testing.T) {
 	t.Helper()
 	for _, key := range []string{
-		"DO_NOT_TRACK", "REASONIX_TELEMETRY", "REASONIX_SAFE_MODE", "CI", "CONTINUOUS_INTEGRATION",
+		"DO_NOT_TRACK", "TEMPORA_TELEMETRY", "TEMPORA_SAFE_MODE", "CI", "CONTINUOUS_INTEGRATION",
 		"GITHUB_ACTIONS", "GITLAB_CI", "BUILDKITE", "CIRCLECI", "JENKINS_URL",
 		"TEAMCITY_VERSION", "TF_BUILD",
 	} {
@@ -1582,10 +1582,10 @@ func TestFetchOrFallback(t *testing.T) {
 	})
 
 	t.Run("no key set returns static list (offline first-run)", func(t *testing.T) {
-		t.Setenv("REASONIX_FETCH_TEST_KEY", "")
+		t.Setenv("TEMPORA_FETCH_TEST_KEY", "")
 		probe := config.ProviderEntry{
 			BaseURL:   "http://127.0.0.1:1", // unreachable, no listener
-			APIKeyEnv: "REASONIX_FETCH_TEST_KEY",
+			APIKeyEnv: "TEMPORA_FETCH_TEST_KEY",
 			Models:    []string{"preset-a"},
 		}
 		got := fetchOrFallback(&probe, "Test", netclient.ProxySpec{})
@@ -1676,7 +1676,7 @@ func TestFetchModelListCompatWalksCandidates(t *testing.T) {
 	})
 
 	t.Run("configured proxy reaches a proxy-only gateway", func(t *testing.T) {
-		const gateway = "http://reasonix-cli-probe.invalid/v1"
+		const gateway = "http://tempora-cli-probe.invalid/v1"
 		proxy := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.String() != gateway+"/models" {
 				http.Error(w, "unexpected target "+r.URL.String(), http.StatusBadRequest)
@@ -1699,7 +1699,7 @@ func TestFetchModelListCompatWalksCandidates(t *testing.T) {
 }
 
 func TestFetchOrFallbackUsesConfiguredProxy(t *testing.T) {
-	const gateway = "http://reasonix-preset-probe.invalid/v1"
+	const gateway = "http://tempora-preset-probe.invalid/v1"
 	proxy := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.String() != gateway+"/models" {
 			http.Error(w, "unexpected target "+r.URL.String(), http.StatusBadRequest)
@@ -2047,7 +2047,7 @@ func TestRepairInvalidProviderKeyEnvs(t *testing.T) {
 
 // TestFilterStaleCustomEntries covers the wizard's auto-cleanup of legacy
 // "custom" / "anthropic" magic-name entries that previous versions wrote
-// into reasonix.toml. These collide with the wizard's own menu items, so
+// into tempora.toml. These collide with the wizard's own menu items, so
 // they're dropped from the providers list before grouping — but the caller
 // still gets them back in the dropped slice to surface a warning.
 func TestFilterStaleCustomEntries(t *testing.T) {
@@ -2095,7 +2095,7 @@ func TestFilterStaleCustomEntries(t *testing.T) {
 }
 
 func TestWithBuiltinFamiliesDoesNotAddMissingMimo(t *testing.T) {
-	// The user's case: a reasonix.toml that defines only deepseek providers.
+	// The user's case: a tempora.toml that defines only deepseek providers.
 	cfg := []config.ProviderEntry{
 		{Name: "deepseek-flash", Kind: "openai", BaseURL: "https://api.deepseek.com"},
 		{Name: "deepseek-pro", Kind: "openai", BaseURL: "https://api.deepseek.com"},
@@ -2137,7 +2137,7 @@ func TestWithBuiltinFamiliesForLanguageUsesDeepSeekPricing(t *testing.T) {
 
 // TestWithBuiltinFamiliesRestoresSiblingEntries covers the re-run scenario:
 // a user previously selected only deepseek-v4-flash (saved as deepseek-flash
-// with a single model). Re-running `reasonix setup` must still surface the
+// with a single model). Re-running `tempora setup` must still surface the
 // sibling deepseek-pro entry so the user can pick deepseek-v4-pro too,
 // rather than only showing the previously selected model.
 func TestWithBuiltinFamiliesRestoresSiblingEntries(t *testing.T) {
@@ -2185,7 +2185,7 @@ func groupByFamilyKeys(ps []config.ProviderEntry, key string) []int {
 }
 
 func TestWriteDefaultConfigOmitsLegacyInternalMCPSections(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "reasonix.toml")
+	path := filepath.Join(t.TempDir(), "tempora.toml")
 	if rc := writeDefaultConfig(path); rc != 0 {
 		t.Fatalf("writeDefaultConfig rc = %d", rc)
 	}

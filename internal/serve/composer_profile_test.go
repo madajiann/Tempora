@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/event"
 )
 
 type checkedAnswerAPI struct {

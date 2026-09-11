@@ -3,7 +3,7 @@ package imageinput
 import (
 	"context"
 	"errors"
-	"reasonix/internal/event"
+	"tempora/internal/event"
 	"testing"
 	"time"
 )

@@ -3,8 +3,8 @@ package control
 import (
 	"context"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/provider"
 )
 
 type controllerPromptState struct {

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/fileutil"
+	"tempora/internal/fileutil"
 )
 
 func TestHeartbeatRunHistoryLegacySidecarReadable(t *testing.T) {

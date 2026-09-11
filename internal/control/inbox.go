@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
-	"reasonix/internal/sessioninbox"
+	"tempora/internal/agent"
+	"tempora/internal/event"
+	"tempora/internal/sessioninbox"
 )
 
 // TurnAdmission is the exported classification of TrySubmitInboxItem /

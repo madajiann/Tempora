@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/control"
-	"reasonix/internal/sessioninbox"
+	"tempora/internal/control"
+	"tempora/internal/sessioninbox"
 )
 
 // inboxPreview is a bounded UI row for the composer shelf (never full body).

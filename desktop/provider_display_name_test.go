@@ -4,7 +4,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"os"
 	"path/filepath"
-	"reasonix/internal/config"
+	"tempora/internal/config"
 	"testing"
 )
 

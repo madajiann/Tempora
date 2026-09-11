@@ -10,11 +10,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"reasonix/internal/installlayout"
+	"tempora/internal/installlayout"
 )
 
 const StatusLimit = 16 * 1024
-const QuitRequest = "--reasonix-lifecycle-request=quit"
+const QuitRequest = "--tempora-lifecycle-request=quit"
 
 type Code string
 
@@ -76,7 +76,7 @@ func DecodeStatus(data []byte, pid uint32) (Status, error) {
 	if err := json.Unmarshal(data, &s); err != nil {
 		return s, err
 	}
-	if s.SchemaVersion != 1 || s.Product != "com.reasonix.desktop" || s.PID != pid || s.Generation == "" || len(s.HomeKey) != 64 || s.Version == "" {
+	if s.SchemaVersion != 1 || s.Product != "com.tempora.desktop" || s.PID != pid || s.Generation == "" || len(s.HomeKey) != 64 || s.Version == "" {
 		return s, errors.New("unverified shell status identity")
 	}
 	if _, err := hex.DecodeString(s.HomeKey); err != nil {
@@ -118,11 +118,11 @@ func ImageRole(root, image string) string {
 		parts = parts[2:]
 	}
 	switch strings.Join(parts, "/") {
-	case "app/reasonix.exe":
+	case "app/tempora.exe":
 		return "shell"
-	case "reasonix-desktop.exe":
+	case "tempora-desktop.exe":
 		return "service"
-	case "app/resources/service/reasonix-desktop.exe":
+	case "app/resources/service/tempora-desktop.exe":
 		return "service"
 	}
 	return ""

@@ -70,7 +70,7 @@ export function SessionTakeoverDialog({ tabId, onClose }: { tabId: string; onClo
   const busy = busyMode !== null;
   let body: React.ReactNode;
   if (queryError) {
-    body = <span className="reasonix-confirm-dialog__message-error">{t("takeover.unavailable", { reason: queryError })}</span>;
+    body = <span className="tempora-confirm-dialog__message-error">{t("takeover.unavailable", { reason: queryError })}</span>;
   } else if (!view) {
     body = <span>{t("takeover.querying")}</span>;
   } else if (!view.available) {
@@ -90,19 +90,19 @@ export function SessionTakeoverDialog({ tabId, onClose }: { tabId: string; onClo
   return createPortal(
     <div
       data-app-overlay=""
-      className="modal-backdrop reasonix-confirm-backdrop"
+      className="modal-backdrop tempora-confirm-backdrop"
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !busy) onClose();
       }}
     >
-      <div className="modal reasonix-confirm-dialog session-takeover-dialog" role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={messageId}>
-        <div className="modal__title reasonix-confirm-dialog__title" id={titleId}>{t("takeover.title")}</div>
-        <div className="reasonix-confirm-dialog__message" id={messageId}>
+      <div className="modal tempora-confirm-dialog session-takeover-dialog" role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={messageId}>
+        <div className="modal__title tempora-confirm-dialog__title" id={titleId}>{t("takeover.title")}</div>
+        <div className="tempora-confirm-dialog__message" id={messageId}>
           {body}
-          {actionError ? <span className="reasonix-confirm-dialog__message-error">{actionError}</span> : null}
+          {actionError ? <span className="tempora-confirm-dialog__message-error">{actionError}</span> : null}
         </div>
-        <div className="modal__actions reasonix-confirm-dialog__actions">
+        <div className="modal__actions tempora-confirm-dialog__actions">
           <button ref={cancelRef} className="btn btn--small" type="button" disabled={busy} onClick={onClose}>
             {t("takeover.cancel")}
           </button>

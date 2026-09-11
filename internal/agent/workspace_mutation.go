@@ -5,8 +5,8 @@ import (
 	"strings"
 	"sync"
 
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
 )
 
 type workspaceEffectiveCall struct {

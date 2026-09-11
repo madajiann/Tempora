@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 func TestPluginSpecsCarryOAuthHTTPClient(t *testing.T) {

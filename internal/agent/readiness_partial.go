@@ -1,8 +1,8 @@
 package agent
 
 import (
-	"reasonix/internal/completion"
-	"reasonix/internal/taskcontract"
+	"tempora/internal/completion"
+	"tempora/internal/taskcontract"
 )
 
 // applyPartialCheckWaiver stands down project-check and post-write verification

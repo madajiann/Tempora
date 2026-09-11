@@ -16,12 +16,12 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"golang.org/x/sys/unix"
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/provider"
 )
 
-const darwinLowNoFileChild = "REASONIX_DARWIN_LOW_NOFILE_CHILD"
+const darwinLowNoFileChild = "TEMPORA_DARWIN_LOW_NOFILE_CHILD"
 
 func TestDarwinWorkspaceWatcherReportsDeepFileOperations(t *testing.T) {
 	root := canonicalWorkspaceRoot(t.TempDir())
@@ -400,7 +400,7 @@ func runDarwinLowNoFileChild(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	projectConfig := filepath.Join(root, "reasonix.toml")
+	projectConfig := filepath.Join(root, "tempora.toml")
 	if err := os.WriteFile(projectConfig, []byte("[agent]\nmemory_compiler = { enabled = true, verbosity = \"compact\" }\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}

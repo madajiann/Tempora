@@ -77,7 +77,7 @@ describe("PublishSchema source", () => {
   });
 
   it("rejects non-GitHub sources for kind=plugin", () => {
-    for (const source of ["123", "my-plugin", "@scope/pkg", "https://example.com/reasonix-plugin.json"]) {
+    for (const source of ["123", "my-plugin", "@scope/pkg", "https://example.com/tempora-plugin.json"]) {
       expect(parse({ kind: "plugin", installKind: "plugin", source }).success, source).toBe(false);
     }
   });
@@ -97,7 +97,7 @@ describe("PublishSchema source", () => {
   it("rejects GitHub pages and unsafe repository paths for kind=plugin", () => {
     for (const source of [
       "https://github.com/o/r/issues/1",
-      "https://github.com/o/r/blob/main/reasonix-plugin.json",
+      "https://github.com/o/r/blob/main/tempora-plugin.json",
       "https://github.com/o/r/pull/1",
       "https://github.com/o/r/tree/main/../evil",
       "https://github.com/o/r/tree/main/%2e%2e/evil",
@@ -122,7 +122,7 @@ describe("PublishSchema source", () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       const sourceIssue = result.error.issues.find((issue) => issue.path[0] === "source");
-      expect(sourceIssue?.message).toContain("reasonix-plugin.json");
+      expect(sourceIssue?.message).toContain("tempora-plugin.json");
       expect(sourceIssue?.message).toContain(".codex-plugin/plugin.json");
       expect(sourceIssue?.message).toContain(".claude-plugin/plugin.json");
       expect(sourceIssue?.message).toContain(".claude-plugin/marketplace.json");

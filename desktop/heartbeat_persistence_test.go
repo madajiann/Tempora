@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/filelock"
+	"tempora/internal/filelock"
 )
 
 func TestHeartbeatRunCompletionObservesDeletionBeforeNextTick(t *testing.T) {

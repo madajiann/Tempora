@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 // mainConversationRequests is retained as a test helper name for callers that
@@ -28,7 +28,7 @@ func mainConversationRequests(reqs []provider.Request) []provider.Request {
 // without reintroducing the flake.
 func robustTempDir(t *testing.T) string {
 	t.Helper()
-	dir, err := os.MkdirTemp("", "reasonix-test-*")
+	dir, err := os.MkdirTemp("", "tempora-test-*")
 	if err != nil {
 		t.Fatalf("robustTempDir: %v", err)
 	}

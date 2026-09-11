@@ -5,10 +5,10 @@ import (
 	"log/slog"
 	"time"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/repair"
-	"reasonix/internal/stats"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/repair"
+	"tempora/internal/stats"
 )
 
 // completeDesktopShutdown removes the lifecycle record only after every

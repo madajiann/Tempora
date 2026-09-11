@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"reasonix/internal/provider"
-	"reasonix/internal/sessioncontext"
+	"tempora/internal/provider"
+	"tempora/internal/sessioncontext"
 )
 
 func TestBuildRequestRestoresSessionContextBlockAndUsesThreeBreakpoints(t *testing.T) {

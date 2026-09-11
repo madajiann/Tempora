@@ -9,7 +9,7 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 	"strings"
 	"testing"
 )
@@ -79,7 +79,7 @@ func TestViewImageExternalAlias(t *testing.T) {
 		t.Fatal(err)
 	}
 	resolver := NewPathResolver()
-	token := "__reasonix_external_folder/test/Images"
+	token := "__tempora_external_folder/test/Images"
 	resolver.RegisterReadRoot(token, external)
 	ts := (Workspace{Dir: t.TempDir(), ReadPaths: resolver}).Tools("view_image")
 	for _, name := range []string{"x.png", "missing.png"} {

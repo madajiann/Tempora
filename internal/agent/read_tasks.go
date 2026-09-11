@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"sync"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 // readState groups the run-scoped read registry with its generation.

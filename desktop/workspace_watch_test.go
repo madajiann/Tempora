@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
-	"reasonix/internal/event"
+	"tempora/internal/event"
 )
 
 func contentWorkspaceMutation(paths []string, allPaths bool) event.WorkspaceMutation {

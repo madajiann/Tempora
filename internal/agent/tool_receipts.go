@@ -3,11 +3,11 @@ package agent
 import (
 	"encoding/json"
 
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/provider"
-	"reasonix/internal/taskcontract"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/provider"
+	"tempora/internal/taskcontract"
+	"tempora/internal/tool"
 )
 
 // recordToolReceipts files the turn-scoped evidence for one executed call:

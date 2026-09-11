@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"reasonix/internal/store"
+	"tempora/internal/store"
 )
 
 // A listing repair replays the transcript and rewrites the event index; on a

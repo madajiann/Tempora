@@ -1,8 +1,8 @@
 package boot
 
 import (
-	"reasonix/internal/config"
-	"reasonix/internal/event"
+	"tempora/internal/config"
+	"tempora/internal/event"
 )
 
 func emitUserConfigUpgradeNotice(sink event.Sink, cfg *config.Config, deepSeekProtocolMigrated bool, deepSeekProtocolMigErr error) {

@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/sessioncatalog"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/sessioncatalog"
 )
 
 // Sidebar reads are bound so a starved connection pool or a slow projection

@@ -6,7 +6,7 @@ import (
 	"slices"
 	"strings"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 const interruptedRecoveryTag = "interrupted-turn-recovery"

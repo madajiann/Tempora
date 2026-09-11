@@ -1,19 +1,19 @@
-const R2_BASE = "https://dl.reasonix.io";
+const R2_BASE = "https://dl.tempora.io";
 const GITHUB_RELEASES_API = "https://api.github.com/repos/esengine/DeepSeek-Reasonix/releases?per_page=100";
 const GITHUB_LATEST_RELEASE_API = "https://api.github.com/repos/esengine/DeepSeek-Reasonix/releases/latest";
 const RELEASE_METHODS = "GET, HEAD, OPTIONS";
-const DESKTOP_DOWNLOAD_PAGE = "https://reasonix.io/?download=desktop#start";
+const DESKTOP_DOWNLOAD_PAGE = "https://tempora.io/?download=desktop#start";
 const DESKTOP_UPDATER_ASSETS = [
-  ["platforms", "darwin-arm64", "Reasonix-darwin-arm64.zip"],
-  ["platforms", "darwin-amd64", "Reasonix-darwin-amd64.zip"],
-  ["platforms", "windows-amd64", "Reasonix-windows-amd64-installer.exe"],
-  ["platforms", "windows-arm64", "Reasonix-windows-arm64-installer.exe"],
-  ["platforms", "linux-amd64", "Reasonix-linux-amd64.tar.gz"],
-  ["native_packages", "linux-amd64", "Reasonix-linux-amd64.deb"],
+  ["platforms", "darwin-arm64", "Tempora-darwin-arm64.zip"],
+  ["platforms", "darwin-amd64", "Tempora-darwin-amd64.zip"],
+  ["platforms", "windows-amd64", "Tempora-windows-amd64-installer.exe"],
+  ["platforms", "windows-arm64", "Tempora-windows-arm64-installer.exe"],
+  ["platforms", "linux-amd64", "Tempora-linux-amd64.tar.gz"],
+  ["native_packages", "linux-amd64", "Tempora-linux-amd64.deb"],
 ] as const;
 const DESKTOP_DOWNLOAD_ASSETS = [
-  ["downloads", "Reasonix-darwin-universal.dmg", "Reasonix-darwin-universal.dmg"],
-  ["downloads", "Reasonix-windows-amd64.zip", "Reasonix-windows-amd64.zip"],
+  ["downloads", "Tempora-darwin-universal.dmg", "Tempora-darwin-universal.dmg"],
+  ["downloads", "Tempora-windows-amd64.zip", "Tempora-windows-amd64.zip"],
 ] as const;
 const SHA256 = /^[0-9a-f]{64}$/;
 const MAX_RELEASE_ASSET_SIZE = 1 << 30;
@@ -36,12 +36,12 @@ type GitHubRelease = {
 };
 
 const CLI_ASSETS = [
-  "reasonix-darwin-amd64.tar.gz",
-  "reasonix-darwin-arm64.tar.gz",
-  "reasonix-linux-amd64.tar.gz",
-  "reasonix-linux-arm64.tar.gz",
-  "reasonix-windows-amd64.zip",
-  "reasonix-windows-arm64.zip",
+  "tempora-darwin-amd64.tar.gz",
+  "tempora-darwin-arm64.tar.gz",
+  "tempora-linux-amd64.tar.gz",
+  "tempora-linux-arm64.tar.gz",
+  "tempora-windows-amd64.zip",
+  "tempora-windows-arm64.zip",
   "SHA256SUMS",
 ] as const;
 const CLI_ASSET_NAMES = new Set<string>(CLI_ASSETS);
@@ -59,7 +59,7 @@ function gatewayHeaders(source: string): Record<string, string> {
     "cache-control": "public, max-age=300, stale-if-error=86400",
     "access-control-allow-origin": "*",
     "access-control-allow-methods": RELEASE_METHODS,
-    "x-reasonix-release-source": source,
+    "x-tempora-release-source": source,
   };
 }
 
@@ -196,7 +196,7 @@ function selectCLIRelease(releases: GitHubRelease[], channel: PublicReleaseChann
 async function fetchCLIRelease(url: string, channel: PublicReleaseChannel, source: string): Promise<Response | null> {
   try {
     const response = await fetch(url, {
-      headers: { accept: "application/json", "user-agent": "reasonix-release-gateway" },
+      headers: { accept: "application/json", "user-agent": "tempora-release-gateway" },
     });
     if (!response.ok) return null;
     const release = normalizeCLIRelease((await response.json()) as GitHubRelease, channel)?.release;
@@ -209,7 +209,7 @@ async function fetchCLIRelease(url: string, channel: PublicReleaseChannel, sourc
 async function fetchLatestCLIReleaseFromGitHub(channel: PublicReleaseChannel): Promise<Response | null> {
   try {
     const response = await fetch(GITHUB_RELEASES_API, {
-      headers: { accept: "application/vnd.github+json", "user-agent": "reasonix-release-gateway" },
+      headers: { accept: "application/vnd.github+json", "user-agent": "tempora-release-gateway" },
     });
     if (!response.ok) return null;
     const release = selectCLIRelease((await response.json()) as GitHubRelease[], channel);
@@ -321,7 +321,7 @@ async function fetchManifestText(
     const res = await fetch(safeURL, {
       headers: {
         accept: "application/json",
-        "user-agent": "reasonix-release-gateway",
+        "user-agent": "tempora-release-gateway",
       },
     });
     if (!res.ok) return null;
@@ -338,7 +338,7 @@ async function fetchLatestDesktopManifestFromGitHub(): Promise<Response | null> 
     const latest = await fetch(GITHUB_LATEST_RELEASE_API, {
       headers: {
         accept: "application/vnd.github+json",
-        "user-agent": "reasonix-release-gateway",
+        "user-agent": "tempora-release-gateway",
       },
     });
     if (!latest.ok) return null;
@@ -397,7 +397,7 @@ export async function handleCLIRelease(channel: PublicReleaseChannel): Promise<R
     caches?: CacheStorage & { default?: Cache };
   }).caches;
   const cache = cacheStorage?.default;
-  const cacheKey = new Request(`https://crash.reasonix.io/v1/cli/releases/${channel}/latest.json`);
+  const cacheKey = new Request(`https://crash.tempora.io/v1/cli/releases/${channel}/latest.json`);
   const cached = await cache?.match(cacheKey);
   if (cached) return cached;
 

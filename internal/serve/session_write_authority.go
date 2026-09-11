@@ -3,8 +3,8 @@ package serve
 import (
 	"fmt"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
+	"tempora/internal/agent"
+	"tempora/internal/control"
 )
 
 // SetSessionLeases hands the server the session-lease keeper that guards its

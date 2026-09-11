@@ -3,7 +3,7 @@ package imageinput
 import (
 	"strings"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func clone(v *provider.VisionSummary) *provider.VisionSummary {

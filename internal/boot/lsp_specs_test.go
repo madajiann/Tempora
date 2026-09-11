@@ -3,7 +3,7 @@ package boot
 import (
 	"testing"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 func TestLSPSpecsExplicitCommandDoesNotInheritDefaultFallbacks(t *testing.T) {

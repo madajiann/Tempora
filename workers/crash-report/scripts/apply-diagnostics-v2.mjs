@@ -100,7 +100,7 @@ function inspectRemoteSchema(projectDir, database) {
 
 function main() {
   const projectDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-  const database = process.env.DIAGNOSTICS_D1_DATABASE || "reasonix-crash";
+  const database = process.env.DIAGNOSTICS_D1_DATABASE || "tempora-crash";
   const before = inspectRemoteSchema(projectDir, database);
   if (before.state === "complete") {
     console.log("Diagnostics v2 D1 schema is already complete; migration skipped.");

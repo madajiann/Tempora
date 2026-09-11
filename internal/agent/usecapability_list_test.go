@@ -7,14 +7,14 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/capability"
-	"reasonix/internal/config"
-	"reasonix/internal/plugin"
-	"reasonix/internal/tool"
+	"tempora/internal/capability"
+	"tempora/internal/config"
+	"tempora/internal/plugin"
+	"tempora/internal/tool"
 )
 
 func TestUseCapabilityListSummarizesMCPWithoutExpandingCachedDirectories(t *testing.T) {
-	t.Setenv("REASONIX_CACHE_HOME", t.TempDir())
+	t.Setenv("TEMPORA_CACHE_HOME", t.TempDir())
 	specs := []plugin.Spec{
 		{Name: "disabled", Type: "stdio", Command: "disabled-mcp", Authorized: true},
 		{Name: "enabled", Type: "stdio", Command: "enabled-mcp", Authorized: true},

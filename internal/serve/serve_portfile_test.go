@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/stats"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/stats"
 )
 
 func newListenerTestServer(t *testing.T) *Server {
@@ -24,7 +24,7 @@ func newListenerTestServer(t *testing.T) *Server {
 		}
 	}
 	closeUsage()
-	t.Setenv("REASONIX_HOME", t.TempDir())
+	t.Setenv("TEMPORA_HOME", t.TempDir())
 	t.Cleanup(closeUsage)
 	bc := NewBroadcaster()
 	ctrl := control.New(control.Options{

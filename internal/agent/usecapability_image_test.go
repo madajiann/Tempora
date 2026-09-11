@@ -8,16 +8,16 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/capability"
-	"reasonix/internal/event"
-	"reasonix/internal/imageinput"
-	"reasonix/internal/plugin"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/capability"
+	"tempora/internal/event"
+	"tempora/internal/imageinput"
+	"tempora/internal/plugin"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 func TestPlannerFirstOnDemandMCPCallPreservesImages(t *testing.T) {
-	t.Setenv("REASONIX_CACHE_HOME", t.TempDir())
+	t.Setenv("TEMPORA_CACHE_HOME", t.TempDir())
 	payload := base64.StdEncoding.EncodeToString([]byte("png-bytes"))
 	var toolCalls atomic.Int32
 	server := imageMCPServer(t, &toolCalls, payload)

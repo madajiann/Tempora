@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/skill"
+	"tempora/internal/skill"
 )
 
 // The criterion these guards enforce. It is repeated in every failure message

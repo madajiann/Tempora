@@ -4,12 +4,12 @@ import SiteHeader from '../components/SiteHeader.astro';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const repo = 'https://github.com/esengine/DeepSeek-Reasonix';
-const desc = "Browse, publish, and install community skills, plugins, and MCP servers for Reasonix. One command to add any capability to your agent — install_source does the rest, SSRF-guarded and risk-rated.";
+const desc = "Browse, publish, and install community skills, plugins, and MCP servers for Tempora. One command to add any capability to your agent — install_source does the rest, SSRF-guarded and risk-rated.";
 ---
 <Base
-  title="Reasonix — Skills, Plugins & MCP registry"
-  titleEn="Reasonix — Skills, Plugins & MCP registry"
-  titleZh="Reasonix — 技能、插件与 MCP 市场"
+  title="Tempora — Skills, Plugins & MCP registry"
+  titleEn="Tempora — Skills, Plugins & MCP registry"
+  titleZh="Tempora — 技能、插件与 MCP 市场"
   description={desc}>
 
   <SiteHeader active="skills" accountSlot />
@@ -60,7 +60,7 @@ const desc = "Browse, publish, and install community skills, plugins, and MCP se
         <div id="reg-offline" class="reg-state" hidden>
           <h3><span class="l-en">Registry is launching soon.</span><span class="l-zh">市场即将上线。</span></h3>
           <p><span class="l-en">The registry service isn't reachable yet. Sign in to get a handle ready — your packages will be namespaced to it.</span><span class="l-zh">市场服务暂时还连不上。先登录占好你的 handle——你的包会以它作命名空间。</span></p>
-          <a class="btn btn-dark" href="https://id.reasonix.io"><span class="l-en">Sign in at id.reasonix.io</span><span class="l-zh">前往 id.reasonix.io 登录</span></a>
+          <a class="btn btn-dark" href="https://id.tempora.io"><span class="l-en">Sign in at id.tempora.io</span><span class="l-zh">前往 id.tempora.io 登录</span></a>
         </div>
       </div>
 
@@ -111,8 +111,8 @@ const desc = "Browse, publish, and install community skills, plugins, and MCP se
             <input name="summary" maxlength="200" placeholder="What does it do?" />
           </label>
           <label><span class="l-en">Source</span><span class="l-zh">来源</span>
-            <input name="source" required pattern="(https?://[^ ]+|git:github[.]com/[^ ]+|@?[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)?)" title="A URL (SKILL.md, a Reasonix/Codex/Claude plugin repository, .mcp.json, repository path), a git:github.com/… shorthand, or an MCP package name — not free text or a local path." placeholder="https://… SKILL.md · plugin repo · .mcp.json · MCP package" />
-            <small class="pub-hint"><span class="l-en">Plugins must point to a GitHub repository or path containing <code>reasonix-plugin.json</code>, <code>.codex-plugin/plugin.json</code>, <code>.claude-plugin/plugin.json</code>, or a supported <code>.claude-plugin/marketplace.json</code>.</span><span class="l-zh">插件必须指向包含 <code>reasonix-plugin.json</code>、<code>.codex-plugin/plugin.json</code>、<code>.claude-plugin/plugin.json</code>，或受支持的 <code>.claude-plugin/marketplace.json</code> 的 GitHub 仓库或路径。</span></small>
+            <input name="source" required pattern="(https?://[^ ]+|git:github[.]com/[^ ]+|@?[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)?)" title="A URL (SKILL.md, a Tempora/Codex/Claude plugin repository, .mcp.json, repository path), a git:github.com/… shorthand, or an MCP package name — not free text or a local path." placeholder="https://… SKILL.md · plugin repo · .mcp.json · MCP package" />
+            <small class="pub-hint"><span class="l-en">Plugins must point to a GitHub repository or path containing <code>tempora-plugin.json</code>, <code>.codex-plugin/plugin.json</code>, <code>.claude-plugin/plugin.json</code>, or a supported <code>.claude-plugin/marketplace.json</code>.</span><span class="l-zh">插件必须指向包含 <code>tempora-plugin.json</code>、<code>.codex-plugin/plugin.json</code>、<code>.claude-plugin/plugin.json</code>，或受支持的 <code>.claude-plugin/marketplace.json</code> 的 GitHub 仓库或路径。</span></small>
           </label>
           <div class="pub-row">
             <label><span class="l-en">Repo (optional)</span><span class="l-zh">仓库(可选)</span>
@@ -134,13 +134,13 @@ const desc = "Browse, publish, and install community skills, plugins, and MCP se
 
   <footer>
     <div class="foot-inner">
-      <a class="brand" href={`${base}/`}><img src={`${base}/logo.svg`} alt="Reasonix logo" /><span>Reasonix</span></a>
-      <span><span class="l-en">© 2026 Reasonix · MIT licensed · built to be left running.</span><span class="l-zh">© 2026 Reasonix · MIT 许可 · 为常驻运行而生。</span></span>
+      <a class="brand" href={`${base}/`}><img src={`${base}/logo.svg`} alt="Tempora logo" /><span>Tempora</span></a>
+      <span><span class="l-en">© 2026 Tempora · MIT licensed · built to be left running.</span><span class="l-zh">© 2026 Tempora · MIT 许可 · 为常驻运行而生。</span></span>
       <nav class="foot-links">
         <a href={repo}>GitHub</a>
         <a href={`${base}/`}><span class="l-en">Home</span><span class="l-zh">首页</span></a>
         <a href={`${base}/docs/`}><span class="l-en">Docs</span><span class="l-zh">文档</span></a>
-        <a href="https://id.reasonix.io"><span class="l-en">Sign in</span><span class="l-zh">登录</span></a>
+        <a href="https://id.tempora.io"><span class="l-en">Sign in</span><span class="l-zh">登录</span></a>
       </nav>
     </div>
   </footer>
@@ -301,7 +301,7 @@ const desc = "Browse, publish, and install community skills, plugins, and MCP se
 
   <script>
     import { currentAccount, accountLogout } from '../scripts/auth.js';
-    const REGISTRY = import.meta.env.PUBLIC_REGISTRY_ORIGIN || 'https://crash.reasonix.io';
+    const REGISTRY = import.meta.env.PUBLIC_REGISTRY_ORIGIN || 'https://crash.tempora.io';
     const state = { kind: 'all', sort: 'new', q: '' };
     let currentUser = null;
 
@@ -316,7 +316,7 @@ const desc = "Browse, publish, and install community skills, plugins, and MCP se
     ));
     const kindClass = (kind) => `pkg-kind${kind === 'plugin' ? ' plugin' : kind === 'mcp' ? ' mcp' : ''}`;
     const installRequest = (p) =>
-      `Install this Reasonix ${p.kind} package from ${p.source}. Use install_source with kind="${p.kind}".`;
+      `Install this Tempora ${p.kind} package from ${p.source}. Use install_source with kind="${p.kind}".`;
 
     function show(el, on) { if (el) el.hidden = !on; }
 
@@ -333,7 +333,7 @@ const desc = "Browse, publish, and install community skills, plugins, and MCP se
         <div class="pkg-sum">${esc(p.summary) || '<span style="color:var(--ink-3)">No summary.</span>'}</div>
         ${tags ? `<div class="pkg-tags">${tags}</div>` : ''}
         <div class="pkg-foot">
-          <span class="pkg-install" title="Install source — give it to Reasonix"><code>${esc(p.source)}</code><button data-copy="${esc(installRequest(p))}" data-slug="${esc(p.handle)}/${esc(p.name)}">Copy</button></span>
+          <span class="pkg-install" title="Install source — give it to Tempora"><code>${esc(p.source)}</code><button data-copy="${esc(installRequest(p))}" data-slug="${esc(p.handle)}/${esc(p.name)}">Copy</button></span>
         </div>
         <div class="pkg-meta">↓ ${p.installCount || 0} installs · v${esc(p.latestVersion) || '—'}${repo}</div>
       </article>`;

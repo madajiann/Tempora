@@ -4,7 +4,7 @@ import (
 	"crypto/sha256"
 	"log/slog"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 // SaveToolCheckpoint commits the canonical transcript, CAS revision and event

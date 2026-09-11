@@ -1,4 +1,4 @@
-# Reasonix CLI Reference
+# Tempora CLI Reference
 
 <a href="../README.md">README</a>
 &nbsp;·&nbsp;
@@ -13,18 +13,18 @@ configuration, plugins, and sandbox policy, see the [Guide](./GUIDE.md).
 ## Start a session
 
 ```sh
-reasonix
-reasonix --model deepseek-pro
-reasonix --effort high
-reasonix --dir /path/to/project
+tempora
+tempora --model deepseek-pro
+tempora --effort high
+tempora --dir /path/to/project
 ```
 
 Ordinary requests always enter the executor. There is no automatic simple /
 light / full task mode to pick. The dedicated planner runs only for an
 explicit Plan, an approval boundary, or Goal start.
 
-Running `reasonix` without a subcommand starts the interactive terminal UI. Use
-`reasonix setup` first when no provider is configured.
+Running `tempora` without a subcommand starts the interactive terminal UI. Use
+`tempora setup` first when no provider is configured.
 
 | Flag | Purpose |
 | --- | --- |
@@ -45,27 +45,27 @@ Flags may appear before or after the prompt where applicable.
 ## Update the native CLI
 
 ```sh
-reasonix upgrade                  # install the latest official release
-reasonix upgrade --check          # report the target without installing
-reasonix upgrade --force          # reinstall the current official release
+tempora upgrade                  # install the latest official release
+tempora upgrade --check          # report the target without installing
+tempora upgrade --force          # reinstall the current official release
 ```
 
 The updater selects only strict `vX.Y.Z` non-prerelease GitHub Releases. During
 the 1.x compatibility period, old channel arguments and `--channel` are still
 accepted, but resolve to the same official release and print a deprecation
 notice. Legacy `[cli].update_channel` values are ignored and removed the next
-time Reasonix saves the configuration. The `reasonix update` alias behaves the
+time Tempora saves the configuration. The `tempora update` alias behaves the
 same way.
 
 ## Configure providers
 
 ```sh
-reasonix setup                    # manage the user-global config
-reasonix setup --local            # manage ./reasonix.toml
-reasonix setup /path/to/config.toml
+tempora setup                    # manage the user-global config
+tempora setup --local            # manage ./tempora.toml
+tempora setup /path/to/config.toml
 ```
 
-In an interactive terminal, `reasonix setup` is a staged provider manager. It
+In an interactive terminal, `tempora setup` is a staged provider manager. It
 lists configured providers and lets you:
 
 - add OpenAI-compatible or Anthropic-compatible providers;
@@ -80,7 +80,7 @@ or CLI changes are retained, while an overlapping change is reported as a
 conflict instead of being overwritten.
 
 Provider definitions contain only the `api_key_env` variable name. Key values
-are stored in the shared Reasonix home `.env`, even with `--local`. When a
+are stored in the shared Tempora home `.env`, even with `--local`. When a
 variable name is already used by another provider, setup asks whether to share
 that credential; choose a different variable name when the providers use
 different keys. Providers added or removed through setup are also added to or
@@ -92,17 +92,17 @@ desktop app.
 Use the user-global command to inspect or select the display currency:
 
 ```sh
-reasonix config currency             # show the saved and resolved currency
-reasonix config currency auto        # wallet hint, then original price currency
-reasonix config currency CNY
-reasonix config currency USD
+tempora config currency             # show the saved and resolved currency
+tempora config currency auto        # wallet hint, then original price currency
+tempora config currency CNY
+tempora config currency USD
 ```
 
 `auto` remains unresolved in configuration. With one valid wallet currency it
 can become a runtime session hint; otherwise CLI uses the original currency or
 sorted currency buckets. Language and host locale never select a price table.
 The preference is user-global and cannot be overridden by project
-`reasonix.toml`; `--local` is therefore not supported. Custom prices are preserved.
+`tempora.toml`; `--local` is therefore not supported. Custom prices are preserved.
 
 In an interactive session, `/currency` shows the saved and resolved values, and
 `/currency auto|CNY|USD` changes the preference and refreshes the current
@@ -115,9 +115,9 @@ Inspect the effective percentage and its source, set the global default, or add
 a project override:
 
 ```sh
-reasonix config compact-ratio              # show effective value and source
-reasonix config compact-ratio 75           # set the user-global default
-reasonix config compact-ratio --local 75   # override in ./reasonix.toml
+tempora config compact-ratio              # show effective value and source
+tempora config compact-ratio 75           # set the user-global default
+tempora config compact-ratio --local 75   # override in ./tempora.toml
 ```
 
 The editable range is 30–85%, with 80% as the built-in default. Lower values
@@ -125,7 +125,7 @@ compact earlier, may increase summary calls and cost, and may reduce
 prompt-prefix cache reuse; higher values retain more context before compaction.
 Below the threshold, complete tool results may
 increase ordinary request cost; at pressure they are durably pruned before the
-cache-aligned summary runs. Project `reasonix.toml` takes precedence over
+cache-aligned summary runs. Project `tempora.toml` takes precedence over
 the user config. Changes apply to new CLI sessions; an already-running session
 keeps the threshold it loaded at startup.
 
@@ -134,14 +134,14 @@ keeps the threshold it loaded at startup.
 Use `-p` / `--print` when a script needs only the final answer:
 
 ```sh
-reasonix -p "summarize this repository"
-reasonix -p "summarize this repository" --output-format json
-reasonix run "implement the TODOs in main.go"
-reasonix run --auto "implement the TODOs in main.go"
-echo "explain this code" | reasonix run
+tempora -p "summarize this repository"
+tempora -p "summarize this repository" --output-format json
+tempora run "implement the TODOs in main.go"
+tempora run --auto "implement the TODOs in main.go"
+echo "explain this code" | tempora run
 ```
 
-`reasonix run` keeps the normal streamed terminal presentation unless `-p` or a
+`tempora run` keeps the normal streamed terminal presentation unless `-p` or a
 structured output format is selected. It also accepts `--model`,
 `--max-steps`, `--effort`, `--dir`, `--add-dir`,
 `--continue`, `--resume QUERY`, `--copy`, `--allowed-tools`, `--permission-mode`,
@@ -156,11 +156,11 @@ everything on) and `all`. Sub-agents inherit the parent's arm, and the arm name
 is written to the `--metrics` file so a recorded run is self-describing.
 
 ```sh
-reasonix run --ablate evidence,planner --metrics run.json "fix the failing test"
+tempora run --ablate evidence,planner --metrics run.json "fix the failing test"
 ```
 
 This is a measurement tool, not a tuning knob: switching a subsystem off makes
-Reasonix worse at the work it was added for.
+Tempora worse at the work it was added for.
 
 ### Trajectory recording
 
@@ -175,7 +175,7 @@ the file contains prompts, tool arguments, and reasoning: treat it with the
 same care as a session transcript.
 
 ```sh
-reasonix run --metrics run.json --trajectory run.trajectory.jsonl "fix the failing test"
+tempora run --metrics run.json --trajectory run.trajectory.jsonl "fix the failing test"
 ```
 
 ### Turn phases
@@ -214,9 +214,9 @@ at run exit, after the turn's phase clock has already closed.
 | `stream-json` | Emits one shared `eventwire` JSON object per line, followed by the final result object. |
 
 ```sh
-reasonix -p "list the risky changes" --output-format text
-reasonix -p "summarize the diff" --output-format json
-reasonix run "run the tests" --output-format stream-json
+tempora -p "list the risky changes" --output-format text
+tempora -p "summarize the diff" --output-format json
+tempora run "run the tests" --output-format stream-json
 ```
 
 The final structured object has this shape:
@@ -258,7 +258,7 @@ totals so clients never invent a cross-currency sum.
 Global display preference is `[billing].display_currency` (`auto|CNY|USD`);
 legacy `[desktop].currency` still migrates. Provider list prices use each
 entry's frozen `billing_currency` and are never rewritten by display switches.
-Diagnose with `reasonix doctor billing`.
+Diagnose with `tempora doctor billing`.
 
 Execution failures use `subtype: "error_during_execution"` and
 `is_error: true`. Structured modes keep runtime errors in JSON instead of also
@@ -268,7 +268,7 @@ The completion validator has been removed. A clean model stop without tool
 calls ends the turn directly; a response with tools continues through the tool
 loop, and a truly empty response is retried at the frozen-request boundary.
 Legacy `completion_validation`, `completion_evaluator_model`, and
-`REASONIX_COMPLETION_VALIDATION_MODE` settings remain readable but are ignored
+`TEMPORA_COMPLETION_VALIDATION_MODE` settings remain readable but are ignored
 and are no longer emitted by the config renderer. Host-owned readiness, budget,
 tool-safety, and recovery boundaries remain active.
 
@@ -279,7 +279,7 @@ must not receive prompts, reasoning, tool arguments, tool output, or approval
 text:
 
 ```sh
-reasonix run --events-jsonl "run the focused tests"
+tempora run --events-jsonl "run the focused tests"
 ```
 
 Every line has `schema_version`, `sequence`, and `kind`; the final line is
@@ -291,25 +291,25 @@ The following read-only commands expose persisted state without transcript,
 label, command, output, path, PID, or host-name content. Here, read-only means
 the commands do not mutate transcript, runtime, recovery, or query state. The
 first redacted-machine invocation may initialize a private identity key in the
-Reasonix user-state directory:
+Tempora user-state directory:
 
 ```sh
-reasonix session list --json [--dir SESSION_DIR | --project-root PATH]
-reasonix session show <machine-session-id> --json [--dir SESSION_DIR | --project-root PATH]
-reasonix session status <machine-session-id> --json [--dir SESSION_DIR | --project-root PATH]
-reasonix session recovery [<machine-session-id>] --json [--dir SESSION_DIR | --project-root PATH]
-reasonix task list --json [--dir SESSION_DIR | --project-root PATH] [--session MACHINE_SESSION_ID]
-reasonix task show <task-id> --json [--dir SESSION_DIR | --project-root PATH] [--session MACHINE_SESSION_ID]
-reasonix task monitor list --json [--dir PROJECT_DIR]
-reasonix task monitor status <task-id> --json [--dir PROJECT_DIR]
-reasonix task monitor events <task-id> --json|--jsonl [--dir PROJECT_DIR] [--after N] [--follow]
-reasonix hook list --json [--project-root PATH] [--home-dir PATH]
-reasonix hook status --json [--project-root PATH] [--home-dir PATH]
+tempora session list --json [--dir SESSION_DIR | --project-root PATH]
+tempora session show <machine-session-id> --json [--dir SESSION_DIR | --project-root PATH]
+tempora session status <machine-session-id> --json [--dir SESSION_DIR | --project-root PATH]
+tempora session recovery [<machine-session-id>] --json [--dir SESSION_DIR | --project-root PATH]
+tempora task list --json [--dir SESSION_DIR | --project-root PATH] [--session MACHINE_SESSION_ID]
+tempora task show <task-id> --json [--dir SESSION_DIR | --project-root PATH] [--session MACHINE_SESSION_ID]
+tempora task monitor list --json [--dir PROJECT_DIR]
+tempora task monitor status <task-id> --json [--dir PROJECT_DIR]
+tempora task monitor events <task-id> --json|--jsonl [--dir PROJECT_DIR] [--after N] [--follow]
+tempora hook list --json [--project-root PATH] [--home-dir PATH]
+tempora hook status --json [--project-root PATH] [--home-dir PATH]
 ```
 
 For `session` and `task`, `--dir` explicitly selects the session storage
 directory, while `--project-root` resolves the selected project's session
-store. The two options cannot be combined. Without either option, Reasonix
+store. The two options cannot be combined. Without either option, Tempora
 selects the current project's session store.
 For `hook`, `--dir` is an alias for `--project-root`.
 `hook list` reports `active` or `invalid`; `invalid` means the
@@ -317,10 +317,10 @@ configured event cannot execute because its event, command/context source, or
 tool-event matcher is unusable. Matchers on non-tool events are ignored.
 
 Machine session IDs are keyed opaque hashes, not transcript file names. They
-remain stable for the same session and Reasonix user-state directory, while a
+remain stable for the same session and Tempora user-state directory, while a
 different installation key produces unrelated IDs and prevents offline guesses
 from timestamps or model labels. Preserve the private identity key when moving
-the Reasonix state directory if automation depends on existing machine IDs.
+the Tempora state directory if automation depends on existing machine IDs.
 Task `finished_at` is empty while a task is running, and
 `artifact_complete=true` is emitted only for a terminal task whose persisted
 artifact exists. A `running` record without a live session lease is reported as
@@ -337,11 +337,11 @@ Schema compatibility rules for version 1:
 ## Resume sessions
 
 ```sh
-reasonix --continue
-reasonix --resume
-reasonix --resume provider-config
-reasonix --resume <session-id>
-reasonix --resume provider-config --copy
+tempora --continue
+tempora --resume
+tempora --resume provider-config
+tempora --resume <session-id>
+tempora --resume provider-config --copy
 ```
 
 - `--continue` resumes the newest saved session immediately.
@@ -351,22 +351,22 @@ reasonix --resume provider-config --copy
   error.
 - `--resume=true` and `--resume=false` remain accepted for compatibility.
 - `--copy` leaves the original transcript untouched and continues in a new
-  writable session. Use it when another Reasonix process owns the original.
+  writable session. Use it when another Tempora process owns the original.
 
-For one-shot runs, `reasonix run --resume QUERY "task"` accepts a session file
+For one-shot runs, `tempora run --resume QUERY "task"` accepts a session file
 path, a session ID, or an opaque machine session ID from `--events-jsonl` /
-`reasonix session show --json`. Session leases prevent the desktop app and CLI
+`tempora session show --json`. Session leases prevent the desktop app and CLI
 from writing the same transcript concurrently.
 
 ## Permissions
 
 ```sh
-reasonix --permission-mode plan
-reasonix --permission-mode acceptEdits
-reasonix run -y "apply the requested changes"
-reasonix -p "run the focused tests" --allowed-tools "Bash(go test ./...)"
-reasonix --allowed-tools "Bash(git *) Edit"
-reasonix --allowed-tools "Bash(go test ./...)" --allowed-tools read_file
+tempora --permission-mode plan
+tempora --permission-mode acceptEdits
+tempora run -y "apply the requested changes"
+tempora -p "run the focused tests" --allowed-tools "Bash(go test ./...)"
+tempora --allowed-tools "Bash(git *) Edit"
+tempora --allowed-tools "Bash(go test ./...)" --allowed-tools read_file
 ```
 
 | Mode | Behavior |
@@ -379,7 +379,7 @@ reasonix --allowed-tools "Bash(go test ./...)" --allowed-tools read_file
 | `bypassPermissions` | Bypass approval prompts; equivalent to YOLO. |
 
 For unattended execution with ordinary writer fallback enabled, use
-`reasonix run --auto ...` (or `-y`). The alias cannot be combined with an
+`tempora run --auto ...` (or `-y`). The alias cannot be combined with an
 explicit `--permission-mode` value.
 
 `[permissions] allow_dynamic_bash = true` is an advanced opt-in that lets an
@@ -391,7 +391,7 @@ command names, shell `-c`, and other nested/indirect Bash forms. The default is
 filter. Rules may be comma- or space-separated, and the flag is repeatable.
 Configured deny rules always win over command-line allow rules.
 
-In non-interactive runs (`reasonix run` / `-p`) there is no prompt to answer, so
+In non-interactive runs (`tempora run` / `-p`) there is no prompt to answer, so
 approval modes resolve without blocking. The default `ask` / `manual` posture
 fails closed for explicit Ask decisions and ordinary writer fallback; readers
 still run. `acceptEdits` allows its named file-edit tools, while other Ask
@@ -411,14 +411,14 @@ human.
 ## Additional directories
 
 ```sh
-reasonix --add-dir ../shared
-reasonix -p "update both projects" \
+tempora --add-dir ../shared
+tempora -p "update both projects" \
   --add-dir ../frontend \
   --add-dir ../backend
 ```
 
 Relative paths resolve from the workspace root and must already exist as
-directories. Reasonix resolves symlinks, removes duplicates, and extends the
+directories. Tempora resolves symlinks, removes duplicates, and extends the
 file-writer and sandboxed Bash write boundaries for the session. These additions
 are runtime-only and are not written to configuration.
 
@@ -457,7 +457,7 @@ Clipboard actions are deliberately split by content type. Local transcript
 and composer selections use the native system clipboard and report success only
 after that write completes; SSH falls back to an explicitly labelled OSC 52
 request. Text paste remains the terminal's bracketed-paste action (`Cmd+V` on
-macOS and the terminal's configured shortcut elsewhere). While Reasonix owns the
+macOS and the terminal's configured shortcut elsewhere). While Tempora owns the
 mouse in a local session, right-click with no selection reads clipboard text
 through the same paste path; right-click with a selection copies it. Over SSH,
 use the terminal paste shortcut because the remote process cannot read the local
@@ -496,7 +496,7 @@ the displayed list matches the commands the TUI accepts.
 | `/goal resume` | Resume a manually paused or genuinely blocked goal without changing a numeric quota. |
 | `/goal clear` | End goal mode permanently. |
 | `/docs [question]` | Show the embedded corpus identity, or search it locally and ask the configured AI to answer from version-matched evidence. |
-| `/reasonix:docs [question]` | Preferred built-in fallback when an existing custom command or compatible plugin/skill alias owns `/docs`; if this spelling is also owned, the menu selects the next free `reasonix:`-qualified name without displacing it. |
+| `/tempora:docs [question]` | Preferred built-in fallback when an existing custom command or compatible plugin/skill alias owns `/docs`; if this spelling is also owned, the menu selects the next free `tempora:`-qualified name without displacing it. |
 | `/mcp`, `/skills`, `/hooks` | Inspect and manage extensions. |
 | `/remember <note>` | Append a standing note to the project instruction document; `# <note>` is a shortcut. |
 | `/memory [subcommand]` | Inspect instructions, memory provenance, recall, revisions, and recovery. |
@@ -517,9 +517,9 @@ JSONL and sidecars remain authoritative. Inspect it read-only or replace only
 the projection:
 
 ```sh
-reasonix doctor sessions [--json]
-reasonix sessions reindex [--json]
-reasonix sessions reindex --dir /path/to/sessions --dir /another/path
+tempora doctor sessions [--json]
+tempora sessions reindex [--json]
+tempora sessions reindex --dir /path/to/sessions --dir /another/path
 ```
 
 Without `--dir`, reindex includes global sessions and all projects saved by the
@@ -529,20 +529,20 @@ failure, migration, and data-safety guarantees.
 History search uses a separate disposable projection:
 
 ```sh
-reasonix doctor catalogs [--json]
-reasonix catalogs reindex history [--dir PATH ...] [--json]
+tempora doctor catalogs [--json]
+tempora catalogs reindex history [--dir PATH ...] [--json]
 ```
 
 See [History Search Catalog](./HISTORY_SEARCH_CATALOG.md).
 Usage statistics use a separate disposable rollup projection:
-reasonix catalogs reindex usage [--json]
+tempora catalogs reindex usage [--json]
 See [Usage Catalog](./USAGE_CATALOG.md).
 
 Inspect or rebuild the disposable task projection independently:
 
 ```sh
-reasonix doctor catalogs [--json]
-reasonix catalogs reindex tasks [--project PATH ...] [--json]
+tempora doctor catalogs [--json]
+tempora catalogs reindex tasks [--project PATH ...] [--json]
 ```
 
 See [Task Catalog](./TASK_CATALOG.md) for the authoritative FileStore boundary,
@@ -565,7 +565,7 @@ names, and owned archive paths.
 | `/memory recover <archive-path>` | Recover an archive as a new revision without overwriting active data. |
 
 These commands run against the active session controller. When the session
-lives on a remote host (`reasonix remote connect` / a desktop remote web
+lives on a remote host (`tempora remote connect` / a desktop remote web
 window), they use the remote memory catalog and never fall back to local
 desktop memory. See [Context Engine v2](./SESSION_MEMORY_RETRIEVAL.md) for
 authority, automatic recall, write confirmation, and migration behavior.

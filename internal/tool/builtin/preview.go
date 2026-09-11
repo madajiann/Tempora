@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"reasonix/internal/diff"
+	"tempora/internal/diff"
 )
 
 // preview.go gives the file-writing built-ins the optional tool.Previewer

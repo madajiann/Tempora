@@ -8,10 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/serve"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/serve"
 )
 
 func TestRemoteInboxTargetLostReceiptOnlyQueriesOriginalRequest(t *testing.T) {

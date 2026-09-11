@@ -5,8 +5,8 @@ import (
 	"sort"
 	"sync"
 
-	"reasonix/internal/control"
-	"reasonix/internal/event"
+	"tempora/internal/control"
+	"tempora/internal/event"
 )
 
 type RuntimeSessionState struct {

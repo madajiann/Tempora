@@ -3,9 +3,9 @@ package control
 import (
 	"fmt"
 
-	"reasonix/internal/config"
-	"reasonix/internal/mcpdiag"
-	"reasonix/internal/plugin"
+	"tempora/internal/config"
+	"tempora/internal/mcpdiag"
+	"tempora/internal/plugin"
 )
 
 type removedMCPState struct {
@@ -32,7 +32,7 @@ func reconcileRemovedMCPState(workspace, name string) removedMCPState {
 		remainingResource = mcpdiag.HTTPMCPOAuthResource(state.fallback.Type, state.fallback.URL, mcpdiag.HasAuthConfig(state.fallback.Headers, state.fallback.Env, state.fallback.URL))
 	}
 	if _, err := plugin.ReconcileHTTPMCPOAuthAfterRemoval(plugin.Spec{
-		Name: name, StateDir: plugin.MCPStateDir(config.ReasonixHomeDir(), workspace, name),
+		Name: name, StateDir: plugin.MCPStateDir(config.TemporaHomeDir(), workspace, name),
 	}, remainingResource); err != nil {
 		state.cleanupErr = fmt.Errorf("reconcile OAuth state after removing MCP server %q: %w", name, err)
 	}

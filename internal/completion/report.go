@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/taskcontract"
+	"tempora/internal/evidence"
+	"tempora/internal/taskcontract"
 )
 
 // Verdict is the report's headline. Partial is terminal: the work is proven

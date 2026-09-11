@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"reasonix/internal/control"
-	"reasonix/internal/transcript"
+	"tempora/internal/control"
+	"tempora/internal/transcript"
 )
 
 type RemoteTranscriptSnapshot struct {

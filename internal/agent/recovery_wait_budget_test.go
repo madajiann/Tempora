@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 func TestWaitingStopsOnceBudgetExhausted(t *testing.T) {

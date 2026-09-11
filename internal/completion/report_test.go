@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/taskcontract"
+	"tempora/internal/evidence"
+	"tempora/internal/taskcontract"
 )
 
 func ledgerOf(receipts ...evidence.Receipt) *evidence.Ledger {
@@ -226,8 +226,8 @@ func TestBuildIgnoresScratchWrites(t *testing.T) {
 
 func TestBuildKeepsOutsideWrites(t *testing.T) {
 	volumeRoot := filepath.VolumeName(os.TempDir()) + string(filepath.Separator)
-	workspace := filepath.Join(volumeRoot, "reasonix-project")
-	outside := filepath.Join(volumeRoot, "reasonix-external", "config.json")
+	workspace := filepath.Join(volumeRoot, "tempora-project")
+	outside := filepath.Join(volumeRoot, "tempora-external", "config.json")
 	rep := BuildAt(nil, ledgerOf(wrote(outside)), workspace, nil)
 	expectedPath := outside
 	if runtime.GOOS == "windows" {

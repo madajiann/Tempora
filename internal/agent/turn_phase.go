@@ -4,11 +4,11 @@ import (
 	"slices"
 	"time"
 
-	"reasonix/internal/agentpreset"
-	"reasonix/internal/completion"
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/taskcontract"
+	"tempora/internal/agentpreset"
+	"tempora/internal/completion"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/taskcontract"
 )
 
 type phaseClock struct {

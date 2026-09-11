@@ -2079,7 +2079,7 @@ export function Composer({
     const currentSelectedTextRefs = selectedTextRefsRef.current;
     const currentPastedBlocks = [...pastedBlocksRef.current];
     try {
-      if (finishing && !submitPendingKey) throw new Error("reasonix_error:inbox_not_submitted");
+      if (finishing && !submitPendingKey) throw new Error("tempora_error:inbox_not_submitted");
       const target = finishing && app.CaptureInboxTarget
         ? await app.CaptureInboxTarget(submitTabId || "", inboxSessionPath || "") : undefined;
       const orderedAttachments = sortComposerAttachments(currentAttachments);

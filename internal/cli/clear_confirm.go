@@ -6,7 +6,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"reasonix/internal/i18n"
+	"tempora/internal/i18n"
 )
 
 type clearConfirm struct {

@@ -12,8 +12,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	fileencoding "reasonix/internal/fileutil/encoding"
-	"reasonix/internal/store"
+	fileencoding "tempora/internal/fileutil/encoding"
+	"tempora/internal/store"
 )
 
 // ErrSessionTitleChanged reports that a conditional rename observed a newer

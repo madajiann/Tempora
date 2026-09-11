@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"strings"
 
-	"reasonix/internal/capability"
-	"reasonix/internal/plugin"
+	"tempora/internal/capability"
+	"tempora/internal/plugin"
 )
 
 // listServerInfo is one configured MCP server entry returned by action=list.

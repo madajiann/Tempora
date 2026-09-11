@@ -6,8 +6,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"reasonix/internal/control"
-	"reasonix/internal/event"
+	"tempora/internal/control"
+	"tempora/internal/event"
 )
 
 func TestManualNewlineDuringRunningTurnDoesNotSteerOrClearDraft(t *testing.T) {

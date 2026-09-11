@@ -6,11 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/planmode"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/planmode"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 type planSafeTool struct {

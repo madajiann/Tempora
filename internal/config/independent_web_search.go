@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 	"slices"
 	"strings"
 )

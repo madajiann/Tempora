@@ -9,11 +9,11 @@ import (
 	"sync"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/provider/anthropic"
-	"reasonix/internal/provider/openai"
-	"reasonix/internal/provider/responses"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/provider/anthropic"
+	"tempora/internal/provider/openai"
+	"tempora/internal/provider/responses"
 )
 
 func TestTruncatedJSONStreamRecoversWithoutExecutingPartialTools(t *testing.T) {

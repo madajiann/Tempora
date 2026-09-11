@@ -6,9 +6,9 @@ import (
 	"strings"
 	"unicode"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 // probeAnswerContract rides with every probe question. A context full of tool
@@ -110,7 +110,7 @@ func buriedTestLog() string {
 	for i := 120; i < 200; i++ {
 		pass(i)
 	}
-	b.WriteString("FAIL\nexit status 1\nFAIL\treasonix/emitter\t0.234s\n")
+	b.WriteString("FAIL\nexit status 1\nFAIL\ttempora/emitter\t0.234s\n")
 	return b.String()
 }
 

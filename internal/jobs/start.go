@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"reasonix/internal/event"
-	"reasonix/internal/nilutil"
+	"tempora/internal/event"
+	"tempora/internal/nilutil"
 	"strings"
 )
 

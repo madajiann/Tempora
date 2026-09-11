@@ -1,6 +1,6 @@
 package boot
 
-import "reasonix/internal/config"
+import "tempora/internal/config"
 
 func runtimeModelSettingsReader(root, modelName, modelRef string, settings *config.ModelRuntimeSettings) func() (string, error) {
 	return func() (string, error) {

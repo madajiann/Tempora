@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/permission"
+	"tempora/internal/event"
+	"tempora/internal/permission"
 )
 
 func TestMemoryApprovalStillPromptsUnderAsk(t *testing.T) {

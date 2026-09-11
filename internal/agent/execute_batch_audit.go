@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 func (a *Agent) emitBatchToolResult(ctx context.Context, c provider.ToolCall, o toolOutcome, duration, started int64, parallel bool, batchStart time.Time) error {

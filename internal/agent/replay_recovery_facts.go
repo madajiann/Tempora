@@ -2,7 +2,7 @@ package agent
 
 import (
 	"encoding/json"
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 // replayRecoveryFacts restores authoritative local execution states only while

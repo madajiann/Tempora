@@ -3,7 +3,7 @@ package serve
 import (
 	"testing"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 func TestApplyEffortEditUpsertsMissingProvider(t *testing.T) {

@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"reasonix/internal/config"
-	"reasonix/internal/provider/openai"
+	"tempora/internal/config"
+	"tempora/internal/provider/openai"
 )
 
 func TestProviderViewKeepsOfficialDeepSeekVisionSelection(t *testing.T) {

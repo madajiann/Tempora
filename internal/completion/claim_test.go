@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/evidence"
+	"tempora/internal/evidence"
 )
 
 func claimed(status string, completion string) evidence.Receipt {

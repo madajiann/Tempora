@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 func TestRepairBatchHoldsSourceGenerationThroughCommit(t *testing.T) {

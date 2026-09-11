@@ -2,9 +2,9 @@ package boot
 
 import (
 	"net/http"
-	"reasonix/internal/config"
-	"reasonix/internal/netclient"
-	"reasonix/internal/provider"
+	"tempora/internal/config"
+	"tempora/internal/netclient"
+	"tempora/internal/provider"
 )
 
 // NewProvider builds a provider.Provider from a configured entry. Exported so

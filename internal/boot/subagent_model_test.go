@@ -6,14 +6,14 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/ablation"
-	"reasonix/internal/agent"
-	"reasonix/internal/billing"
-	"reasonix/internal/config"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/skill"
-	"reasonix/internal/tool"
+	"tempora/internal/ablation"
+	"tempora/internal/agent"
+	"tempora/internal/billing"
+	"tempora/internal/config"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/skill"
+	"tempora/internal/tool"
 )
 
 type staticResolver struct {

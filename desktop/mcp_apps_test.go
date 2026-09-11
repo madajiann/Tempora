@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/control"
-	"reasonix/internal/plugin"
+	"tempora/internal/control"
+	"tempora/internal/plugin"
 )
 
 func TestMCPAppBindingSurvivesActiveTabSwitchAndClosesOriginalHost(t *testing.T) {

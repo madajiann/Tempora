@@ -11,8 +11,8 @@ import (
 	"sync"
 	"unicode/utf8"
 
-	fileencoding "reasonix/internal/fileutil/encoding"
-	"reasonix/internal/sandbox"
+	fileencoding "tempora/internal/fileutil/encoding"
+	"tempora/internal/sandbox"
 )
 
 var windowsHookBash struct {

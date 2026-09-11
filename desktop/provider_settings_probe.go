@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/boot"
-	"reasonix/internal/config"
-	"reasonix/internal/provider"
+	"tempora/internal/boot"
+	"tempora/internal/config"
+	"tempora/internal/provider"
 )
 
 // TestProviderModel sends a bounded, tool-free probe through the configured

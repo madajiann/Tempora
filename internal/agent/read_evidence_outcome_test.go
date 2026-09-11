@@ -10,11 +10,11 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/provider"
-	"reasonix/internal/readcoord"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/provider"
+	"tempora/internal/readcoord"
+	"tempora/internal/tool"
 )
 
 func TestPartialRangeFinalAndFullFinalHaveDifferentContracts(t *testing.T) {

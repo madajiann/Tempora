@@ -28,7 +28,7 @@ type Messages struct {
 	WelcomeTitleFmt string // first-run box title — %s = product name (styled)
 	NoConfigYet     string // first-run cue under the welcome box
 
-	// `reasonix init` — points to the in-session /init skill + setup
+	// `tempora init` — points to the in-session /init skill + setup
 	InitHint string
 
 	// chat REPL
@@ -192,7 +192,7 @@ type Messages struct {
 	SandboxEscapeWrapReason                string // reason when no OS sandbox can wrap the command
 	SandboxEscapeRuntimeReason             string // fallback reason when an OS sandbox cannot start the command
 	SandboxEscapeDeclined                  string // model-facing denial when the user declines a one-shot unconfined retry
-	ApprovalToolLabelConfigWrite           string // user-facing label for Reasonix-managed config write approvals
+	ApprovalToolLabelConfigWrite           string // user-facing label for Tempora-managed config write approvals
 	ConfigWriteSubjectPrefix               string // subject prefix before the config file path for managed config write approval
 	ConfigWriteReason                      string // reason shown for managed config write approval
 	ConfigWriteDeclined                    string // model-facing denial when the user declines a managed config write
@@ -200,7 +200,7 @@ type Messages struct {
 	WriteAccessApprovalChoices             string // four-choice list for extending writable roots
 	WriteAccessHomeWarning                 string // high-risk warning when granting the whole home directory
 	WriteAccessMergedPermissionHint        string // note that the same choice also grants ordinary tool permission
-	WriteAccessProjectHint                 string // note that project persist edits reasonix.toml
+	WriteAccessProjectHint                 string // note that project persist edits tempora.toml
 	PermissionSavedFmt                     string // permission rule saved notice: path, rule
 	PermissionAlreadyAllowedFmt            string // permission rule already covered notice: path, rule
 	PermissionSaveFailedFmt                string // permission rule save failure notice: rule, error
@@ -469,7 +469,7 @@ type Messages struct {
 
 	// init wizard
 	EnterAPIKeysHeader       string // header before the per-env-var prompts
-	WroteFileFmt             string // "Wrote %s" — used for reasonix.toml and .env both
+	WroteFileFmt             string // "Wrote %s" — used for tempora.toml and .env both
 	SetupComplete            string // success line at end of init
 	SetupCancelled           string // shown when the user aborts the wizard
 	TryHintFmt               string // "Try: %s" — %s = command to try (styled)
@@ -561,11 +561,11 @@ type Messages struct {
 	RemotePassphrasePromptFmt string // "passphrase for %s:"
 	RemotePasswordPromptFmt   string // "password for %s:"
 	RemoteBootstrapStepFmt    string // "remote serve: %s %s"
-	RemoteNoHostsHint         string // "no remote hosts configured; add one with `reasonix remote add`"
+	RemoteNoHostsHint         string // "no remote hosts configured; add one with `tempora remote add`"
 
 	// top-level / runAgent
 	UnknownCommandFmt         string // "unknown command %q"
-	UsageRunHint              string // "usage: reasonix run [--model NAME] <task>"
+	UsageRunHint              string // "usage: tempora run [--model NAME] <task>"
 	ErrorPrefix               string // "error:" — prefix for fatal-error output
 	ReconfigureOnUnknownModel string // shown when the configured model no longer resolves and setup is re-run
 	WriteConfigErr            string // "write config:" — prefix for write failure
@@ -608,7 +608,7 @@ type Messages struct {
 	ProviderPickLabel    string // label for provider model picker
 	ProviderNoModelsFmt  string // provider has no models
 
-	// `reasonix upgrade` / `reasonix update` — self-update
+	// `tempora upgrade` / `tempora update` — self-update
 	UpgradeChecking            string // "Checking for updates…"
 	UpgradeChannelDeprecated   string // legacy channel selection is ignored
 	UpgradeDevBuild            string // dev builds cannot self-update
@@ -629,7 +629,7 @@ type Messages struct {
 	UpgradeApplyFailed         string // "failed to apply update: %v"
 	UpgradeSuccessFmt          string // "Updated %s → %s"
 
-	// `reasonix report` — local CLI crash review and explicit upload
+	// `tempora report` — local CLI crash review and explicit upload
 	ReportNoPending           string
 	ReportHeaderFmt           string
 	ReportCapturedFmt         string
@@ -696,7 +696,7 @@ func CurrentLanguage() string {
 // environment and installs it as M. Returns the resolved tag ("en", "zh") so
 // callers can log or expose it.
 //
-// Priority: override > REASONIX_LANG > LC_ALL > LC_MESSAGES > LANG > "en".
+// Priority: override > TEMPORA_LANG > LC_ALL > LC_MESSAGES > LANG > "en".
 func DetectLanguage(override string) string {
 	for _, c := range append([]string{override}, envCandidates()...) {
 		if tag := normalize(c); tag != "" {
@@ -707,7 +707,7 @@ func DetectLanguage(override string) string {
 }
 
 func envCandidates() []string {
-	keys := []string{"REASONIX_LANG", "LC_ALL", "LC_MESSAGES", "LANG"}
+	keys := []string{"TEMPORA_LANG", "LC_ALL", "LC_MESSAGES", "LANG"}
 	out := make([]string, len(keys))
 	for i, k := range keys {
 		out[i] = os.Getenv(k)

@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/filelock"
+	"tempora/internal/filelock"
 )
 
 func warningFingerprint(label string) string {

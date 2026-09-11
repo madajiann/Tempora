@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/desktop/internal/hostrpc"
-	"reasonix/internal/extension/rpcwire"
+	"tempora/desktop/internal/hostrpc"
+	"tempora/internal/extension/rpcwire"
 )
 
 // fakeShell answers host/* requests from the Go side and records them.

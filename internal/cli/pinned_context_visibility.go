@@ -4,8 +4,8 @@ import (
 	"slices"
 	"strings"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/provider"
 )
 
 func cliHistoryWithoutPinnedContextRevisions(messages []provider.Message) []provider.Message {

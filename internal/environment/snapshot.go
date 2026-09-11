@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/fileutil"
-	fileencoding "reasonix/internal/fileutil/encoding"
+	"tempora/internal/fileutil"
+	fileencoding "tempora/internal/fileutil/encoding"
 )
 
 // Probe snapshots persist across process restarts so the environment section —

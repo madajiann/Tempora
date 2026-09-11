@@ -4,9 +4,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/provider"
-	"reasonix/internal/retrieval"
+	"tempora/internal/agent"
+	"tempora/internal/provider"
+	"tempora/internal/retrieval"
 )
 
 const (

@@ -9,11 +9,11 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
-	"reasonix/internal/workspacelease"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
+	"tempora/internal/workspacelease"
 )
 
 type workspaceLeaseTestTool struct {

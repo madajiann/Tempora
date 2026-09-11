@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/evidence"
+	"tempora/internal/evidence"
 )
 
 func TestCompleteStepVerificationWithoutCommandSuggestsOtherKinds(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/historycatalog"
+	"tempora/internal/historycatalog"
 )
 
 func TestIndexedCatalogManagerRebuildPreservesRootsAndRestarts(t *testing.T) {

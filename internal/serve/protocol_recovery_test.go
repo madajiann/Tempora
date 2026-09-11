@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/provider"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/provider"
 )
 
 func TestProtocolRecoveryHTTPRejectsMissingAndStaleTokens(t *testing.T) {

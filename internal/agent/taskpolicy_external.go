@@ -6,7 +6,7 @@ import (
 	"strings"
 	"unicode"
 
-	"reasonix/internal/shellparse"
+	"tempora/internal/shellparse"
 )
 
 const maxExternalCommandDepth = 4

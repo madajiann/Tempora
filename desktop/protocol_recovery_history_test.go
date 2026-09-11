@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 	"strings"
 	"testing"
 )

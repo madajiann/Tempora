@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	copySpanStartPrefix = "\x1b]1337;reasonix-copy-span="
-	copySpanEndPrefix   = "\x1b]1337;reasonix-copy-span-end="
+	copySpanStartPrefix = "\x1b]1337;tempora-copy-span="
+	copySpanEndPrefix   = "\x1b]1337;tempora-copy-span-end="
 	copySpanTerminator  = "\x07"
 	copyOmitSpanID      = "gutter"
 )

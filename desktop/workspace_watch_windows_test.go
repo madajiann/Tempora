@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/gitcmd"
+	"tempora/internal/gitcmd"
 )
 
 const workspaceGitCreateNoWindow = 0x08000000

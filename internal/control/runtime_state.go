@@ -6,10 +6,10 @@ import (
 	"log/slog"
 	"sync"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
-	"reasonix/internal/jobs"
-	"reasonix/internal/turnevent"
+	"tempora/internal/agent"
+	"tempora/internal/event"
+	"tempora/internal/jobs"
+	"tempora/internal/turnevent"
 )
 
 // RuntimeStateReader is optional so older embedders of SessionAPI keep working.

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/evidence"
+	"tempora/internal/evidence"
 )
 
 func TestComposeChildTaskPromptUsesFactsPack(t *testing.T) {

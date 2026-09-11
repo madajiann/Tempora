@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"reasonix/internal/config"
-	"reasonix/internal/desktopinstance"
-	"reasonix/internal/installlayout"
-	"reasonix/internal/proc"
+	"tempora/internal/config"
+	"tempora/internal/desktopinstance"
+	"tempora/internal/installlayout"
+	"tempora/internal/proc"
 )
 
 func coordinatedLaunch(root string, args []string) (bool, int) {
@@ -18,7 +18,7 @@ func coordinatedLaunch(root string, args []string) (bool, int) {
 	if !installlayout.HasCurrent(root) || !installlayout.HasActiveShell(root) {
 		return false, 0
 	}
-	err := desktopinstance.LaunchAndVerify(root, config.ReasonixHomeDir(), os.Getenv("REASONIX_NONINTERACTIVE") != "1", func() error {
+	err := desktopinstance.LaunchAndVerify(root, config.TemporaHomeDir(), os.Getenv("TEMPORA_NONINTERACTIVE") != "1", func() error {
 		path, err := ResolveDesktopPath(root)
 		if err != nil {
 			return err
@@ -35,7 +35,7 @@ func coordinatedLaunch(root string, args []string) (bool, int) {
 	}, StripLegacyLaunchArgs(args)...)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		if os.Getenv("REASONIX_NONINTERACTIVE") != "1" {
+		if os.Getenv("TEMPORA_NONINTERACTIVE") != "1" {
 			desktopinstance.Notify(err)
 		}
 		return true, desktopinstance.ExitCode(err)

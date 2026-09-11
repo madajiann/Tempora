@@ -13,8 +13,8 @@ import (
 	"testing"
 
 	"github.com/BurntSushi/toml"
-	"reasonix/internal/fileutil"
-	fileencoding "reasonix/internal/fileutil/encoding"
+	"tempora/internal/fileutil"
+	fileencoding "tempora/internal/fileutil/encoding"
 )
 
 const openCodeGoUpgradeFixture = `# keep the user's introduction

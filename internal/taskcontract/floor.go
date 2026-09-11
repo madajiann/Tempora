@@ -1,6 +1,6 @@
 package taskcontract
 
-import "reasonix/internal/evidence"
+import "tempora/internal/evidence"
 
 // PolicyFloor is the session-scoped quality floor a write was committed
 // under. The floor in force at write time is a fact of that write: it rides

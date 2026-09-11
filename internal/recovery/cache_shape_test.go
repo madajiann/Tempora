@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
-	"reasonix/internal/recovery"
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/event"
+	"tempora/internal/recovery"
+	"tempora/internal/tool"
 )
 
 // TestRecoveryWiringPreservesSuccessPathCacheShape pins the product rule that

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/tool"
 )
 
 // hostReceiptsMaxItems bounds each rendered line so a long child run cannot

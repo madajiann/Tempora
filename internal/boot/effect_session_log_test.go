@@ -6,10 +6,10 @@ import (
 	"os"
 	"testing"
 
-	"reasonix/internal/ablation"
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/ablation"
+	"tempora/internal/agent"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 // TestEffectSessionLogUpgradeKeepsModelMessagesThroughRealBuild opens a
@@ -21,13 +21,13 @@ func TestEffectSessionLogUpgradeKeepsModelMessagesThroughRealBuild(t *testing.T)
 	isolateConfigHome(t)
 	dir := robustTempDir(t)
 	t.Chdir(dir)
-	t.Setenv("REASONIX_SESSION_LOG", "v1")
+	t.Setenv("TEMPORA_SESSION_LOG", "v1")
 
 	rec := &effectRecordingProvider{}
 	provider.Register("boot-effect-session-log", func(provider.Config) (provider.Provider, error) {
 		return rec, nil
 	})
-	writeFile(t, dir, "reasonix.toml", `
+	writeFile(t, dir, "tempora.toml", `
 default_model = "test-model"
 
 [agent]
@@ -59,7 +59,7 @@ model = "x"
 		t.Fatalf("schema-1 session must have no heads yet: %v %v", heads, err)
 	}
 
-	if err := os.Unsetenv("REASONIX_SESSION_LOG"); err != nil {
+	if err := os.Unsetenv("TEMPORA_SESSION_LOG"); err != nil {
 		t.Fatal(err)
 	}
 	lease, err := agent.TryAcquireSessionLease(path)

@@ -22,13 +22,13 @@ import (
 	"sync/atomic"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/eventwire"
-	"reasonix/internal/remote/bootstrap"
-	"reasonix/internal/store"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/eventwire"
+	"tempora/internal/remote/bootstrap"
+	"tempora/internal/store"
 )
 
 // cliTakeoverTimeout bounds the drain window of a wait-mode takeover.
@@ -59,7 +59,7 @@ type cliTakeoverBinding struct {
 }
 
 // discoverCLIServes enumerates resident serve processes recorded under
-// <Reasonix home>/remote. This machine is the SSH target in the takeover
+// <Tempora home>/remote. This machine is the SSH target in the takeover
 // scenario, so the bootstrap's SFTP-written state files are local files here.
 func discoverCLIServes() []cliServeRecord {
 	dir := config.RemoteStateDir()

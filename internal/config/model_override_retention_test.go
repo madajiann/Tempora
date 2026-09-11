@@ -10,7 +10,7 @@ func loadSingleProvider(t *testing.T, providerBody string) *ProviderEntry {
 	t.Helper()
 	dir := t.TempDir()
 	body := "default_model = \"relay\"\n\n[[providers]]\nname = \"relay\"\nkind = \"openai\"\nmodels = [\"a\", \"b\"]\ndefault = \"a\"\n" + providerBody + "\n"
-	if err := os.WriteFile(filepath.Join(dir, "reasonix.toml"), []byte(body), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "tempora.toml"), []byte(body), 0o644); err != nil {
 		t.Fatalf("write config: %v", err)
 	}
 	c, err := LoadForRootReadOnly(dir)

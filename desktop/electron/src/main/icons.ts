@@ -15,7 +15,7 @@ export interface IconCandidates {
 
 export function iconCandidates(input: IconLookup): IconCandidates {
   const build = input.packaged ? join(input.resourcesPath, "icons") : resolve(input.appPath, "..", "build");
-  const hicolor = (size: string) => join(build, "linux", "icons", "hicolor", size, "apps", "reasonix-desktop.png");
+  const hicolor = (size: string) => join(build, "linux", "icons", "hicolor", size, "apps", "tempora-desktop.png");
   const appicon = join(build, "appicon.png");
   return {
     tray: input.platform === "darwin" ? [appicon, hicolor("32x32")] : [hicolor("32x32"), appicon],

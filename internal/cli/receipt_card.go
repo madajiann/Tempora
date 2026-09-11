@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/event"
-	"reasonix/internal/i18n"
+	"tempora/internal/event"
+	"tempora/internal/i18n"
 )
 
 // maxReceiptGapLines bounds the card. A receipt long enough to scroll is a

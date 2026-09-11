@@ -4,10 +4,10 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/instruction"
-	"reasonix/internal/runtimepolicy"
-	"reasonix/internal/tool"
+	"tempora/internal/evidence"
+	"tempora/internal/instruction"
+	"tempora/internal/runtimepolicy"
+	"tempora/internal/tool"
 )
 
 func TestPartialWaiverStandsDownUnavailableChecksOnBalanced(t *testing.T) {

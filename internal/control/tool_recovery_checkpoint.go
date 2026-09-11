@@ -5,9 +5,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 
-	"reasonix/internal/checkpoint"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/checkpoint"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 func (c *Controller) stampToolRecoveryEvent(e event.Event) error {

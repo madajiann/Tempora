@@ -2,7 +2,7 @@ package shellsafe
 
 import (
 	"mvdan.cc/sh/v3/syntax"
-	"reasonix/internal/shellparse"
+	"tempora/internal/shellparse"
 	"strings"
 )
 

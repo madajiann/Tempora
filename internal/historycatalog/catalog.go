@@ -16,10 +16,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/projectiondb"
-	"reasonix/internal/retrieval"
-	"reasonix/internal/store"
+	"tempora/internal/agent"
+	"tempora/internal/projectiondb"
+	"tempora/internal/retrieval"
+	"tempora/internal/store"
 )
 
 const defaultMissingGrace = 30 * time.Second

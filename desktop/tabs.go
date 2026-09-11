@@ -12,19 +12,19 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
-	"reasonix/internal/agent"
-	"reasonix/internal/billing"
-	"reasonix/internal/boot"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/eventwire"
-	"reasonix/internal/extension/providerext"
-	"reasonix/internal/fileutil"
-	"reasonix/internal/notify"
-	"reasonix/internal/provider"
-	"reasonix/internal/store"
-	"reasonix/internal/turnevent"
+	"tempora/internal/agent"
+	"tempora/internal/billing"
+	"tempora/internal/boot"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/eventwire"
+	"tempora/internal/extension/providerext"
+	"tempora/internal/fileutil"
+	"tempora/internal/notify"
+	"tempora/internal/provider"
+	"tempora/internal/store"
+	"tempora/internal/turnevent"
 	"slices"
 	"sort"
 	"strings"
@@ -2336,7 +2336,7 @@ func (a *App) openTopicTabWithActivation(scope, workspaceRoot, topicID, sessionP
 }
 
 // OpenGlobalTab opens a new global-scope tab (no project root). The global
-// workspace root is the reasonix user config directory.
+// workspace root is the tempora user config directory.
 func (a *App) OpenGlobalTab(topicID string) (TabMeta, error) {
 	return a.openGlobalTab(topicID)
 }
@@ -4679,7 +4679,7 @@ const legacyProjectSidebarRecoveryMarker = "desktop-projects-legacy-recovered"
 var desktopProjectsFileMu sync.Mutex
 
 func desktopConfigDir() string {
-	return config.ReasonixHomeDir()
+	return config.TemporaHomeDir()
 }
 
 func (a *App) saveTabsLocked() {

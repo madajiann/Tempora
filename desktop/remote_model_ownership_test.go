@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 func TestRemoteOwnershipRejectsOvertakenReceipts(t *testing.T) {

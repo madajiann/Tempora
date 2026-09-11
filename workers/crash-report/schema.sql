@@ -1,4 +1,4 @@
--- Apply: wrangler d1 execute reasonix-crash --remote --file=schema.sql
+-- Apply: wrangler d1 execute tempora-crash --remote --file=schema.sql
 CREATE TABLE IF NOT EXISTS groups (
   fingerprint TEXT PRIMARY KEY,
   kind TEXT NOT NULL,
@@ -281,7 +281,7 @@ CREATE TABLE IF NOT EXISTS diagnostics_meta (
 INSERT OR IGNORE INTO diagnostics_meta (key, value)
 VALUES ('installation_linked_since', date('now'));
 
--- Legacy local auth — superseded by id.reasonix.io identity + the `access`
+-- Legacy local auth — superseded by id.tempora.io identity + the `access`
 -- table below. Kept during the transition; migrate-access.sql copies roles over.
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -303,7 +303,7 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE INDEX IF NOT EXISTS sessions_user ON sessions (user_id);
 
 -- Dashboard authorization keyed by the shared account email. Identity (login,
--- password, verification) lives in id.reasonix.io; this only maps email → role.
+-- password, verification) lives in id.tempora.io; this only maps email → role.
 CREATE TABLE IF NOT EXISTS access (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   email TEXT NOT NULL UNIQUE,

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 const repairWakeKey = "session-catalog-repair-wake"

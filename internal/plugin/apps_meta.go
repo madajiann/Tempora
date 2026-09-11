@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 type mcpTool struct {

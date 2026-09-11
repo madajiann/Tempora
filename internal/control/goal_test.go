@@ -10,15 +10,15 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/goaleval"
-	"reasonix/internal/provider"
-	"reasonix/internal/store"
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/goaleval"
+	"tempora/internal/provider"
+	"tempora/internal/store"
+	"tempora/internal/tool"
 
-	_ "reasonix/internal/tool/builtin"
+	_ "tempora/internal/tool/builtin"
 )
 
 // goalRegistry returns a registry carrying the update_goal builtin so scripted
@@ -221,7 +221,7 @@ func TestPlainInputWithStrongResearchSignalPreservesRefsWithoutStartingGoal(t *t
 	if got := c.GoalStatus(); got != GoalStatusStopped {
 		t.Fatalf("GoalStatus() = %q, want stopped", got)
 	}
-	if _, err := os.Stat(filepath.Join(root, ".reasonix", "autoresearch")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(root, ".tempora", "autoresearch")); !os.IsNotExist(err) {
 		t.Fatalf("ordinary prompt created AutoResearch state: err=%v", err)
 	}
 }
@@ -242,7 +242,7 @@ func TestResearchGoalUsesContinuousRuntimeWithoutArchive(t *testing.T) {
 	if got := c.goals.budgetClass; got != budgetClassResearch {
 		t.Fatalf("research Goal budget class = %q, want %q", got, budgetClassResearch)
 	}
-	if _, err := os.Stat(filepath.Join(root, ".reasonix", "autoresearch")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(root, ".tempora", "autoresearch")); !os.IsNotExist(err) {
 		t.Fatalf("research Goal created legacy archive: %v", err)
 	}
 	if composed := c.Compose("continue"); strings.Contains(composed, "AutoResearch") || strings.Contains(composed, "autoresearch") {
@@ -291,19 +291,19 @@ func TestMissingExplicitLegacyTaskBlocksWithoutCreatingArchive(t *testing.T) {
 	root := t.TempDir()
 	c := New(Options{WorkspaceRoot: root})
 	defer c.Close()
-	c.SetGoalWithResearchMode("resume .reasonix/autoresearch/missing-task/", GoalResearchOn)
+	c.SetGoalWithResearchMode("resume .tempora/autoresearch/missing-task/", GoalResearchOn)
 	if got := c.GoalStatus(); got != GoalStatusBlocked {
 		t.Fatalf("GoalStatus = %q, want blocked", got)
 	}
-	if _, err := os.Stat(filepath.Join(root, ".reasonix", "autoresearch")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(root, ".tempora", "autoresearch")); !os.IsNotExist(err) {
 		t.Fatalf("missing legacy task created archive: %v", err)
 	}
 
-	c.SetGoal("resume .reasonix/autoresearch/missing-task/../../escape")
+	c.SetGoal("resume .tempora/autoresearch/missing-task/../../escape")
 	if got := c.GoalStatus(); got != GoalStatusBlocked {
 		t.Fatalf("unsafe legacy path status = %q, want blocked", got)
 	}
-	if got := c.Goal(); got != "resume .reasonix/autoresearch/missing-task/../../escape" {
+	if got := c.Goal(); got != "resume .tempora/autoresearch/missing-task/../../escape" {
 		t.Fatalf("unsafe legacy path silently resumed a truncated task: %q", got)
 	}
 }
@@ -326,7 +326,7 @@ func TestAssistantEvidenceBlockIsIgnoredByUnifiedGoal(t *testing.T) {
 	if got := lastAssistantText(c.History()); !strings.Contains(got, evidenceBlock) {
 		t.Fatalf("legacy evidence block was interpreted instead of retained as transcript text: %q", got)
 	}
-	if _, err := os.Stat(filepath.Join(root, ".reasonix", "autoresearch")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(root, ".tempora", "autoresearch")); !os.IsNotExist(err) {
 		t.Fatalf("assistant evidence created archive: %v", err)
 	}
 }
@@ -337,7 +337,7 @@ func TestExplicitLegacyTaskPathRestoresOriginalGoal(t *testing.T) {
 		root = resolved
 	}
 	taskID := "20260630-original-goal"
-	taskRoot := filepath.Join(root, ".reasonix", "autoresearch", taskID)
+	taskRoot := filepath.Join(root, ".tempora", "autoresearch", taskID)
 	if err := os.MkdirAll(filepath.Join(taskRoot, "state"), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -364,7 +364,7 @@ func TestExplicitLegacyTaskPathRestoresOriginalGoal(t *testing.T) {
 	}
 	c := New(Options{WorkspaceRoot: root})
 	defer c.Close()
-	c.SetGoalWithResearchMode("resume .reasonix/autoresearch/"+taskID+"/", GoalResearchAuto)
+	c.SetGoalWithResearchMode("resume .tempora/autoresearch/"+taskID+"/", GoalResearchAuto)
 	if got := c.Goal(); got != "find the original root cause" {
 		t.Fatalf("Goal() = %q, want original archive goal", got)
 	}
@@ -396,7 +396,7 @@ func TestLegacySidecarEmptyGoalFilledFromArchive(t *testing.T) {
 		t.Fatal(err)
 	}
 	taskID := "fill-from-archive"
-	taskRoot := filepath.Join(root, ".reasonix", "autoresearch", taskID)
+	taskRoot := filepath.Join(root, ".tempora", "autoresearch", taskID)
 	if err := os.MkdirAll(filepath.Join(taskRoot, "state"), 0o755); err != nil {
 		t.Fatal(err)
 	}

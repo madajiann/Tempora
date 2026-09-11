@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/config"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/config"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 func TestRoleReasoningPreflightKeepsPlannerEffortIndependent(t *testing.T) {
@@ -43,7 +43,7 @@ func TestBuildRejectsRoleEffortBeforeCreatingSessionResources(t *testing.T) {
 	isolateConfigHome(t)
 	root := robustTempDir(t)
 	t.Chdir(root)
-	writeFile(t, root, "reasonix.toml", `default_model="exec/deepseek-v4-pro"
+	writeFile(t, root, "tempora.toml", `default_model="exec/deepseek-v4-pro"
 [agent]
 planner_model="planner/deepseek-v4-pro"
 [[providers]]
@@ -83,7 +83,7 @@ func TestBuildRetainsTheSelectedRoleConfigurationSnapshot(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Another settings transaction wins on disk after selection was validated.
-	writeFile(t, root, "reasonix.toml", `default_model="broken/model"
+	writeFile(t, root, "tempora.toml", `default_model="broken/model"
 [[providers]]
 name="broken"
 kind="anthropic"
@@ -106,7 +106,7 @@ func TestRoleReasoningPreflightKeepsRuntimeSelectedVision(t *testing.T) {
 	isolateConfigHome(t)
 	root := robustTempDir(t)
 	t.Setenv("CUSTOM_KEY", "sk-test")
-	writeFile(t, root, "reasonix.toml", `default_model="custom/text"
+	writeFile(t, root, "tempora.toml", `default_model="custom/text"
 [agent]
 vision_model="auto"
 [[providers]]

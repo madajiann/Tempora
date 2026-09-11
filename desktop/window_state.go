@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"sync"
 
-	"reasonix/internal/config"
-	"reasonix/internal/fileutil"
+	"tempora/internal/config"
+	"tempora/internal/fileutil"
 )
 
 // DesktopWindowState captures the window geometry to restore across launches.

@@ -9,7 +9,7 @@ import (
 	"unsafe"
 
 	"golang.org/x/sys/windows"
-	"reasonix/desktop/internal/instanceidentity"
+	"tempora/desktop/internal/instanceidentity"
 )
 
 var errEndpointStarting = errors.New("instance mutex exists without an identifiable endpoint")
@@ -80,15 +80,15 @@ func desktopEndpointImage(id string) (string, error) {
 func notifyHandoffBlocked(installed bool) {
 	// Background/silent update execution has no interactive recovery owner.
 	// Its caller records the installed-versus-started result in the update log.
-	if os.Getenv("REASONIX_INTERACTIVE_RECOVERY") != "1" {
+	if os.Getenv("TEMPORA_INTERACTIVE_RECOVERY") != "1" {
 		return
 	}
-	message := "Reasonix could not finish the update restart. Choose Quit in the old Reasonix window, then open Reasonix again. Your running instance was preserved."
+	message := "Tempora could not finish the update restart. Choose Quit in the old Tempora window, then open Tempora again. Your running instance was preserved."
 	if installed {
-		message = "The new version is installed, but restart is incomplete. Choose Quit in the old Reasonix window, then open Reasonix again. Your running instance was preserved."
+		message = "The new version is installed, but restart is incomplete. Choose Quit in the old Tempora window, then open Tempora again. Your running instance was preserved."
 	}
-	message += "\n\n请在旧 Reasonix 窗口中选择退出，再重新打开 Reasonix。现有实例已保留。"
-	title, _ := windows.UTF16PtrFromString("Reasonix update / 更新")
+	message += "\n\n请在旧 Tempora 窗口中选择退出，再重新打开 Tempora。现有实例已保留。"
+	title, _ := windows.UTF16PtrFromString("Tempora update / 更新")
 	body, _ := windows.UTF16PtrFromString(message)
 	// The helper runs after the desktop has exited; log-only failures are invisible.
 	handoffUser32.NewProc("MessageBoxW").Call(0, uintptr(unsafe.Pointer(body)), uintptr(unsafe.Pointer(title)), 0x00000030|0x00010000)

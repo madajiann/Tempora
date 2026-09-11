@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/control"
-	"reasonix/internal/event"
+	"tempora/internal/control"
+	"tempora/internal/event"
 )
 
 type durableQueueFactory struct {

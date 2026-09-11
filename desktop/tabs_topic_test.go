@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/control"
 )
 
 type runtimeStatusSessionController struct {
@@ -1364,7 +1364,7 @@ func TestTopicMigrationDefersEmptyLegacySession(t *testing.T) {
 func TestV05LegacyEventSessionsImportIntoGlobalTopic(t *testing.T) {
 	home := isolateDesktopUserDirs(t)
 
-	legacyDir := filepath.Join(home, ".reasonix", "sessions")
+	legacyDir := filepath.Join(home, ".tempora", "sessions")
 	destDir := config.SessionDir()
 	writeLegacyEventSession(t, legacyDir, "v053-chat.events.jsonl", "hello from v0.53", "hi from v0.53", time.Now().Add(-time.Hour))
 
@@ -1618,7 +1618,7 @@ func TestPersistTabSessionPathUsesSessionDirOwnerBeforeSavingMeta(t *testing.T) 
 
 func TestBuildTabControllerIgnoresStaleSessionModelWhenTabModelResolves(t *testing.T) {
 	isolateDesktopUserDirs(t)
-	t.Setenv("REASONIX_TEST_KEY", "sk-test")
+	t.Setenv("TEMPORA_TEST_KEY", "sk-test")
 	if err := os.MkdirAll(filepath.Dir(config.UserConfigPath()), 0o755); err != nil {
 		t.Fatalf("mkdir config dir: %v", err)
 	}
@@ -1630,14 +1630,14 @@ name = "default-provider"
 kind = "openai"
 base_url = "https://default.invalid/v1"
 model = "default-model"
-api_key_env = "REASONIX_TEST_KEY"
+api_key_env = "TEMPORA_TEST_KEY"
 
 [[providers]]
 name = "tab-provider"
 kind = "openai"
 base_url = "https://tab.invalid/v1"
 model = "tab-model"
-api_key_env = "REASONIX_TEST_KEY"
+api_key_env = "TEMPORA_TEST_KEY"
 `), 0o644); err != nil {
 		t.Fatalf("write config: %v", err)
 	}
@@ -1683,7 +1683,7 @@ func TestLoadPinnedTabSessionFallsBackToMigratedBasename(t *testing.T) {
 		t.Fatalf("mkdir sessions: %v", err)
 	}
 	path := writeLegacySession(t, dir, "migrated-tab.jsonl", "resume after path migration", time.Now())
-	oldPath := filepath.Join(t.TempDir(), "old-reasonix", "projects", "slug", "sessions", filepath.Base(path))
+	oldPath := filepath.Join(t.TempDir(), "old-tempora", "projects", "slug", "sessions", filepath.Base(path))
 
 	loaded, pinnedPath, ok, err := loadPinnedTabSession(dir, oldPath)
 	if err != nil {
@@ -1754,7 +1754,7 @@ func TestLoadPinnedTabSessionPreservesLoadError(t *testing.T) {
 
 func TestBuildTabControllerSurfacesPinnedSessionLoadError(t *testing.T) {
 	isolateDesktopUserDirs(t)
-	t.Setenv("REASONIX_TEST_KEY", "sk-test")
+	t.Setenv("TEMPORA_TEST_KEY", "sk-test")
 	if err := os.MkdirAll(filepath.Dir(config.UserConfigPath()), 0o755); err != nil {
 		t.Fatalf("mkdir config dir: %v", err)
 	}
@@ -1766,7 +1766,7 @@ name = "test-provider"
 kind = "openai"
 base_url = "https://test.invalid/v1"
 model = "test-model"
-api_key_env = "REASONIX_TEST_KEY"
+api_key_env = "TEMPORA_TEST_KEY"
 `), 0o600); err != nil {
 		t.Fatalf("write config: %v", err)
 	}

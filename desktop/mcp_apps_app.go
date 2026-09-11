@@ -7,8 +7,8 @@ import (
 	"net/url"
 	"strings"
 
-	"reasonix/internal/control"
-	"reasonix/internal/plugin"
+	"tempora/internal/control"
+	"tempora/internal/plugin"
 )
 
 // MCPAppInstanceView describes one live App surface for the frontend.

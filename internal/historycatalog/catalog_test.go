@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/provider"
 )
 
 func saveMessages(t *testing.T, path string, messages ...provider.Message) {

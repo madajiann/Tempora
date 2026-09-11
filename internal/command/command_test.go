@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	fileencoding "reasonix/internal/fileutil/encoding"
+	fileencoding "tempora/internal/fileutil/encoding"
 )
 
 func TestRender(t *testing.T) {

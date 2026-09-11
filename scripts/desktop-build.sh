@@ -6,12 +6,12 @@
 #
 # Output lands in <repo>/dist/ with stable, platform-keyed names that
 # desktop/cmd/sign's `manifest` subcommand maps back to update.PlatformKey:
-#   macOS:   Reasonix-darwin-<arch>.zip                  (ditto archive; updater channel)
-#            Reasonix-darwin-universal.dmg               (drag-to-install; human download)
-#   Windows: Reasonix-windows-<arch>-installer.exe       (NSIS per-user installer; updater channel)
-#            Reasonix-windows-<arch>.zip                 (portable human download)
-#   Linux:   Reasonix-linux-<arch>.tar.gz                (desktop + guard + CLI + app/ tree; portable updater)
-#            Reasonix-linux-<arch>.deb                   (Debian/Ubuntu package; native updater)
+#   macOS:   Tempora-darwin-<arch>.zip                  (ditto archive; updater channel)
+#            Tempora-darwin-universal.dmg               (drag-to-install; human download)
+#   Windows: Tempora-windows-<arch>-installer.exe       (NSIS per-user installer; updater channel)
+#            Tempora-windows-<arch>.zip                 (portable human download)
+#   Linux:   Tempora-linux-<arch>.tar.gz                (desktop + guard + CLI + app/ tree; portable updater)
+#            Tempora-linux-<arch>.deb                   (Debian/Ubuntu package; native updater)
 #
 # Usage: scripts/desktop-build.sh <os/arch> <version> [channel]
 #   e.g. scripts/desktop-build.sh darwin/arm64 v1.1.0
@@ -33,12 +33,12 @@ os="${PLATFORM%/*}"
 arch="${PLATFORM#*/}"
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-APPNAME="Reasonix"            # Electron productName -> Reasonix.app / Reasonix.exe
-BINNAME="reasonix-desktop"    # Go desktop service (and the active version entry the launcher starts)
-CLINAME="reasonix"            # bundled CLI sidecar used for remote serve upload
-WINDOWS_CLINAME="reasonix-cli" # Windows cannot store Reasonix.exe and reasonix.exe separately
-GUARDNAME="reasonix-guard"
-LAUNCHERNAME="reasonix-launcher"
+APPNAME="Tempora"            # Electron productName -> Tempora.app / Tempora.exe
+BINNAME="tempora-desktop"    # Go desktop service (and the active version entry the launcher starts)
+CLINAME="tempora"            # bundled CLI sidecar used for remote serve upload
+WINDOWS_CLINAME="tempora-cli" # Windows cannot store Tempora.exe and tempora.exe separately
+GUARDNAME="tempora-guard"
+LAUNCHERNAME="tempora-launcher"
 windows_resource_tool_dir=""
 windows_host_include=""
 
@@ -52,7 +52,7 @@ fi
 # Short commit + real UTC build clock for CLI `version --verbose/--json`.
 GIT_COMMIT="$(git -C "$ROOT" rev-parse --short=12 HEAD 2>/dev/null || echo unknown)"
 BUILD_TIME_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-product_docs_ldflags="-X reasonix/internal/productdocs.linkedVersion=$VERSION -X reasonix/internal/productdocs.linkedRevision=$SOURCE_REVISION"
+product_docs_ldflags="-X tempora/internal/productdocs.linkedVersion=$VERSION -X tempora/internal/productdocs.linkedRevision=$SOURCE_REVISION"
 cli_identity_ldflags="-X main.version=$VERSION -X main.gitCommit=$GIT_COMMIT -X main.buildTimeUTC=$BUILD_TIME_UTC $product_docs_ldflags"
 
 cleanup() {
@@ -67,34 +67,34 @@ trap cleanup EXIT
 
 cd "$ROOT/desktop"
 
-# build_guard produces the one-shot legacy migrator still named reasonix-guard
+# build_guard produces the one-shot legacy migrator still named tempora-guard
 # in compatibility payloads for 1.18–1.19.1 updaters. Source is intentionally
 # separate from the removed Guard recovery product.
 build_guard() {
-	echo "==> go build Reasonix legacy migrator (compat name reasonix-guard)"
+	echo "==> go build Tempora legacy migrator (compat name tempora-guard)"
 	mkdir -p "$(dirname "$guard_out")"
 	if [ "$arch" = universal ]; then
 		guard_tmp=$(mktemp -d)
-		(cd "$ROOT" && GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o "$guard_tmp/amd64" ./cmd/reasonix-legacy-migrator)
-		(cd "$ROOT" && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o "$guard_tmp/arm64" ./cmd/reasonix-legacy-migrator)
+		(cd "$ROOT" && GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o "$guard_tmp/amd64" ./cmd/tempora-legacy-migrator)
+		(cd "$ROOT" && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o "$guard_tmp/arm64" ./cmd/tempora-legacy-migrator)
 		lipo -create "$guard_tmp/amd64" "$guard_tmp/arm64" -output "$guard_out"
 		rm -rf "$guard_tmp"
 	else
-		(cd "$ROOT" && GOOS="$os" GOARCH="$arch" CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o "$guard_out" ./cmd/reasonix-legacy-migrator)
+		(cd "$ROOT" && GOOS="$os" GOARCH="$arch" CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o "$guard_out" ./cmd/tempora-legacy-migrator)
 	fi
 }
 
 build_cli() {
-	echo "==> go build Reasonix CLI sidecar"
+	echo "==> go build Tempora CLI sidecar"
 	mkdir -p "$(dirname "$cli_out")"
 	if [ "$arch" = universal ]; then
 		cli_tmp=$(mktemp -d)
-		(cd "$ROOT" && GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w $cli_identity_ldflags" -o "$cli_tmp/amd64" ./cmd/reasonix)
-		(cd "$ROOT" && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w $cli_identity_ldflags" -o "$cli_tmp/arm64" ./cmd/reasonix)
+		(cd "$ROOT" && GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w $cli_identity_ldflags" -o "$cli_tmp/amd64" ./cmd/tempora)
+		(cd "$ROOT" && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w $cli_identity_ldflags" -o "$cli_tmp/arm64" ./cmd/tempora)
 		lipo -create "$cli_tmp/amd64" "$cli_tmp/arm64" -output "$cli_out"
 		rm -rf "$cli_tmp"
 	else
-		(cd "$ROOT" && GOOS="$os" GOARCH="$arch" CGO_ENABLED=0 go build -trimpath -ldflags="-s -w $cli_identity_ldflags" -o "$cli_out" ./cmd/reasonix)
+		(cd "$ROOT" && GOOS="$os" GOARCH="$arch" CGO_ENABLED=0 go build -trimpath -ldflags="-s -w $cli_identity_ldflags" -o "$cli_out" ./cmd/tempora)
 	fi
 }
 
@@ -143,12 +143,12 @@ fi
 service_ldflags="-X main.version=$VERSION -X main.channel=$CHANNEL $product_docs_ldflags"
 [ "$os" = "darwin" ] && [ "${HAS_APPLE_CERT:-}" = "true" ] && service_ldflags="$service_ldflags -X main.macSelfUpdate=true"
 
-# build_service compiles the Go desktop service (reasonix-desktop). It stays
+# build_service compiles the Go desktop service (tempora-desktop). It stays
 # the active version entry the thin launcher starts: without --host-rpc it
 # bootstraps the Electron shell from app/ and exits; the shell then spawns it
 # with --host-rpc as the service (see docs/DESKTOP_SHELL_MIGRATION.md phase E).
 build_service() {
-	echo "==> go build Reasonix desktop service"
+	echo "==> go build Tempora desktop service"
 	mkdir -p "$(dirname "$service_out")"
 	if [ "$arch" = universal ]; then
 		service_tmp=$(mktemp -d)
@@ -162,12 +162,12 @@ build_service() {
 }
 
 # package_shell runs @electron/packager via the packaging script and leaves the
-# bundle at desktop/build/electron/<os>-<arch>/ (Reasonix.app on macOS, app/
+# bundle at desktop/build/electron/<os>-<arch>/ (Tempora.app on macOS, app/
 # elsewhere). It also builds the frontend (build:electron) with the channel
-# threaded through REASONIX_CHANNEL.
+# threaded through TEMPORA_CHANNEL.
 package_shell() {
 	echo "==> package Electron shell ($PLATFORM)"
-	REASONIX_COMMIT="$GIT_COMMIT" REASONIX_BUILD_TIME="$BUILD_TIME_UTC" \
+	TEMPORA_COMMIT="$GIT_COMMIT" TEMPORA_BUILD_TIME="$BUILD_TIME_UTC" \
 		node "$ROOT/desktop/packaging/package.mjs" "$PLATFORM" "$VERSION" "$CHANNEL"
 }
 
@@ -187,14 +187,14 @@ darwin)
 	# The bundle's main executable is Electron; the Go service lives next to it
 	# in Contents/MacOS and is also copied to Contents/Resources/service/ because
 	# the shell's default service lookup is process.resourcesPath/service/…
-	# (launchers that do not set REASONIX_DESKTOP_SERVICE still find it there).
+	# (launchers that do not set TEMPORA_DESKTOP_SERVICE still find it there).
 	bundle_executable=$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" "$app/Contents/Info.plist")
 	[ "$bundle_executable" = "$APPNAME" ] || { echo "macOS bundle executable is $bundle_executable, want $APPNAME" >&2; exit 1; }
 	mkdir -p "$app/Contents/Resources/service"
 	cp "$service_out" "$app/Contents/MacOS/$BINNAME"
 	cp "$service_out" "$app/Contents/Resources/service/$BINNAME"
-	# Contents/MacOS already holds the Electron executable "Reasonix"; on
-	# case-insensitive APFS a "reasonix" sibling would overwrite it, so the
+	# Contents/MacOS already holds the Electron executable "Tempora"; on
+	# case-insensitive APFS a "tempora" sibling would overwrite it, so the
 	# CLI sidecar ships next to the service copy the shell actually launches
 	# (desktopCLIBinaryPath resolves it beside the running service).
 	cp "$cli_out" "$app/Contents/Resources/service/$CLINAME"
@@ -272,40 +272,40 @@ darwin)
 	;;
 windows)
 	windows_resource_tool_dir=$(mktemp -d)
-	windows_host_include="$ROOT/desktop/build/windows/installer/reasonix_host.nsh"
+	windows_host_include="$ROOT/desktop/build/windows/installer/tempora_host.nsh"
 	case "$(uname -s 2>/dev/null || printf '%s' unknown)" in
 		Darwin* | Linux* | FreeBSD*)
-			printf '%s\n' '!define REASONIX_UNINST_FINALIZE '\''/bin/cp -f "%1" "reasonix-uninstall.exe"'\''' >"$windows_host_include"
+			printf '%s\n' '!define TEMPORA_UNINST_FINALIZE '\''/bin/cp -f "%1" "tempora-uninstall.exe"'\''' >"$windows_host_include"
 			;;
 		*)
-			printf '%s\n' '!define REASONIX_UNINST_FINALIZE '\''cmd.exe /C copy /Y "%1" "reasonix-uninstall.exe" >NUL'\''' >"$windows_host_include"
+			printf '%s\n' '!define TEMPORA_UNINST_FINALIZE '\''cmd.exe /C copy /Y "%1" "tempora-uninstall.exe" >NUL'\''' >"$windows_host_include"
 			;;
 	esac
-	windows_resource_tool="$windows_resource_tool_dir/reasonix-windows-resource.exe"
+	windows_resource_tool="$windows_resource_tool_dir/tempora-windows-resource.exe"
 	echo "==> build Windows resource stamper"
 	go build -trimpath -o "$windows_resource_tool" ./cmd/windows-resource
 
 	installer_dir="$ROOT/desktop/build/windows/installer"
 	guard_out="$installer_dir/$GUARDNAME.exe"
 	build_guard
-	stamp_windows_executable "$guard_out" "Reasonix Legacy Migrator" "$GUARDNAME" "$GUARDNAME.exe"
+	stamp_windows_executable "$guard_out" "Tempora Legacy Migrator" "$GUARDNAME" "$GUARDNAME.exe"
 	launcher_out="$installer_dir/$LAUNCHERNAME.exe"
 	echo "==> go build Windows GUI thin launcher"
 	(cd "$ROOT" && GOOS=windows GOARCH="$arch" CGO_ENABLED=0 go build -trimpath \
-		-ldflags="-s -w -H windowsgui -X main.version=$VERSION" -o "$launcher_out" ./cmd/reasonix-launcher)
-	stamp_windows_executable "$launcher_out" "Reasonix Launcher" "$LAUNCHERNAME" "$LAUNCHERNAME.exe"
-	UPDATE_HELPER="reasonix-update-helper.exe"
+		-ldflags="-s -w -H windowsgui -X main.version=$VERSION" -o "$launcher_out" ./cmd/tempora-launcher)
+	stamp_windows_executable "$launcher_out" "Tempora Launcher" "$LAUNCHERNAME" "$LAUNCHERNAME.exe"
+	UPDATE_HELPER="tempora-update-helper.exe"
 	echo "==> go build Windows update helper"
 	GOOS=windows GOARCH="$arch" go build -trimpath -ldflags="-s -w" \
 		-o "$installer_dir/$UPDATE_HELPER" ./cmd/update-helper
-	stamp_windows_executable "$installer_dir/$UPDATE_HELPER" "Reasonix Update Helper" "reasonix-update-helper" "$UPDATE_HELPER"
+	stamp_windows_executable "$installer_dir/$UPDATE_HELPER" "Tempora Update Helper" "tempora-update-helper" "$UPDATE_HELPER"
 	cli_out="$installer_dir/$WINDOWS_CLINAME.exe"
 	build_cli
-	stamp_windows_executable "$cli_out" "Reasonix CLI" "$WINDOWS_CLINAME" "$WINDOWS_CLINAME.exe"
+	stamp_windows_executable "$cli_out" "Tempora CLI" "$WINDOWS_CLINAME" "$WINDOWS_CLINAME.exe"
 
 	service_out="$ROOT/desktop/build/bin/$BINNAME.exe"
 	build_service
-	stamp_windows_executable "$service_out" "Reasonix Desktop" "$BINNAME" "$BINNAME.exe"
+	stamp_windows_executable "$service_out" "Tempora Desktop" "$BINNAME" "$BINNAME.exe"
 	# NSIS File sources live next to project.nsi; the service joins the flat
 	# payload files there (package-windows-desktop.sh overwrites them with the
 	# signed copies before the second pass).
@@ -319,15 +319,15 @@ windows)
 
 	# First NSIS pass: regenerate this release's uninstaller. A stale preserved
 	# uninstaller must never enter the signing payload.
-	rm -f "$installer_dir/reasonix-uninstall.exe"
+	rm -f "$installer_dir/tempora-uninstall.exe"
 	find "$ROOT/desktop/build/bin" -maxdepth 1 -type f -name '*installer*.exe' -delete
-	arch_binary_define="ARG_REASONIX_AMD64_BINARY"
-	[ "$arch" = arm64 ] && arch_binary_define="ARG_REASONIX_ARM64_BINARY"
+	arch_binary_define="ARG_TEMPORA_AMD64_BINARY"
+	[ "$arch" = arm64 ] && arch_binary_define="ARG_TEMPORA_ARM64_BINARY"
 	(
 		cd "$installer_dir"
 		makensis "-D${arch_binary_define}=$installer_dir/$BINNAME.exe" project.nsi
 	)
-	[ -s "$installer_dir/reasonix-uninstall.exe" ] || { echo "first NSIS pass did not produce reasonix-uninstall.exe" >&2; exit 1; }
+	[ -s "$installer_dir/tempora-uninstall.exe" ] || { echo "first NSIS pass did not produce tempora-uninstall.exe" >&2; exit 1; }
 
 	# Keep one canonical payload for SignPath: the flat Go executables plus the
 	# Electron app/ tree. The release workflow signs these files, then calls
@@ -336,7 +336,7 @@ windows)
 	payload_dir="$ROOT/desktop/build/windows/signing-payload"
 	rm -rf -- "$payload_dir"
 	mkdir -p "$payload_dir"
-	for name in "$BINNAME.exe" "$GUARDNAME.exe" "$LAUNCHERNAME.exe" "$UPDATE_HELPER" "$WINDOWS_CLINAME.exe" "reasonix-uninstall.exe"; do
+	for name in "$BINNAME.exe" "$GUARDNAME.exe" "$LAUNCHERNAME.exe" "$UPDATE_HELPER" "$WINDOWS_CLINAME.exe" "tempora-uninstall.exe"; do
 		cp "$installer_dir/$name" "$payload_dir/$name"
 	done
 	cp -R "$installer_dir/app" "$payload_dir/app"
@@ -348,14 +348,14 @@ windows)
 linux)
 	service_out="$ROOT/desktop/build/bin/$BINNAME"
 	build_service
-	# Linux still ships a one-shot migrator named reasonix-guard in the portable
+	# Linux still ships a one-shot migrator named tempora-guard in the portable
 	# tarball so 1.18–1.19.1 updaters can hand off.
 	guard_out="$ROOT/desktop/build/bin/$GUARDNAME"
 	build_guard
 	launcher_out="$ROOT/desktop/build/bin/$LAUNCHERNAME"
 	echo "==> go build Linux thin launcher"
 	(cd "$ROOT" && GOOS=linux GOARCH="$arch" CGO_ENABLED=0 go build -trimpath \
-		-ldflags="-s -w -X main.version=$VERSION" -o "$launcher_out" ./cmd/reasonix-launcher)
+		-ldflags="-s -w -X main.version=$VERSION" -o "$launcher_out" ./cmd/tempora-launcher)
 	cli_out="$ROOT/desktop/build/bin/$CLINAME"
 	build_cli
 	package_shell
@@ -365,21 +365,21 @@ linux)
 	cp -R "build/electron/${os}-${arch}/app" "build/bin/app"
 
 	for desktop_contract in \
-		'Exec=reasonix-launcher' \
-		'Icon=reasonix-desktop' \
-		'StartupWMClass=Reasonix'; do
-		grep -F -x -q "$desktop_contract" build/linux/reasonix.desktop || { echo "Linux desktop entry missing: $desktop_contract" >&2; exit 1; }
+		'Exec=tempora-launcher' \
+		'Icon=tempora-desktop' \
+		'StartupWMClass=Tempora'; do
+		grep -F -x -q "$desktop_contract" build/linux/tempora.desktop || { echo "Linux desktop entry missing: $desktop_contract" >&2; exit 1; }
 	done
 	# Portable Linux tarball: service + thin launcher + one-shot migrator
-	# (compat name reasonix-guard) + CLI + the Electron app/ tree. After the
+	# (compat name tempora-guard) + CLI + the Electron app/ tree. After the
 	# migrator runs, Guard self-deletes.
 	tar -czf "$ROOT/dist/${APPNAME}-linux-${arch}.tar.gz" -C build/bin \
 		"$BINNAME" "$LAUNCHERNAME" "$GUARDNAME" "$CLINAME" app
 	# Build the privileged update helper shipped inside the .deb. Portable tarball
 	# installs do not need it; only the dpkg package installs helper + Polkit policy.
-	echo "==> go build reasonix-update-helper"
+	echo "==> go build tempora-update-helper"
 	GOOS=linux GOARCH="$arch" CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" \
-		-o "build/bin/reasonix-update-helper" ./cmd/update-helper
+		-o "build/bin/tempora-update-helper" ./cmd/update-helper
 	# .deb for Debian/Ubuntu. Portable updater still uses the tarball under
 	# platforms[]; .deb is published under native_packages. Debian versions use
 	# "~" for prereleases so 1.18.0~rc.1 < 1.18.0 (policy version ordering).
@@ -398,13 +398,13 @@ linux)
 		--target "$ROOT/dist/${APPNAME}-linux-${arch}.deb"
 	# Contract smoke: helper, policy, package identity, Electron tree, sandbox.
 	deb_path="$ROOT/dist/${APPNAME}-linux-${arch}.deb"
-	dpkg-deb --field "$deb_path" Package | grep -x 'reasonix-desktop' >/dev/null
+	dpkg-deb --field "$deb_path" Package | grep -x 'tempora-desktop' >/dev/null
 	dpkg-deb --field "$deb_path" Version | grep -x "$deb_version" >/dev/null
 	dpkg-deb --field "$deb_path" Depends | grep -F 'pkexec' >/dev/null
-	dpkg-deb --contents "$deb_path" | grep -E 'usr/lib/reasonix/reasonix-update-helper' >/dev/null
-	dpkg-deb --contents "$deb_path" | grep -E 'usr/share/polkit-1/actions/io.reasonix.desktop.update.policy' >/dev/null
-	dpkg-deb --contents "$deb_path" | grep -E "usr/lib/reasonix/app/${APPNAME}" >/dev/null
-	dpkg-deb --contents "$deb_path" | grep -E 'usr/lib/reasonix/app/chrome-sandbox' >/dev/null
+	dpkg-deb --contents "$deb_path" | grep -E 'usr/lib/tempora/tempora-update-helper' >/dev/null
+	dpkg-deb --contents "$deb_path" | grep -E 'usr/share/polkit-1/actions/io.tempora.desktop.update.policy' >/dev/null
+	dpkg-deb --contents "$deb_path" | grep -E "usr/lib/tempora/app/${APPNAME}" >/dev/null
+	dpkg-deb --contents "$deb_path" | grep -E 'usr/lib/tempora/app/chrome-sandbox' >/dev/null
 	;;
 *)
 	echo "unsupported os: $os" >&2

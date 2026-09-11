@@ -2,9 +2,9 @@ package agent
 
 import (
 	"encoding/json"
-	"reasonix/internal/evidence"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/evidence"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 func (a *Agent) markDependencySkipped(calls []provider.ToolCall, outcomes []toolOutcome, results []string, durations []int64, start int, cause *mutationBarrierCause) {

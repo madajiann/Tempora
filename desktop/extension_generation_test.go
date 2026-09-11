@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/taskcatalog"
+	"tempora/internal/taskcatalog"
 )
 
 func TestExtensionGenerationBumpsOnMCPMutationSites(t *testing.T) {

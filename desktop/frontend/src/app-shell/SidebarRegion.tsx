@@ -45,7 +45,7 @@ export function SidebarRegion(props: SidebarRegionProps) {
           <>
             <div className="sidebar__head" aria-hidden={props.collapsed}>
               <div className="sidebar__brand sidebar__brand--workbench">
-                <img src={logoWordmark} alt="Reasonix" className="sidebar__brand-logo sidebar__brand-logo--workbench" draggable={false} />
+                <img src={logoWordmark} alt="Tempora" className="sidebar__brand-logo sidebar__brand-logo--workbench" draggable={false} />
               </div>
             </div>
             <div className="sidebar__quick-actions">
@@ -57,7 +57,7 @@ export function SidebarRegion(props: SidebarRegionProps) {
         ) : (
           <>
             <div className="sidebar__brand" aria-hidden={props.collapsed}>
-              <img src={logoWordmark} alt="Reasonix" className="sidebar__brand-logo" draggable={false} />
+              <img src={logoWordmark} alt="Tempora" className="sidebar__brand-logo" draggable={false} />
             </div>
             <button className="sidebar__new" onClick={props.onNewSession}>
               <SquarePen size={18} /><span>{props.creation ? t("creation.sidebar.newChat") : t("topbar.newSession")}</span>

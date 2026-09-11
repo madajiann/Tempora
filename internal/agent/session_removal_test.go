@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/provider"
-	"reasonix/internal/store"
+	"tempora/internal/provider"
+	"tempora/internal/store"
 )
 
 func TestSessionRemovalGuardBlocksWhileLeaseHeld(t *testing.T) {

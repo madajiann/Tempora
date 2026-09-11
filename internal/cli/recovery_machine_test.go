@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/recovery"
+	"tempora/internal/agent"
+	"tempora/internal/recovery"
 )
 
 func TestSessionMachineRecoveryIsContentFree(t *testing.T) {

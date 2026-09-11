@@ -20,10 +20,10 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/desktop/internal/hostrpc"
-	"reasonix/desktop/internal/instanceidentity"
-	"reasonix/internal/config"
-	"reasonix/internal/extension/rpcwire"
+	"tempora/desktop/internal/hostrpc"
+	"tempora/desktop/internal/instanceidentity"
+	"tempora/internal/config"
+	"tempora/internal/extension/rpcwire"
 )
 
 const (
@@ -210,7 +210,7 @@ func hostIdentity() hostrpc.Identity {
 		Version: version,
 		Channel: channel,
 		Commit:  buildCommit(),
-		Home:    instanceidentity.CanonicalHome(config.ReasonixHomeDir()),
+		Home:    instanceidentity.CanonicalHome(config.TemporaHomeDir()),
 	}
 }
 

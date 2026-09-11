@@ -9,11 +9,11 @@ import (
 	"reflect"
 	"strings"
 
-	"reasonix/internal/event"
-	"reasonix/internal/extension"
-	"reasonix/internal/extension/dispatch"
-	"reasonix/internal/extension/providerconv"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/extension"
+	"tempora/internal/extension/dispatch"
+	"tempora/internal/extension/providerconv"
+	"tempora/internal/provider"
 )
 
 // Extension Protocol v2 agent-side wiring. The agent consults the

@@ -10,9 +10,9 @@ import (
 	"testing"
 	"testing/fstest"
 
-	productcontent "reasonix/docs"
-	"reasonix/internal/provider"
-	releasenotes "reasonix/release-notes"
+	productcontent "tempora/docs"
+	"tempora/internal/provider"
+	releasenotes "tempora/release-notes"
 )
 
 func TestEmbeddedCatalogLoadsDeterministically(t *testing.T) {
@@ -66,16 +66,16 @@ func TestDocsCommandOverviewAndSearchUseEmbeddedCorpus(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, want := range []string{"内置 Reasonix 文档", "version=", "revision=", "digest=sha256:", "/docs 1.19.5 更新日志"} {
+	for _, want := range []string{"内置 Tempora 文档", "version=", "revision=", "digest=sha256:", "/docs 1.19.5 更新日志"} {
 		if !strings.Contains(overview, want) {
 			t.Fatalf("command overview missing %q:\n%s", want, overview)
 		}
 	}
-	qualified, err := CommandOverviewFor("en", "/reasonix:docs")
+	qualified, err := CommandOverviewFor("en", "/tempora:docs")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(qualified, "Usage: /reasonix:docs <question>") || strings.Contains(qualified, "Example: /docs ") {
+	if !strings.Contains(qualified, "Usage: /tempora:docs <question>") || strings.Contains(qualified, "Example: /docs ") {
 		t.Fatalf("qualified command overview used the wrong invocation:\n%s", qualified)
 	}
 
@@ -337,7 +337,7 @@ func TestSearchPrefersRelevantChineseAndEnglishSections(t *testing.T) {
 		t.Fatalf("Chinese search did not find the permission guide:\n%s", zh)
 	}
 
-	en, err := tl.search(context.Background(), "REASONIX_HOME configuration paths", "auto", "all", 5)
+	en, err := tl.search(context.Background(), "TEMPORA_HOME configuration paths", "auto", "all", 5)
 	if err != nil {
 		t.Fatalf("English search: %v", err)
 	}
@@ -348,13 +348,13 @@ func TestSearchPrefersRelevantChineseAndEnglishSections(t *testing.T) {
 
 func TestToolSearchReadAndListRoundTrip(t *testing.T) {
 	c, err := loadCatalog(fstest.MapFS{
-		"GUIDE.md": {Data: []byte("# Guide\n\n## Configure MCP\n\nSet `reasonix.toml` before connecting plugins.\n")},
+		"GUIDE.md": {Data: []byte("# Guide\n\n## Configure MCP\n\nSet `tempora.toml` before connecting plugins.\n")},
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	tl := &docsTool{catalog: c}
-	search, err := tl.Execute(context.Background(), json.RawMessage(`{"operation":"search","query":"reasonix.toml MCP"}`))
+	search, err := tl.Execute(context.Background(), json.RawMessage(`{"operation":"search","query":"tempora.toml MCP"}`))
 	if err != nil {
 		t.Fatalf("search: %v", err)
 	}
@@ -365,7 +365,7 @@ func TestToolSearchReadAndListRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read: %v", err)
 	}
-	if !strings.Contains(read, "Set `reasonix.toml`") || !strings.Contains(read, "source: docs/GUIDE.md:3-5") {
+	if !strings.Contains(read, "Set `tempora.toml`") || !strings.Contains(read, "source: docs/GUIDE.md:3-5") {
 		t.Fatalf("read result missing content or provenance:\n%s", read)
 	}
 	list, err := tl.Execute(context.Background(), json.RawMessage(`{"operation":"list","language":"en"}`))
@@ -393,11 +393,11 @@ func TestParserIgnoresHeadingsInsideFencedCode(t *testing.T) {
 }
 
 func TestGoldmarkHeadingsPreserveTextAndSetextSemantics(t *testing.T) {
-	doc := parseDocument("EXAMPLE.md", "# Example\n\n### Configure *MCP* with `reasonix.toml`, C#, and <https://example.com>\n\nBody.\n\nSetext section\n--------------\n\nMore.\n")
+	doc := parseDocument("EXAMPLE.md", "# Example\n\n### Configure *MCP* with `tempora.toml`, C#, and <https://example.com>\n\nBody.\n\nSetext section\n--------------\n\nMore.\n")
 	if len(doc.sections) != 3 {
 		t.Fatalf("sections = %d, want 3", len(doc.sections))
 	}
-	if doc.sections[1].heading != "Example > Configure MCP with reasonix.toml, C#, and https://example.com" {
+	if doc.sections[1].heading != "Example > Configure MCP with tempora.toml, C#, and https://example.com" {
 		t.Fatalf("ATX heading = %q", doc.sections[1].heading)
 	}
 	if doc.sections[2].heading != "Example > Setext section" {

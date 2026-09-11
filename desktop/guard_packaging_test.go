@@ -20,14 +20,14 @@ func TestVerifyWindowsPortableVersionedLayout(t *testing.T) {
 	verify := filepath.Join("..", "scripts", "verify-windows-portable.sh")
 	good := t.TempDir()
 	// versioned-v1 root entries
-	writePortableFixture(t, good, "reasonix-launcher.exe", "launcher")
-	writePortableFixture(t, good, "Reasonix.exe", "launcher")
-	writePortableFixture(t, good, "reasonix-cli.exe", "cli")
+	writePortableFixture(t, good, "tempora-launcher.exe", "launcher")
+	writePortableFixture(t, good, "Tempora.exe", "launcher")
+	writePortableFixture(t, good, "tempora-cli.exe", "cli")
 	ver := filepath.Join(good, "versions", "v1.20.0")
 	if err := os.MkdirAll(ver, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	for _, name := range []string{"reasonix-desktop.exe", "reasonix-cli.exe", "reasonix-update-helper.exe"} {
+	for _, name := range []string{"tempora-desktop.exe", "tempora-cli.exe", "tempora-update-helper.exe"} {
 		writePortableFixture(t, ver, name, name)
 	}
 	// The Electron bundle is the app/ tree member of the active version.
@@ -35,7 +35,7 @@ func TestVerifyWindowsPortableVersionedLayout(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(appDir, "resources", "app"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	writePortableFixture(t, appDir, "Reasonix.exe", "shell")
+	writePortableFixture(t, appDir, "Tempora.exe", "shell")
 	writePortableFixture(t, filepath.Join(appDir, "resources"), "app.asar", "asar")
 	writePortableFixture(t, filepath.Join(appDir, "resources"), "build.json", "{}")
 	writePortableFixture(t, filepath.Join(appDir, "resources", "app"), "index.html", "<html></html>")
@@ -54,12 +54,12 @@ func TestVerifyWindowsPortableVersionedLayout(t *testing.T) {
 	// Flat Guard layout must be rejected.
 	flat := t.TempDir()
 	for _, name := range []string{
-		"reasonix-desktop.exe",
-		"reasonix-guard.exe",
-		"reasonix-update-helper.exe",
-		"reasonix-launcher.exe",
-		"Reasonix.exe",
-		"reasonix-cli.exe",
+		"tempora-desktop.exe",
+		"tempora-guard.exe",
+		"tempora-update-helper.exe",
+		"tempora-launcher.exe",
+		"Tempora.exe",
+		"tempora-cli.exe",
 	} {
 		writePortableFixture(t, flat, name, name)
 	}
@@ -75,11 +75,11 @@ func TestDesktopPackagesPreserveNativePlatformLaunchers(t *testing.T) {
 	}
 	build := string(buildData)
 	for _, want := range []string{
-		`CLINAME="reasonix"`,
-		`WINDOWS_CLINAME="reasonix-cli"`,
-		`./cmd/reasonix`,
-		`./cmd/reasonix-legacy-migrator`,
-		`./cmd/reasonix-launcher`,
+		`CLINAME="tempora"`,
+		`WINDOWS_CLINAME="tempora-cli"`,
+		`./cmd/tempora`,
+		`./cmd/tempora-legacy-migrator`,
+		`./cmd/tempora-launcher`,
 		`cp "$cli_out" "$app/Contents/Resources/service/$CLINAME"`,
 		`macOS bundle must not include $GUARDNAME`,
 		`[ "$bundle_executable" = "$APPNAME" ]`,
@@ -88,17 +88,17 @@ func TestDesktopPackagesPreserveNativePlatformLaunchers(t *testing.T) {
 		`[ -s "$app/Contents/Resources/$bundle_icon" ]`,
 		`macOS bundle icon is missing: $bundle_icon`,
 		`-H windowsgui`,
-		`stamp_windows_executable "$guard_out" "Reasonix Legacy Migrator"`,
-		`stamp_windows_executable "$launcher_out" "Reasonix Launcher"`,
-		`stamp_windows_executable "$installer_dir/$UPDATE_HELPER" "Reasonix Update Helper"`,
+		`stamp_windows_executable "$guard_out" "Tempora Legacy Migrator"`,
+		`stamp_windows_executable "$launcher_out" "Tempora Launcher"`,
+		`stamp_windows_executable "$installer_dir/$UPDATE_HELPER" "Tempora Update Helper"`,
 		`payload_dir="$ROOT/desktop/build/windows/signing-payload"`,
-		`for name in "$BINNAME.exe" "$GUARDNAME.exe" "$LAUNCHERNAME.exe" "$UPDATE_HELPER" "$WINDOWS_CLINAME.exe" "reasonix-uninstall.exe"; do`,
+		`for name in "$BINNAME.exe" "$GUARDNAME.exe" "$LAUNCHERNAME.exe" "$UPDATE_HELPER" "$WINDOWS_CLINAME.exe" "tempora-uninstall.exe"; do`,
 		`cp "$installer_dir/$name" "$payload_dir/$name"`,
 		`cp -R "$installer_dir/app" "$payload_dir/app"`,
 		`node "$ROOT/desktop/packaging/signing-files.mjs" "$payload_dir"`,
 		`"$ROOT/scripts/package-windows-desktop.sh" "$arch" "$payload_dir"`,
 		`"$BINNAME" "$LAUNCHERNAME" "$GUARDNAME" "$CLINAME"`,
-		`Exec=reasonix-launcher`,
+		`Exec=tempora-launcher`,
 	} {
 		if !strings.Contains(build, want) {
 			t.Errorf("desktop-build.sh missing packaging contract %q", want)
@@ -107,13 +107,13 @@ func TestDesktopPackagesPreserveNativePlatformLaunchers(t *testing.T) {
 	if strings.Contains(build, `Set :CFBundleExecutable $GUARDNAME`) {
 		t.Fatal("macOS package must not replace the Electron bundle executable with Guard")
 	}
-	launcherStamp := strings.Index(build, `stamp_windows_executable "$launcher_out" "Reasonix Launcher"`)
+	launcherStamp := strings.Index(build, `stamp_windows_executable "$launcher_out" "Tempora Launcher"`)
 	payloadCopy := strings.Index(build, `cp "$installer_dir/$name" "$payload_dir/$name"`)
 	if launcherStamp < 0 || payloadCopy < 0 || launcherStamp > payloadCopy {
 		t.Fatalf("Windows payload must copy the already-stamped launcher (stamp=%d copy=%d)", launcherStamp, payloadCopy)
 	}
 	if strings.Contains(build, `"$staging/$CLINAME.exe"`) {
-		t.Fatal("Windows package must not collide reasonix.exe with the Reasonix.exe launcher")
+		t.Fatal("Windows package must not collide tempora.exe with the Tempora.exe launcher")
 	}
 	darwinIconCheck := strings.Index(build, `[ -s "$app/Contents/Resources/$bundle_icon" ]`)
 	developerIDSign := strings.Index(build, `node "$ROOT/desktop/packaging/sign-macos.mjs" "$app" "$identity"`)
@@ -131,9 +131,9 @@ func TestDesktopPackagesPreserveNativePlatformLaunchers(t *testing.T) {
 	}
 
 	for _, want := range []string{
-		`dpkg-deb --field "$deb_path" Package | grep -x 'reasonix-desktop'`,
-		`usr/lib/reasonix/reasonix-update-helper`,
-		`usr/share/polkit-1/actions/io.reasonix.desktop.update.policy`,
+		`dpkg-deb --field "$deb_path" Package | grep -x 'tempora-desktop'`,
+		`usr/lib/tempora/tempora-update-helper`,
+		`usr/share/polkit-1/actions/io.tempora.desktop.update.policy`,
 	} {
 		if !strings.Contains(build, want) {
 			t.Errorf("desktop-build.sh missing Linux deb helper contract %q", want)
@@ -150,11 +150,11 @@ func TestDesktopPackagesPreserveNativePlatformLaunchers(t *testing.T) {
 		}
 	}
 
-	desktopEntry, err := os.ReadFile("build/linux/reasonix.desktop")
+	desktopEntry, err := os.ReadFile("build/linux/tempora.desktop")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(desktopEntry), "Exec=reasonix-launcher") || strings.Contains(string(desktopEntry), "reasonix-guard") {
+	if !strings.Contains(string(desktopEntry), "Exec=tempora-launcher") || strings.Contains(string(desktopEntry), "tempora-guard") {
 		t.Fatal("Linux desktop entry must launch the permanent launcher without Guard")
 	}
 	nfpmData, err := os.ReadFile("build/linux/nfpm.yaml")
@@ -162,14 +162,14 @@ func TestDesktopPackagesPreserveNativePlatformLaunchers(t *testing.T) {
 		t.Fatal(err)
 	}
 	nfpm := string(nfpmData)
-	if !strings.Contains(nfpm, "dst: /usr/bin/reasonix-launcher") || strings.Contains(nfpm, "dst: /usr/bin/reasonix-guard") {
+	if !strings.Contains(nfpm, "dst: /usr/bin/tempora-launcher") || strings.Contains(nfpm, "dst: /usr/bin/tempora-guard") {
 		t.Fatal("Linux deb must install the permanent launcher and must not persist Guard")
 	}
 	if !strings.Contains(nfpm, "postinstall: ./build/linux/postinstall.sh") {
 		t.Fatal("Linux deb must refresh native desktop icon caches after install and upgrade")
 	}
-	if !strings.Contains(nfpm, "dst: /usr/share/applications/reasonix.desktop") {
-		t.Fatal("Linux deb must install the Reasonix desktop entry")
+	if !strings.Contains(nfpm, "dst: /usr/share/applications/tempora.desktop") {
+		t.Fatal("Linux deb must install the Tempora desktop entry")
 	}
 	postInstall, err := os.ReadFile("build/linux/postinstall.sh")
 	if err != nil {
@@ -190,19 +190,19 @@ func TestDesktopPackagesPreserveNativePlatformLaunchers(t *testing.T) {
 	}
 	windows := string(windowsData)
 	for _, want := range []string{
-		`File "/oname=${REASONIX_CLI}" "${REASONIX_CLI}"`,
-		`!define REASONIX_UNINST_FINALIZE 'cmd.exe /C copy /Y "%1" "reasonix-uninstall.exe" >NUL'`,
-		`!uninstfinalize '${REASONIX_UNINST_FINALIZE}'`,
-		`File "/oname=uninstall.exe" "${ARG_REASONIX_SIGNED_UNINSTALLER}"`,
+		`File "/oname=${TEMPORA_CLI}" "${TEMPORA_CLI}"`,
+		`!define TEMPORA_UNINST_FINALIZE 'cmd.exe /C copy /Y "%1" "tempora-uninstall.exe" >NUL'`,
+		`!uninstfinalize '${TEMPORA_UNINST_FINALIZE}'`,
+		`File "/oname=uninstall.exe" "${ARG_TEMPORA_SIGNED_UNINSTALLER}"`,
 		`StrCpy $R9 "$INSTDIR\versions\.installer-v${INFO_PRODUCTVERSION}-$R8"`,
-		`File "/oname=${REASONIX_LAYOUT_INSTALLER}" "${REASONIX_GUARD}"`,
+		`File "/oname=${TEMPORA_LAYOUT_INSTALLER}" "${TEMPORA_GUARD}"`,
 		`nsExec::ExecToLog /OEM`,
-		`Reasonix layout activator output:`,
+		`Tempora layout activator output:`,
 		`--activate-staging "$R9" --no-relaunch`,
-		`CreateShortcut "$SMPROGRAMS\${INFO_PRODUCTNAME}.lnk" "$INSTDIR\${REASONIX_LAUNCHER}" "" "$INSTDIR\${REASONIX_LAUNCHER}" 0`,
-		`CreateShortCut "$DESKTOP\${INFO_PRODUCTNAME}.lnk" "$INSTDIR\${REASONIX_LAUNCHER}" "" "$INSTDIR\${REASONIX_LAUNCHER}" 0`,
-		`StrCmp $ReasonixStageMode "1" reasonix_stage_payload`,
-		`File "/oname=${REASONIX_GUARD}" "${REASONIX_GUARD}"`,
+		`CreateShortcut "$SMPROGRAMS\${INFO_PRODUCTNAME}.lnk" "$INSTDIR\${TEMPORA_LAUNCHER}" "" "$INSTDIR\${TEMPORA_LAUNCHER}" 0`,
+		`CreateShortCut "$DESKTOP\${INFO_PRODUCTNAME}.lnk" "$INSTDIR\${TEMPORA_LAUNCHER}" "" "$INSTDIR\${TEMPORA_LAUNCHER}" 0`,
+		`StrCmp $TemporaStageMode "1" tempora_stage_payload`,
+		`File "/oname=${TEMPORA_GUARD}" "${TEMPORA_GUARD}"`,
 	} {
 		if !strings.Contains(windows, want) {
 			t.Errorf("Windows installer missing versioned-layout contract %q", want)
@@ -212,11 +212,11 @@ func TestDesktopPackagesPreserveNativePlatformLaunchers(t *testing.T) {
 		strings.Contains(windows, `SetOutPath "$INSTDIR\versions\v${INFO_PRODUCTVERSION}"`) {
 		t.Fatal("normal Windows installer must not write the live version or current.json in place")
 	}
-	if strings.Contains(windows, `ExecWait '"$PLUGINSDIR\${REASONIX_LAYOUT_INSTALLER}"`) {
+	if strings.Contains(windows, `ExecWait '"$PLUGINSDIR\${TEMPORA_LAYOUT_INSTALLER}"`) {
 		t.Fatal("Windows installer must not discard layout activator stdout/stderr")
 	}
-	if strings.Contains(windows, `CreateShortcut "$SMPROGRAMS\${INFO_PRODUCTNAME}.lnk" "$INSTDIR\${REASONIX_LAUNCHER}" "" "$INSTDIR\versions\v${INFO_PRODUCTVERSION}\${PRODUCT_EXECUTABLE}" 0`) ||
-		strings.Contains(windows, `CreateShortCut "$DESKTOP\${INFO_PRODUCTNAME}.lnk" "$INSTDIR\${REASONIX_LAUNCHER}" "" "$INSTDIR\versions\v${INFO_PRODUCTVERSION}\${PRODUCT_EXECUTABLE}" 0`) {
+	if strings.Contains(windows, `CreateShortcut "$SMPROGRAMS\${INFO_PRODUCTNAME}.lnk" "$INSTDIR\${TEMPORA_LAUNCHER}" "" "$INSTDIR\versions\v${INFO_PRODUCTVERSION}\${PRODUCT_EXECUTABLE}" 0`) ||
+		strings.Contains(windows, `CreateShortCut "$DESKTOP\${INFO_PRODUCTNAME}.lnk" "$INSTDIR\${TEMPORA_LAUNCHER}" "" "$INSTDIR\versions\v${INFO_PRODUCTVERSION}\${PRODUCT_EXECUTABLE}" 0`) {
 		t.Fatal("Windows shortcut icon must not point into a version directory that retention removes")
 	}
 }

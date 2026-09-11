@@ -5,7 +5,7 @@ import (
 	"slices"
 	"testing"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 func ranges(pairs ...int) []tool.ReadRange {

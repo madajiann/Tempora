@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"reasonix/internal/shellparse"
-	"reasonix/internal/shellsafe"
+	"tempora/internal/shellparse"
+	"tempora/internal/shellsafe"
 )
 
 // IsFullVerificationCommand reports whether a recognized verifier clearly

@@ -9,9 +9,9 @@ import (
 	"runtime"
 	"strings"
 
-	"reasonix/desktop/internal/update"
-	"reasonix/internal/installlayout"
-	"reasonix/internal/repair"
+	"tempora/desktop/internal/update"
+	"tempora/internal/installlayout"
+	"tempora/internal/repair"
 )
 
 // updater_app.go is the auto-updater's bound command surface — the App methods the
@@ -341,7 +341,7 @@ func (a *App) AbandonPendingUpdate() error {
 
 func (a *App) installDebUpdate(requestID string, meta *cachedUpdate) error {
 	// authorizing = Polkit password dialog. The helper streams
-	// REASONIX_UPDATE_PHASE=installing on stderr after validation and before
+	// TEMPORA_UPDATE_PHASE=installing on stderr after validation and before
 	// apt-get, so the UI can leave authorizing while the package manager runs.
 	a.emitProgress(requestID, meta.Channel, meta.Version, "authorizing", meta.Size, meta.Size, "")
 	err := applyDebLinux(meta.Path, meta.SignaturePath, func(phase string) {

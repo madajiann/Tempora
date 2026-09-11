@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"reasonix/internal/imageinput"
-	"reasonix/internal/provider"
+	"tempora/internal/imageinput"
+	"tempora/internal/provider"
 )
 
 type agentImageInput struct {

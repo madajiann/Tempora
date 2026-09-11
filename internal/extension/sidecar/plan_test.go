@@ -3,7 +3,7 @@ package sidecar
 import (
 	"testing"
 
-	"reasonix/internal/extension"
+	"tempora/internal/extension"
 )
 
 func TestPluginComponentIDRoundTrip(t *testing.T) {

@@ -11,7 +11,7 @@ import { ContextMenu, contextMenuPointFromEvent, type ContextMenuItem, type Cont
 export type ProjectDropPosition = "before" | "after";
 
 export const GLOBAL_PROJECT_ORDER_KEY = "__global__";
-const TOPIC_DRAG_TYPE = "application/x-reasonix-topic-id";
+const TOPIC_DRAG_TYPE = "application/x-tempora-topic-id";
 
 function projectOrderKey(node: ProjectNode): string {
   if (node.kind === "global_folder") return GLOBAL_PROJECT_ORDER_KEY;

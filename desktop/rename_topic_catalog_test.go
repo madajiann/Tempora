@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 func TestRenameTopicCatalogOnlyProjectTopic(t *testing.T) {

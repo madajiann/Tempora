@@ -3,10 +3,10 @@ package main
 import (
 	"runtime"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/provider"
-	"reasonix/internal/sandbox"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/provider"
+	"tempora/internal/sandbox"
 )
 
 func desktopStartupSettingsFromConfig(cfg *config.Config) DesktopStartupSettingsView {

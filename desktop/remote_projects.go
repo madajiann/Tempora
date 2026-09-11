@@ -10,8 +10,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"reasonix/internal/config"
-	"reasonix/internal/event"
+	"tempora/internal/config"
+	"tempora/internal/event"
 )
 
 // remoteTabModelSeq stamps every remote-tab model assignment; the credential

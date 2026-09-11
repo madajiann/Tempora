@@ -5,10 +5,10 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/readcoord"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/readcoord"
+	"tempora/internal/tool"
 )
 
 func newShadowTestAgent(t *testing.T, enabled bool) (*Agent, *Session) {

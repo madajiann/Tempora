@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
+	"tempora/internal/agent"
+	"tempora/internal/event"
 )
 
 // BindSessionWriteAuthority issues a generation-bound write authority from

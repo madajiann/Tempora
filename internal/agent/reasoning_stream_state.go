@@ -2,7 +2,7 @@ package agent
 
 import (
 	"encoding/json"
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 	"strings"
 )
 

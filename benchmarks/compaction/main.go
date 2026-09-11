@@ -19,12 +19,12 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"reasonix/internal/ablation"
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	_ "reasonix/internal/provider/openai"
-	"reasonix/internal/tool"
+	"tempora/internal/ablation"
+	"tempora/internal/agent"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	_ "tempora/internal/provider/openai"
+	"tempora/internal/tool"
 )
 
 const (

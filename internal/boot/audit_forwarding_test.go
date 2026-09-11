@@ -5,12 +5,12 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/notify"
-	"reasonix/internal/stats"
-	"reasonix/internal/trajectory"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/notify"
+	"tempora/internal/stats"
+	"tempora/internal/trajectory"
 )
 
 // The shared forwarder is why a new capability no longer has to be repeated at

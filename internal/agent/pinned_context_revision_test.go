@@ -7,11 +7,11 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/extension"
-	"reasonix/internal/extension/protocol"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/extension"
+	"tempora/internal/extension/protocol"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 func pinnedTestState(t *testing.T, snapshot PinnedContextSnapshot) pinnedContextState {

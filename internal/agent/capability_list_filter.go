@@ -5,7 +5,7 @@ import (
 	"maps"
 	"strings"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 func (t *restrictedCapabilityProxy) bindToolResultSession(session func() *Session) {

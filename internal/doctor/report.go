@@ -15,13 +15,13 @@ import (
 
 	"github.com/BurntSushi/toml"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	fileencoding "reasonix/internal/fileutil/encoding"
-	"reasonix/internal/netclient"
-	"reasonix/internal/sandbox"
-	"reasonix/internal/skill"
-	"reasonix/internal/store"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	fileencoding "tempora/internal/fileutil/encoding"
+	"tempora/internal/netclient"
+	"tempora/internal/sandbox"
+	"tempora/internal/skill"
+	"tempora/internal/store"
 )
 
 type Options struct {
@@ -147,11 +147,11 @@ func Collect(opts Options) Report {
 	}
 	cwd, _ := os.Getwd()
 	sourcePath := config.SourcePath()
-	// Settings UIs and `reasonix config` edit the user-level config, but a
-	// project reasonix.toml outranks it. Users who toggle the sandbox off in
+	// Settings UIs and `tempora config` edit the user-level config, but a
+	// project tempora.toml outranks it. Users who toggle the sandbox off in
 	// Settings while the project file pins [sandbox] read the no-op as "bash is
 	// broken" (#5961, #6046) — surface the layering explicitly.
-	if sourcePath != "" && filepath.Base(sourcePath) == "reasonix.toml" {
+	if sourcePath != "" && filepath.Base(sourcePath) == "tempora.toml" {
 		if raw, err := fileencoding.ReadFileUTF8(sourcePath); err == nil && tomlHasSandboxTable(raw) {
 			warnings = append(warnings, "project "+redactHome(sourcePath)+" sets [sandbox]; it overrides user-level Settings -> Sandbox for this workspace — edit the project file to change sandbox behavior here")
 		}
@@ -174,7 +174,7 @@ func Collect(opts Options) Report {
 		warnings = append(warnings, `config requests [sandbox] bash = "enforce", but Windows does not provide an OS-level Bash sandbox; the setting is fixed to "off" and bash runs unconfined`)
 	}
 	// Supervised deployments sometimes override HOME onto a service config dir
-	// while Reasonix isolation should use REASONIX_HOME. Do not rewrite
+	// while Tempora isolation should use TEMPORA_HOME. Do not rewrite
 	// subprocess HOME automatically (#7600 rejected); surface the mismatch.
 	if warn := homeIsolationWarning(); warn != "" {
 		warnings = append(warnings, warn)
@@ -263,7 +263,7 @@ func appendRecoveryWarnings(warnings []string, recovery RecoveryLifecycleReport)
 
 func RenderText(r Report) string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "reasonix %s doctor\n", r.Version)
+	fmt.Fprintf(&b, "tempora %s doctor\n", r.Version)
 	fmt.Fprintf(&b, "  system       %s/%s\n", r.OS, r.Arch)
 	if r.CWD != "" {
 		fmt.Fprintf(&b, "  cwd          %s\n", r.CWD)
@@ -486,10 +486,10 @@ func valueOr(s, fallback string) string {
 }
 
 // homeIsolationWarning detects a process HOME that differs from the OS account
-// home while REASONIX_HOME is unset. Services should keep the real account HOME
-// and isolate Reasonix state with REASONIX_HOME instead of rewriting HOME.
+// home while TEMPORA_HOME is unset. Services should keep the real account HOME
+// and isolate Tempora state with TEMPORA_HOME instead of rewriting HOME.
 func homeIsolationWarning() string {
-	if strings.TrimSpace(os.Getenv("REASONIX_HOME")) != "" {
+	if strings.TrimSpace(os.Getenv("TEMPORA_HOME")) != "" {
 		return ""
 	}
 	envHome := strings.TrimSpace(os.Getenv("HOME"))
@@ -512,7 +512,7 @@ func homeIsolationWarning() string {
 	// Do not embed either absolute path: when HOME is overridden, redactHome
 	// cannot mask the account home, and shareable doctor output must stay free
 	// of machine-local identity.
-	return "process HOME differs from the OS account home; keep the real account HOME for services and isolate Reasonix with REASONIX_HOME"
+	return "process HOME differs from the OS account home; keep the real account HOME for services and isolate Tempora with TEMPORA_HOME"
 }
 
 func samePathFold(a, b string) bool {

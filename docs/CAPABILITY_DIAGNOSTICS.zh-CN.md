@@ -6,9 +6,9 @@
 &nbsp;·&nbsp;
 <a href="./PLUGIN_PACKAGES.zh-CN.md">插件包</a>
 
-Reasonix 提供 CLI 与桌面端 **设置 → 诊断** 共用的只读能力诊断模型，覆盖 Skills、
+Tempora 提供 CLI 与桌面端 **设置 → 诊断** 共用的只读能力诊断模型，覆盖 Skills、
 Commands、Hooks、插件包、MCP 服务器，以及指令文件（`AGENTS.md` /
-`REASONIX.md` / `CLAUDE.md`）。
+`TEMPORA.md` / `CLAUDE.md`）。
 
 ## 技能工具引用
 
@@ -49,11 +49,11 @@ MCP 服务器或调用模型供应商。
 
 | 目标 | 命令 / 入口 |
 | --- | --- |
-| 检查当前工作区的 skills / hooks / MCP / 插件 | `reasonix doctor capabilities` |
-| 机器可读报告（CI / 报障） | `reasonix doctor capabilities --json` |
-| 指定项目根目录 | `reasonix doctor capabilities --root /path/to/project` |
-| 真实探测 MCP 启动（会启动第三方服务器） | `reasonix doctor capabilities --live --timeout 5s` |
-| 让 Agent 按手册排障 | 会话中 `/reasonix-guide`，或自然语言描述症状 |
+| 检查当前工作区的 skills / hooks / MCP / 插件 | `tempora doctor capabilities` |
+| 机器可读报告（CI / 报障） | `tempora doctor capabilities --json` |
+| 指定项目根目录 | `tempora doctor capabilities --root /path/to/project` |
+| 真实探测 MCP 启动（会启动第三方服务器） | `tempora doctor capabilities --live --timeout 5s` |
+| 让 Agent 按手册排障 | 会话中 `/tempora-guide`，或自然语言描述症状 |
 | GUI 健康视图 | 桌面端 **设置 → 诊断** |
 
 **默认是静态且安全的**：无网络、不启动 MCP 子进程。只有你明确需要启动
@@ -62,9 +62,9 @@ automatic MCP 时才用 `--live`。
 其它既有 doctor 命令（行为不变）：
 
 ```bash
-reasonix doctor                  # 环境 / provider / 沙箱快照
-reasonix doctor session <id>     # 支持用会话包
-reasonix doctor redact-sessions  # 脱敏会话中的密钥
+tempora doctor                  # 环境 / provider / 沙箱快照
+tempora doctor session <id>     # 支持用会话包
+tempora doctor redact-sessions  # 脱敏会话中的密钥
 ```
 
 ## 日常工作流
@@ -72,7 +72,7 @@ reasonix doctor redact-sessions  # 脱敏会话中的密钥
 ### 1. 「Skill / 命令找不到或内容不对」
 
 ```bash
-reasonix doctor capabilities --json | jq '.skills.entries, .commands.entries, .issues'
+tempora doctor capabilities --json | jq '.skills.entries, .commands.entries, .issues'
 ```
 
 关注：
@@ -82,29 +82,29 @@ reasonix doctor capabilities --json | jq '.skills.entries, .commands.entries, .i
 - `skill.missing_description` — 能加载但索引描述很弱
 - `command.read_failed` — 文件读失败或解析失败
 
-然后到 **设置 → 技能**，或直接改 `.reasonix/skills` / `.reasonix/commands` 下的文件。
+然后到 **设置 → 技能**，或直接改 `.tempora/skills` / `.tempora/commands` 下的文件。
 
 ### 2. 「项目 Hooks 不触发」
 
 ```bash
-reasonix doctor capabilities | sed -n '/Hooks/,/Plugins/p'
+tempora doctor capabilities | sed -n '/Hooks/,/Plugins/p'
 ```
 
-项目 Hooks 会从 `.reasonix/settings.json` 自动加载。若没有触发，请确认当前工作区，
-保存后重启 Reasonix。`match` 是**锚定**正则：`file` **不会**匹配 `read_file`。
+项目 Hooks 会从 `.tempora/settings.json` 自动加载。若没有触发，请确认当前工作区，
+保存后重启 Tempora。`match` 是**锚定**正则：`file` **不会**匹配 `read_file`。
 
 ### 3. 「配置了 MCP 但模型看不到工具」
 
 1. 先做静态检查（无副作用）：
 
    ```bash
-   reasonix doctor capabilities --json | jq '.mcp.servers, .issues[] | select(.subsystem=="mcp")'
+   tempora doctor capabilities --json | jq '.mcp.servers, .issues[] | select(.subsystem=="mcp")'
    ```
 
 2. 仅在接受启动第三方服务器时：
 
    ```bash
-   reasonix doctor capabilities --live --timeout 10s --json
+   tempora doctor capabilities --live --timeout 10s --json
    ```
 
 常见 code：`mcp.command_not_found`、`mcp.invalid_transport`、
@@ -116,12 +116,12 @@ reasonix doctor capabilities | sed -n '/Hooks/,/Plugins/p'
 `tools/list`）、`startup_elapsed_ms`，以及有长度上限且已做凭据脱敏的 `stderr` 尾部。
 这可以区分重复/被覆盖的注册与真正缓慢或失败的握手，同时不会暴露完整进程输出。
 
-### 4. 让 Agent 按手册排查（`reasonix-guide`）
+### 4. 让 Agent 按手册排查（`tempora-guide`）
 
 交互式会话中：
 
 ```text
-/reasonix-guide
+/tempora-guide
 ```
 
 或：
@@ -133,17 +133,17 @@ reasonix doctor capabilities | sed -n '/Hooks/,/Plugins/p'
 该内置 Skill 是 **inline**（`runAs: inline`）。它会优先要求模型运行：
 
 ```bash
-reasonix doctor capabilities --json
+tempora doctor capabilities --json
 ```
 
 只有你明确允许启动外部 MCP 时才建议 `--live`。项目或全局同名
-`reasonix-guide` 会覆盖内置版；也可用
-`[skills].disabled_skills = ["reasonix-guide"]` 隐藏。
+`tempora-guide` 会覆盖内置版；也可用
+`[skills].disabled_skills = ["tempora-guide"]` 隐藏。
 
 ## CLI 参考
 
 ```bash
-reasonix doctor capabilities [--root PATH] [--json] [--live] [--timeout 5s]
+tempora doctor capabilities [--root PATH] [--json] [--live] [--timeout 5s]
 ```
 
 | 参数 | 含义 |
@@ -175,16 +175,16 @@ reasonix doctor capabilities [--root PATH] [--json] [--live] [--timeout 5s]
 
 ```bash
 # 当前目录、人类可读
-reasonix doctor capabilities
+tempora doctor capabilities
 
 # CI：仅有 error 时非零退出
-reasonix doctor capabilities --json
+tempora doctor capabilities --json
 
 # live 探测，超时 15 秒
-reasonix doctor capabilities --live --timeout 15s --json 2>live-warn.txt
+tempora doctor capabilities --live --timeout 15s --json 2>live-warn.txt
 ```
 
-既有 `reasonix doctor` / `doctor session` / `doctor redact-sessions` 的 JSON
+既有 `tempora doctor` / `doctor session` / `doctor redact-sessions` 的 JSON
 schema **不会**混入新字段。
 
 ## 桌面端
@@ -246,12 +246,12 @@ MCP 仅列出 env/header 的 **key**。可能携带 HTTP 响应体或 MCP stderr
 
 | 需求 | 改用 |
 | --- | --- |
-| Provider 密钥、代理、沙箱 OS 支持 | `reasonix doctor` |
-| 给支持用的完整会话包 | `reasonix doctor session <id>` |
-| 单个插件包 | `reasonix plugin doctor <name>` |
+| Provider 密钥、代理、沙箱 OS 支持 | `tempora doctor` |
+| 给支持用的完整会话包 | `tempora doctor session <id>` |
+| 单个插件包 | `tempora plugin doctor <name>` |
 | 会话内 MCP 列表 | `/mcp` |
 
 ## 缓存影响
 
-内置 `reasonix-guide` 仅在 system prompt 的 Skill 索引中增加 **一行稳定索引**；
+内置 `tempora-guide` 仅在 system prompt 的 Skill 索引中增加 **一行稳定索引**；
 正文按需加载。诊断本身不进入 provider 请求。

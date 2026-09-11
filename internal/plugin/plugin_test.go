@@ -16,10 +16,10 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/mcplaunch"
-	"reasonix/internal/sandbox"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/mcplaunch"
+	"tempora/internal/sandbox"
+	"tempora/internal/tool"
 )
 
 type countingToolsTransport struct {
@@ -674,7 +674,7 @@ func TestStartAvailableKeepsGoodServers(t *testing.T) {
 		Args:    []string{"-test.run=TestHelperProcess", "--"},
 		Env:     map[string]string{"GO_WANT_HELPER_PROCESS": "1"},
 	}
-	bad := Spec{Name: "bad", Command: "reasonix-missing-mcp-binary"}
+	bad := Spec{Name: "bad", Command: "tempora-missing-mcp-binary"}
 
 	host, tools := StartAvailable(ctx, []Spec{bad, good})
 	defer host.Close()
@@ -724,7 +724,7 @@ func TestStartAllAllOrNothingOnFailure(t *testing.T) {
 		Args:    []string{"-test.run=TestHelperProcess", "--"},
 		Env:     map[string]string{"GO_WANT_HELPER_PROCESS": "1"},
 	}
-	bad := Spec{Name: "bad", Command: "reasonix-missing-mcp-binary"}
+	bad := Spec{Name: "bad", Command: "tempora-missing-mcp-binary"}
 
 	for _, tc := range []struct {
 		name  string
@@ -955,7 +955,7 @@ func TestStdioCommandNotFoundSuggestsPATHFix(t *testing.T) {
 	stdioShellPATH = func(context.Context) string { return "" }
 	t.Cleanup(func() { stdioShellPATH = old })
 
-	host, _ := StartAvailable(ctx, []Spec{{Name: "missing", Command: "reasonix-missing-mcp-binary"}})
+	host, _ := StartAvailable(ctx, []Spec{{Name: "missing", Command: "tempora-missing-mcp-binary"}})
 	defer host.Close()
 
 	failures := host.Failures()
@@ -964,7 +964,7 @@ func TestStdioCommandNotFoundSuggestsPATHFix(t *testing.T) {
 	}
 	msg := failures[0].Error
 	for _, want := range []string{
-		`command "reasonix-missing-mcp-binary" not found on PATH`,
+		`command "tempora-missing-mcp-binary" not found on PATH`,
 		"absolute command path",
 		"MCP server env",
 	} {

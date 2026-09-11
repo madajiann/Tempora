@@ -6,11 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/instruction"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/instruction"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 // scriptedProvider replays a distinct chunk set per Stream call, so a multi-turn

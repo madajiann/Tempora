@@ -15,9 +15,9 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/proc"
-	"reasonix/internal/secrets"
-	"reasonix/internal/shellparse"
+	"tempora/internal/proc"
+	"tempora/internal/secrets"
+	"tempora/internal/shellparse"
 )
 
 const ProbeTimeout = 2 * time.Second

@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/provider"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/provider"
 )
 
 // Test-only helpers for the desktop suite. They exercise production state

@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/projectiondb"
+	"tempora/internal/agent"
+	"tempora/internal/projectiondb"
 )
 
 func TestReconcileMakesUnknownCountsVisibleWithoutReadingTranscript(t *testing.T) {

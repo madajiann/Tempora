@@ -9,7 +9,7 @@ import (
 	"sync"
 	"testing"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 func TestRemoteRuntimeMissingSelectedSessionRequiresOwnConfirmation(t *testing.T) {

@@ -8,8 +8,8 @@ import (
 	"sort"
 	"strings"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
+	"tempora/internal/config"
+	"tempora/internal/control"
 )
 
 const modelSettingsProtocolVersion = 1

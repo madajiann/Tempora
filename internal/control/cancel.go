@@ -1,6 +1,6 @@
 package control
 
-import "reasonix/internal/event"
+import "tempora/internal/event"
 
 // Cancel aborts the in-flight turn. A goroutine blocked awaiting approval
 // unblocks via the cancelled context.

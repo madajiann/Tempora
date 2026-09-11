@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 type readFileArgs struct {

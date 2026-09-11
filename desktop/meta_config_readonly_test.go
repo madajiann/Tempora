@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 func TestTabMetaExtrasRefreshDoesNotPinCredentials(t *testing.T) {

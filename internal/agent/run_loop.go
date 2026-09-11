@@ -7,12 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/i18n"
-	"reasonix/internal/provider"
-	"reasonix/internal/runtimepolicy"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/i18n"
+	"tempora/internal/provider"
+	"tempora/internal/runtimepolicy"
+	"tempora/internal/tool"
 )
 
 // streamedTurn is one provider completion collected by stream. Keeping the
@@ -390,7 +390,7 @@ func (a *Agent) handleFinalResponse(ctx context.Context, state *turnRuntime, tex
 			_, _ = ctrl.ConsumeFinalization(a.recovery.taskID)
 		}
 		return false, &RecoveryPauseError{
-			Message:    "Automatic retries paused. Reasonix stopped repeated attempts and kept completed work. Send \"continue\" to start a fresh attempt, or add instructions to change direction.",
+			Message:    "Automatic retries paused. Tempora stopped repeated attempts and kept completed work. Send \"continue\" to start a fresh attempt, or add instructions to change direction.",
 			StopReason: reason,
 		}
 	}

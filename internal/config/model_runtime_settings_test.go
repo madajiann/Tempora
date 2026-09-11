@@ -7,7 +7,7 @@ import (
 )
 
 func TestManagedModelSnapshotPreservesProjectProviderAndAssignments(t *testing.T) {
-	t.Setenv("REASONIX_HOME", t.TempDir())
+	t.Setenv("TEMPORA_HOME", t.TempDir())
 	t.Setenv("PROJECT_MODEL_KEY", "project-secret")
 	if _, err := SetCredential("PROJECT_MODEL_KEY", "project-secret"); err != nil {
 		t.Fatal(err)
@@ -26,7 +26,7 @@ base_url = "https://project.invalid/v1"
 model = "m"
 api_key_env = "PROJECT_MODEL_KEY"
 `
-	if err := os.WriteFile(filepath.Join(root, "reasonix.toml"), []byte(project), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "tempora.toml"), []byte(project), 0600); err != nil {
 		t.Fatal(err)
 	}
 	bundle := &ModelRuntimeSettings{Revision: "revision", ProxyURL: "http://127.0.0.1:9876", Providers: []ProviderEntry{

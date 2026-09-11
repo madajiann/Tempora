@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
+	"tempora/internal/agent"
+	"tempora/internal/event"
 )
 
 func TestSetGoalDurableRollsBackAllRuntimeStateOnWriteFailure(t *testing.T) {

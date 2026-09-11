@@ -11,8 +11,8 @@ import (
 	"maps"
 	"slices"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 var ErrProtocolRecoveryUnavailable = errors.New("protocol recovery is unavailable or stale")

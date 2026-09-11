@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 // readResultEnvelopeFor builds the host-only envelope for one reader result:

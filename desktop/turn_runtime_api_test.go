@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/control"
-	"reasonix/internal/event"
+	"tempora/internal/control"
+	"tempora/internal/event"
 )
 
 type exactTurnRunner struct {
@@ -124,8 +124,8 @@ func TestInterruptTurnForTabStopsActiveWorkDespiteStaleTurnID(t *testing.T) {
 	if err := app.InterruptTurnForTab(tab.ID, "turn_none"); !errors.Is(err, errTurnNotRunning) {
 		t.Fatalf("idle stop = %v, want %v", err, errTurnNotRunning)
 	}
-	if err := app.InterruptTurnForTab(tab.ID, "turn_none"); err == nil || err.Error() != "reasonix_error:turn_not_running" {
-		t.Fatalf("idle stop wire error = %v, want stable reasonix_error code", err)
+	if err := app.InterruptTurnForTab(tab.ID, "turn_none"); err == nil || err.Error() != "tempora_error:turn_not_running" {
+		t.Fatalf("idle stop wire error = %v, want stable tempora_error code", err)
 	}
 
 	if _, err := app.StartTurnForTab(tab.ID, "hold this turn", "submission-1"); err != nil {

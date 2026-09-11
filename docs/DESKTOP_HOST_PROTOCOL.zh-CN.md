@@ -16,7 +16,7 @@ React 渲染进程 ──preload 类型化 IPC──▶ Electron 主进程 ─�
 ## 传输
 
 - 帧格式：按行分隔的 JSON-RPC 2.0（`rpcwire` 严格模式）。一行一帧，UTF-8，不允许批量数组。
-- Go 服务以 `reasonix-desktop --host-rpc` 启动。stdout 只承载协议帧，stderr 承载日志。
+- Go 服务以 `tempora-desktop --host-rpc` 启动。stdout 只承载协议帧，stderr 承载日志。
   壳在 `desktop/shutdown` 之后关闭 stdin 以请求退出。
 - 限制：双向单帧 64 MiB，服务端最多 512 个并发入站处理器，30 秒写入停滞看门狗。
   大体积二进制数据从不进入帧，而是走下文的资源源。
@@ -34,7 +34,7 @@ React 渲染进程 ──preload 类型化 IPC──▶ Electron 主进程 ─�
   "contractDigest": "sha256:…",       // 壳包内嵌的契约摘要
   "build": {"version":"v1.30.0","channel":"stable","commit":"abc123"},
   "host": {"name":"electron","version":"44.2.0","chrome":"152.0.0","platform":"darwin","arch":"arm64"},
-  "instance": {"home":"/Users/…/.reasonix","dev":false}
+  "instance": {"home":"/Users/…/.tempora","dev":false}
 }}
 // 服务 → 壳
 {"result":{
@@ -126,7 +126,7 @@ JSON 序列化的参数，结果为 `()`、`(T)`、`(error)` 或 `(T, error)`。
 ```
 
 `args` 保留原事件桥的可变参数载荷，多数事件只有一个元素。壳把该帧经
-`reasonix:event` 通道转给渲染进程；preload 的 `on(name, cb)` 按 `name` 过滤并调用
+`tempora:event` 通道转给渲染进程；preload 的 `on(name, cb)` 按 `name` 过滤并调用
 `cb(...args)`。序号在同一世代内严格递增，重新挂载的渲染进程可据此发现缺口并重新
 快照，而不是信任陈旧状态。
 
@@ -196,18 +196,18 @@ Wails 实现已随 Electron 壳落地删除。
 
 ## 资源源
 
-服务在回环端口上监听，承载现有的授权资源处理器（`/__reasonix_workspace_media/…`、
-`/__reasonix_theme_asset/…`、远程 markdown 图片代理）。壳从受限的 `reasonix://app/`
+服务在回环端口上监听，承载现有的授权资源处理器（`/__tempora_workspace_media/…`、
+`/__tempora_theme_asset/…`、远程 markdown 图片代理）。壳从受限的 `tempora://app/`
 scheme 提供打包界面，只把上述前缀转发到资源源，并在主进程中附加
 `Authorization: Bearer <token>`。token 从不到达渲染进程、网站视图、远程窗口或
 MCP App 框架。Go 保留今天的全部文件身份与 TTL 检查。
 
 ## 渲染进程 preload 接口
 
-可信 preload 只暴露一个对象 `window.reasonixDesktop`：
+可信 preload 只暴露一个对象 `window.temporaDesktop`：
 
 ```ts
-interface ReasonixDesktopHost {
+interface TemporaDesktopHost {
   readonly kind: "electron";
   readonly contract: { protocolVersion: number; digest: string; commands: readonly string[] };
   readonly platform: { os: "darwin" | "windows" | "linux"; arch: string; versions: Record<string, string> };
@@ -269,9 +269,9 @@ warning: "invalid-config" | "unreadable-config" | "unsupported-version" | null }
 ## 安全边界
 
 - 应用窗口：sandbox 开启，context isolation 开启，Node integration 关闭，只加载
-  `reasonix://app`，使用上述 preload。
+  `tempora://app`，使用上述 preload。
 - 网站视图、远程 Serve 窗口和 MCP App 框架：独立 session，没有应用 preload，不能访问
-  `reasonix://`，不能触达 `host/*`。
+  `tempora://`，不能触达 `host/*`。
 - IPC 处理器只接受来自应用窗口 `webContents` 的请求，其他发送者被拒绝并记录。
 - 内嵌契约之外的 `desktop/invoke` 名称在到达 Go 之前失败。
 

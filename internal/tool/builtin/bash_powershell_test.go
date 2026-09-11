@@ -11,8 +11,8 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	"reasonix/internal/sandbox"
-	"reasonix/internal/tool"
+	"tempora/internal/sandbox"
+	"tempora/internal/tool"
 )
 
 func powershellPath(t *testing.T) string {
@@ -37,12 +37,12 @@ func TestBashPowerShellRunsNativeCommand(t *testing.T) {
 	if runtime.GOOS != "windows" {
 		t.Skip("powershell e2e is windows-only")
 	}
-	out, err := runPS(t, "Write-Output reasonix-ok")
+	out, err := runPS(t, "Write-Output tempora-ok")
 	if err != nil {
 		t.Fatalf("powershell command failed: %v (out=%q)", err, out)
 	}
-	if !strings.Contains(out, "reasonix-ok") {
-		t.Fatalf("output = %q, want it to contain reasonix-ok", out)
+	if !strings.Contains(out, "tempora-ok") {
+		t.Fatalf("output = %q, want it to contain tempora-ok", out)
 	}
 }
 
@@ -141,7 +141,7 @@ func TestBashPowerShellExecuteDetailedContract(t *testing.T) {
 func assertPowerShellDetailedContract(t *testing.T, psPath string) {
 	t.Helper()
 	// Chinese directory name — native Windows CI must keep path + UTF-8 intact.
-	work := filepath.Join(t.TempDir(), "中文目录-reasonix")
+	work := filepath.Join(t.TempDir(), "中文目录-tempora")
 	if err := os.MkdirAll(work, 0o755); err != nil {
 		t.Fatal(err)
 	}

@@ -12,8 +12,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 const (

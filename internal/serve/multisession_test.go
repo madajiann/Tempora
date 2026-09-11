@@ -15,13 +15,13 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/billing"
-	"reasonix/internal/boot"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/eventwire"
+	"tempora/internal/agent"
+	"tempora/internal/billing"
+	"tempora/internal/boot"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/eventwire"
 )
 
 type replayStubController struct{ *control.Controller }

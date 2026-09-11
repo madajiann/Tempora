@@ -5,11 +5,11 @@ import (
 	"flag"
 	"os"
 
-	"reasonix/internal/boot"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/remote/bootstrap"
-	"reasonix/internal/serve"
+	"tempora/internal/boot"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/remote/bootstrap"
+	"tempora/internal/serve"
 )
 
 func registerServeCapabilityFlags(fs *flag.FlagSet) {

@@ -80,7 +80,7 @@ async function verifyMaterialization(naturalHeight: number): Promise<number> {
     let drift = 0;
     let overlap = 0;
     const writes: string[] = [];
-    window.__REASONIX_TRANSCRIPT_SCROLL_WRITE__ = write => {
+    window.__TEMPORA_TRANSCRIPT_SCROLL_WRITE__ = write => {
       if (kernel.userGestureActive && write.outcome === "accepted") writes.push(write.owner ?? "unknown");
     };
     for (let step = 0; step < 32; step++) {

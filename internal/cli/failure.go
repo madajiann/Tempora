@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"reasonix/internal/control"
-	"reasonix/internal/i18n"
+	"tempora/internal/control"
+	"tempora/internal/i18n"
 )
 
 // cliFailure reports err on stderr and yields the process exit code, so a

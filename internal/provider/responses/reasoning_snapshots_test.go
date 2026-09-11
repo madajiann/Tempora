@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 	"reflect"
 	"strings"
 	"testing"

@@ -5,8 +5,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"reasonix/internal/control"
-	"reasonix/internal/i18n"
+	"tempora/internal/control"
+	"tempora/internal/i18n"
 )
 
 func (m *chatTUI) noticeDeprecatedGoalBudget(cmd control.GoalCommand) {

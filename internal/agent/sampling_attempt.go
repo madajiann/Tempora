@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 // runSamplingAttempt records the exact HTTP-attempt delta for one replay of a

@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"testing"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 func TestReadOutboundFileConfinement(t *testing.T) {

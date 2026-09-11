@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"reasonix/internal/config"
-	"reasonix/internal/provider"
+	"tempora/internal/config"
+	"tempora/internal/provider"
 )
 
 func TestNewProviderBuildsSCNetOpenAIDeepSeekRequestContract(t *testing.T) {

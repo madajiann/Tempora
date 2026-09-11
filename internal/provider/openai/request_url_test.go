@@ -3,7 +3,7 @@ package openai
 import (
 	"testing"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func TestNewPrefersExactRequestURLOverLegacyChatURL(t *testing.T) {

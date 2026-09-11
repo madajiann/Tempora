@@ -5,10 +5,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/historycatalog"
-	"reasonix/internal/provider"
-	"reasonix/internal/retrieval"
+	"tempora/internal/agent"
+	"tempora/internal/historycatalog"
+	"tempora/internal/provider"
+	"tempora/internal/retrieval"
 )
 
 func historySearchRootFilter(a *App, req HistorySearchRequest) []string {

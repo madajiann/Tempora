@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/netclient"
+	"tempora/internal/netclient"
 )
 
 func startCONNECTProxy(t *testing.T) string {

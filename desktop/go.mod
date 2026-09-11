@@ -1,4 +1,4 @@
-module reasonix/desktop
+module tempora/desktop
 
 go 1.26.0
 
@@ -6,10 +6,10 @@ toolchain go1.26.6
 
 // The desktop service is a nested module so its CGO build never touches the
 // CLI's CGO_ENABLED=0 single-static-binary guarantee. The replace lets it import
-// the same reasonix/internal/* kernel (the import path stays under reasonix/, so
+// the same tempora/internal/* kernel (the import path stays under tempora/, so
 // the internal rule still permits it). `go mod tidy` here resolves its
 // transitive deps; the parent module's go build/test ./... skips this directory.
-require reasonix v0.0.0
+require tempora v0.0.0
 
 require (
 	aead.dev/minisign v0.3.0
@@ -77,7 +77,7 @@ require (
 	mvdan.cc/sh/v3 v3.14.0 // indirect
 )
 
-replace reasonix => ../
+replace tempora => ../
 
-// Reasonix keeps one signed Windows tray identity across versioned desktop paths.
+// Tempora keeps one signed Windows tray identity across versioned desktop paths.
 replace fyne.io/systray => ./third_party/systray

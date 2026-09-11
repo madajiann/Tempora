@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"reasonix/internal/projectiondb"
+	"tempora/internal/projectiondb"
 )
 
 const migrationV1 = `

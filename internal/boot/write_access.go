@@ -4,16 +4,16 @@ import (
 	"context"
 	"os"
 
-	"reasonix/internal/ablation"
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/sandbox"
-	"reasonix/internal/skill"
-	"reasonix/internal/tool"
-	"reasonix/internal/workspacelease"
+	"tempora/internal/ablation"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/sandbox"
+	"tempora/internal/skill"
+	"tempora/internal/tool"
+	"tempora/internal/workspacelease"
 )
 
 func newSubagentSkillOptionsFactory(

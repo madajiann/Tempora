@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/extension/rpcwire"
+	"tempora/internal/extension/rpcwire"
 )
 
 type harness struct {

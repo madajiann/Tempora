@@ -3,7 +3,7 @@ import type { GuestDebugger, GuestPage } from "./guestView.js";
 import type { LocatedRef } from "./refResolver.js";
 import { REGISTRY_KEY } from "./snapshot.js";
 
-const OBJECT_GROUP = "reasonix-upload";
+const OBJECT_GROUP = "tempora-upload";
 
 // The executable source is fixed. Snapshot metadata crosses the CDP boundary
 // only as call arguments, never as JavaScript source text.

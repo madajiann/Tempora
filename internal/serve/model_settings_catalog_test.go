@@ -8,9 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"reasonix/internal/boot"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
+	"tempora/internal/boot"
+	"tempora/internal/config"
+	"tempora/internal/control"
 )
 
 func TestModelSettingsRejectsUnlistedModelBeforeRebuild(t *testing.T) {

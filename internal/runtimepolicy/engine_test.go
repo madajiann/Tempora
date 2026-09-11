@@ -5,8 +5,8 @@ import (
 	"sync"
 	"testing"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/taskcontract"
+	"tempora/internal/evidence"
+	"tempora/internal/taskcontract"
 )
 
 func TestMergeDecisionsIsMonotonic(t *testing.T) {

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 // progressTransport is optional so lightweight transports used by embedders and

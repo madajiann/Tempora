@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 // Message ids are local transcript identity. The chat wire struct copies

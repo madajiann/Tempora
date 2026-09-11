@@ -8,14 +8,14 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/checkpoint"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/sessioncatalog"
-	"reasonix/internal/store"
+	"tempora/internal/agent"
+	"tempora/internal/checkpoint"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/sessioncatalog"
+	"tempora/internal/store"
 )
 
 // schemaTwoTabFixture opens tab "test" on a five-message schema-2 session with
@@ -37,7 +37,7 @@ func newSchemaTwoTabFixture(t *testing.T) schemaTwoTabFixture {
 		t.Fatal(err)
 	}
 	root := robustTempDir(t)
-	if err := os.WriteFile(filepath.Join(root, "reasonix.toml"), []byte(""), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "tempora.toml"), []byte(""), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	path := agent.NewSessionPath(dir, "heads")

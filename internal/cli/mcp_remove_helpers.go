@@ -1,9 +1,9 @@
 package cli
 
 import (
-	"reasonix/internal/config"
-	"reasonix/internal/mcpdiag"
-	"reasonix/internal/plugin"
+	"tempora/internal/config"
+	"tempora/internal/mcpdiag"
+	"tempora/internal/plugin"
 )
 
 func reconcileRemovedMCPOAuth(workspace, name string) error {
@@ -20,7 +20,7 @@ func reconcileRemovedMCPOAuth(workspace, name string) error {
 		break
 	}
 	_, err = plugin.ReconcileHTTPMCPOAuthAfterRemoval(plugin.Spec{
-		Name: name, StateDir: plugin.MCPStateDir(config.ReasonixHomeDir(), workspace, name),
+		Name: name, StateDir: plugin.MCPStateDir(config.TemporaHomeDir(), workspace, name),
 	}, remainingResource)
 	return err
 }

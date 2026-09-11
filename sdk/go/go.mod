@@ -1,3 +1,3 @@
-module github.com/esengine/DeepSeek-Reasonix/sdk/go
+module tempora/sdk/go
 
 go 1.23

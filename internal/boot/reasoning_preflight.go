@@ -5,9 +5,9 @@ import (
 	"slices"
 	"strings"
 
-	"reasonix/internal/config"
-	"reasonix/internal/extension/providerext"
-	"reasonix/internal/provider"
+	"tempora/internal/config"
+	"tempora/internal/extension/providerext"
+	"tempora/internal/provider"
 )
 
 // RoleReasoningError retains the adapter error for errors.As while giving every

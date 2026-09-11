@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/store"
+	"tempora/internal/agent"
+	"tempora/internal/store"
 )
 
 type sessionListEntry struct {

@@ -66,7 +66,7 @@ async function integrationEnv(db: DatabaseSync): Promise<Env> {
   return {
     DB: sqliteD1(db), RATE_LIMITER: { async limit() { return { success: true }; } },
     CRASH_STORAGE_MODE: "firebase",
-    FIREBASE_DATABASE_URL: "https://reasonix-test.asia-southeast1.firebasedatabase.app",
+    FIREBASE_DATABASE_URL: "https://tempora-test.asia-southeast1.firebasedatabase.app",
     FIREBASE_CLIENT_EMAIL: "crash-writer@example.iam.gserviceaccount.com",
     FIREBASE_PRIVATE_KEY: await privateKeyPEM(),
   } as unknown as Env;
@@ -79,7 +79,7 @@ function reportRequest(eventId = "a".repeat(32)): Request {
     message: "panic at /home/alice/project/main.go:12", source: "go", label: "panic",
     errorType: "runtime.error", topFrame: "main.go:12",
   });
-  return new Request("https://crash.reasonix.io/v1/report", {
+  return new Request("https://crash.tempora.io/v1/report", {
     method: "POST",
     headers: {
       "content-type": "application/json", "content-length": String(new TextEncoder().encode(body).byteLength),

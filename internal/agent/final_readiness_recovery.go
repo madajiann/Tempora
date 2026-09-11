@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"slices"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/provider"
+	"tempora/internal/evidence"
+	"tempora/internal/provider"
 )
 
 // persistFinalReadinessRecovery records a provider-excluded, backward-safe

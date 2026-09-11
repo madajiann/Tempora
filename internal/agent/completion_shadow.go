@@ -1,9 +1,9 @@
 package agent
 
 import (
-	"reasonix/internal/completion"
-	"reasonix/internal/event"
-	"reasonix/internal/taskcontract"
+	"tempora/internal/completion"
+	"tempora/internal/event"
+	"tempora/internal/taskcontract"
 )
 
 // completionReportAudit reduces a completion report to its content-free

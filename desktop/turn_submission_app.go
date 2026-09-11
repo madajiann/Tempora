@@ -1,6 +1,6 @@
 package main
 
-import "reasonix/internal/event"
+import "tempora/internal/event"
 
 type turnSubmissionState struct {
 	inFlight     bool

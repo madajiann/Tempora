@@ -21,7 +21,7 @@ func TestExitCodesPreserveWrappedBlockers(t *testing.T) {
 }
 
 func TestStatusRequiresRendererAndHealthyVisibleWindow(t *testing.T) {
-	s := Status{SchemaVersion: 1, Product: "com.reasonix.desktop", PID: 10, Version: "v1.38.7", Generation: "g", HomeKey: ProfileKey(`C:\Users\Test\reasonix\desktop-shell`), Lifecycle: "ready", Service: "ready", ServicePID: 11, Visible: true, RendererVersion: "v1.38.7", Healthy: true}
+	s := Status{SchemaVersion: 1, Product: "com.tempora.desktop", PID: 10, Version: "v1.38.7", Generation: "g", HomeKey: ProfileKey(`C:\Users\Test\tempora\desktop-shell`), Lifecycle: "ready", Service: "ready", ServicePID: 11, Visible: true, RendererVersion: "v1.38.7", Healthy: true}
 	data, _ := json.Marshal(s)
 	got, err := DecodeStatus(data, 10)
 	if err != nil || !got.Ready("v1.38.7") {
@@ -48,12 +48,12 @@ func TestStatusRequiresRendererAndHealthyVisibleWindow(t *testing.T) {
 
 func TestImageRoleExcludesOtherProductsAndInstallations(t *testing.T) {
 	root := t.TempDir()
-	for _, rel := range []string{"versions/v1.38.5/app/Reasonix.exe", "versions/v1.38.5/reasonix-desktop.exe"} {
+	for _, rel := range []string{"versions/v1.38.5/app/Tempora.exe", "versions/v1.38.5/tempora-desktop.exe"} {
 		if ImageRole(root, filepath.Join(root, rel)) == "" {
 			t.Fatal(rel)
 		}
 	}
-	for _, rel := range []string{"../Studio/app/Reasonix.exe", "Reasonix Studio.exe", "versions/.staging/app/Reasonix.exe", "versions/v1.38.5/reasonix-cli.exe"} {
+	for _, rel := range []string{"../Studio/app/Tempora.exe", "Tempora Studio.exe", "versions/.staging/app/Tempora.exe", "versions/v1.38.5/tempora-cli.exe"} {
 		if ImageRole(root, filepath.Join(root, rel)) != "" {
 			t.Fatal(rel)
 		}

@@ -15,11 +15,11 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/filelock"
-	"reasonix/internal/fileutil"
-	"reasonix/internal/topicstate"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/filelock"
+	"tempora/internal/fileutil"
+	"tempora/internal/topicstate"
 )
 
 const (

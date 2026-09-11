@@ -6,7 +6,7 @@ package main
 import (
 	"encoding/json"
 	"os"
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 func main() {

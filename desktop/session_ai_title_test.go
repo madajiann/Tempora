@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/provider"
-	"reasonix/internal/sessioncatalog"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/provider"
+	"tempora/internal/sessioncatalog"
 )
 
 type desktopSessionTitleProvider struct {

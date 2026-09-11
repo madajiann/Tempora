@@ -1,6 +1,6 @@
 package agent
 
-import "reasonix/internal/provider"
+import "tempora/internal/provider"
 
 // ContextMaintenanceSnapshot is a read-only view of the current provider-bound
 // context. It separates present composition from cumulative summary-call cost.

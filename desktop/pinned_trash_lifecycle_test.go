@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/store"
+	"tempora/internal/store"
 )
 
 func TestPinnedContextSidecarMovesThroughTrashAndRestore(t *testing.T) {

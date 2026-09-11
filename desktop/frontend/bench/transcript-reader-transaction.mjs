@@ -10,10 +10,10 @@ process.env.PLAYWRIGHT_BROWSERS_PATH = !process.env.PLAYWRIGHT_BROWSERS_PATH || 
   ? path.join(frontendDir, ".pw-browsers")
   : process.env.PLAYWRIGHT_BROWSERS_PATH;
 const { chromium, webkit } = await import("playwright");
-const browsers = (process.env.REASONIX_TRANSCRIPT_READER_BROWSERS ?? "chromium,webkit")
+const browsers = (process.env.TEMPORA_TRANSCRIPT_READER_BROWSERS ?? "chromium,webkit")
   .split(",").map((name) => name.trim()).filter(Boolean);
-const port = Number(process.env.REASONIX_TRANSCRIPT_READER_PORT ?? 4621);
-const iterations = Number(process.env.REASONIX_TRANSCRIPT_READER_ITERATIONS ?? 6);
+const port = Number(process.env.TEMPORA_TRANSCRIPT_READER_PORT ?? 4621);
+const iterations = Number(process.env.TEMPORA_TRANSCRIPT_READER_ITERATIONS ?? 6);
 const url = `http://127.0.0.1:${port}/?mock=bench&bench=1`;
 
 function assert(condition, message) {
@@ -209,11 +209,11 @@ async function runIteration(page, transcript, label, iteration) {
 
   await page.evaluate((anchor) => {
     window.__readerProbe = { active: true, held: true, blankFrames: 0, anchorMaxDrift: 0, heldAccepted: [], writes: [], diagnostics: [] };
-    window.__REASONIX_TRANSCRIPT_SCROLL_WRITE__ = (write) => {
+    window.__TEMPORA_TRANSCRIPT_SCROLL_WRITE__ = (write) => {
       window.__readerProbe?.writes.push(write);
       if (window.__readerProbe?.held && write.outcome === "accepted") window.__readerProbe.heldAccepted.push(write);
     };
-    window.__REASONIX_TRANSCRIPT_SCROLL_DIAGNOSTIC__ = (type, fields) => {
+    window.__TEMPORA_TRANSCRIPT_SCROLL_DIAGNOSTIC__ = (type, fields) => {
       const diagnostics = window.__readerProbe?.diagnostics;
       if (!diagnostics) return;
       diagnostics.push({ type, fields });
@@ -308,8 +308,8 @@ async function runIteration(page, transcript, label, iteration) {
     const projection = element?.querySelector(".transcript__projection");
     const viewport = element?.getBoundingClientRect();
     window.__readerProbe = undefined;
-    window.__REASONIX_TRANSCRIPT_SCROLL_WRITE__ = undefined;
-    window.__REASONIX_TRANSCRIPT_SCROLL_DIAGNOSTIC__ = undefined;
+    window.__TEMPORA_TRANSCRIPT_SCROLL_WRITE__ = undefined;
+    window.__TEMPORA_TRANSCRIPT_SCROLL_DIAGNOSTIC__ = undefined;
     return {
       top,
       scrollTop: element instanceof HTMLElement ? element.scrollTop : null,
@@ -407,7 +407,7 @@ async function runNativeMeasurementCommit(browser, label) {
   try {
     await page.goto(url, { waitUntil: "domcontentloaded" });
     await page.addScriptTag({ path: path.join(frontendDir, "..", "transcript_native_smoke_contract.js") });
-    await page.waitForFunction(() => window.__reasonixNativeTranscriptSmokeState?.phase === "ready",
+    await page.waitForFunction(() => window.__temporaNativeTranscriptSmokeState?.phase === "ready",
       undefined, { timeout: 90_000 });
     await page.evaluate(() => {
       const probe = { active: true, frames: 0, maxReverse: 0, maxOverlap: 0, previous: [] };

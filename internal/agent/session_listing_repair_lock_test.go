@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func TestRepairSessionListingProjectionDoesNotWaitForMetaLock(t *testing.T) {

@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/provider"
-	"reasonix/internal/provider/openai"
+	"tempora/internal/provider"
+	"tempora/internal/provider/openai"
 )
 
 func TestAnthropicPresetsDoNotImplicitlyEnableServerTools(t *testing.T) {
@@ -734,28 +734,28 @@ func TestCuratedProviderPresetCapabilities(t *testing.T) {
 	if !ok {
 		t.Fatal("glm-coding-plan-cn provider missing")
 	}
-	if !glmPlanCN.NoProxy || glmPlanCN.DefaultModel() != "glm-5.2" || glmPlanCN.ContextWindow != 1000000 {
+	if !glmPlanCN.NoProxy || glmPlanCN.DefaultModel() != "glm-5.3-flash" || glmPlanCN.ContextWindow != 1000000 {
 		t.Fatalf("glm-coding-plan-cn capability mismatch: %+v", glmPlanCN)
 	}
 	glmPlanAnthropic, ok := cfg.Provider("glm-coding-plan-cn-anthropic")
 	if !ok {
 		t.Fatal("glm-coding-plan-cn-anthropic provider missing")
 	}
-	if glmPlanAnthropic.Kind != "anthropic" || !glmPlanAnthropic.AuthHeader || glmPlanAnthropic.DefaultModel() != "glm-5.2" || glmPlanAnthropic.ContextWindow != 1000000 {
+	if glmPlanAnthropic.Kind != "anthropic" || !glmPlanAnthropic.AuthHeader || glmPlanAnthropic.DefaultModel() != "glm-5.3-flash" || glmPlanAnthropic.ContextWindow != 1000000 {
 		t.Fatalf("glm-coding-plan-cn-anthropic capability mismatch: %+v", glmPlanAnthropic)
 	}
 	zaiPlanGlobal, ok := cfg.Provider("zai-coding-plan-global")
 	if !ok {
 		t.Fatal("zai-coding-plan-global provider missing")
 	}
-	if zaiPlanGlobal.NoProxy || zaiPlanGlobal.BaseURL != "https://api.z.ai/api/coding/paas/v4" || zaiPlanGlobal.DefaultModel() != "glm-5.2" {
+	if zaiPlanGlobal.NoProxy || zaiPlanGlobal.BaseURL != "https://api.z.ai/api/coding/paas/v4" || zaiPlanGlobal.DefaultModel() != "glm-5.3-flash" {
 		t.Fatalf("zai-coding-plan-global capability mismatch: %+v", zaiPlanGlobal)
 	}
 	zaiPlanAnthropic, ok := cfg.Provider("zai-coding-plan-global-anthropic")
 	if !ok {
 		t.Fatal("zai-coding-plan-global-anthropic provider missing")
 	}
-	if zaiPlanAnthropic.Kind != "anthropic" || !zaiPlanAnthropic.AuthHeader || zaiPlanAnthropic.BaseURL != "https://api.z.ai/api/anthropic" || zaiPlanAnthropic.DefaultModel() != "glm-5.2" || zaiPlanAnthropic.ContextWindow != 1000000 {
+	if zaiPlanAnthropic.Kind != "anthropic" || !zaiPlanAnthropic.AuthHeader || zaiPlanAnthropic.BaseURL != "https://api.z.ai/api/anthropic" || zaiPlanAnthropic.DefaultModel() != "glm-5.3-flash" || zaiPlanAnthropic.ContextWindow != 1000000 {
 		t.Fatalf("zai-coding-plan-global-anthropic capability mismatch: %+v", zaiPlanAnthropic)
 	}
 
@@ -891,8 +891,8 @@ func TestCuratedProviderPresetCapabilities(t *testing.T) {
 	if !ok {
 		t.Fatal("gmi provider missing")
 	}
-	if got := gmi.Headers["User-Agent"]; got != "Reasonix" {
-		t.Fatalf("gmi User-Agent header = %q, want Reasonix", got)
+	if got := gmi.Headers["User-Agent"]; got != "Tempora" {
+		t.Fatalf("gmi User-Agent header = %q, want Tempora", got)
 	}
 	vercel, ok := cfg.Provider("vercel-ai-gateway")
 	if !ok {

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 // topic_activation.go implements the two-phase topic activation used by the

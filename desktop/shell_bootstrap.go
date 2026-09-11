@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"reasonix/internal/installlayout"
-	"reasonix/internal/proc"
+	"tempora/internal/installlayout"
+	"tempora/internal/proc"
 )
 
-const shellServiceEnv = "REASONIX_DESKTOP_SERVICE"
+const shellServiceEnv = "TEMPORA_DESKTOP_SERVICE"
 
 // exitIfShellBootstrapped hands a plain desktop launch to the Electron shell
 // installed beside this binary and exits; the shell restarts this binary as
@@ -55,7 +55,7 @@ func bootstrapShell(exe, goos string, args, env []string) (handled bool, exitCod
 }
 
 // shellExecutableBeside resolves app/<shell> next to exe, or Contents/MacOS/
-// Reasonix beside the service inside a macOS bundle, and never exe itself.
+// Tempora beside the service inside a macOS bundle, and never exe itself.
 func shellExecutableBeside(exe, goos string) (string, bool) {
 	exe = filepath.Clean(exe)
 	shell := shellPathForExecutable(exe, goos)
@@ -77,7 +77,7 @@ func shellPathForExecutable(exe, goos string) string {
 		shell = filepath.Join(filepath.Dir(dir), "MacOS", name)
 	} else if goos == "linux" && dir == "/usr/bin" {
 		// The native package keeps executables in /usr/bin and Chromium in /usr/lib.
-		shell = filepath.Join("/usr/lib/reasonix", installlayout.AppShellDirName, name)
+		shell = filepath.Join("/usr/lib/tempora", installlayout.AppShellDirName, name)
 	}
 	return shell
 }

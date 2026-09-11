@@ -1,4 +1,4 @@
-// Package cli implements reasonix's command-line entry: subcommand routing, flag
+// Package cli implements tempora's command-line entry: subcommand routing, flag
 // parsing, assembly from config, and exit codes. The core is config-driven —
 // providers and tools are resolved from configuration, not hardcoded.
 package cli
@@ -26,23 +26,23 @@ import (
 	"time"
 	"unicode/utf16"
 
-	"reasonix/internal/ablation"
-	"reasonix/internal/agent"
-	"reasonix/internal/boot"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/extension/providerext"
-	fileencoding "reasonix/internal/fileutil/encoding"
-	"reasonix/internal/i18n"
-	"reasonix/internal/netclient"
-	"reasonix/internal/notify"
-	"reasonix/internal/plugin"
-	"reasonix/internal/provider"
-	"reasonix/internal/provider/openai"
-	"reasonix/internal/serve"
-	"reasonix/internal/sessiontemp"
-	"reasonix/internal/telemetry"
+	"tempora/internal/ablation"
+	"tempora/internal/agent"
+	"tempora/internal/boot"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/extension/providerext"
+	fileencoding "tempora/internal/fileutil/encoding"
+	"tempora/internal/i18n"
+	"tempora/internal/netclient"
+	"tempora/internal/notify"
+	"tempora/internal/plugin"
+	"tempora/internal/provider"
+	"tempora/internal/provider/openai"
+	"tempora/internal/serve"
+	"tempora/internal/sessiontemp"
+	"tempora/internal/telemetry"
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/spf13/pflag"
@@ -63,7 +63,7 @@ func Run(args []string, version string) int {
 }
 
 // RunWithBuildInfo is the full CLI entry with optional build metadata for
-// `reasonix version --verbose` / `--json`.
+// `tempora version --verbose` / `--json`.
 func RunWithBuildInfo(args []string, info BuildInfo) int {
 	info = info.withDefaults()
 	version := info.Version
@@ -82,10 +82,10 @@ func RunWithBuildInfo(args []string, info BuildInfo) int {
 	if cmd == "--acp" {
 		cmd = "acp"
 	}
-	// -p/--print is one-shot print mode. reasonix has no interactive -p, so a
+	// -p/--print is one-shot print mode. tempora has no interactive -p, so a
 	// print flag anywhere in a leading flag run (no explicit subcommand) routes
-	// the whole set to `run --print` — `reasonix --model X -p "task"` works, not
-	// only `reasonix -p ...`.
+	// the whole set to `run --print` — `tempora --model X -p "task"` works, not
+	// only `tempora -p ...`.
 	if cmd == "-p" || cmd == "--print" || (isDefaultInteractiveFlag(cmd) && hasLeadingPrintFlag(args)) {
 		args = append([]string{"run", "--print"}, stripLeadingPrintFlag(args)...)
 		cmd = "run"
@@ -136,7 +136,7 @@ func RunWithBuildInfo(args []string, info BuildInfo) int {
 	case "init":
 		// Project memory (AGENTS.md) is model-generated in-session — `/init` runs
 		// the codebase analysis. This CLI entry just points there (and to `setup`
-		// for config), so `reasonix init` isn't a dead end.
+		// for config), so `tempora init` isn't a dead end.
 		configureCLIThemeFromConfig()
 		return initHint()
 	case "acp":
@@ -477,7 +477,7 @@ func runAgent(args []string, version string) int {
 	dir := fs.String("dir", "", "change to this directory first (project root); config, sandbox and file tools resolve from here")
 	cont := registerContinueFlag(fs)
 	resume := fs.String("resume", "", "resume by session file path, session ID, or machine session ID (takes precedence over --continue)")
-	copySession := fs.Bool("copy", false, "with --resume/--continue: duplicate the session and continue in the copy (escape hatch when the original is held by another Reasonix process)")
+	copySession := fs.Bool("copy", false, "with --resume/--continue: duplicate the session and continue in the copy (escape hatch when the original is held by another Tempora process)")
 	takeover := fs.Bool("takeover", false, "with --resume/--continue: when a resident serve on this machine holds the session, take it over instead of refusing")
 	effort := fs.String("effort", "", "session reasoning effort override")
 	permissionMode := fs.String("permission-mode", "ask", "permission mode: manual | ask | auto | acceptEdits | dontAsk | plan | bypassPermissions")
@@ -671,7 +671,7 @@ func runAgent(args []string, version string) int {
 	if strings.TrimSpace(*effort) != "" {
 		effortOverride = effort
 	}
-	// `reasonix run` is headless: there is no key loop to answer approval or ask
+	// `tempora run` is headless: there is no key loop to answer approval or ask
 	// prompts, and the approval timeout defaults to infinite. Installing the
 	// interactive approver/asker here would let an Ask rule, the `ask` tool, or a
 	// sandbox/config approval wedge the run forever. Map the mode onto a
@@ -854,8 +854,8 @@ func runServeWithOptions(args []string, opts serveRunOptions) int {
 
 	// Build serve config, merging CLI flags over config file.
 	serveCfg := serveConfigWithCommandDefaults(opts.command, authExplicit, cfg.Serve)
-	// `reasonix web` is a local browser entry point and defaults to a freshly
-	// generated token. `reasonix serve` keeps its existing config-driven default,
+	// `tempora web` is a local browser entry point and defaults to a freshly
+	// generated token. `tempora serve` keeps its existing config-driven default,
 	// and an explicit --auth always wins for both commands.
 	if *auth != "" {
 		serveCfg.AuthMode = *auth
@@ -966,14 +966,14 @@ func chatREPL(args []string, version string) int {
 		fmt.Fprintln(os.Stderr, i18n.M.ErrorPrefix, err)
 		return 2
 	}
-	fs := pflag.NewFlagSet("reasonix", pflag.ContinueOnError)
+	fs := pflag.NewFlagSet("tempora", pflag.ContinueOnError)
 	fs.SetInterspersed(true)
 	model := fs.String("model", "", "provider name (default: config default_model)")
 	maxSteps := fs.Int("max-steps", 0, "one-off max tool-call rounds (0 = automatic)")
 	cont := registerContinueFlag(fs)
 	resume := fs.StringP("resume", "r", "", "resume by session ID/query, or open the picker when no value is given")
 	fs.Lookup("resume").NoOptDefVal = resumePickerSentinel
-	copySession := fs.Bool("copy", false, "with --resume/--continue: duplicate the selected session and continue in the copy (escape hatch when the original is held by another Reasonix process)")
+	copySession := fs.Bool("copy", false, "with --resume/--continue: duplicate the selected session and continue in the copy (escape hatch when the original is held by another Tempora process)")
 	yolo := fs.Bool("dangerously-skip-permissions", false, "YOLO: auto-approve approval-gated tool calls this session; same runtime mode as Ctrl+Y")
 	fs.BoolVar(yolo, "yolo", false, "alias for --dangerously-skip-permissions")
 	dir := fs.String("dir", "", "change to this directory first (project root); config, sandbox and file tools resolve from here")
@@ -1013,7 +1013,7 @@ func chatREPL(args []string, version string) int {
 	// Bubble Tea owns the terminal from the resume picker through controller
 	// shutdown. Start diagnostics before config/controller work so hangs leave a
 	// non-zero log with milestones (#7435, #7507).
-	diagnostics := startTUIDiagnostics(config.ReasonixHomeDir())
+	diagnostics := startTUIDiagnostics(config.TemporaHomeDir())
 	defer diagnostics.Close()
 	diagnostics.Milestone("config_load_begin")
 	cfg, err := config.Load()
@@ -1412,7 +1412,7 @@ func reserveNativeScrollbackFrame(w io.Writer, rows int) {
 }
 
 // setupTargets is where the wizard writes: the TOML config and the credential
-// store. Keys always go to Reasonix's global .env so they
+// store. Keys always go to Tempora's global .env so they
 // never land in a project's own .env; only the config location is project-local
 // under --local.
 type setupTargets struct {
@@ -1421,29 +1421,29 @@ type setupTargets struct {
 }
 
 // defaultConfigTarget is the user-global config file, falling back to a
-// project-local reasonix.toml only when the user config dir can't be resolved.
+// project-local tempora.toml only when the user config dir can't be resolved.
 func defaultConfigTarget() string {
 	if p := config.UserConfigPath(); p != "" {
 		return p
 	}
-	return "reasonix.toml"
+	return "tempora.toml"
 }
 
-// defaultEnvTarget is the display target for the reasonix-owned global
-// Reasonix global .env.
+// defaultEnvTarget is the display target for the tempora-owned global
+// Tempora global .env.
 func defaultEnvTarget() string {
 	return config.CredentialsTargetDescription()
 }
 
-// resolveSetupTargets picks where `reasonix setup` writes. Keys always go to the
-// global env. The config goes to the user-global dir by default, to ./reasonix.toml
+// resolveSetupTargets picks where `tempora setup` writes. Keys always go to the
+// global env. The config goes to the user-global dir by default, to ./tempora.toml
 // under --local, or to an explicit path argument when given.
 func resolveSetupTargets(args []string) setupTargets {
 	t := setupTargets{config: defaultConfigTarget(), env: defaultEnvTarget()}
 	for _, a := range args {
 		switch a {
 		case "--local", "-l":
-			t.config = "reasonix.toml"
+			t.config = "tempora.toml"
 		default:
 			t.config = a
 		}
@@ -1459,9 +1459,9 @@ func displayPath(p string) string {
 	return p
 }
 
-// setupConfig runs the configuration wizard (the `reasonix setup` command),
-// writing config.toml to the user-global dir (or ./reasonix.toml under --local)
-// and API keys to Reasonix's global .env — never a project's own .env.
+// setupConfig runs the configuration wizard (the `tempora setup` command),
+// writing config.toml to the user-global dir (or ./tempora.toml under --local)
+// and API keys to Tempora's global .env — never a project's own .env.
 // Project memory is a separate concern — the in-session `/init` skill generates
 // AGENTS.md (see initHint).
 func setupConfig(args []string) int {
@@ -1481,7 +1481,7 @@ func setupConfig(args []string) int {
 	if isInteractive() {
 		rc := interactiveSetup(t.config, t.env)
 		if rc == 0 {
-			fmt.Printf(i18n.M.TryHintFmt+"\n", bold("reasonix"))
+			fmt.Printf(i18n.M.TryHintFmt+"\n", bold("tempora"))
 		}
 		return rc
 	}
@@ -1517,10 +1517,10 @@ func writeDefaultConfig(path string) int {
 	return 0
 }
 
-// initHint handles `reasonix init`. Unlike a config scaffold, project memory is
+// initHint handles `tempora init`. Unlike a config scaffold, project memory is
 // model-generated by analyzing the codebase, so it lives as the in-session
 // `/init` skill rather than a CLI command. This entry just points the user there
-// (and to `reasonix setup` for config) so the verb isn't a dead end.
+// (and to `tempora setup` for config) so the verb isn't a dead end.
 func initHint() int {
 	fmt.Println(i18n.M.InitHint)
 	return 0
@@ -1553,7 +1553,7 @@ func interactiveSetup(configPath, envPath string) int {
 	// in their language before any substantive prompt.
 	fmt.Println()
 	fmt.Print(boxed([]string{
-		accent("◆") + " " + fmt.Sprintf(i18n.M.WelcomeTitleFmt, bold("reasonix")),
+		accent("◆") + " " + fmt.Sprintf(i18n.M.WelcomeTitleFmt, bold("tempora")),
 		"",
 		dim(i18n.M.NoConfigYet),
 	}))
@@ -1748,12 +1748,12 @@ func containsString(xs []string, v string) bool {
 
 // filterStaleCustomEntries drops the wizard's own magic-name entries
 // (Name="custom" with Kind="openai" or Name="anthropic" with Kind="anthropic")
-// that older versions of the wizard wrote into reasonix.toml. They collide
+// that older versions of the wizard wrote into tempora.toml. They collide
 // with the wizard's "custom" / "anthropic" menu items on re-run, showing up
 // as duplicate broken entries. The new wizard writes host-derived slugs
 // (e.g. "custom-token-sensenova-cn") so a hit on the magic name is
 // unambiguously stale. The returned slice is the dropped set so the caller
-// can warn the user to clean up reasonix.toml by hand.
+// can warn the user to clean up tempora.toml by hand.
 func filterStaleCustomEntries(providers []config.ProviderEntry) (kept, dropped []config.ProviderEntry) {
 	for _, p := range providers {
 		if p.Name == "custom" && p.Kind == "openai" {
@@ -1774,9 +1774,9 @@ func filterStaleCustomEntries(providers []config.ProviderEntry) (kept, dropped [
 // "custom-token-sensenova-cn" or "anthropic-api-anthropic-com". We can't
 // reuse the wizard's menu-item labels ("custom" / "anthropic") because
 // those would collide with the menu item itself and end up rendered as
-// duplicate provider entries on subsequent re-runs of `reasonix setup`.
+// duplicate provider entries on subsequent re-runs of `tempora setup`.
 // The host-based slug also gives users a meaningful name to grep for in
-// reasonix.toml. Falls back to a short sha1 of the raw URL when the URL
+// tempora.toml. Falls back to a short sha1 of the raw URL when the URL
 // doesn't parse, so even malformed input still produces a unique name.
 func providerSlug(kind, baseURL string) string {
 	var host string
@@ -1871,7 +1871,7 @@ func fnv1a32Hex(s string) string {
 }
 
 // providerFamily is a wizard-only grouping of provider SKUs by vendor; it does
-// not exist in config because users editing reasonix.toml deal with SKU names
+// not exist in config because users editing tempora.toml deal with SKU names
 // directly.
 type providerFamily struct {
 	key  string
@@ -1925,7 +1925,7 @@ func promptCustomProviderManual() (providerPromptResult, error) {
 // Pre-filled values (baseURL, keyEnv, apiKey) are reused as-is when non-empty
 // so the URL-fetch flow can fall through to manual entry without re-asking
 // the user for information they've already typed. An empty apiKey is allowed
-// — the key step happens later in the wizard and Reasonix's global .env is updated then.
+// — the key step happens later in the wizard and Tempora's global .env is updated then.
 func promptCustomProviderManualWith(in *bufio.Scanner, baseURL, keyEnv, apiKey string) (providerPromptResult, error) {
 	fmt.Println()
 	if baseURL == "" {
@@ -2195,7 +2195,7 @@ func providersWithMissingKeys(cfg *config.Config) []config.ProviderEntry {
 // setup asks whether to re-enter it; Enter keeps and re-pins the existing value.
 // Otherwise the user is asked once per env var (deduped across providers that
 // share one, e.g. both DeepSeek models). Returns KEY=value lines for the
-// Reasonix global .env. Re-pinning keeps hand-edited or previously saved values
+// Tempora global .env. Re-pinning keeps hand-edited or previously saved values
 // aligned with the user's latest setup choice.
 func configureKeys(selected []config.ProviderEntry, r io.Reader, w io.Writer) []string {
 	in := bufio.NewScanner(r)
@@ -2258,7 +2258,7 @@ func isTTY(f *os.File) bool {
 
 // appendEnv merges KEY=value lines into a .env file. Existing assignments of
 // any key that's about to be written are dropped first, then the new values
-// are appended — so re-running `reasonix setup` with a corrected key replaces the
+// are appended — so re-running `tempora setup` with a corrected key replaces the
 // stale one instead of stacking duplicates. The new values are also
 // pinned into the current process env so a chat session started right after
 // init picks up the fresh keys without a restart.
@@ -2461,7 +2461,7 @@ func configTelemetryCommand(args []string) int {
 		return 1
 	}
 	if cfg.CLITelemetryMode() == "off" {
-		if err := cleanupCLITelemetry(config.ReasonixHomeDir()); err != nil {
+		if err := cleanupCLITelemetry(config.TemporaHomeDir()); err != nil {
 			fmt.Fprintln(os.Stderr, i18n.M.ErrorPrefix, "telemetry disabled, but pending metrics could not be deleted:", err)
 			return 1
 		}
@@ -2503,7 +2503,7 @@ func configAutoPlanCompatibilityCommand(args []string) int {
 
 func configReasoningLanguageCommand(args []string) int {
 	fs := flag.NewFlagSet("config reasoning-language", flag.ContinueOnError)
-	local := fs.Bool("local", false, "write ./reasonix.toml instead of the user config")
+	local := fs.Bool("local", false, "write ./tempora.toml instead of the user config")
 	if code, ok := parseCommandFlags(fs, args); !ok {
 		return code
 	}
@@ -2528,7 +2528,7 @@ func configReasoningLanguageCommand(args []string) int {
 	}
 	path := config.UserConfigPath()
 	if *local {
-		path = "reasonix.toml"
+		path = "tempora.toml"
 	}
 	if path == "" {
 		fmt.Fprintln(os.Stderr, i18n.M.ErrorPrefix, "cannot resolve config path")
@@ -2573,7 +2573,7 @@ func configReasoningLanguageCommand(args []string) int {
 
 func configCompactRatioCommand(args []string) int {
 	fs := flag.NewFlagSet("config compact-ratio", flag.ContinueOnError)
-	local := fs.Bool("local", false, "write ./reasonix.toml instead of the user config")
+	local := fs.Bool("local", false, "write ./tempora.toml instead of the user config")
 	if err := fs.Parse(args); err != nil {
 		return 2
 	}
@@ -2602,7 +2602,7 @@ func configCompactRatioCommand(args []string) int {
 	path := config.UserConfigPath()
 	scope := "user"
 	if *local {
-		path = "reasonix.toml"
+		path = "tempora.toml"
 		scope = "project"
 	}
 	if path == "" {
@@ -2647,8 +2647,8 @@ func configCompactRatioCommand(args []string) int {
 }
 
 func compactRatioSource() string {
-	if config.ConfigFileDefinesCompactRatio("reasonix.toml") {
-		return "project: " + displayPath("reasonix.toml")
+	if config.ConfigFileDefinesCompactRatio("tempora.toml") {
+		return "project: " + displayPath("tempora.toml")
 	}
 	if path := config.UserConfigPath(); path != "" && config.ConfigFileDefinesCompactRatio(path) {
 		return "user: " + displayPath(path)
@@ -2663,22 +2663,22 @@ func formatCompactRatioPercent(ratio float64) string {
 
 func configUsage() {
 	fmt.Print(`Usage:
-  reasonix config reasoning-language [--local] [auto|zh|en]
-  reasonix config compact-ratio [--local] [30..85]
-  reasonix config currency [auto|CNY|USD]
-  reasonix config telemetry [auto|on|off]
+  tempora config reasoning-language [--local] [auto|zh|en]
+  tempora config compact-ratio [--local] [30..85]
+  tempora config currency [auto|CNY|USD]
+  tempora config telemetry [auto|on|off]
 `)
 }
 
 func configTelemetryUsage() {
 	fmt.Print(`Usage:
-  reasonix config telemetry [auto|on|off]
+  tempora config telemetry [auto|on|off]
 `)
 }
 
 func configCompactRatioUsage() {
 	fmt.Print(`Usage:
-  reasonix config compact-ratio [--local] [30..85]
+  tempora config compact-ratio [--local] [30..85]
 `)
 }
 
@@ -2691,7 +2691,7 @@ func startCLITelemetryWithIO(cfg *config.Config, opts telemetry.Options, in io.R
 		cfg = config.Default()
 	}
 	opts.Mode = cfg.CLITelemetryMode()
-	opts.HomeDir = config.ReasonixHomeDir()
+	opts.HomeDir = config.TemporaHomeDir()
 	opts.Proxy = cfg.NetworkProxySpec()
 	opts.Language = cfg.Language
 
@@ -2744,18 +2744,18 @@ func cliTelemetrySessionMode(cont, resume, copySession bool) string {
 
 func configAutoPlanCompatibilityUsage() {
 	fmt.Print(`Usage:
-  reasonix config auto-plan [off]
+  tempora config auto-plan [off]
 `)
 }
 
 func configReasoningLanguageUsage() {
 	fmt.Print(`Usage:
-  reasonix config reasoning-language [--local] [auto|zh|en]
+  tempora config reasoning-language [--local] [auto|zh|en]
 `)
 }
 
 func configCurrencyUsage() {
 	fmt.Print(`Usage:
-  reasonix config currency [auto|CNY|USD]
+  tempora config currency [auto|CNY|USD]
 `)
 }

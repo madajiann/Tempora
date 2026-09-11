@@ -3,9 +3,9 @@ package turnevent
 import (
 	"errors"
 	"fmt"
-	"reasonix/internal/event"
-	"reasonix/internal/eventwire"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/eventwire"
+	"tempora/internal/provider"
 )
 
 type OrphanTool struct {

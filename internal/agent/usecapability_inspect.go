@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/capability"
-	"reasonix/internal/plugin"
-	"reasonix/internal/tool"
+	"tempora/internal/capability"
+	"tempora/internal/plugin"
+	"tempora/internal/tool"
 )
 
 const maxInspectBytes = 16 << 10

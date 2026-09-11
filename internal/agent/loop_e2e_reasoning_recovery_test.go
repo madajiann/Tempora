@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent/testutil"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/agent/testutil"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 // A provider without the DeepSeek tool-call reasoning policy must keep the

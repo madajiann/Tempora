@@ -213,7 +213,7 @@ export function renderGroup(
     ? `<div class="card full notice warn"><p>${i18nHTML(`Some ${englishDetails} could not be loaded. Core group aggregates remain available.`, `部分${chineseDetails}暂时无法加载，分组核心汇总仍可用。`)}</p></div>`
     : "";
   return page(
-    `Reasonix · ${group.fingerprint.slice(0, 8)}`,
+    `Tempora · ${group.fingerprint.slice(0, 8)}`,
     `stats / ${group.fingerprint.slice(0, 8)}`,
     `<section class="group-hero"><div class="group-nav"><a class="back" href="/stats">${i18n("Back to stats", "返回统计")}</a><button class="btn ghost sm copy-btn" type="button" data-copy="${esc(group.fingerprint)}"><span class="copy-label">${i18n("Copy fingerprint", "复制指纹")}</span></button></div>
 <div class="group-title"><span class="pill ${group.kind === "crash" ? "crash" : ""}">${esc(group.kind)}</span><h1>${esc(group.fingerprint.slice(0, 8))}</h1>${status}</div>

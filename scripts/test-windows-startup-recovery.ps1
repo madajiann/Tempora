@@ -1,6 +1,6 @@
 param(
   [Parameter(Mandatory=$true)][string]$PortableZip,
-  [string]$EvidenceDirectory = (Join-Path $env:TEMP ('reasonix-recovery-' + [guid]::NewGuid().ToString('N')))
+  [string]$EvidenceDirectory = (Join-Path $env:TEMP ('tempora-recovery-' + [guid]::NewGuid().ToString('N')))
 )
 $ErrorActionPreference = 'Stop'
 New-Item -ItemType Directory -Force $EvidenceDirectory | Out-Null
@@ -9,18 +9,18 @@ $dataHome = Join-Path $EvidenceDirectory 'home'
 if (Test-Path $install) { throw 'Evidence install directory must be new; refusing to overwrite a running fixture.' }
 Expand-Archive -LiteralPath $PortableZip -DestinationPath $install
 $current = Get-Content (Join-Path $install 'current.json') -Raw | ConvertFrom-Json
-$shellPath = Join-Path $install ($current.activeDir + '\app\Reasonix.exe')
-$launcher = Join-Path $install 'Reasonix.exe'
+$shellPath = Join-Path $install ($current.activeDir + '\app\Tempora.exe')
+$launcher = Join-Path $install 'Tempora.exe'
 $saved = @{}
-foreach ($key in @('REASONIX_HOME','REASONIX_NONINTERACTIVE','REASONIX_DEV','REASONIX_DESKTOP_SERVICE','REASONIX_ELECTRON_DEV_URL')) {
+foreach ($key in @('TEMPORA_HOME','TEMPORA_NONINTERACTIVE','TEMPORA_DEV','TEMPORA_DESKTOP_SERVICE','TEMPORA_ELECTRON_DEV_URL')) {
   $saved[$key] = [Environment]::GetEnvironmentVariable($key,'Process')
   [Environment]::SetEnvironmentVariable($key,$null,'Process')
 }
-$env:REASONIX_HOME = $dataHome
-$env:REASONIX_NONINTERACTIVE = '1'
+$env:TEMPORA_HOME = $dataHome
+$env:TEMPORA_NONINTERACTIVE = '1'
 
 function Read-ShellStatus($process) {
-  $pipe = [IO.Pipes.NamedPipeClientStream]::new('.', ('reasonix-shell-v1-' + $process.Id), [IO.Pipes.PipeDirection]::In)
+  $pipe = [IO.Pipes.NamedPipeClientStream]::new('.', ('tempora-shell-v1-' + $process.Id), [IO.Pipes.PipeDirection]::In)
   try {
     $pipe.Connect(500)
     $reader = [IO.StreamReader]::new($pipe)
@@ -32,15 +32,15 @@ function Read-ShellStatus($process) {
 }
 
 function Assert-Ready {
-  foreach ($process in @(Get-Process Reasonix -ErrorAction SilentlyContinue)) {
+  foreach ($process in @(Get-Process Tempora -ErrorAction SilentlyContinue)) {
     if ($process.Path -ne $shellPath) { continue }
     $status = Read-ShellStatus $process
     if ($null -eq $status) { continue }
-    if ($status.schemaVersion -ne 1 -or $status.product -ne 'com.reasonix.desktop' -or $status.pid -ne $process.Id) { throw 'Status identity mismatch' }
+    if ($status.schemaVersion -ne 1 -or $status.product -ne 'com.tempora.desktop' -or $status.pid -ne $process.Id) { throw 'Status identity mismatch' }
     if ($status.lifecycle -ne 'ready' -or $status.service -ne 'ready' -or -not $status.visible -or -not $status.healthy) { throw ('Not ready: ' + ($status | ConvertTo-Json -Compress)) }
     if ($status.version -ne $current.activeVersion -or $status.rendererVersion -ne $current.activeVersion) { throw 'Target renderer version mismatch' }
     $service = Get-Process -Id $status.servicePID
-    $expectedService = Join-Path $install ($current.activeDir + '\reasonix-desktop.exe')
+    $expectedService = Join-Path $install ($current.activeDir + '\tempora-desktop.exe')
     if ($service.Path -ne $expectedService) { throw 'Service is outside the active release' }
     return @{ Shell=$process; Service=$service; Status=$status }
   }
@@ -58,7 +58,7 @@ try {
   if (-not $again.WaitForExit(40000) -or $again.ExitCode -ne 0) { throw 'Second launch failed or timed out' }
   $second = Assert-Ready
   if ($first.Shell.Id -ne $second.Shell.Id -or $first.Service.Id -ne $second.Service.Id -or $first.Status.generation -ne $second.Status.generation) { throw 'Second launch replaced the healthy instance' }
-  Start-Process $shellPath -ArgumentList '--reasonix-lifecycle-request=quit' | Out-Null
+  Start-Process $shellPath -ArgumentList '--tempora-lifecycle-request=quit' | Out-Null
   if (-not $first.Shell.WaitForExit(15000) -or -not $first.Service.WaitForExit(1000)) { throw 'Normal exit left a shell or service alive' }
   $shellLog = Get-Content (Join-Path $dataHome 'desktop-shell\logs\shell.log') -Raw
   if ($shellLog -match 'exit deadline exceeded|killing it|termination failed') { throw 'Forced cleanup is not a normal-exit pass' }

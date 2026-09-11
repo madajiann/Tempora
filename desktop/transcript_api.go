@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"reasonix/internal/control"
-	"reasonix/internal/transcript"
+	"tempora/internal/control"
+	"tempora/internal/transcript"
 )
 
 // ResumeTranscriptSessionForTab adopts a session without materializing a legacy

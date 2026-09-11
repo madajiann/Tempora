@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 type notificationToolsTransport struct {

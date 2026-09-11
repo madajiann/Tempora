@@ -75,7 +75,7 @@ export class MainWindow {
       minWidth: Math.min(Math.round(geometry.minWidth), display.workArea.width),
       minHeight: Math.min(Math.round(geometry.minHeight), display.workArea.height),
       show: false,
-      title: "Reasonix",
+      title: "Tempora",
       backgroundColor: "#1a1a2e",
       titleBarStyle: deps.platform === "darwin" ? "hiddenInset" : "default",
       frame: !geometry.frameless,

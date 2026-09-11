@@ -4,9 +4,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/boot"
-	"reasonix/internal/control"
+	"tempora/internal/agent"
+	"tempora/internal/boot"
+	"tempora/internal/control"
 )
 
 func TestSaveTabSessionMetaPersistsDeliveryFloor(t *testing.T) {

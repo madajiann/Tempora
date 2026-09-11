@@ -5,10 +5,10 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/provider"
-	"reasonix/internal/taskcontract"
-	"reasonix/internal/tool"
+	"tempora/internal/evidence"
+	"tempora/internal/provider"
+	"tempora/internal/taskcontract"
+	"tempora/internal/tool"
 )
 
 func mutationPlanAndReceipt(path string) (*toolCallPlan, evidence.Receipt) {

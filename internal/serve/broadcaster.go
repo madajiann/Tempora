@@ -5,10 +5,10 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/billing"
-	"reasonix/internal/event"
-	"reasonix/internal/eventwire"
+	"tempora/internal/agent"
+	"tempora/internal/billing"
+	"tempora/internal/event"
+	"tempora/internal/eventwire"
 )
 
 type subscription struct {

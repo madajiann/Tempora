@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 // ContextReport renders the current context state as a one-line summary plus

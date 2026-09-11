@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   update:
-    if: github.repository == 'esengine/DeepSeek-Reasonix'
+    if: github.repository == 'tempora-dev/Tempora'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

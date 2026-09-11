@@ -3,9 +3,9 @@ package main
 import (
 	"testing"
 
-	"reasonix/internal/config"
-	"reasonix/internal/event"
-	"reasonix/internal/notify"
+	"tempora/internal/config"
+	"tempora/internal/event"
+	"tempora/internal/notify"
 )
 
 type desktopRecordSink struct {

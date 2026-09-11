@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/transcript"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/transcript"
 )
 
 func (s *Server) registerTranscriptRoutes(mux *http.ServeMux) {

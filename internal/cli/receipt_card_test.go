@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/event"
+	"tempora/internal/event"
 )
 
 var ansiSequence = regexp.MustCompile(`\x1b\[[0-9;]*m`)

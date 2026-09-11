@@ -7,12 +7,12 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/sessioncontext"
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/sessioncontext"
+	"tempora/internal/tool"
 )
 
 type workspaceContextProvider struct{}

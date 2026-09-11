@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/installlayout"
+	"tempora/internal/installlayout"
 )
 
 func writeShellBootstrapFixture(t *testing.T, goos string) (exe, shell string) {
@@ -18,10 +18,10 @@ func writeShellBootstrapFixture(t *testing.T, goos string) (exe, shell string) {
 	root := t.TempDir()
 	name := installlayout.ShellExecutableNameFor(goos)
 	if goos == "darwin" {
-		dir := filepath.Join(root, "Reasonix.app", "Contents", "MacOS")
-		exe, shell = filepath.Join(dir, "reasonix-desktop"), filepath.Join(dir, name)
+		dir := filepath.Join(root, "Tempora.app", "Contents", "MacOS")
+		exe, shell = filepath.Join(dir, "tempora-desktop"), filepath.Join(dir, name)
 	} else {
-		exe, shell = filepath.Join(root, "reasonix-desktop"), filepath.Join(root, installlayout.AppShellDirName, name)
+		exe, shell = filepath.Join(root, "tempora-desktop"), filepath.Join(root, installlayout.AppShellDirName, name)
 	}
 	if err := os.MkdirAll(filepath.Dir(exe), 0o755); err != nil {
 		t.Fatal(err)
@@ -52,7 +52,7 @@ func TestBootstrapShellExecutableBesideResolvesPerPlatform(t *testing.T) {
 }
 
 func TestBootstrapShellExecutableBesideNeverReturnsItself(t *testing.T) {
-	dir := filepath.Join(t.TempDir(), "Reasonix.app", "Contents", "MacOS")
+	dir := filepath.Join(t.TempDir(), "Tempora.app", "Contents", "MacOS")
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -68,14 +68,14 @@ func TestBootstrapShellExecutableBesideNeverReturnsItself(t *testing.T) {
 func TestBootstrapShellStartsDetachedShellWithServiceEnvAndArgs(t *testing.T) {
 	exe, shell := writeShellBootstrapFixture(t, runtime.GOOS)
 	out := filepath.Join(t.TempDir(), "shell.out")
-	script := "#!/bin/sh\nprintf '%s\\n' \"$REASONIX_DESKTOP_SERVICE\" \"$@\" > \"$REASONIX_TEST_SHELL_OUT\"\n"
+	script := "#!/bin/sh\nprintf '%s\\n' \"$TEMPORA_DESKTOP_SERVICE\" \"$@\" > \"$TEMPORA_TEST_SHELL_OUT\"\n"
 	if err := os.MkdirAll(filepath.Dir(shell), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(shell, []byte(script), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	env := append(os.Environ(), "REASONIX_TEST_SHELL_OUT="+out, shellServiceEnv+"=stale")
+	env := append(os.Environ(), "TEMPORA_TEST_SHELL_OUT="+out, shellServiceEnv+"=stale")
 	handled, code := bootstrapShell(exe, runtime.GOOS, []string{"--flag", "two words"}, env)
 	if !handled || code != 0 {
 		t.Fatalf("bootstrap handled=%v code=%d", handled, code)
@@ -115,9 +115,9 @@ func TestBootstrapShellIgnoresHostLaunchModes(t *testing.T) {
 
 func TestLinuxBootstrapMatchesPackagedLayouts(t *testing.T) {
 	for exe, want := range map[string]string{
-		"/opt/reasonix/reasonix-desktop":                  "/opt/reasonix/app/Reasonix",
-		"/opt/reasonix/versions/v1.39.0/reasonix-desktop": "/opt/reasonix/versions/v1.39.0/app/Reasonix",
-		"/usr/bin/reasonix-desktop":                       "/usr/lib/reasonix/app/Reasonix",
+		"/opt/tempora/tempora-desktop":                  "/opt/tempora/app/Tempora",
+		"/opt/tempora/versions/v1.39.0/tempora-desktop": "/opt/tempora/versions/v1.39.0/app/Tempora",
+		"/usr/bin/tempora-desktop":                       "/usr/lib/tempora/app/Tempora",
 	} {
 		if got := shellPathForExecutable(exe, "linux"); got != want {
 			t.Errorf("%s: got %s want %s", exe, got, want)

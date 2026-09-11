@@ -10,12 +10,12 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/provider/anthropic"
-	"reasonix/internal/provider/openai"
-	"reasonix/internal/provider/responses"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/provider/anthropic"
+	"tempora/internal/provider/openai"
+	"tempora/internal/provider/responses"
+	"tempora/internal/tool"
 )
 
 // TestLiveOpenCodeGoDeepSeekAgentToolLoops repeatedly exercises the production

@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/sessioninbox"
+	"tempora/internal/event"
+	"tempora/internal/sessioninbox"
 )
 
 const inboxDispatchTestTimeout = 15 * time.Second

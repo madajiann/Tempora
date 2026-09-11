@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 // Prompts returns every MCP prompt discovered across connected servers.

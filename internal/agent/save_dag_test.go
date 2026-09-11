@@ -8,9 +8,9 @@ import (
 	"sync"
 	"testing"
 
-	"reasonix/internal/fileutil"
-	"reasonix/internal/provider"
-	"reasonix/internal/store"
+	"tempora/internal/fileutil"
+	"tempora/internal/provider"
+	"tempora/internal/store"
 )
 
 func dagSavedSession(t *testing.T, path string, contents ...string) *Session {

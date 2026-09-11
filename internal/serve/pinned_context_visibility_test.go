@@ -3,7 +3,7 @@ package serve
 import (
 	"testing"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func TestHistoryMessagesHidePinnedContextRevisions(t *testing.T) {

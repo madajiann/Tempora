@@ -10,9 +10,9 @@ import (
 	"sort"
 	"strings"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/fileutil"
-	"reasonix/internal/store"
+	"tempora/internal/agent"
+	"tempora/internal/fileutil"
+	"tempora/internal/store"
 )
 
 const (

@@ -7,14 +7,14 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/capability"
-	"reasonix/internal/completion"
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/provider"
-	"reasonix/internal/runtimepolicy"
-	"reasonix/internal/taskcontract"
-	"reasonix/internal/tool"
+	"tempora/internal/capability"
+	"tempora/internal/completion"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/provider"
+	"tempora/internal/runtimepolicy"
+	"tempora/internal/taskcontract"
+	"tempora/internal/tool"
 )
 
 type phaseSink struct {

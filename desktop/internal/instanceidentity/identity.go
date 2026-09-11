@@ -10,11 +10,11 @@ import (
 
 	"github.com/google/uuid"
 
-	"reasonix/internal/pathidentity"
+	"tempora/internal/pathidentity"
 )
 
-const Prefix = "com.reasonix.desktop"
-const UpdateEnvironmentKey = "REASONIX_UPDATE_INSTANCE_ID"
+const Prefix = "com.tempora.desktop"
+const UpdateEnvironmentKey = "TEMPORA_UPDATE_INSTANCE_ID"
 
 var trayNamespace = uuid.MustParse("af8b2b6e-cf17-43b9-afb9-b0bf2695d8ac")
 
@@ -23,7 +23,7 @@ func CanonicalHome(home string) string {
 	if home == "" {
 		return ""
 	}
-	return filepath.Dir(pathidentity.Canonical(filepath.Join(home, ".reasonix-home.identity")))
+	return filepath.Dir(pathidentity.Canonical(filepath.Join(home, ".tempora-home.identity")))
 }
 
 func ForHome(home string) string {
@@ -52,11 +52,11 @@ func UpdateEnvironment(base []string, home string) []string {
 	env := make([]string, 0, len(base)+2)
 	for _, entry := range base {
 		key, _, _ := strings.Cut(entry, "=")
-		if !strings.EqualFold(key, "REASONIX_HOME") && !strings.EqualFold(key, UpdateEnvironmentKey) {
+		if !strings.EqualFold(key, "TEMPORA_HOME") && !strings.EqualFold(key, UpdateEnvironmentKey) {
 			env = append(env, entry)
 		}
 	}
-	return append(env, "REASONIX_HOME="+home, UpdateEnvironmentKey+"="+ForHome(home))
+	return append(env, "TEMPORA_HOME="+home, UpdateEnvironmentKey+"="+ForHome(home))
 }
 
 func UpdateID() string { return os.Getenv(UpdateEnvironmentKey) }

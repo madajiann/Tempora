@@ -11,11 +11,11 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/checkpoint"
-	"reasonix/internal/event"
-	"reasonix/internal/jobs"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/checkpoint"
+	"tempora/internal/event"
+	"tempora/internal/jobs"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 func TestBackgroundFleetRegistersEveryWriterUntilCompletion(t *testing.T) {

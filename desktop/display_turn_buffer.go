@@ -1,9 +1,9 @@
 package main
 
 import (
-	"reasonix/internal/event"
-	"reasonix/internal/transcript"
-	"reasonix/internal/turnevent"
+	"tempora/internal/event"
+	"tempora/internal/transcript"
+	"tempora/internal/turnevent"
 )
 
 type displayTurnBuffer struct{ transcript.Buffer }

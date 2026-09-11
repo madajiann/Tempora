@@ -3,9 +3,9 @@ package agent
 import (
 	"testing"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/instruction"
-	"reasonix/internal/taskcontract"
+	"tempora/internal/evidence"
+	"tempora/internal/instruction"
+	"tempora/internal/taskcontract"
 )
 
 func TestBuildShadowContractReplaysTheTurn(t *testing.T) {

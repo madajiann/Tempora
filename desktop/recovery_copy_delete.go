@@ -4,8 +4,8 @@ import (
 	"errors"
 	"log/slog"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/botruntime"
+	"tempora/internal/agent"
+	"tempora/internal/botruntime"
 )
 
 func (a *App) deleteRecoveryCopy(path string) error {

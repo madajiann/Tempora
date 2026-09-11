@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/sandbox"
+	"tempora/internal/sandbox"
 )
 
 func TestResolvedProcessModeDefaultsToHost(t *testing.T) {

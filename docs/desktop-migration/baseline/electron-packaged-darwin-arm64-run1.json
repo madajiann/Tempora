@@ -1,6 +1,6 @@
 {
   "label": "electron-packaged-darwin-arm64-run1",
-  "executable": "/tmp/reasonix-phaseF/pkg/Reasonix.app/Contents/MacOS/Reasonix",
+  "executable": "/tmp/tempora-phaseF/pkg/Tempora.app/Contents/MacOS/Tempora",
   "measuredAt": "2026-09-08T20:42:14.443448+00:00",
   "machine": {
     "platform": "macOS-26.6.2-arm64-arm-64bit",
@@ -15,19 +15,19 @@
       "afterHealthySeconds": 2,
       "rssKiB": 694800,
       "processCount": 5,
-      "processes": "Reasonix;Reasonix Helper;Reasonix Helper (Renderer);reasonix-desktop"
+      "processes": "Tempora;Tempora Helper;Tempora Helper (Renderer);tempora-desktop"
     },
     {
       "afterHealthySeconds": 10,
       "rssKiB": 658944,
       "processCount": 5,
-      "processes": "Reasonix;Reasonix Helper;Reasonix Helper (Renderer);reasonix-desktop"
+      "processes": "Tempora;Tempora Helper;Tempora Helper (Renderer);tempora-desktop"
     },
     {
       "afterHealthySeconds": 30,
       "rssKiB": 658464,
       "processCount": 5,
-      "processes": "Reasonix;Reasonix Helper;Reasonix Helper (Renderer);reasonix-desktop"
+      "processes": "Tempora;Tempora Helper;Tempora Helper (Renderer);tempora-desktop"
     }
   ],
   "exit": {

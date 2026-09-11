@@ -4,8 +4,8 @@ import (
 	"slices"
 	"strings"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 func (a *Agent) preserveRawReasoning(reasoning, signature, reasoningID, reasoningStatus string, calls []provider.ToolCall, searches []provider.ServerSearchCall) bool {

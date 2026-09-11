@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
+	"tempora/internal/agent"
+	"tempora/internal/config"
 )
 
 func TestTopicMigrationMarkerDetectsSameSizeRewriteWithRestoredMtime(t *testing.T) {

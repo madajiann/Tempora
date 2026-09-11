@@ -75,7 +75,7 @@ export interface GuestViewFactory {
   create(partition: string, inherited?: WebPreferences): GuestView;
 }
 
-export const BLOCKED_NAVIGATION_SCHEMES = new Set(["file:", "reasonix:", "javascript:", "data:", "blob:"]);
+export const BLOCKED_NAVIGATION_SCHEMES = new Set(["file:", "tempora:", "javascript:", "data:", "blob:"]);
 
 export function isBlockedNavigation(url: string): boolean {
   try {

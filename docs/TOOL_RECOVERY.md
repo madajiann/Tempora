@@ -54,7 +54,7 @@ After resolution, Continue uses ordinary turn submission and its existing fences
 
 ## Safe retry boundary
 
-Retry is disabled by default. Set `REASONIX_TOOL_RECOVERY_RETRY=1` on the owning
+Retry is disabled by default. Set `TEMPORA_TOOL_RECOVERY_RETRY=1` on the owning
 Go host to enable the UI action. Remote hosts decide their own capability.
 
 An explicit retry gets a fresh call and attempt ID while keeping the original

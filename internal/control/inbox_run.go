@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/sessioninbox"
+	"tempora/internal/sessioninbox"
 )
 
 // RunInboxTurn synchronously claims and executes one durable item. Bot and ACP

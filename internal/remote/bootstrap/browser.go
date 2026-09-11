@@ -10,8 +10,8 @@ import (
 // Both travel in the process environment only: the token rotates with every
 // SSH connection generation, so nothing on disk may outlive it.
 const (
-	BrowserBrokerEnv = "REASONIX_BROWSER_BROKER"
-	BrowserTokenEnv  = "REASONIX_BROWSER_TOKEN"
+	BrowserBrokerEnv = "TEMPORA_BROWSER_BROKER"
+	BrowserTokenEnv  = "TEMPORA_BROWSER_TOKEN"
 )
 
 // ServeBrowserBrokerMarker is the `serve --help` flag name that advertises a

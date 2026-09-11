@@ -36,8 +36,8 @@ const target = parseTarget(spec);
 versionTag(version);
 const identity = readProductIdentity();
 const electronVersion = JSON.parse(readFileSync(join(desktop, "electron", "node_modules", "electron", "package.json"), "utf8")).version;
-const commit = (process.env.REASONIX_COMMIT ?? "").trim() || gitCommit();
-const buildTime = (process.env.REASONIX_BUILD_TIME ?? "").trim() || new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+const commit = (process.env.TEMPORA_COMMIT ?? "").trim() || gitCommit();
+const buildTime = (process.env.TEMPORA_BUILD_TIME ?? "").trim() || new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
 
 function gitCommit() {
   try {
@@ -52,11 +52,11 @@ function require(path, what) {
 }
 
 const frontendDist = join(desktop, "frontend", "dist");
-if (process.env.REASONIX_PACKAGE_REUSE_FRONTEND === "1" && existsSync(join(frontendDist, "index.html"))) {
+if (process.env.TEMPORA_PACKAGE_REUSE_FRONTEND === "1" && existsSync(join(frontendDist, "index.html"))) {
   console.log(`==> reusing ${frontendDist}`);
 } else {
   console.log(`==> frontend build:electron (channel ${channel})`);
-  runBuildScript(join(desktop, "frontend"), "build-for-shell.mjs", ["electron"], { REASONIX_CHANNEL: channel });
+  runBuildScript(join(desktop, "frontend"), "build-for-shell.mjs", ["electron"], { TEMPORA_CHANNEL: channel });
 }
 require(join(frontendDist, "index.html"), "frontend dist");
 
@@ -64,11 +64,11 @@ console.log("==> shell build");
 runBuildScript(join(desktop, "electron"), "build.mjs");
 const shellDist = join(desktop, "electron", "dist");
 for (const name of ["main.cjs", "preload.cjs"]) require(join(shellDist, name), "shell bundle");
-if (!existsSync(join(shellDist, "desktopContract.json")) && process.env.REASONIX_ELECTRON_ALLOW_MISSING_CONTRACT !== "1") {
+if (!existsSync(join(shellDist, "desktopContract.json")) && process.env.TEMPORA_ELECTRON_ALLOW_MISSING_CONTRACT !== "1") {
   throw new Error(`desktop contract is missing from ${shellDist}; run: cd desktop && go run . -emit-contract frontend/src/generated`);
 }
 
-const staging = mkdtempSync(join(tmpdir(), "reasonix-package-"));
+const staging = mkdtempSync(join(tmpdir(), "tempora-package-"));
 const outDir = join(desktop, "build", "electron", target.key);
 try {
   cpSync(frontendDist, join(staging, "app"), { recursive: true });
@@ -104,7 +104,7 @@ try {
   if (target.os === "windows") {
     const installer = join(desktop, "build", "windows", "installer");
     mkdirSync(installer, { recursive: true });
-    writeFileSync(join(installer, "reasonix_project.nsh"), nsisProjectDefines(identity, version));
+    writeFileSync(join(installer, "tempora_project.nsh"), nsisProjectDefines(identity, version));
     const signing = signingFileList(walkFiles(bundle).map((name) => `app/${name}`));
     writeFileSync(join(outDir, "signing-files.txt"), signing.join("\n") + "\n");
     console.log(`==> ${signing.length} Electron PE files need Authenticode (${join(outDir, "signing-files.txt")})`);

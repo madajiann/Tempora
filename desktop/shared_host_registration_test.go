@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"reasonix/internal/plugin"
+	"tempora/internal/plugin"
 )
 
 func TestSharedHostMCPRegistrationLifecycle(t *testing.T) {

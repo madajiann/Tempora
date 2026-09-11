@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	fileencoding "reasonix/internal/fileutil/encoding"
+	fileencoding "tempora/internal/fileutil/encoding"
 )
 
 func TestResolveBuiltin(t *testing.T) {

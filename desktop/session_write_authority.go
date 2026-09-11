@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
+	"tempora/internal/agent"
+	"tempora/internal/control"
 )
 
 // bindTabWriteAuthority issues a generation-bound write authority from the

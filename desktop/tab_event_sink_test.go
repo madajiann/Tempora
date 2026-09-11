@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
+	"tempora/internal/event"
 )
 
 type closeTrackingSink struct {

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/sessioncatalog"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/sessioncatalog"
 )
 
 const (

@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/sessioninbox"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/sessioninbox"
 )
 
 func TestInboxReceiptSurvivesLocalTabReopen(t *testing.T) {

@@ -3,7 +3,7 @@ package runtimepolicy
 import (
 	"context"
 
-	"reasonix/internal/taskcontract"
+	"tempora/internal/taskcontract"
 )
 
 type contextKey struct{}

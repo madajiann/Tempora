@@ -16,7 +16,7 @@ func (c *Config) StageModelCredentialLocked(value string) (string, error) {
 	if _, err := rand.Read(id[:]); err != nil {
 		return "", err
 	}
-	key := fmt.Sprintf("REASONIX_CONNECTION_%X_KEY", id)
+	key := fmt.Sprintf("TEMPORA_CONNECTION_%X_KEY", id)
 	value = strings.TrimSpace(value)
 	if strings.ContainsAny(value, "\r\n") {
 		return "", fmt.Errorf("credential value contains a newline")

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"sync/atomic"
 
-	"reasonix/internal/agent/testutil"
-	"reasonix/internal/provider"
+	"tempora/internal/agent/testutil"
+	"tempora/internal/provider"
 )
 
 type toolCallReasoningRequiredProvider struct{ *testutil.MockProvider }

@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/billing"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/billing"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 // Ensures older clients still see cost/currency aliases while new clients get costQuote.

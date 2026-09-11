@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/sandbox"
-	"reasonix/internal/tool"
+	"tempora/internal/sandbox"
+	"tempora/internal/tool"
 )
 
 func (bash) Schema() json.RawMessage {

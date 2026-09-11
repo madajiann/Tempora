@@ -7,14 +7,14 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/installlayout"
-	"reasonix/internal/repair"
+	"tempora/internal/installlayout"
+	"tempora/internal/repair"
 )
 
 func writeVersionedWindowsStaging(t *testing.T, dir, prefix, version string, names ...string) {
 	t.Helper()
 	if len(names) == 0 {
-		names = []string{"reasonix-desktop.exe", "reasonix-cli.exe", "reasonix-update-helper.exe", "reasonix-launcher.exe"}
+		names = []string{"tempora-desktop.exe", "tempora-cli.exe", "tempora-update-helper.exe", "tempora-launcher.exe"}
 	}
 	for _, name := range names {
 		path := filepath.Join(dir, filepath.FromSlash(name))
@@ -33,7 +33,7 @@ func versionedWindowsTransaction(installDir, version, createdAt string) *repair.
 		SchemaVersion: 1,
 		ToVersion:     version,
 		TargetKind:    "file",
-		TargetPath:    filepath.Join(installDir, "reasonix-desktop.exe"),
+		TargetPath:    filepath.Join(installDir, "tempora-desktop.exe"),
 		CreatedAt:     createdAt,
 	}
 }
@@ -44,10 +44,10 @@ func TestPreferVersionedWindowsActivation(t *testing.T) {
 		t.Fatal("empty staging must not prefer versioned")
 	}
 	for _, name := range []string{
-		"reasonix-desktop.exe",
-		"reasonix-cli.exe",
-		"reasonix-update-helper.exe",
-		"reasonix-launcher.exe",
+		"tempora-desktop.exe",
+		"tempora-cli.exe",
+		"tempora-update-helper.exe",
+		"tempora-launcher.exe",
 	} {
 		if err := os.WriteFile(filepath.Join(staging, name), []byte(name), 0o700); err != nil {
 			t.Fatal(err)
@@ -63,17 +63,17 @@ func TestActivateVersionedWindowsFromStaging(t *testing.T) {
 	installDir := t.TempDir()
 	staging := t.TempDir()
 	writeVersionedWindowsStaging(t, staging, "payload:", "v1.20.0",
-		"reasonix-desktop.exe",
-		"reasonix-cli.exe",
-		"reasonix-update-helper.exe",
-		"reasonix-launcher.exe",
-		"reasonix-guard.exe",
+		"tempora-desktop.exe",
+		"tempora-cli.exe",
+		"tempora-update-helper.exe",
+		"tempora-launcher.exe",
+		"tempora-guard.exe",
 	)
 	// Seed a flat desktop so cleanup is observable.
-	if err := os.WriteFile(filepath.Join(installDir, "reasonix-desktop.exe"), []byte("old"), 0o700); err != nil {
+	if err := os.WriteFile(filepath.Join(installDir, "tempora-desktop.exe"), []byte("old"), 0o700); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(installDir, "reasonix-guard.exe"), []byte("old-guard"), 0o700); err != nil {
+	if err := os.WriteFile(filepath.Join(installDir, "tempora-guard.exe"), []byte("old-guard"), 0o700); err != nil {
 		t.Fatal(err)
 	}
 
@@ -93,21 +93,21 @@ func TestActivateVersionedWindowsFromStaging(t *testing.T) {
 		t.Fatal(err)
 	}
 	raw, err := os.ReadFile(desktop)
-	if err != nil || string(raw) != "payload:reasonix-desktop.exe" {
+	if err != nil || string(raw) != "payload:tempora-desktop.exe" {
 		t.Fatalf("desktop payload = %q err=%v", raw, err)
 	}
-	for _, name := range []string{"reasonix-launcher.exe", "Reasonix.exe", "reasonix-cli.exe"} {
+	for _, name := range []string{"tempora-launcher.exe", "Tempora.exe", "tempora-cli.exe"} {
 		if _, err := os.Stat(filepath.Join(installDir, name)); err != nil {
 			t.Fatalf("root entry %s: %v", name, err)
 		}
 	}
-	if _, err := os.Stat(filepath.Join(installDir, "reasonix-desktop.exe")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(installDir, "tempora-desktop.exe")); !os.IsNotExist(err) {
 		t.Fatal("flat desktop should be removed")
 	}
-	if _, err := os.Stat(filepath.Join(installDir, "reasonix-guard.exe")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(installDir, "tempora-guard.exe")); !os.IsNotExist(err) {
 		t.Fatal("flat guard should be removed")
 	}
-	if prefer := preferRelaunchPath("", installDir); filepath.Base(prefer) != "reasonix-launcher.exe" {
+	if prefer := preferRelaunchPath("", installDir); filepath.Base(prefer) != "tempora-launcher.exe" {
 		t.Fatalf("prefer relaunch = %s", prefer)
 	}
 }
@@ -116,12 +116,12 @@ func TestActivateVersionedWindowsFromStagingPublishesShellTree(t *testing.T) {
 	acceptWindowsPayloadManifestForTest(t)
 	installDir := t.TempDir()
 	staging := t.TempDir()
-	tree := []string{"app/Reasonix.exe", "app/resources/app.asar", "app/locales/en-US.pak"}
+	tree := []string{"app/Tempora.exe", "app/resources/app.asar", "app/locales/en-US.pak"}
 	writeVersionedWindowsStaging(t, staging, "payload:", "v1.30.0", append([]string{
-		"reasonix-desktop.exe",
-		"reasonix-cli.exe",
-		"reasonix-update-helper.exe",
-		"reasonix-launcher.exe",
+		"tempora-desktop.exe",
+		"tempora-cli.exe",
+		"tempora-update-helper.exe",
+		"tempora-launcher.exe",
 	}, tree...)...)
 	if err := activateVersionedWindowsFromStaging(versionedWindowsTransaction(installDir, "v1.30.0", "2026-01-01T00:00:00Z"), staging); err != nil {
 		t.Fatal(err)
@@ -143,13 +143,13 @@ func TestActivateVersionedWindowsFromStagingRejectsManifestDrift(t *testing.T) {
 	installDir := t.TempDir()
 	staging := t.TempDir()
 	writeVersionedWindowsStaging(t, staging, "payload:", "v1.30.0",
-		"reasonix-desktop.exe",
-		"reasonix-cli.exe",
-		"reasonix-update-helper.exe",
-		"reasonix-launcher.exe",
-		"app/Reasonix.exe",
+		"tempora-desktop.exe",
+		"tempora-cli.exe",
+		"tempora-update-helper.exe",
+		"tempora-launcher.exe",
+		"app/Tempora.exe",
 	)
-	if err := os.WriteFile(filepath.Join(staging, "app", "Reasonix.exe"), []byte("tampered"), 0o700); err != nil {
+	if err := os.WriteFile(filepath.Join(staging, "app", "Tempora.exe"), []byte("tampered"), 0o700); err != nil {
 		t.Fatal(err)
 	}
 	if err := activateVersionedWindowsFromStaging(versionedWindowsTransaction(installDir, "v1.30.0", "2026-01-01T00:00:00Z"), staging); err == nil {
@@ -158,7 +158,7 @@ func TestActivateVersionedWindowsFromStagingRejectsManifestDrift(t *testing.T) {
 	if installlayout.HasCurrent(installDir) {
 		t.Fatal("current.json was written after a rejected payload")
 	}
-	if err := os.Remove(filepath.Join(staging, "reasonix-payload.json")); err != nil {
+	if err := os.Remove(filepath.Join(staging, "tempora-payload.json")); err != nil {
 		t.Fatal(err)
 	}
 	if err := activateVersionedWindowsFromStaging(versionedWindowsTransaction(installDir, "v1.30.0", "2026-01-01T00:00:00Z"), staging); err == nil {
@@ -187,7 +187,7 @@ func TestPreferRelaunchPathIgnoresStaleVersionedDesktop(t *testing.T) {
 		t.Fatalf("previous desktop should remain: %v", err)
 	}
 	got := preferRelaunchPath(oldDesktop, installDir)
-	if filepath.Base(got) != "reasonix-launcher.exe" {
+	if filepath.Base(got) != "tempora-launcher.exe" {
 		t.Fatalf("preferRelaunchPath(%s) = %s, want install-root launcher", oldDesktop, got)
 	}
 }
@@ -197,11 +197,11 @@ func TestInstallStagedWindowsReleaseUnitPrefersVersioned(t *testing.T) {
 	installDir := t.TempDir()
 	staging := t.TempDir()
 	writeVersionedWindowsStaging(t, staging, "p:", "v1.20.0",
-		"reasonix-desktop.exe",
-		"reasonix-cli.exe",
-		"reasonix-update-helper.exe",
-		"reasonix-launcher.exe",
-		"reasonix-guard.exe",
+		"tempora-desktop.exe",
+		"tempora-cli.exe",
+		"tempora-update-helper.exe",
+		"tempora-launcher.exe",
+		"tempora-guard.exe",
 	)
 	// Minimal claimed unit (versioned path does not need full flat file list).
 	claimed := versionedWindowsTransaction(installDir, "v1.20.0", "2026-01-01T00:00:00Z")

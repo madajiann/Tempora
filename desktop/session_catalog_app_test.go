@@ -8,12 +8,12 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/history"
-	"reasonix/internal/provider"
-	"reasonix/internal/sessioncatalog"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/history"
+	"tempora/internal/provider"
+	"tempora/internal/sessioncatalog"
 )
 
 func installSessionCatalogForTest(t *testing.T, app *App, path, scope, workspaceRoot string) {

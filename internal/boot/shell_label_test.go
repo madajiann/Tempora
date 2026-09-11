@@ -3,7 +3,7 @@ package boot
 import (
 	"testing"
 
-	"reasonix/internal/sandbox"
+	"tempora/internal/sandbox"
 )
 
 func TestResolvedShellLabelUsesBoundInterpreter(t *testing.T) {

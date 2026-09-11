@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/extension/protocol"
-	"reasonix/internal/provider"
+	"tempora/internal/extension/protocol"
+	"tempora/internal/provider"
 )
 
 func TestStreamDeliversOutOfOrderChunksInOrder(t *testing.T) {

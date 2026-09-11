@@ -9,13 +9,13 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"reasonix/internal/agent/testutil"
-	"reasonix/internal/capability"
-	"reasonix/internal/event"
-	"reasonix/internal/plugin"
-	"reasonix/internal/provider"
-	"reasonix/internal/skill"
-	"reasonix/internal/tool"
+	"tempora/internal/agent/testutil"
+	"tempora/internal/capability"
+	"tempora/internal/event"
+	"tempora/internal/plugin"
+	"tempora/internal/provider"
+	"tempora/internal/skill"
+	"tempora/internal/tool"
 )
 
 func TestRunSkillMissingNestedArgumentsDoesNotStartSubagent(t *testing.T) {
@@ -47,7 +47,7 @@ func TestRunSkillMissingNestedArgumentsDoesNotStartSubagent(t *testing.T) {
 }
 
 func TestMCPInvalidArgumentsDoNotCallRemote(t *testing.T) {
-	t.Setenv("REASONIX_CACHE_HOME", t.TempDir())
+	t.Setenv("TEMPORA_CACHE_HOME", t.TempDir())
 	var toolCalls atomic.Int32
 	server := requiredQueryMCPServer(t, &toolCalls)
 	defer server.Close()
@@ -76,7 +76,7 @@ func TestMCPInvalidArgumentsDoNotCallRemote(t *testing.T) {
 	}
 	valid := a.executeOne(ctx, &a.turn, provider.ToolCall{
 		ID: "mcp-good", Name: "use_capability",
-		Arguments: `{"action":"call","capability_id":"mcp-tool:svc/search","arguments":{"q":"reasonix"}}`,
+		Arguments: `{"action":"call","capability_id":"mcp-tool:svc/search","arguments":{"q":"tempora"}}`,
 	})
 	if valid.errMsg != "" {
 		t.Fatalf("valid call = %+v", valid)

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func TestDAGTurnMarkersRideTheNextSave(t *testing.T) {

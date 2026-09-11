@@ -3,7 +3,7 @@ import ReactMarkdown from "react-markdown";
 import "katex/dist/katex.min.css";
 import { normalizeMath } from "./mathNormalize";
 import { createComponents } from "./markdownComponents";
-import { reasonixRehypePlugins, reasonixRemarkPlugins } from "./markdownRemarkPlugins";
+import { temporaRehypePlugins, temporaRemarkPlugins } from "./markdownRemarkPlugins";
 import { markdownImageUrlTransform, markdownUrlTransform } from "../lib/markdownPipeline";
 
 // Markdown rendering via react-markdown + remark-gfm (tables, task lists,
@@ -34,8 +34,8 @@ const MarkdownRenderer = memo(function MarkdownRenderer({
   const components = useMemo(() => createComponents(plainStatusBlocks), [plainStatusBlocks]);
   const content = (
     <ReactMarkdown
-      remarkPlugins={reasonixRemarkPlugins}
-      rehypePlugins={reasonixRehypePlugins}
+      remarkPlugins={temporaRemarkPlugins}
+      rehypePlugins={temporaRehypePlugins}
       components={components}
       // file:/// anchors (local path linkification) are safe to keep; the
       // default transform would blank them along with javascript: etc.

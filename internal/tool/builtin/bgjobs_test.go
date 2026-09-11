@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/jobs"
-	"reasonix/internal/planmode"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/jobs"
+	"tempora/internal/planmode"
 )
 
 // End-to-end through the actual tools: a background bash job runs under a manager

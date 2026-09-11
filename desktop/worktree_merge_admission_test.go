@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/control"
-	"reasonix/internal/worktree"
+	"tempora/internal/control"
+	"tempora/internal/worktree"
 )
 
 func TestTransientFallbackRuntimeHonorsCleanupReservation(t *testing.T) {
@@ -77,7 +77,7 @@ func TestFinalizeReservationCoversRetainedProjectRegistryUpdate(t *testing.T) {
 	sourceRoot := t.TempDir()
 	allocationRoot := t.TempDir()
 	worktreeRoot := filepath.Join(allocationRoot, "repository")
-	recoveryRoot := filepath.Join(allocationRoot, ".reasonix-cleanup", "recovery-test")
+	recoveryRoot := filepath.Join(allocationRoot, ".tempora-cleanup", "recovery-test")
 	if err := os.MkdirAll(worktreeRoot, 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -142,7 +142,7 @@ func TestCleanupReservationRejectsDeletedRootDescendants(t *testing.T) {
 		unexpectedRelease()
 		t.Fatal("overlapping descendant cleanup reservation was accepted")
 	}
-	quarantined := filepath.Join(allocationRoot, ".reasonix-cleanup", "random", "subproject")
+	quarantined := filepath.Join(allocationRoot, ".tempora-cleanup", "random", "subproject")
 	if unexpectedRelease, err := app.beginWorkspaceRuntimeAdmission(quarantined); err == nil {
 		unexpectedRelease()
 		t.Fatal("cleanup quarantine descendant entered a cleanup reservation")
@@ -272,7 +272,7 @@ func TestMergeWorktreeBackHoldsRuntimeReservationThroughGitMutation(t *testing.T
 	inspectWorktreeMerge = func(_ context.Context, _, _ string) (worktree.MergeInspection, error) {
 		return worktree.MergeInspection{
 			Available: true, CanMerge: true, SourceRoot: sourceRoot, WorktreeRoot: worktreeRoot,
-			TargetBranch: "main", TargetHead: "target", WorktreeBranch: "reasonix/delivery-test",
+			TargetBranch: "main", TargetHead: "target", WorktreeBranch: "tempora/delivery-test",
 			WorktreeHead: "worktree", WorktreeStateToken: "token", ChangedFiles: []string{},
 			ConflictFiles: []string{}, Blockers: []worktree.MergeBlocker{}, CleanupBlockers: []worktree.MergeBlocker{},
 		}, nil

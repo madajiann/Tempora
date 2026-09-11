@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/evidence"
+	"tempora/internal/evidence"
 )
 
 // TestCompleteStepFinalTodoReturnsTerminalMessage covers #8816: signing off the

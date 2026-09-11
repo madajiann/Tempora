@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 func TestReadSnapshotDetectsSameSizeRestoredMtime(t *testing.T) {

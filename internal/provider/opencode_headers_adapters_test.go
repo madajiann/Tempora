@@ -4,10 +4,10 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"reasonix/internal/provider"
-	"reasonix/internal/provider/anthropic"
-	"reasonix/internal/provider/openai"
-	"reasonix/internal/provider/responses"
+	"tempora/internal/provider"
+	"tempora/internal/provider/anthropic"
+	"tempora/internal/provider/openai"
+	"tempora/internal/provider/responses"
 	"testing"
 )
 

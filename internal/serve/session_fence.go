@@ -7,13 +7,13 @@ import (
 	"net/http"
 	"strings"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 const (
-	sessionPathHeader           = "X-Reasonix-Session-Path"
-	expectedSessionPathHeader   = "X-Reasonix-Expected-Session-Path"
-	expectedModelSettingsHeader = "X-Reasonix-Expected-Model-Settings"
+	sessionPathHeader           = "X-Tempora-Session-Path"
+	expectedSessionPathHeader   = "X-Tempora-Expected-Session-Path"
+	expectedModelSettingsHeader = "X-Tempora-Expected-Model-Settings"
 	foregroundMutationMaxBody   = 8 << 20
 )
 

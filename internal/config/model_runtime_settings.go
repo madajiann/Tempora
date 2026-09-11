@@ -103,7 +103,7 @@ func (settings *ModelRuntimeSettings) Apply(c *Config, root string) error {
 		return err
 	}
 	var project map[string]any
-	projectRaw, err := os.ReadFile(filepath.Join(root, "reasonix.toml"))
+	projectRaw, err := os.ReadFile(filepath.Join(root, "tempora.toml"))
 	if err != nil && !os.IsNotExist(err) {
 		return err
 	}

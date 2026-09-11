@@ -12,11 +12,11 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/boot"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/boot"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/provider"
 )
 
 func TestResumeActiveSessionTreatsSymlinkAliasAsCurrent(t *testing.T) {

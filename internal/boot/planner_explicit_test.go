@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/agent/testutil"
-	"reasonix/internal/event"
+	"tempora/internal/agent/testutil"
+	"tempora/internal/event"
 )
 
 func TestBuildOmitsCoordinatorWithoutPlannerModel(t *testing.T) {
@@ -16,7 +16,7 @@ func TestBuildOmitsCoordinatorWithoutPlannerModel(t *testing.T) {
 	registerBootTokenProfileTestProvider()
 	setBootTokenProfileTestProvider(t, testutil.NewMock("executor-only"))
 
-	writeFile(t, dir, "reasonix.toml", `
+	writeFile(t, dir, "tempora.toml", `
 default_model = "executor"
 
 [[providers]]
@@ -42,7 +42,7 @@ func TestBuildConstructsCoordinatorWhenPlannerModelConfigured(t *testing.T) {
 	registerBootTokenProfileTestProvider()
 	setBootTokenProfileTestProvider(t, testutil.NewMock("dual"))
 
-	writeFile(t, dir, "reasonix.toml", `
+	writeFile(t, dir, "tempora.toml", `
 default_model = "executor"
 
 [agent]
@@ -76,7 +76,7 @@ func TestBuildConstructsCoordinatorWhenPlannerModelMatchesExecutor(t *testing.T)
 	registerBootTokenProfileTestProvider()
 	setBootTokenProfileTestProvider(t, testutil.NewMock("same-model"))
 
-	writeFile(t, dir, "reasonix.toml", `
+	writeFile(t, dir, "tempora.toml", `
 default_model = "executor"
 
 [agent]

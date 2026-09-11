@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
+	"tempora/internal/event"
 )
 
 // A running turn that produces no events for the stall threshold gets exactly

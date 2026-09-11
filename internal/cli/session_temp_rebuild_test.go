@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/boot"
-	"reasonix/internal/control"
-	"reasonix/internal/provider"
+	"tempora/internal/boot"
+	"tempora/internal/control"
+	"tempora/internal/provider"
 )
 
 // TestCLIHotRebuildPathsKeepSessionTemp covers the CLI commands that replace a

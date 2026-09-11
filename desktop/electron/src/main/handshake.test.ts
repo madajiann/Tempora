@@ -22,7 +22,7 @@ test("hello params carry the documented shape", () => {
     chromeVersion: "152.0.0",
     platform: "darwin",
     arch: "arm64",
-    home: "/Users/x/.reasonix",
+    home: "/Users/x/.tempora",
     dev: false,
   });
   assert.deepEqual(params, {
@@ -30,7 +30,7 @@ test("hello params carry the documented shape", () => {
     contractDigest: "sha256:abc",
     build: { version: "v1.30.0", channel: "stable", commit: "abc123" },
     host: { name: "electron", version: "44.2.0", chrome: "152.0.0", platform: "darwin", arch: "arm64" },
-    instance: { home: "/Users/x/.reasonix", dev: false },
+    instance: { home: "/Users/x/.tempora", dev: false },
   });
 });
 

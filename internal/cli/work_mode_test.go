@@ -8,11 +8,11 @@ import (
 
 	"github.com/charmbracelet/x/ansi"
 
-	"reasonix/internal/boot"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/i18n"
-	"reasonix/internal/provider"
+	"tempora/internal/boot"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/i18n"
+	"tempora/internal/provider"
 )
 
 func resetPresetDeprecationForTest() {

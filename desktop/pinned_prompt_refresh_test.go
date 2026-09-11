@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/control"
-	"reasonix/internal/provider"
+	"tempora/internal/control"
+	"tempora/internal/provider"
 )
 
 type pinnedPromptProvider struct {

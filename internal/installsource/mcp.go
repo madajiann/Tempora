@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	"reasonix/internal/config"
-	fileencoding "reasonix/internal/fileutil/encoding"
+	"tempora/internal/config"
+	fileencoding "tempora/internal/fileutil/encoding"
 )
 
 // mcpEntryAction assembles the DTO for a single MCP server install. The

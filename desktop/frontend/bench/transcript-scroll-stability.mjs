@@ -10,7 +10,7 @@ process.env.PLAYWRIGHT_BROWSERS_PATH = !process.env.PLAYWRIGHT_BROWSERS_PATH || 
   ? path.join(frontendDir, ".pw-browsers")
   : process.env.PLAYWRIGHT_BROWSERS_PATH;
 const { chromium } = await import("playwright");
-const port = Number(process.env.REASONIX_TRANSCRIPT_SCROLL_PORT ?? 4619);
+const port = Number(process.env.TEMPORA_TRANSCRIPT_SCROLL_PORT ?? 4619);
 const url = `http://127.0.0.1:${port}/?mock=bench&bench=1`;
 
 function assert(condition, message) {
@@ -151,7 +151,7 @@ async function runWindowedFixture(page) {
 
   await page.evaluate(() => {
     window.__readerGestureWrites = [];
-    window.__REASONIX_TRANSCRIPT_SCROLL_WRITE__ = (write) => window.__readerGestureWrites.push(write);
+    window.__TEMPORA_TRANSCRIPT_SCROLL_WRITE__ = (write) => window.__readerGestureWrites.push(write);
   });
   await page.mouse.down();
   await transcript.evaluate((element) => {
@@ -169,7 +169,7 @@ async function runWindowedFixture(page) {
   await page.mouse.up();
   await settleFrames(page, 4);
   await page.evaluate(() => {
-    window.__REASONIX_TRANSCRIPT_SCROLL_WRITE__ = undefined;
+    window.__TEMPORA_TRANSCRIPT_SCROLL_WRITE__ = undefined;
     window.__readerGestureWrites = undefined;
   });
 
@@ -238,7 +238,7 @@ async function runWindowedFixture(page) {
   await page.evaluate((anchor) => {
     window.__prependWrites = [];
     window.__prependProbe = { anchor, blankFrames: 0, maxSettledDrift: 0, landed: false, active: true };
-    window.__REASONIX_TRANSCRIPT_SCROLL_WRITE__ = (write) => {
+    window.__TEMPORA_TRANSCRIPT_SCROLL_WRITE__ = (write) => {
       window.__prependWrites.push(write);
     };
     const sample = () => {
@@ -294,7 +294,7 @@ async function runWindowedFixture(page) {
     const protectedCount = document.querySelector(".transcript-shell")?.getAttribute("data-protected-blocks");
     window.__prependProbe = undefined;
     window.__prependWrites = undefined;
-    window.__REASONIX_TRANSCRIPT_SCROLL_WRITE__ = undefined;
+    window.__TEMPORA_TRANSCRIPT_SCROLL_WRITE__ = undefined;
     return { ...probe, top, writes, mountedKeys, protectedCount };
   });
   if (!prepend.anchor?.key || prepend.top == null) {
@@ -313,7 +313,7 @@ async function runWindowedFixture(page) {
 
   await page.evaluate(() => {
     window.__questionWrites = [];
-    window.__REASONIX_TRANSCRIPT_SCROLL_WRITE__ = (write) => window.__questionWrites.push(write);
+    window.__TEMPORA_TRANSCRIPT_SCROLL_WRITE__ = (write) => window.__questionWrites.push(write);
     const markers = [...document.querySelectorAll('.jump-item[data-loaded="true"]')];
     const marker = markers.find((candidate) => candidate.getAttribute("data-turn") !== markers.at(-1)?.getAttribute("data-turn"));
     const rail = document.querySelector(".jump-scroll");
@@ -335,7 +335,7 @@ async function runWindowedFixture(page) {
   const questionWrites = await page.evaluate(() => {
     const writes = (window.__questionWrites ?? []).filter((write) => write.owner === "question-jump" && write.outcome === "accepted");
     window.__questionWrites = undefined;
-    window.__REASONIX_TRANSCRIPT_SCROLL_WRITE__ = undefined;
+    window.__TEMPORA_TRANSCRIPT_SCROLL_WRITE__ = undefined;
     return writes;
   });
   assert(questionWrites.length === 1, `question jump performs exactly one accepted physical write (${questionWrites.length})`);
@@ -343,7 +343,7 @@ async function runWindowedFixture(page) {
   await jumpToTail(page);
   await page.evaluate(() => {
     window.__tailGrowthWrites = [];
-    window.__REASONIX_TRANSCRIPT_SCROLL_WRITE__ = (write) => window.__tailGrowthWrites.push(write);
+    window.__TEMPORA_TRANSCRIPT_SCROLL_WRITE__ = (write) => window.__tailGrowthWrites.push(write);
     const resident = document.querySelector("[data-transcript-resident-tail=true]");
     if (resident instanceof HTMLElement) {
       const growth = document.createElement("div");
@@ -357,7 +357,7 @@ async function runWindowedFixture(page) {
     const element = document.querySelector(".transcript");
     const writes = window.__tailGrowthWrites ?? [];
     window.__tailGrowthWrites = undefined;
-    window.__REASONIX_TRANSCRIPT_SCROLL_WRITE__ = undefined;
+    window.__TEMPORA_TRANSCRIPT_SCROLL_WRITE__ = undefined;
     return {
       distance: element.scrollHeight - element.scrollTop - element.clientHeight,
       writes: writes.filter((write) => write.owner === "tail-follow" && write.outcome === "accepted").length,
@@ -441,7 +441,7 @@ async function runSafetyFixture(page) {
       const action = [...block.querySelectorAll("button:not(:disabled)")].find((button) => button.getBoundingClientRect().height > 0);
       if (cycle !== 2) action?.focus({ preventScroll: true });
       window.__safetyProbe = { block, action, focusHost: document.activeElement, top: block.getBoundingClientRect().top, text: document.getSelection()?.toString(), writes: [] };
-      window.__REASONIX_TRANSCRIPT_SCROLL_WRITE__ = (write) => window.__safetyProbe.writes.push(write);
+      window.__TEMPORA_TRANSCRIPT_SCROLL_WRITE__ = (write) => window.__safetyProbe.writes.push(write);
       const start = performance.now();
       Object.defineProperty(element, "scrollHeight", { configurable: true, get: () => NaN });
       element.dispatchEvent(new Event("scroll"));
@@ -471,7 +471,7 @@ async function runSafetyFixture(page) {
     if (scenario) assert(retained.writes === 0, "held safety transition accepts zero program writes");
     else assert(full.distance <= 4, `safety tail remains within 4px (${full.distance}px)`);
     const fullHeap = await heap();
-    await page.evaluate(() => { delete window.__REASONIX_TRANSCRIPT_SCROLL_WRITE__; delete window.__safetyProbe; });
+    await page.evaluate(() => { delete window.__TEMPORA_TRANSCRIPT_SCROLL_WRITE__; delete window.__safetyProbe; });
     await page.mouse.up();
     await loadFixture(page, "bench:small-6t", "ASYNC LAYOUT EXPANSION COMPLETE");
     samples.push({ cycle, loadedTurns: full.completed, windowMounted: windowed.domBlocks, fullMounted: full.domBlocks, windowInteractiveMs, interactiveMs, windowHeap, fullHeap, releasedHeap: await heap(), releasedDom: await cdp.send("Memory.getDOMCounters") });

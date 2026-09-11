@@ -1,6 +1,6 @@
 package eventwire
 
-import "reasonix/internal/event"
+import "tempora/internal/event"
 
 // ReadStatus is the JSON form of event.ReadStatusPayload.
 type ReadStatus struct {

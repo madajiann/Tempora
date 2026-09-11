@@ -18,10 +18,10 @@ if [ "$cli_tag" != "v$version" ] || [ "$desktop_tag" != "desktop-v$version" ]; t
 	exit 1
 fi
 
-tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/reasonix-release-postflight.XXXXXX")"
+tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/tempora-release-postflight.XXXXXX")"
 cleanup() {
 	case "$tmp_dir" in
-	*/reasonix-release-postflight.*) rm -rf -- "$tmp_dir" ;;
+	*/tempora-release-postflight.*) rm -rf -- "$tmp_dir" ;;
 	*) echo "refusing to clean unexpected postflight directory: $tmp_dir" >&2 ;;
 	esac
 }
@@ -31,9 +31,9 @@ gh release view "$cli_tag" --repo "$repository" --json isDraft,isPrerelease,asse
 jq -e '
   .isDraft == false and .isPrerelease == false and
   ([.assets[].name] as $names |
-    ["SHA256SUMS", "reasonix-darwin-amd64.tar.gz", "reasonix-darwin-arm64.tar.gz",
-     "reasonix-linux-amd64.tar.gz", "reasonix-linux-arm64.tar.gz",
-     "reasonix-windows-amd64.zip", "reasonix-windows-arm64.zip"] |
+    ["SHA256SUMS", "tempora-darwin-amd64.tar.gz", "tempora-darwin-arm64.tar.gz",
+     "tempora-linux-amd64.tar.gz", "tempora-linux-arm64.tar.gz",
+     "tempora-windows-amd64.zip", "tempora-windows-arm64.zip"] |
     all(. as $required | $names | index($required)))
 ' "$tmp_dir/cli.json" >/dev/null
 
@@ -42,14 +42,14 @@ jq -e '
   .isDraft == false and .isPrerelease == false and
   ([.assets[].name] as $names |
     ($names | index("latest.json")) and
-    (["Reasonix-darwin-universal.dmg", "Reasonix-linux-amd64.deb",
-      "Reasonix-linux-amd64.tar.gz", "Reasonix-windows-amd64-installer.exe",
-      "Reasonix-windows-arm64-installer.exe"] |
+    (["Tempora-darwin-universal.dmg", "Tempora-linux-amd64.deb",
+      "Tempora-linux-amd64.tar.gz", "Tempora-windows-amd64-installer.exe",
+      "Tempora-windows-arm64-installer.exe"] |
      all(. as $required | ($names | index($required)) and ($names | index($required + ".minisig")))))
 ' "$tmp_dir/desktop.json" >/dev/null
 
 for attempt in $(seq 1 "$attempts"); do
-	latest="$(npm view reasonix dist-tags.latest 2>/dev/null || true)"
+	latest="$(npm view tempora dist-tags.latest 2>/dev/null || true)"
 	if [ "$latest" = "$version" ]; then
 		echo "stable release postflight OK: cli=$cli_tag desktop=$desktop_tag npm-latest=$latest"
 		exit 0

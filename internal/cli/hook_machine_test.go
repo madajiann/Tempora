@@ -8,20 +8,20 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/hook"
+	"tempora/internal/hook"
 )
 
 func TestHookMachineListRedactsCommandsAndEnablesProjectHooks(t *testing.T) {
 	root := t.TempDir()
 	home := t.TempDir()
-	projectSettings := filepath.Join(root, ".reasonix", "settings.json")
+	projectSettings := filepath.Join(root, ".tempora", "settings.json")
 	if err := os.MkdirAll(filepath.Dir(projectSettings), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(projectSettings, []byte(`{"hooks":{"PreToolUse":[{"match":"bash","command":"printf PRIVATE_COMMAND"}]}}`), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	globalSettings := filepath.Join(home, ".reasonix", "settings.json")
+	globalSettings := filepath.Join(home, ".tempora", "settings.json")
 	if err := os.MkdirAll(filepath.Dir(globalSettings), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -54,7 +54,7 @@ func TestHookMachineListRedactsCommandsAndEnablesProjectHooks(t *testing.T) {
 func TestHookMachineListReportsExecutability(t *testing.T) {
 	root := t.TempDir()
 	home := t.TempDir()
-	globalSettings := filepath.Join(home, ".reasonix", "settings.json")
+	globalSettings := filepath.Join(home, ".tempora", "settings.json")
 	if err := os.MkdirAll(filepath.Dir(globalSettings), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -142,13 +142,13 @@ func TestHookMachineStatusHasStableRedactedSources(t *testing.T) {
 }
 
 // TestHookMachineListFindsGlobalHooksWithoutHomeDir: with no --home-dir, the
-// hook machine resolves global hooks from the platform Reasonix home
-// (config.ReasonixHomeDir → settings.json), not a doubled .reasonix segment
-// (#7420). REASONIX_HOME is set explicitly so the resolved path is
+// hook machine resolves global hooks from the platform Tempora home
+// (config.TemporaHomeDir → settings.json), not a doubled .tempora segment
+// (#7420). TEMPORA_HOME is set explicitly so the resolved path is
 // deterministic regardless of the OS user-config lookup.
 func TestHookMachineListFindsGlobalHooksWithoutHomeDir(t *testing.T) {
 	home := t.TempDir()
-	t.Setenv("REASONIX_HOME", home)
+	t.Setenv("TEMPORA_HOME", home)
 	settingsPath := filepath.Join(home, "settings.json")
 	if err := os.MkdirAll(filepath.Dir(settingsPath), 0o755); err != nil {
 		t.Fatal(err)

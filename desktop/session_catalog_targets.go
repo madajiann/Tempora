@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"reasonix/internal/config"
-	"reasonix/internal/sessioncatalog"
+	"tempora/internal/config"
+	"tempora/internal/sessioncatalog"
 )
 
 func (a *App) sessionCatalogTargets() []sessioncatalog.DirectoryTarget {

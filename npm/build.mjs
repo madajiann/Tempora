@@ -39,9 +39,9 @@ mkdirSync(STAGE, { recursive: true });
 
 const subPackages = [];
 for (const t of TARGETS) {
-  const name = `@reasonix/cli-${t.node}`;
+  const name = `@tempora/cli-${t.node}`;
   const dir = join(STAGE, `cli-${t.node}`);
-  const exe = t.goos === "windows" ? "reasonix.exe" : "reasonix";
+  const exe = t.goos === "windows" ? "tempora.exe" : "tempora";
   mkdirSync(join(dir, "bin"), { recursive: true });
 
   console.log(`build ${t.goos}/${t.goarch} -> ${name}`);
@@ -51,10 +51,10 @@ for (const t of TARGETS) {
       "build",
       "-trimpath",
       "-ldflags",
-      `-s -w -X main.version=${binaryVersion} -X main.gitCommit=${gitCommit} -X main.buildTimeUTC=${buildTimeUTC} -X reasonix/internal/productdocs.linkedVersion=${binaryVersion} -X reasonix/internal/productdocs.linkedRevision=${candidateSha}`,
+      `-s -w -X main.version=${binaryVersion} -X main.gitCommit=${gitCommit} -X main.buildTimeUTC=${buildTimeUTC} -X tempora/internal/productdocs.linkedVersion=${binaryVersion} -X tempora/internal/productdocs.linkedRevision=${candidateSha}`,
       "-o",
       join(dir, "bin", exe),
-      "./cmd/reasonix",
+      "./cmd/tempora",
     ],
     {
       cwd: ROOT,
@@ -69,16 +69,16 @@ for (const t of TARGETS) {
       {
         name,
         version,
-        description: `reasonix prebuilt binary for ${t.node}.`,
+        description: `tempora prebuilt binary for ${t.node}.`,
         os: [t.goos === "windows" ? "win32" : t.goos],
         cpu: [t.goarch === "amd64" ? "x64" : "arm64"],
         files: ["bin/"],
         license: "MIT",
         repository: {
           type: "git",
-          url: "git+https://github.com/esengine/DeepSeek-Reasonix.git",
+          url: "git+https://github.com/tempora-dev/Tempora.git",
         },
-        reasonixCandidateSha: candidateSha,
+        temporaCandidateSha: candidateSha,
       },
       null,
       2,
@@ -87,16 +87,16 @@ for (const t of TARGETS) {
   subPackages.push({ name, dir });
 }
 
-const mainDir = join(STAGE, "reasonix");
+const mainDir = join(STAGE, "tempora");
 mkdirSync(mainDir, { recursive: true });
-cpSync(join(HERE, "reasonix", "bin"), join(mainDir, "bin"), { recursive: true });
+cpSync(join(HERE, "tempora", "bin"), join(mainDir, "bin"), { recursive: true });
 cpSync(join(ROOT, "README.md"), join(mainDir, "README.md"));
 
 const mainPkg = JSON.parse(
-  readFileSync(join(HERE, "reasonix", "package.json"), "utf8"),
+  readFileSync(join(HERE, "tempora", "package.json"), "utf8"),
 );
 mainPkg.version = version;
-mainPkg.reasonixCandidateSha = candidateSha;
+mainPkg.temporaCandidateSha = candidateSha;
 for (const key of Object.keys(mainPkg.optionalDependencies)) {
   mainPkg.optionalDependencies[key] = version;
 }
@@ -114,7 +114,7 @@ if (!publish) {
 // reuses packages that already prove the same candidate SHA, fills only missing
 // packages, and never moves latest/next/canary back to an older version.
 publishPackages({
-  packages: [...subPackages, { name: "reasonix", dir: mainDir }],
+  packages: [...subPackages, { name: "tempora", dir: mainDir }],
   version,
   candidateSha,
 });

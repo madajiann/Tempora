@@ -3,7 +3,7 @@ package control
 import (
 	"testing"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func TestInterruptedRecoveryPrefersLedgerBarrierOverPlaceholder(t *testing.T) {

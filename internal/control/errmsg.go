@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/i18n"
-	"reasonix/internal/provider"
-	"reasonix/internal/secrets"
-	"reasonix/internal/turnevent"
+	"tempora/internal/i18n"
+	"tempora/internal/provider"
+	"tempora/internal/secrets"
+	"tempora/internal/turnevent"
 )
 
 // explainError maps a provider HTTP failure to an actionable, localized message
@@ -33,10 +33,10 @@ func explainError(err error) error {
 		return &explainedError{msg: explainRecoveryWait(wait), cause: err}
 	}
 	if provider.IsStreamInterrupted(err) {
-		return &explainedError{msg: fmt.Sprintf("model stream interrupted after recovery attempts: %s. The partial response was kept; retry or ask Reasonix to continue", err.Error()), cause: err}
+		return &explainedError{msg: fmt.Sprintf("model stream interrupted after recovery attempts: %s. The partial response was kept; retry or ask Tempora to continue", err.Error()), cause: err}
 	}
 	if provider.IsConnReset(err) {
-		return &explainedError{msg: fmt.Sprintf("model stream disconnected before completion after retry attempts: %s. Check the provider/proxy connection, then retry or ask Reasonix to continue", err.Error()), cause: err}
+		return &explainedError{msg: fmt.Sprintf("model stream disconnected before completion after retry attempts: %s. Check the provider/proxy connection, then retry or ask Tempora to continue", err.Error()), cause: err}
 	}
 	// An overflow without token numbers has nothing to quote; the generic 400
 	// branch below keeps the provider's own reason instead of zeros.

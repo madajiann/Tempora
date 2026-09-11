@@ -12,10 +12,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/provider"
-	"reasonix/internal/textutil"
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/provider"
+	"tempora/internal/textutil"
+	"tempora/internal/tool"
 )
 
 // list_sessions tool

@@ -29,7 +29,7 @@ func planShortcutRepair(target, icon, id, root string, versioned bool) shortcutR
 	if id != AppUserModelID {
 		plan.identity = AppUserModelID
 	}
-	launcher := filepath.Join(root, "reasonix-launcher.exe")
+	launcher := filepath.Join(root, "tempora-launcher.exe")
 	info, err := os.Lstat(launcher)
 	if err != nil || !info.Mode().IsRegular() || classifyShortcutTarget(launcher, root) != stableShortcutTarget {
 		return plan
@@ -81,20 +81,20 @@ func classifyShortcutTarget(target, root string) shortcutTargetKind {
 	parts := strings.Split(strings.ToLower(rel), string(filepath.Separator))
 	if len(parts) == 1 {
 		switch parts[0] {
-		case "reasonix-launcher.exe", "reasonix.exe":
+		case "tempora-launcher.exe", "tempora.exe":
 			return stableShortcutTarget
-		case "reasonix-desktop.exe":
+		case "tempora-desktop.exe":
 			return flatShortcutTarget
 		}
 	}
-	if len(parts) == 2 && parts[0] == "app" && parts[1] == "reasonix.exe" {
+	if len(parts) == 2 && parts[0] == "app" && parts[1] == "tempora.exe" {
 		return flatShellShortcutTarget
 	}
 	if len(parts) >= 3 && parts[0] == "versions" {
-		if len(parts) == 3 && parts[2] == "reasonix-desktop.exe" {
+		if len(parts) == 3 && parts[2] == "tempora-desktop.exe" {
 			return versionedShortcutTarget
 		}
-		if len(parts) == 4 && parts[2] == "app" && parts[3] == "reasonix.exe" {
+		if len(parts) == 4 && parts[2] == "app" && parts[3] == "tempora.exe" {
 			return versionedShortcutTarget
 		}
 	}

@@ -5,10 +5,10 @@ import (
 	"errors"
 	"path/filepath"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/provider"
-	"reasonix/internal/transcript"
-	"reasonix/internal/turnevent"
+	"tempora/internal/agent"
+	"tempora/internal/provider"
+	"tempora/internal/transcript"
+	"tempora/internal/turnevent"
 )
 
 func (c *Controller) restoreTranscriptProjection(sessionPath string, ledger *turnevent.Ledger) (*transcript.Projection, error) {

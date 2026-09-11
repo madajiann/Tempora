@@ -1,6 +1,6 @@
 package trajectory
 
-import "reasonix/internal/event"
+import "tempora/internal/event"
 
 func (r *Recorder) RuntimeStateChanged(snapshot event.RuntimeStateSnapshot) {
 	if r != nil {

@@ -3,9 +3,9 @@
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import sharp from 'sharp';
 
-const repo = 'esengine/DeepSeek-Reasonix';
+const repo = 'tempora-dev/Tempora';
 const api = `https://api.github.com/repos/${repo}`;
-const headers = { 'User-Agent': 'reasonix-site', Accept: 'application/vnd.github+json' };
+const headers = { 'User-Agent': 'tempora-site', Accept: 'application/vnd.github+json' };
 if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
 
 const fallback = JSON.parse(await readFile('src/data/contributors.json', 'utf8'));

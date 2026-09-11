@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	mergeCommitterName  = "Reasonix"
-	mergeCommitterEmail = "reasonix@local"
+	mergeCommitterName  = "Tempora"
+	mergeCommitterEmail = "tempora@local"
 )
 
 type sourceMutationFence struct {
@@ -162,7 +162,7 @@ func createDetachedRefTransactionDir(ctx context.Context, sourceRoot string) (st
 		commonDir = filepath.Join(sourceRoot, commonDir)
 	}
 	commonDir = filepath.Clean(commonDir)
-	transactionDir, err := os.MkdirTemp("", "reasonix-ref-transaction-")
+	transactionDir, err := os.MkdirTemp("", "tempora-ref-transaction-")
 	if err != nil {
 		return "", fmt.Errorf("create detached ref transaction directory: %w", err)
 	}
@@ -177,7 +177,7 @@ func createDetachedRefTransactionDir(ctx context.Context, sourceRoot string) (st
 		_ = removeDetachedRefTransactionDir(transactionDir)
 		return "", err
 	}
-	if err := write("HEAD", "ref: refs/reasonix/merge-back-ref-transaction\n"); err != nil {
+	if err := write("HEAD", "ref: refs/tempora/merge-back-ref-transaction\n"); err != nil {
 		_ = removeDetachedRefTransactionDir(transactionDir)
 		return "", err
 	}

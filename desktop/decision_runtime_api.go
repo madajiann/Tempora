@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/event"
 )
 
 // PromptAnswerView is the Wails-safe union for all interactive cards.

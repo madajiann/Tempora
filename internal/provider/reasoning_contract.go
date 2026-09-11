@@ -4,7 +4,7 @@ import (
 	"slices"
 	"strings"
 
-	"reasonix/internal/nilutil"
+	"tempora/internal/nilutil"
 )
 
 // ReasoningState distinguishes observed empty output from absent and unsafe output.

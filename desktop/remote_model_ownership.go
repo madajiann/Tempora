@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 type credentialProxyOwnership struct {

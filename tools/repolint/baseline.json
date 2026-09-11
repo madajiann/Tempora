@@ -16,10 +16,10 @@
     "cmd/e2ebench/main.go": {
       "essay": 1
     },
-    "cmd/reasonix-legacy-migrator/main.go": {
+    "cmd/tempora-legacy-migrator/main.go": {
       "essay": 1
     },
-    "cmd/reasonix-plugin-example/main.go": {
+    "cmd/tempora-plugin-example/main.go": {
       "essay": 19
     },
     "desktop/app.go": {

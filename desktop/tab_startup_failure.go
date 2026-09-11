@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 type startupFailureRestorePolicy uint8

@@ -9,9 +9,9 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/jobs"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/jobs"
 )
 
 func postRuntimeJSON(t *testing.T, url, body string) *http.Response {

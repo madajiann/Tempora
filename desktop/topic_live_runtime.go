@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/sessioncatalog"
+	"tempora/internal/sessioncatalog"
 )
 
 // preferLiveSessionPath chooses which session a topic row should open.

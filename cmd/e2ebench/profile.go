@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/ablation"
+	"tempora/internal/ablation"
 )
 
 // experimentAxes is the validated set of fixed axes one suite invocation runs

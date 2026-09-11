@@ -3,12 +3,12 @@ import assert from "node:assert/strict";
 import { downloadPaneFromURL, downloadURLForPane, releaseChannelFromURL } from "./download-link.js";
 
 test("desktop updater deep link selects the desktop pane", () => {
-  assert.equal(downloadPaneFromURL("https://reasonix.io/?download=desktop#start"), "desktop");
+  assert.equal(downloadPaneFromURL("https://tempora.io/?download=desktop#start"), "desktop");
 });
 
 test("plain install links preserve the default pane", () => {
-  assert.equal(downloadPaneFromURL("https://reasonix.io/#start"), "");
-  assert.equal(downloadPaneFromURL("https://reasonix.io/?download=desktop"), "");
+  assert.equal(downloadPaneFromURL("https://tempora.io/#start"), "");
+  assert.equal(downloadPaneFromURL("https://tempora.io/?download=desktop"), "");
 });
 
 test("recognized download panes are strict", () => {
@@ -29,14 +29,14 @@ test("legacy release channel deep links never select a public channel", () => {
 
 test("download tab navigation keeps the pane and removes legacy channels", () => {
   assert.equal(
-    downloadURLForPane("https://reasonix.io/?download=desktop&channel=preview#start", "cli", "stable"),
-    "https://reasonix.io/?download=cli#start",
+    downloadURLForPane("https://tempora.io/?download=desktop&channel=preview#start", "cli", "stable"),
+    "https://tempora.io/?download=cli#start",
   );
   assert.equal(
-    downloadURLForPane("https://reasonix.io/?download=desktop&channel=preview#start", "npm", "preview"),
-    "https://reasonix.io/?download=npm#start",
+    downloadURLForPane("https://tempora.io/?download=desktop&channel=preview#start", "npm", "preview"),
+    "https://tempora.io/?download=npm#start",
   );
-  assert.equal(downloadURLForPane("https://reasonix.io/", "desktop", "preview"),
-    "https://reasonix.io/?download=desktop#start");
-  assert.equal(downloadURLForPane("https://reasonix.io/", "unknown", "stable"), "");
+  assert.equal(downloadURLForPane("https://tempora.io/", "desktop", "preview"),
+    "https://tempora.io/?download=desktop#start");
+  assert.equal(downloadURLForPane("https://tempora.io/", "unknown", "stable"), "");
 });

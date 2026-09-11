@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"testing"
 
-	"reasonix/internal/agent/testutil"
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/agent/testutil"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 
-	_ "reasonix/internal/tool/builtin"
+	_ "tempora/internal/tool/builtin"
 )
 
 // stalledTodoTurns drives a todo that never advances: the first unique read

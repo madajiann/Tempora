@@ -7,10 +7,10 @@ import (
 	"sort"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/sessioncatalog"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/sessioncatalog"
 )
 
 // Recovery-copy count sweep (#8525/#8750/#9109). Catalog v4 folds recovery

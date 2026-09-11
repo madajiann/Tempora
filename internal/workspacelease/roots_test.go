@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/filelock"
+	"tempora/internal/filelock"
 )
 
 func collidingRootOwners(t *testing.T) (string, *Owner, *Owner) {

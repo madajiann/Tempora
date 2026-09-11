@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/fileutil"
-	"reasonix/internal/provider"
-	"reasonix/internal/store"
+	"tempora/internal/fileutil"
+	"tempora/internal/provider"
+	"tempora/internal/store"
 )
 
 // Context-projection schema versions. Readers accept any known version;

@@ -2,16 +2,16 @@
 
 Acceptance-run evidence for the resource/performance rows of the phase F gate
 in `docs/DESKTOP_SHELL_MIGRATION.md`. Everything below was measured on the
-**packaged** macOS artifact `dist/Reasonix-darwin-arm64.zip`
+**packaged** macOS artifact `dist/Tempora-darwin-arm64.zip`
 (candidate SHA `650e01e31`, zip 191.7 MiB, unpacked `.app` 489 MB,
-`com.wails.reasonix-desktop`, arm64), same machine as the Wails baseline
+`com.wails.tempora-desktop`, arm64), same machine as the Wails baseline
 (macOS 26.6.2, Apple silicon), 2026-09-09. Raw JSON evidence sits beside this
 file.
 
 Method, per the plan: `scripts/desktop-shell-metrics.sh` for startup/idle (3
-runs, fresh disposable data home, `REASONIX_DEV=1`, full process tree via the
+runs, fresh disposable data home, `TEMPORA_DEV=1`, full process tree via the
 script's ps family sum); a Playwright harness driving the packaged app through
-`window.reasonixDesktop` for tab/session cycles (same ps tree method plus
+`window.temporaDesktop` for tab/session cycles (same ps tree method plus
 main-process `webContents.getAllWebContents()`, per-WebContents listener
 totals and `process._getActiveHandles()`); `desktop/frontend/bench/run.mjs`
 (`pnpm test:bench`, the harness the baseline README designates for interaction
@@ -26,7 +26,7 @@ latency) for session-switch/input p95.
 | Process-tree RSS, healthy + 2 s | 389 MiB | 665 MiB | 672 MiB | +283 MiB |
 | Process-tree RSS, healthy + 10 s | 385 MiB | 669 MiB | 673 MiB | +288 MiB |
 | Process-tree RSS, healthy + 30 s | 412 MiB | 698 MiB | 660 MiB | +248 MiB |
-| Processes in the tree | 4 | 5 | 5 (Reasonix, Reasonix Helper ×2 (GPU/utility + Renderer), reasonix-desktop) | +1 |
+| Processes in the tree | 4 | 5 | 5 (Tempora, Tempora Helper ×2 (GPU/utility + Renderer), tempora-desktop) | +1 |
 | SIGTERM honoured | no (SIGKILL needed) | yes (247 ms) | yes (239–252 ms, 3/3 clean) | improved |
 
 Run 1 carries first-launch cost for the unpacked copy (ready 3901 ms, healthy
@@ -114,8 +114,8 @@ per the plan.
 
 Two sampling artifacts in the raw JSON, corrected in the table above:
 transient 0-MiB zombie helpers caught mid-reap after each activity cycle
-(`comm` shows as `2026 (Reasonix Helper` — the harness's ps column split is
-off by one token), and an unrelated external `reasonix` CLI process from
+(`comm` shows as `2026 (Tempora Helper` — the harness's ps column split is
+off by one token), and an unrelated external `tempora` CLI process from
 other work on this machine that the name-family filter picked up in the
 minute-30+ samples (different pid each sample). Neither belongs to the
 measured app's process tree; the descendant-only tree was 10 processes at

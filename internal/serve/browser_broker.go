@@ -11,13 +11,13 @@ import (
 	"strings"
 	"sync"
 
-	"reasonix/internal/browser"
+	"tempora/internal/browser"
 )
 
 // Capability tokens advertised on the /auth/token handshake reply so a
 // desktop can tell what this serve supports without a second round trip.
 const (
-	capabilitiesHeader = "X-Reasonix-Serve-Capabilities"
+	capabilitiesHeader = "X-Tempora-Serve-Capabilities"
 	capabilityBrowser  = "browser"
 )
 

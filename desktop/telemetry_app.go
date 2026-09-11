@@ -13,16 +13,16 @@ import (
 	"runtime"
 	"time"
 
-	"reasonix/internal/config"
-	"reasonix/internal/filelock"
-	"reasonix/internal/fileutil"
+	"tempora/internal/config"
+	"tempora/internal/filelock"
+	"tempora/internal/fileutil"
 )
 
 // telemetry_app.go is the anonymous launch ping: one POST per app start carrying a
 // random install id, version, and OS facts — never conversation, key, or file data.
 // Gated on config desktop.telemetry (default on) and skipped entirely in dev builds.
 
-var pingEndpoint = "https://crash.reasonix.io/v1/ping"
+var pingEndpoint = "https://crash.tempora.io/v1/ping"
 
 // desktopRendererEngine is the one renderer the desktop ships now: the
 // Electron shell's Chromium. Kept as a telemetry dimension so dashboards do

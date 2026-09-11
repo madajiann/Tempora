@@ -7,11 +7,11 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/boot"
-	"reasonix/internal/browser"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
+	"tempora/internal/agent"
+	"tempora/internal/boot"
+	"tempora/internal/browser"
+	"tempora/internal/config"
+	"tempora/internal/control"
 )
 
 // brokerTestExecutor records the session header each call arrived with.

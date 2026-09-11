@@ -3,7 +3,7 @@ package agent
 import (
 	"testing"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 func TestIntersectToolLists(t *testing.T) {

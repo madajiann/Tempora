@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 func TestEditUserConfigIfChangedPropagatesLockFailureBeforeNoOp(t *testing.T) {

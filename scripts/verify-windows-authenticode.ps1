@@ -14,12 +14,12 @@ param(
 $ErrorActionPreference = "Stop"
 
 $expectedPayload = @(
-    "reasonix-desktop.exe",
-    "reasonix-guard.exe",
-    "reasonix-launcher.exe",
-    "reasonix-update-helper.exe",
-    "reasonix-cli.exe",
-    "reasonix-uninstall.exe"
+    "tempora-desktop.exe",
+    "tempora-guard.exe",
+    "tempora-launcher.exe",
+    "tempora-update-helper.exe",
+    "tempora-cli.exe",
+    "tempora-uninstall.exe"
 )
 
 function Assert-AuthenticodeSignature {
@@ -62,8 +62,8 @@ foreach ($name in $expectedPayload) {
         throw "Payload signing list does not cover $name"
     }
 }
-if ($signingFiles -notcontains "app/Reasonix.exe") {
-    throw "Payload signing list does not cover the Electron shell app/Reasonix.exe"
+if ($signingFiles -notcontains "app/Tempora.exe") {
+    throw "Payload signing list does not cover the Electron shell app/Tempora.exe"
 }
 
 $payloadFiles = @(Get-ChildItem -LiteralPath $PayloadDirectory -File -Filter "*.exe")
@@ -75,7 +75,7 @@ foreach ($entry in $signingFiles) {
 }
 Assert-AuthenticodeSignature -Path $InstallerPath
 
-$extractRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("reasonix-authenticode-" + [guid]::NewGuid().ToString("N"))
+$extractRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("tempora-authenticode-" + [guid]::NewGuid().ToString("N"))
 try {
     Expand-Archive -LiteralPath $PortableArchivePath -DestinationPath $extractRoot
 
@@ -110,12 +110,12 @@ try {
     # Root/versioned executables mapped back to their payload source; every PE
     # file under the versioned app/ tree is verified from signing-files.txt.
     $portableSources = @(
-        [pscustomobject]@{ Portable = "reasonix-launcher.exe"; Payload = "reasonix-launcher.exe" },
-        [pscustomobject]@{ Portable = "Reasonix.exe"; Payload = "reasonix-launcher.exe" },
-        [pscustomobject]@{ Portable = "reasonix-cli.exe"; Payload = "reasonix-cli.exe" },
-        [pscustomobject]@{ Portable = (Join-Path $activeDir "reasonix-desktop.exe"); Payload = "reasonix-desktop.exe" },
-        [pscustomobject]@{ Portable = (Join-Path $activeDir "reasonix-update-helper.exe"); Payload = "reasonix-update-helper.exe" },
-        [pscustomobject]@{ Portable = (Join-Path $activeDir "reasonix-cli.exe"); Payload = "reasonix-cli.exe" }
+        [pscustomobject]@{ Portable = "tempora-launcher.exe"; Payload = "tempora-launcher.exe" },
+        [pscustomobject]@{ Portable = "Tempora.exe"; Payload = "tempora-launcher.exe" },
+        [pscustomobject]@{ Portable = "tempora-cli.exe"; Payload = "tempora-cli.exe" },
+        [pscustomobject]@{ Portable = (Join-Path $activeDir "tempora-desktop.exe"); Payload = "tempora-desktop.exe" },
+        [pscustomobject]@{ Portable = (Join-Path $activeDir "tempora-update-helper.exe"); Payload = "tempora-update-helper.exe" },
+        [pscustomobject]@{ Portable = (Join-Path $activeDir "tempora-cli.exe"); Payload = "tempora-cli.exe" }
     )
     foreach ($entry in ($signingFiles | Where-Object { $_ -like "app/*" })) {
         $portableSources += [pscustomobject]@{

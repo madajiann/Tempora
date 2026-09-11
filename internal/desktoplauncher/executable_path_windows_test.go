@@ -11,7 +11,7 @@ import (
 
 func TestResolveInstallRootThroughDirectoryJunction(t *testing.T) {
 	root := t.TempDir()
-	launcher := filepath.Join(root, "reasonix-launcher.exe")
+	launcher := filepath.Join(root, "tempora-launcher.exe")
 	if err := os.WriteFile(launcher, []byte("launcher"), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -22,7 +22,7 @@ func TestResolveInstallRootThroughDirectoryJunction(t *testing.T) {
 		t.Fatalf("create directory junction: %v: %s", err, output)
 	}
 
-	got, err := resolveInstallRoot(filepath.Join(junction, "reasonix-launcher.exe"))
+	got, err := resolveInstallRoot(filepath.Join(junction, "tempora-launcher.exe"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,10 +45,10 @@ func TestNormalizeFinalWindowsPath(t *testing.T) {
 		path string
 		want string
 	}{
-		{name: "drive", path: `\\?\C:\Apps\Reasonix`, want: `C:\Apps\Reasonix`},
-		{name: "UNC", path: `\\?\UNC\server\share\Reasonix`, want: `\\server\share\Reasonix`},
-		{name: "volume GUID", path: `\\?\Volume{abc}\Reasonix`, want: `\\?\Volume{abc}\Reasonix`},
-		{name: "ordinary", path: `C:\Apps\Reasonix`, want: `C:\Apps\Reasonix`},
+		{name: "drive", path: `\\?\C:\Apps\Tempora`, want: `C:\Apps\Tempora`},
+		{name: "UNC", path: `\\?\UNC\server\share\Tempora`, want: `\\server\share\Tempora`},
+		{name: "volume GUID", path: `\\?\Volume{abc}\Tempora`, want: `\\?\Volume{abc}\Tempora`},
+		{name: "ordinary", path: `C:\Apps\Tempora`, want: `C:\Apps\Tempora`},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

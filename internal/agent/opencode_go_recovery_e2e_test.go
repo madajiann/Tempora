@@ -10,9 +10,9 @@ import (
 	"sync"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/provider/anthropic"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/provider/anthropic"
 )
 
 const missingReasoningToolSSE = `data: {"type":"message_start","message":{"usage":{"input_tokens":10}}}

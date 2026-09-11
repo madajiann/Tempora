@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/history"
-	"reasonix/internal/sessioncatalog"
-	"reasonix/internal/stats"
-	"reasonix/internal/taskcatalog"
+	"tempora/internal/agent"
+	"tempora/internal/history"
+	"tempora/internal/sessioncatalog"
+	"tempora/internal/stats"
+	"tempora/internal/taskcatalog"
 )
 
 const sessionCatalogMetadataSyncTimeout = 30 * time.Second

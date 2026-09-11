@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/plugin"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/plugin"
 )
 
 func TestRemoveMCPServerReconcilesOAuthState(t *testing.T) {
@@ -26,10 +26,10 @@ func TestRemoveMCPServerReconcilesOAuthState(t *testing.T) {
 				}
 			}
 			project := fmt.Sprintf("[[plugins]]\nname = %q\ntype = \"http\"\nurl = %q\n", name, resource)
-			if err := os.WriteFile(filepath.Join(root, "reasonix.toml"), []byte(project), 0o644); err != nil {
+			if err := os.WriteFile(filepath.Join(root, "tempora.toml"), []byte(project), 0o644); err != nil {
 				t.Fatal(err)
 			}
-			stateDir := plugin.MCPStateDir(config.ReasonixHomeDir(), root, name)
+			stateDir := plugin.MCPStateDir(config.TemporaHomeDir(), root, name)
 			if err := os.MkdirAll(stateDir, 0o700); err != nil {
 				t.Fatal(err)
 			}
@@ -59,11 +59,11 @@ func TestRemoveMCPServerReconcilesOAuthStateAcrossWorkspaceRuntimes(t *testing.T
 	name, resource := "shared", "https://mcp.example.test/mcp"
 	t.Chdir(activeRoot)
 	project := fmt.Sprintf("[[plugins]]\nname = %q\ntype = \"http\"\nurl = %q\n", name, resource)
-	if err := os.WriteFile(filepath.Join(activeRoot, "reasonix.toml"), []byte(project), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(activeRoot, "tempora.toml"), []byte(project), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	for _, root := range []string{activeRoot, otherRoot} {
-		stateDir := plugin.MCPStateDir(config.ReasonixHomeDir(), root, name)
+		stateDir := plugin.MCPStateDir(config.TemporaHomeDir(), root, name)
 		if err := os.MkdirAll(stateDir, 0o700); err != nil {
 			t.Fatal(err)
 		}
@@ -83,7 +83,7 @@ func TestRemoveMCPServerReconcilesOAuthStateAcrossWorkspaceRuntimes(t *testing.T
 		t.Fatal(err)
 	}
 	for _, root := range []string{activeRoot, otherRoot} {
-		statePath := filepath.Join(plugin.MCPStateDir(config.ReasonixHomeDir(), root, name), "oauth.json")
+		statePath := filepath.Join(plugin.MCPStateDir(config.TemporaHomeDir(), root, name), "oauth.json")
 		if _, err := os.Stat(statePath); !errors.Is(err, os.ErrNotExist) {
 			t.Fatalf("OAuth state for workspace %q still exists: %v", root, err)
 		}

@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"reasonix/internal/config"
-	"reasonix/internal/fileutil"
+	"tempora/internal/config"
+	"tempora/internal/fileutil"
 )
 
 // DesktopZoomFactor persists the user's zoom factor preference across

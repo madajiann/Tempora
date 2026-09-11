@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 func TestRemoteTabReconnectDoesNotLogEnsureServerSecrets(t *testing.T) {
@@ -637,7 +637,7 @@ func TestRemoteTabNewSessionResetsServeSession(t *testing.T) {
 // adopts the new title immediately; clearing falls back to the serve title.
 func TestRenameRemoteProjectSession(t *testing.T) {
 	home := t.TempDir()
-	t.Setenv("REASONIX_HOME", home)
+	t.Setenv("TEMPORA_HOME", home)
 	t.Setenv("HOME", home)
 	if err := editUserConfig(func(c *config.Config) error {
 		return c.UpsertRemoteHost(config.RemoteHostEntry{Name: "box", Host: "127.0.0.1", Port: 22, User: "dev"})
@@ -702,7 +702,7 @@ func TestRenameRemoteProjectSession(t *testing.T) {
 // row pin (pinned-first listing) and the registry-backed project rename.
 func TestRemoteSessionPinnedOrderingAndProjectTitle(t *testing.T) {
 	home := t.TempDir()
-	t.Setenv("REASONIX_HOME", home)
+	t.Setenv("TEMPORA_HOME", home)
 	t.Setenv("HOME", home)
 	if err := editUserConfig(func(c *config.Config) error {
 		return c.UpsertRemoteHost(config.RemoteHostEntry{Name: "box", Host: "127.0.0.1", Port: 22, User: "dev"})

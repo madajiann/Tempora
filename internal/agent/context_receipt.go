@@ -7,8 +7,8 @@ import (
 	"log/slog"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 func (a *Agent) contextMaintenanceInputHash(visible []provider.Message) string {

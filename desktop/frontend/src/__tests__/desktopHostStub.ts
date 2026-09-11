@@ -1,12 +1,12 @@
 // installDesktopHostStub installs a fake Electron preload host on
-// window.reasonixDesktop so tests exercise the real desktopHost() path instead
+// window.temporaDesktop so tests exercise the real desktopHost() path instead
 // of the browser mock. Commands is a plain method table: the stub routes
 // host.invoke through it, and mutating the table between calls is observed
 // immediately (mirroring how the retired window.go seam behaved).
 import type { AppBindings } from "../lib/bridge";
 import type { NativePerformanceActions, ProcessDiagnosticsSnapshot } from "../lib/processDiagnostics";
 import type { DesktopBrowserHost } from "../lib/browserHost";
-import type { BrowserControlApi, BrowserControlState, ChromeImportOutcome, ReasonixDesktopHost } from "../lib/desktopHost";
+import type { BrowserControlApi, BrowserControlState, ChromeImportOutcome, TemporaDesktopHost } from "../lib/desktopHost";
 
 export interface DesktopHostStubOptions {
   performance?: NativePerformanceActions;
@@ -77,7 +77,7 @@ export interface DesktopHostStub {
 export function installDesktopHostStub(commands: object, options: DesktopHostStubOptions = {}): DesktopHostStub {
   const ref = { current: commands as Record<string, unknown> };
   const events = new Map<string, Set<(...data: unknown[]) => void>>();
-  const host: ReasonixDesktopHost = {
+  const host: TemporaDesktopHost = {
     kind: "electron",
     contract: {
       protocolVersion: 1,
@@ -149,8 +149,8 @@ export function installDesktopHostStub(commands: object, options: DesktopHostStu
     },
     browser: undefined as unknown as DesktopBrowserHost,
   };
-  const previous = window.reasonixDesktop;
-  window.reasonixDesktop = host;
+  const previous = window.temporaDesktop;
+  window.temporaDesktop = host;
   return {
     get commands() {
       return ref.current;
@@ -163,7 +163,7 @@ export function installDesktopHostStub(commands: object, options: DesktopHostStu
       ref.current = next as Record<string, unknown>;
     },
     uninstall() {
-      window.reasonixDesktop = previous;
+      window.temporaDesktop = previous;
     },
   };
 }

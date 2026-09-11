@@ -4,7 +4,7 @@ import (
 	"os"
 	"sort"
 
-	"reasonix/internal/sessioncatalog"
+	"tempora/internal/sessioncatalog"
 )
 
 type catalogWorkspaceAvailability struct {

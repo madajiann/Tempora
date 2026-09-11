@@ -7,9 +7,9 @@ import (
 	"slices"
 	"strings"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/evidence"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 // citedSourceToken reads the optional host source handle a writer passed. It is

@@ -11,11 +11,11 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/runtimepolicy"
-	"reasonix/internal/tool"
-	"reasonix/internal/workspacelease"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/runtimepolicy"
+	"tempora/internal/tool"
+	"tempora/internal/workspacelease"
 )
 
 func TestParallelTasksToolIsReadOnly(t *testing.T) {

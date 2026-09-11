@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/transcript"
+	"tempora/internal/transcript"
 )
 
 func remoteTranscriptFixture(server *httptest.Server) (*App, *remoteTab) {

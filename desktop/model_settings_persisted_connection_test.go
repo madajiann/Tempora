@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 func TestModelSettingsCredentialRefreshPersistsSelectedConnection(t *testing.T) {

@@ -3,7 +3,7 @@ package agent
 import (
 	"context"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 type inputMessageOriginKey struct{}

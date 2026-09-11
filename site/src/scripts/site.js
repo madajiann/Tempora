@@ -10,7 +10,7 @@ import {
 import { initTheme } from "./theme.js";
 import { initMobileNav } from "./mobile-nav.js";
 
-// Reasonix site — vanilla interactions
+// Tempora site — vanilla interactions
 (function () {
   initTheme();
   initMobileNav();
@@ -157,7 +157,7 @@ import { initMobileNav } from "./mobile-nav.js";
   });
 
   /* language switch */
-  const LANG_KEY = "reasonix-lang";
+  const LANG_KEY = "tempora-lang";
   const langBtns = Array.from(document.querySelectorAll(".lang-switch button"));
   const setLang = (l, alignHash) => {
     document.body.dataset.lang = l;
@@ -293,8 +293,8 @@ import { initMobileNav } from "./mobile-nav.js";
   if (requestedPane) reflectPaneURL(requestedPane);
 
   fetchFirstJSON([
-    "https://dl.reasonix.io/latest/latest.json",
-    "https://crash.reasonix.io/v1/desktop/releases/stable/latest.json",
+    "https://dl.tempora.io/latest/latest.json",
+    "https://crash.tempora.io/v1/desktop/releases/stable/latest.json",
   ], fetch, (manifest) => Boolean(desktopReleaseModel(manifest)))
     .then((manifest) => desktopReleaseModel(manifest))
     .catch(() => fetchFirstJSON(
@@ -317,7 +317,7 @@ import { initMobileNav } from "./mobile-nav.js";
     return githubCLIReleases;
   };
   fetchFirstJSON(
-    ["https://crash.reasonix.io/v1/cli/releases/stable/latest.json"],
+    ["https://crash.tempora.io/v1/cli/releases/stable/latest.json"],
     fetch,
     (payload) => Boolean(cliReleaseModel(Array.isArray(payload) ? payload : [payload])),
   )

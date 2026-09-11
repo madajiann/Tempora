@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/topicstate"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/topicstate"
 )
 
 func (m *topicStateManager) openTopicStoreWithRecovery(ctx context.Context, scope *topicStateScope) (*topicstate.Store, error) {

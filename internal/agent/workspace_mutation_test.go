@@ -9,14 +9,14 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/checkpoint"
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/extension"
-	"reasonix/internal/extension/dispatch"
-	"reasonix/internal/extension/protocol"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/checkpoint"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/extension"
+	"tempora/internal/extension/dispatch"
+	"tempora/internal/extension/protocol"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 func TestObservedFileChangePromotesRepositoryOnlyReceiptToContentMutation(t *testing.T) {

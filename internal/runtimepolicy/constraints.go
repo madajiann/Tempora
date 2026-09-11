@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"strings"
 
-	"reasonix/internal/shellparse"
-	"reasonix/internal/taskcontract"
+	"tempora/internal/shellparse"
+	"tempora/internal/taskcontract"
 )
 
 // Constraints are explicit user or host limits. They never encode task

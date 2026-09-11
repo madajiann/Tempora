@@ -4,18 +4,18 @@ import (
 	"strings"
 	"sync"
 
-	"reasonix/internal/checkpoint"
-	"reasonix/internal/diff"
-	"reasonix/internal/event"
-	"reasonix/internal/extension/dispatch"
-	"reasonix/internal/jobs"
-	"reasonix/internal/mcpinteraction"
-	"reasonix/internal/memory"
-	"reasonix/internal/provider"
-	"reasonix/internal/sandbox"
-	"reasonix/internal/sessiontemp"
-	"reasonix/internal/tool"
-	"reasonix/internal/workspacelease"
+	"tempora/internal/checkpoint"
+	"tempora/internal/diff"
+	"tempora/internal/event"
+	"tempora/internal/extension/dispatch"
+	"tempora/internal/jobs"
+	"tempora/internal/mcpinteraction"
+	"tempora/internal/memory"
+	"tempora/internal/provider"
+	"tempora/internal/sandbox"
+	"tempora/internal/sessiontemp"
+	"tempora/internal/tool"
+	"tempora/internal/workspacelease"
 )
 
 // agentServices are the collaborators an Agent talks to, separated from the
@@ -54,7 +54,7 @@ type agentServices struct {
 	// unconfined after the OS sandbox failed to start.
 	sandboxEscape sandbox.EscapeApprover
 	// configWrite can ask the user whether a file tool may write a
-	// Reasonix-managed config file outside the workspace roots.
+	// Tempora-managed config file outside the workspace roots.
 	configWrite tool.ConfigWriteApprover
 	// writeRoots is the session-scoped writable directory manager.
 	writeRoots *sandbox.WritableRootSet

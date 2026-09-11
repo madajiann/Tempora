@@ -11,12 +11,12 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 func readPersistedTabsFile(t *testing.T) desktopTabsFile {
 	t.Helper()
-	data, err := os.ReadFile(filepath.Join(config.ReasonixHomeDir(), tabsFileName))
+	data, err := os.ReadFile(filepath.Join(config.TemporaHomeDir(), tabsFileName))
 	if err != nil {
 		t.Fatalf("read tabs file: %v", err)
 	}
@@ -217,7 +217,7 @@ func TestActivateDisconnectedShellReconnects(t *testing.T) {
 
 func TestSetActiveRemoteTabPersistsAndUnknownKeepsSelection(t *testing.T) {
 	home := t.TempDir()
-	t.Setenv("REASONIX_HOME", home)
+	t.Setenv("TEMPORA_HOME", home)
 	t.Setenv("HOME", home)
 	a := &App{}
 	seedLocalTab(a, "local-1")
@@ -305,7 +305,7 @@ func TestSetActiveLocalTabKeepsRemoteSelectionWhenSessionCannotPersist(t *testin
 
 func TestOpenRemoteProjectTabBlocksBeforeMutationWhenLocalSessionCannotPersist(t *testing.T) {
 	home := t.TempDir()
-	t.Setenv("REASONIX_HOME", home)
+	t.Setenv("TEMPORA_HOME", home)
 	t.Setenv("HOME", home)
 	seedBridgeTestHost(t, "box")
 	path := filepath.Join(t.TempDir(), "blocked.jsonl")
@@ -672,7 +672,7 @@ func TestTabsFileWithoutRemoteTabsKeepsLegacyShape(t *testing.T) {
 	a.activeTabID = "l1"
 	a.mu.Unlock()
 	a.saveTabsFromRemote()
-	data, err := os.ReadFile(filepath.Join(config.ReasonixHomeDir(), tabsFileName))
+	data, err := os.ReadFile(filepath.Join(config.TemporaHomeDir(), tabsFileName))
 	if err != nil {
 		t.Fatal(err)
 	}

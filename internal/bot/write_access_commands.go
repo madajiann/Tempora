@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"reasonix/internal/sandbox"
+	"tempora/internal/sandbox"
 )
 
 func (gw *BotGateway) normalizeApprovalShortcut(key, text string) (string, bool) {

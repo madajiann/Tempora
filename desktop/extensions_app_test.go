@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"reasonix/internal/control"
+	"tempora/internal/control"
 )
 
 // extensionUIController fakes the extension-UI slice of control.SessionAPI:

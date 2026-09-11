@@ -6,7 +6,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func TestNormalizeLegacyOpenCodeGoInstallsAppliesCatalogAndWindowsInOnePass(t *testing.T) {

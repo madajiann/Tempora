@@ -1,6 +1,6 @@
 package acp
 
-import "reasonix/internal/control"
+import "tempora/internal/control"
 
 // currentQualityFloor reads the floor from the live controller; sessions
 // without a controller report the standard default.

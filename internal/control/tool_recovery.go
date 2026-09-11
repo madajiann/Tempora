@@ -7,9 +7,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 type ToolRecoverySnapshot struct {
@@ -32,7 +32,7 @@ type ToolRecoveryRequest struct {
 }
 
 func (c *Controller) ToolRecoverySnapshot() ToolRecoverySnapshot {
-	view := ToolRecoverySnapshot{SessionPath: c.SessionPath(), RuntimeEpoch: c.RuntimeStateSnapshot().RuntimeEpoch, Calls: []provider.ToolCallRecord{}, RetryEnabled: os.Getenv("REASONIX_TOOL_RECOVERY_RETRY") == "1"}
+	view := ToolRecoverySnapshot{SessionPath: c.SessionPath(), RuntimeEpoch: c.RuntimeStateSnapshot().RuntimeEpoch, Calls: []provider.ToolCallRecord{}, RetryEnabled: os.Getenv("TEMPORA_TOOL_RECOVERY_RETRY") == "1"}
 	if c.executor != nil {
 		view.Calls = c.executor.PendingToolRecovery()
 		view.Statistics = c.executor.ToolRecoveryStatistics()

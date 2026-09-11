@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func emitSearchReplay(ctx context.Context, out chan<- provider.Chunk, raw json.RawMessage) bool {

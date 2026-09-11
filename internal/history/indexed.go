@@ -7,10 +7,10 @@ import (
 	"strings"
 	"sync"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/historycatalog"
-	"reasonix/internal/provider"
-	"reasonix/internal/retrieval"
+	"tempora/internal/agent"
+	"tempora/internal/historycatalog"
+	"tempora/internal/provider"
+	"tempora/internal/retrieval"
 )
 
 type indexedCatalogManager struct {

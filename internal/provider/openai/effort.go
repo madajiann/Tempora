@@ -5,7 +5,7 @@ package openai
 import (
 	"strings"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 // configuredThinkingType reads the optional explicit `thinking` config field —

@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"reasonix/internal/command"
+	"tempora/internal/command"
 )
 
 func TestDecoratePluginCommandConflicts(t *testing.T) {

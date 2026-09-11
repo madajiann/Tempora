@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
+	"tempora/internal/agent"
+	"tempora/internal/event"
 )
 
 // The remote-tab bridge exchanges its pre-shared token for an HttpOnly
@@ -695,7 +695,7 @@ func (a *App) ReclaimRemoteTabSession(tabID string) error {
 // session is owned by a local runtime on the serve host. The tab then
 // attaches as a read-only spectator instead of dying with the 409. Both
 // refusal shapes match: the explicit takeover wording (mirrored session) and
-// the plain lease wording ("in use by another Reasonix process" — the holder
+// the plain lease wording ("in use by another Tempora process" — the holder
 // is a local window/CLI whose transcript the file-backed /history serves
 // anyway, and whose lease /reclaim can take back).
 func remoteSessionTakenOver(err error) bool {
@@ -703,10 +703,10 @@ func remoteSessionTakenOver(err error) bool {
 		return false
 	}
 	msg := err.Error()
-	if strings.Contains(msg, "taken over by a local Reasonix") {
+	if strings.Contains(msg, "taken over by a local Tempora") {
 		return true
 	}
-	return strings.Contains(msg, "in use by another Reasonix process")
+	return strings.Contains(msg, "in use by another Tempora process")
 }
 
 func (a *App) SubmitRemoteTab(tabID, text string) error {

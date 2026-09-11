@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 func TestRenameSessionUpdatesCustomTitle(t *testing.T) {

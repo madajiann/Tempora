@@ -4,9 +4,9 @@ import (
 	"log/slog"
 	"slices"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/provider"
-	"reasonix/internal/turnevent"
+	"tempora/internal/agent"
+	"tempora/internal/provider"
+	"tempora/internal/turnevent"
 )
 
 func (c *Controller) updateTurnLedgerTranscript(ledger *turnevent.Ledger) *provider.ReadCompletion {

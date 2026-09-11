@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func TestUpdateSessionListingProjectionIfCurrentRejectsAdvancedGeneration(t *testing.T) {

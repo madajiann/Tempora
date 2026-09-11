@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/sys/windows"
 
-	"reasonix/internal/fileutil"
+	"tempora/internal/fileutil"
 )
 
 func existingShortcutPath(path string) (string, error) {

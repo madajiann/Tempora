@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"reasonix/internal/event"
+	"tempora/internal/event"
 )
 
 // Decode before converting to value fields: missing false/zero facts are not

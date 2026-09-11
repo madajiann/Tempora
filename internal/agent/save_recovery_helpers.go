@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 // writeRecoveryBranchAtPath persists one bounded recovery lane. collision is

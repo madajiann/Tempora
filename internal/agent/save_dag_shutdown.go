@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/provider"
-	"reasonix/internal/store"
+	"tempora/internal/provider"
+	"tempora/internal/store"
 )
 
 // AppendForShutdownWithoutLock persists the unsaved tail of a schema-2

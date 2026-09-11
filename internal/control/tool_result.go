@@ -3,8 +3,8 @@ package control
 import (
 	"slices"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 // Bind stable local message IDs before publishing a result. Provider call IDs

@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
-	_ "reasonix/internal/tool/builtin"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
+	_ "tempora/internal/tool/builtin"
 )
 
 func TestBuiltinToolContractDocumentation(t *testing.T) {

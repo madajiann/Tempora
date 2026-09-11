@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
+	"tempora/internal/event"
 )
 
 func askProbeQuestions() []event.AskQuestion {

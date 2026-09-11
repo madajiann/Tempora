@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/sandbox"
+	"tempora/internal/event"
+	"tempora/internal/sandbox"
 )
 
 func (c *blockingApprovalController) ResolveApproval(id string, allow bool, scope sandbox.ApprovalScope) error {

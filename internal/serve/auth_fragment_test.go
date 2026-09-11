@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 func TestTokenModeAllowsOnlyBootstrapShellWithoutAuth(t *testing.T) {

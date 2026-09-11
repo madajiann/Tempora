@@ -9,7 +9,7 @@ import (
 	"strings"
 	"unicode"
 
-	"reasonix/internal/event"
+	"tempora/internal/event"
 )
 
 type acceptedDecision struct {

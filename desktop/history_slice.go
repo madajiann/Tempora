@@ -18,10 +18,10 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/provider"
-	"reasonix/internal/store"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/provider"
+	"tempora/internal/store"
 )
 
 // This file implements the windowed history paging API (Phase B1 of the

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 	"testing"
 )
 

@@ -3,9 +3,9 @@ package control
 import (
 	"sync"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/sessioninbox"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/sessioninbox"
 )
 
 // goalUsageTee wraps the controller's event sink and attributes billable usage

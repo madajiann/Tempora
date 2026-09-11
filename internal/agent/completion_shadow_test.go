@@ -4,9 +4,9 @@ import (
 	"slices"
 	"testing"
 
-	"reasonix/internal/completion"
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
+	"tempora/internal/completion"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
 )
 
 func shadowReport(input string, receipts ...evidence.Receipt) (event.ContractShadowAudit, event.CompletionReportAudit) {

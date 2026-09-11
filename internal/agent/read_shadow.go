@@ -4,9 +4,9 @@ import (
 	"log/slog"
 	"sync"
 
-	"reasonix/internal/event"
-	"reasonix/internal/readcoord"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/readcoord"
+	"tempora/internal/tool"
 )
 
 // readShadowState retains its rollout name but owns default read execution.

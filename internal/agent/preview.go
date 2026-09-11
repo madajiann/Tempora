@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"strings"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 // TransientUserBlockTags names every block the host prepends to a user turn as

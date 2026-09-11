@@ -177,7 +177,7 @@ func filenameTokens(stem string) []string {
 }
 
 // PathModule is the top-level package/module key used for architecture scope.
-// internal/agent/foo.go and cmd/reasonix/main.go are different modules.
+// internal/agent/foo.go and cmd/tempora/main.go are different modules.
 func PathModule(p, workspaceRoot string) string {
 	relevant := riskRelevantPath(p, workspaceRoot)
 	if relevant == "" || relevant == "." {

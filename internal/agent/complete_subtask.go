@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/tool"
+	"tempora/internal/evidence"
+	"tempora/internal/tool"
 )
 
 // CompleteSubtaskTool is visible only inside sub-agent registries. It ends a

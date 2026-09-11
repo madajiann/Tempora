@@ -8,9 +8,9 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/event"
 )
 
 func TestServePromptFailureReturnsRedactedJSONRPCError(t *testing.T) {
@@ -63,7 +63,7 @@ func TestServePromptFailureReturnsRedactedJSONRPCError(t *testing.T) {
 		if notification.Method != sessionStatusUpdateMethod {
 			continue
 		}
-		var update ReasonixStatusUpdate
+		var update TemporaStatusUpdate
 		if err := json.Unmarshal(notification.Params, &update); err != nil {
 			t.Fatalf("status update: %v", err)
 		}

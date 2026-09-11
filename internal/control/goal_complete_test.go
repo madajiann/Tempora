@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 func TestRepeatedCompleteWithOnlyProjectCheckFinishes(t *testing.T) {

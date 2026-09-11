@@ -2,9 +2,9 @@ package cli
 
 import (
 	"encoding/json"
-	"reasonix/internal/event"
-	"reasonix/internal/i18n"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/i18n"
+	"tempora/internal/provider"
 	"strings"
 )
 

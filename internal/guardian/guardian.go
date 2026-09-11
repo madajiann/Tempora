@@ -9,13 +9,13 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
-	"reasonix/internal/fileutil"
-	fileencoding "reasonix/internal/fileutil/encoding"
-	"reasonix/internal/nilutil"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/event"
+	"tempora/internal/fileutil"
+	fileencoding "tempora/internal/fileutil/encoding"
+	"tempora/internal/nilutil"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 // PolicyPrompt returns the guardian safety policy as a string. The policy is

@@ -6,11 +6,11 @@ import (
 
 	"github.com/charmbracelet/x/ansi"
 
-	"reasonix/internal/billing"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/i18n"
-	"reasonix/internal/provider"
+	"tempora/internal/billing"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/i18n"
+	"tempora/internal/provider"
 )
 
 const (

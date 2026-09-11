@@ -2,8 +2,8 @@ package providerext
 
 import (
 	"context"
-	"reasonix/internal/extension/protocol"
-	"reasonix/internal/provider"
+	"tempora/internal/extension/protocol"
+	"tempora/internal/provider"
 	"testing"
 	"time"
 )

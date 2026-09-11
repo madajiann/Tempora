@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/projectiondb"
+	"tempora/internal/projectiondb"
 )
 
 // Rebuild replaces only the disposable usage projection after replaying the

@@ -12,10 +12,10 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
-	_ "reasonix/internal/tool/builtin"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
+	_ "tempora/internal/tool/builtin"
 )
 
 // TestTruncateToolOutputUnderCap leaves small payloads alone — the cap should

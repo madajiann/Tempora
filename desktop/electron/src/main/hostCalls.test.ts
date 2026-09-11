@@ -45,7 +45,7 @@ test("every documented host/* method is dispatched with parsed params", async ()
   assert.deepEqual(await dispatchHostCall(table, "host/shell.openExternal", { url: "https://e" }), {});
   assert.deepEqual(await dispatchHostCall(table, "host/app.quit", undefined), {});
   assert.deepEqual(calls, [
-    'show("tray")', "setPosition(10.4,0)", "tray(打开,退出,Reasonix)", "remoteOpen(h1)", 'relaunch(["--x"])', "open(https://e/)", "approve()",
+    'show("tray")', "setPosition(10.4,0)", "tray(打开,退出,Tempora)", "remoteOpen(h1)", 'relaunch(["--x"])', "open(https://e/)", "approve()",
   ]);
   for (const method of ["host/window.hide", "host/window.maximise", "host/window.center", "host/devtools.toggle", "host/tray.destroy", "host/app.hide"]) {
     assert.deepEqual(await dispatchHostCall(table, method, {}), {});
@@ -54,8 +54,8 @@ test("every documented host/* method is dispatched with parsed params", async ()
 
 test("update relaunch preserves the stable launcher path", async () => {
   const { table, calls } = deps();
-  await dispatchHostCall(table, "host/app.relaunch", { args: ["--after-update"], execPath: "/opt/reasonix/reasonix-launcher" });
-  assert.deepEqual(calls, ['relaunch(["--after-update"],"/opt/reasonix/reasonix-launcher")']);
+  await dispatchHostCall(table, "host/app.relaunch", { args: ["--after-update"], execPath: "/opt/tempora/tempora-launcher" });
+  assert.deepEqual(calls, ['relaunch(["--after-update"],"/opt/tempora/tempora-launcher")']);
 });
 
 test("host external links reject non-user-facing protocols", async () => {
@@ -100,19 +100,19 @@ test("unknown host methods fail with -32601 and never hit Object.prototype", asy
   }
 });
 
-test("failure page actions ride the reasonix://app/__shell/ prefix and the page escapes text", () => {
-  assert.equal(shellActionFromURL("reasonix://app/__shell/open-logs"), "open-logs");
-  assert.equal(shellActionFromURL("reasonix://app/__shell/restart?x=1"), "restart");
-  assert.equal(shellActionFromURL("reasonix://app/__shell/quit"), "quit");
-  assert.equal(shellActionFromURL("reasonix://app/__shell/rm-rf"), null);
-  assert.equal(shellActionFromURL("reasonix://app/index.html"), null);
+test("failure page actions ride the tempora://app/__shell/ prefix and the page escapes text", () => {
+  assert.equal(shellActionFromURL("tempora://app/__shell/open-logs"), "open-logs");
+  assert.equal(shellActionFromURL("tempora://app/__shell/restart?x=1"), "restart");
+  assert.equal(shellActionFromURL("tempora://app/__shell/quit"), "quit");
+  assert.equal(shellActionFromURL("tempora://app/__shell/rm-rf"), null);
+  assert.equal(shellActionFromURL("tempora://app/index.html"), null);
   const html = renderFailurePage({ code: -32003, name: "contract_mismatch", title: "Mixed <install>", detail: "digest \"a\" != 'b'" }, "/logs");
   assert.match(html, /Mixed &lt;install&gt;/);
   assert.match(html, /digest &quot;a&quot; != &#39;b&#39;/);
   assert.match(html, /contract_mismatch \(-32003\)/);
-  assert.doesNotMatch(html, /reasonix:\/\/app\/__shell\/restart/);
+  assert.doesNotMatch(html, /tempora:\/\/app\/__shell\/restart/);
   for (const name of ["build_mismatch", "contract_mismatch"]) {
-    assert.doesNotMatch(renderFailurePage({ code: -32003, name, title: "Mismatch", detail: "Install the complete package" }, "/logs"), /reasonix:\/\/app\/__shell\/restart/);
+    assert.doesNotMatch(renderFailurePage({ code: -32003, name, title: "Mismatch", detail: "Install the complete package" }, "/logs"), /tempora:\/\/app\/__shell\/restart/);
   }
-  assert.match(renderFailurePage({ code: -1, name: "service_failed", title: "Failed", detail: "Retry" }, "/logs"), /reasonix:\/\/app\/__shell\/restart/);
+  assert.match(renderFailurePage({ code: -1, name: "service_failed", title: "Failed", detail: "Retry" }, "/logs"), /tempora:\/\/app\/__shell\/restart/);
 });

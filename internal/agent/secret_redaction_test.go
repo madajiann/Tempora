@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 type secretOutputTool struct{}

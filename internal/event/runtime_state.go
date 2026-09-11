@@ -1,6 +1,6 @@
 package event
 
-import "reasonix/internal/nilutil"
+import "tempora/internal/nilutil"
 
 // RuntimeStateSnapshot is a host-only, replaceable observation. It is never a
 // transcript or durable turn record. Running retains the legacy admission gate.

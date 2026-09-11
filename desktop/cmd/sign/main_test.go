@@ -10,7 +10,7 @@ import (
 
 	"aead.dev/minisign"
 
-	"reasonix/desktop/internal/update"
+	"tempora/desktop/internal/update"
 )
 
 // TestSignFiles signs a file with a throwaway key pair (injected via env, exactly
@@ -29,7 +29,7 @@ func TestSignFiles(t *testing.T) {
 	t.Setenv("MINISIGN_PASSWORD", "pw")
 
 	dir := t.TempDir()
-	artifact := filepath.Join(dir, "Reasonix-linux-amd64.tar.gz")
+	artifact := filepath.Join(dir, "Tempora-linux-amd64.tar.gz")
 	payload := []byte("pretend this is a release tarball")
 	if err := os.WriteFile(artifact, payload, 0o644); err != nil {
 		t.Fatal(err)
@@ -53,16 +53,16 @@ func TestSignFiles(t *testing.T) {
 func TestGenManifest(t *testing.T) {
 	dir := t.TempDir()
 	names := []string{
-		"Reasonix-darwin-arm64.zip",
-		"Reasonix-darwin-amd64.zip",
-		"Reasonix-darwin-universal.dmg",
-		"Reasonix-windows-amd64-installer.exe",
-		"Reasonix-windows-amd64.zip", // portable download, not the updater channel
-		"Reasonix-windows-arm64-installer.exe",
-		"Reasonix-windows-arm64.zip", // portable download, not the updater channel
-		"Reasonix-linux-amd64.tar.gz",
-		"Reasonix-linux-amd64.deb",            // human download, not the updater channel
-		"Reasonix-linux-amd64.tar.gz.minisig", // must be skipped
+		"Tempora-darwin-arm64.zip",
+		"Tempora-darwin-amd64.zip",
+		"Tempora-darwin-universal.dmg",
+		"Tempora-windows-amd64-installer.exe",
+		"Tempora-windows-amd64.zip", // portable download, not the updater channel
+		"Tempora-windows-arm64-installer.exe",
+		"Tempora-windows-arm64.zip", // portable download, not the updater channel
+		"Tempora-linux-amd64.tar.gz",
+		"Tempora-linux-amd64.deb",            // human download, not the updater channel
+		"Tempora-linux-amd64.tar.gz.minisig", // must be skipped
 		"README.txt",                          // unmatched, must be skipped
 	}
 	for _, n := range names {
@@ -70,7 +70,7 @@ func TestGenManifest(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	t.Setenv("GITHUB_REPOSITORY", "esengine/reasonix")
+	t.Setenv("GITHUB_REPOSITORY", "tempora-dev/tempora")
 
 	if err := genManifest(dir, "v1.2.0", "desktop-v1.2.0"); err != nil {
 		t.Fatalf("genManifest: %v", err)
@@ -98,10 +98,10 @@ func TestGenManifest(t *testing.T) {
 			}
 		}
 	}
-	if m.DownloadPage != "https://reasonix.io/?download=desktop#start" {
+	if m.DownloadPage != "https://tempora.io/?download=desktop#start" {
 		t.Fatalf("download_page = %q, want official install page", m.DownloadPage)
 	}
-	if m.ReleaseNotesURL != "https://reasonix.io/changelog/v1.2.0/" {
+	if m.ReleaseNotesURL != "https://tempora.io/changelog/v1.2.0/" {
 		t.Fatalf("release_notes_url = %q, want exact version history", m.ReleaseNotesURL)
 	}
 	if len(m.Platforms) != 5 {
@@ -111,7 +111,7 @@ func TestGenManifest(t *testing.T) {
 	if !ok {
 		t.Fatal("windows-amd64 missing")
 	}
-	wantURL := "https://github.com/esengine/DeepSeek-Reasonix/releases/download/desktop-v1.2.0/Reasonix-windows-amd64-installer.exe"
+	wantURL := "https://github.com/tempora-dev/Tempora/releases/download/desktop-v1.2.0/Tempora-windows-amd64-installer.exe"
 	if win.URL != wantURL {
 		t.Fatalf("windows url = %q, want %q", win.URL, wantURL)
 	}
@@ -127,7 +127,7 @@ func TestGenManifest(t *testing.T) {
 	if !ok {
 		t.Fatal("windows-arm64 missing")
 	}
-	if !strings.HasSuffix(arm.URL, "/Reasonix-windows-arm64-installer.exe") {
+	if !strings.HasSuffix(arm.URL, "/Tempora-windows-arm64-installer.exe") {
 		t.Fatalf("windows-arm64 url = %q, want the installer, not the portable zip", arm.URL)
 	}
 	// The Linux portable channel stays the .tar.gz; the co-located .deb lands
@@ -136,7 +136,7 @@ func TestGenManifest(t *testing.T) {
 	if !ok {
 		t.Fatal("linux-amd64 missing")
 	}
-	if !strings.HasSuffix(lin.URL, "/Reasonix-linux-amd64.tar.gz") {
+	if !strings.HasSuffix(lin.URL, "/Tempora-linux-amd64.tar.gz") {
 		t.Fatalf("linux-amd64 url = %q, want the .tar.gz, not the .deb", lin.URL)
 	}
 	if lin.Sig == "" || lin.SHA256 == "" || lin.Size == 0 {
@@ -146,7 +146,7 @@ func TestGenManifest(t *testing.T) {
 	if !ok {
 		t.Fatal("native_packages linux-amd64 missing")
 	}
-	if !strings.HasSuffix(deb.URL, "/Reasonix-linux-amd64.deb") {
+	if !strings.HasSuffix(deb.URL, "/Tempora-linux-amd64.deb") {
 		t.Fatalf("native linux-amd64 url = %q, want the .deb", deb.URL)
 	}
 	if deb.Sig != deb.URL+".minisig" || deb.SHA256 == "" || deb.Size == 0 {
@@ -155,7 +155,7 @@ func TestGenManifest(t *testing.T) {
 	if len(m.Downloads) != 2 {
 		t.Fatalf("want 2 website downloads, got %d: %+v", len(m.Downloads), m.Downloads)
 	}
-	for _, name := range []string{"Reasonix-darwin-universal.dmg", "Reasonix-windows-amd64.zip"} {
+	for _, name := range []string{"Tempora-darwin-universal.dmg", "Tempora-windows-amd64.zip"} {
 		asset, ok := m.Downloads[name]
 		if !ok {
 			t.Fatalf("website download %q missing", name)
@@ -171,7 +171,7 @@ func TestGenManifest(t *testing.T) {
 
 func TestGenManifestCanReuseStableNotesForStandaloneRC(t *testing.T) {
 	dir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(dir, "Reasonix-linux-amd64.tar.gz"), []byte("rc"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "Tempora-linux-amd64.tar.gz"), []byte("rc"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	if err := genManifest(dir, "v1.3.0-rc.1", "desktop-v1.3.0-rc.1", "v1.3.0"); err != nil {
@@ -185,7 +185,7 @@ func TestGenManifestCanReuseStableNotesForStandaloneRC(t *testing.T) {
 	if err := json.Unmarshal(raw, &m); err != nil {
 		t.Fatal(err)
 	}
-	if m.ReleaseNotesURL != "https://reasonix.io/changelog/v1.3.0/" {
+	if m.ReleaseNotesURL != "https://tempora.io/changelog/v1.3.0/" {
 		t.Fatalf("release_notes_url = %q, want stable base history", m.ReleaseNotesURL)
 	}
 }
@@ -195,14 +195,14 @@ func TestGenManifestCanReuseStableNotesForStandaloneRC(t *testing.T) {
 func TestGenManifestIgnoresUnknownNativePackages(t *testing.T) {
 	dir := t.TempDir()
 	for _, n := range []string{
-		"Reasonix-linux-amd64.tar.gz",
-		"Reasonix-mystery.deb",
+		"Tempora-linux-amd64.tar.gz",
+		"Tempora-mystery.deb",
 	} {
 		if err := os.WriteFile(filepath.Join(dir, n), []byte(n), 0o644); err != nil {
 			t.Fatal(err)
 		}
 	}
-	t.Setenv("GITHUB_REPOSITORY", "esengine/DeepSeek-Reasonix")
+	t.Setenv("GITHUB_REPOSITORY", "tempora-dev/Tempora")
 	if err := genManifest(dir, "v1.2.0", "desktop-v1.2.0"); err != nil {
 		t.Fatalf("genManifest: %v", err)
 	}

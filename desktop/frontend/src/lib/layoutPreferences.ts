@@ -14,19 +14,19 @@ type LayoutPreferences = {
   sizes?: Partial<Record<LayoutSizeKey, number>>;
 };
 
-const STORAGE_KEY = "reasonix.layoutPreferences.v1";
+const STORAGE_KEY = "tempora.layoutPreferences.v1";
 
 const LEGACY_SIZE_KEYS: Record<LayoutSizeKey, string[]> = {
-  sidebarWidth: ["reasonix.sidebar.width"],
+  sidebarWidth: ["tempora.sidebar.width"],
   sidebarWidthGraphite: [],
   rightDockWidth: [],
   rightDockTreeWidth: [],
   rightDockPreviewWidth: [],
   workspaceFileTreePanelWidth: [],
-  workspaceTreeWidth: ["reasonix.workspaceTree.width"],
-  composerHeight: ["reasonix.composerHeight"],
-  drawerWidth: ["reasonix.drawer.width"],
-  settingsDrawerWidth: ["reasonix.settingsDrawer.width"],
+  workspaceTreeWidth: ["tempora.workspaceTree.width"],
+  composerHeight: ["tempora.composerHeight"],
+  drawerWidth: ["tempora.drawer.width"],
+  settingsDrawerWidth: ["tempora.settingsDrawer.width"],
 };
 
 type ClampSize = (value: number) => number;

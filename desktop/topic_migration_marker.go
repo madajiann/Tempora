@@ -11,7 +11,7 @@ import (
 	"sort"
 	"strings"
 
-	"reasonix/internal/store"
+	"tempora/internal/store"
 )
 
 // topicMigrationMarker records a completed legacy→topic migration for the

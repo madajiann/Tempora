@@ -17,9 +17,9 @@ func TestIsolateUserStateRedirectsAndRestoresCallerEnvironment(t *testing.T) {
 		"XDG_STATE_HOME":      filepath.Join(callerHome, "caller-xdg-state"),
 		"AppData":             filepath.Join(callerHome, "caller-appdata"),
 		"LocalAppData":        filepath.Join(callerHome, "caller-local-appdata"),
-		"REASONIX_HOME":       filepath.Join(callerHome, "explicit-reasonix-home"),
-		"REASONIX_STATE_HOME": filepath.Join(callerHome, "caller-state"),
-		"REASONIX_CACHE_HOME": filepath.Join(callerHome, "caller-cache"),
+		"TEMPORA_HOME":       filepath.Join(callerHome, "explicit-tempora-home"),
+		"TEMPORA_STATE_HOME": filepath.Join(callerHome, "caller-state"),
+		"TEMPORA_CACHE_HOME": filepath.Join(callerHome, "caller-cache"),
 	}
 	for key, value := range callerEnvironment {
 		t.Setenv(key, value)
@@ -51,7 +51,7 @@ func TestIsolateUserStateRedirectsAndRestoresCallerEnvironment(t *testing.T) {
 			t.Errorf("%s inside isolated test process = %q, want %q", key, got, want)
 		}
 	}
-	for _, key := range []string{"REASONIX_HOME", "REASONIX_STATE_HOME", "REASONIX_CACHE_HOME"} {
+	for _, key := range []string{"TEMPORA_HOME", "TEMPORA_STATE_HOME", "TEMPORA_CACHE_HOME"} {
 		if _, ok := os.LookupEnv(key); ok {
 			t.Fatalf("%s remained set inside isolated test process", key)
 		}

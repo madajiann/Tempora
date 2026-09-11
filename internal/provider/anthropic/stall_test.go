@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func TestDefaultStreamIdleTimeoutIsFiveMinutes(t *testing.T) {

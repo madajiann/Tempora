@@ -9,10 +9,10 @@ import (
 	"sort"
 	"sync"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/eventwire"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/eventwire"
 )
 
 type runtimeSessionView struct {

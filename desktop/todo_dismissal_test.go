@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 func TestDismissTodoBatchPersistsOnSessionAndParent(t *testing.T) {

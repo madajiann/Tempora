@@ -6,16 +6,16 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/sessiontemp"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/sessiontemp"
 )
 
 func TestRebuildReusesSessionTempManager(t *testing.T) {
 	// Isolate config/home so boot.Build does not touch the developer home.
 	home := t.TempDir()
 	t.Setenv("HOME", home)
-	t.Setenv("REASONIX_HOME", filepath.Join(home, ".reasonix"))
+	t.Setenv("TEMPORA_HOME", filepath.Join(home, ".tempora"))
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, "config"))
 	t.Setenv("XDG_DATA_HOME", filepath.Join(home, "data"))
 

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/control"
-	"reasonix/internal/i18n"
+	"tempora/internal/control"
+	"tempora/internal/i18n"
 )
 
 // showMemory reports what memory is loaded and where it lives — the TUI analog

@@ -15,12 +15,12 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/eventwire"
-	"reasonix/internal/jobs"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/eventwire"
+	"tempora/internal/jobs"
+	"tempora/internal/provider"
 )
 
 type takeoverRecordSink struct {

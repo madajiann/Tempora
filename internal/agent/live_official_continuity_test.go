@@ -15,8 +15,8 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/tool"
 )
 
 // Six consecutive user turns reuse real reasoning and tool history. A save/load

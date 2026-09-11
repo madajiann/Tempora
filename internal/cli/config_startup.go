@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 	"os"
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 func migrateLegacyConfigForCLI() {

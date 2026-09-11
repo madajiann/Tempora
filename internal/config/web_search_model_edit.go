@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
-	fileencoding "reasonix/internal/fileutil/encoding"
+	fileencoding "tempora/internal/fileutil/encoding"
 )
 
 // SaveWebSearchModelTo preserves comments and unknown fields in an existing user

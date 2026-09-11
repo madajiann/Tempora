@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/repair"
+	"tempora/internal/repair"
 )
 
 func TestMacUpdateHandoffParserRequiresOwnerPID(t *testing.T) {
@@ -28,8 +28,8 @@ func TestMacUpdateHandoffParserRequiresOwnerPID(t *testing.T) {
 
 func TestMacUpdateHandoffRejectsOwnerPIDMismatchBeforeTouchingBundle(t *testing.T) {
 	root := t.TempDir()
-	oldApp := filepath.Join(root, "Reasonix.app")
-	newApp := filepath.Join(root, "staging", "Reasonix.app")
+	oldApp := filepath.Join(root, "Tempora.app")
+	newApp := filepath.Join(root, "staging", "Tempora.app")
 	pending := filepath.Join(root, "pending.json")
 	logPath := filepath.Join(root, "update.log")
 	for _, dir := range []string{oldApp, newApp} {
@@ -48,7 +48,7 @@ func TestMacUpdateHandoffRejectsOwnerPIDMismatchBeforeTouchingBundle(t *testing.
 		CreatedAt:          "2026-07-28T00:00:00Z",
 		TargetKind:         "app-bundle",
 		TargetPath:         oldApp,
-		BackupPath:         oldApp + ".reasonix-update-backup",
+		BackupPath:         oldApp + ".tempora-update-backup",
 		HandoffAppPath:     newApp,
 		HandoffStagingPath: filepath.Dir(newApp),
 		HandoffOwnerPID:    99999999,

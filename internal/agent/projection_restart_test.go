@@ -4,9 +4,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 func restartProjectionState(path string, msgs []provider.Message, version uint64, covered int) CompactionState {

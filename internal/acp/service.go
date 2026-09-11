@@ -16,19 +16,19 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/agentpreset"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/extension/uihub"
-	"reasonix/internal/fileutil"
-	fileencoding "reasonix/internal/fileutil/encoding"
-	"reasonix/internal/jobs"
-	"reasonix/internal/plugin"
-	"reasonix/internal/provider"
-	"reasonix/internal/sessioninbox"
-	"reasonix/internal/store"
-	"reasonix/internal/tool/builtin"
+	"tempora/internal/agent"
+	"tempora/internal/agentpreset"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/extension/uihub"
+	"tempora/internal/fileutil"
+	fileencoding "tempora/internal/fileutil/encoding"
+	"tempora/internal/jobs"
+	"tempora/internal/plugin"
+	"tempora/internal/provider"
+	"tempora/internal/sessioninbox"
+	"tempora/internal/store"
+	"tempora/internal/tool/builtin"
 )
 
 // SessionParams is everything a Factory needs to assemble one ACP session's
@@ -63,7 +63,7 @@ type SessionParams struct {
 }
 
 // Factory builds the per-session controller. The composition root (the cli's
-// `reasonix acp` command) implements it by reusing setup()'s assembly: a
+// `tempora acp` command) implements it by reusing setup()'s assembly: a
 // Provider for Model, a tool Registry rooted at Cwd via builtin.Workspace, a
 // per-session MCP host from MCPServers, the event Sink, all wired into a
 // control.Controller. The returned controller owns its own cleanup (Close stops
@@ -109,7 +109,7 @@ type SessionDirProvider interface {
 // would use, and the session state (history, approval grants, goal/recovery,
 // lifecycle) migrates off old inside the boot layer. The caller keeps the
 // swap/close ordering. Factories that do not implement it leave
-// _reasonix.io/session/reloadExtensions reporting unavailable.
+// _tempora.io/session/reloadExtensions reporting unavailable.
 type SessionRebuilder interface {
 	RebuildSession(ctx context.Context, p SessionParams, old *control.Controller) (*control.Controller, error)
 }
@@ -123,7 +123,7 @@ type AgentInfo struct {
 // Serve runs an ACP agent on r/w (stdin/stdout in production) until the input
 // ends or ctx is cancelled. It owns the JSON-RPC connection and the session
 // registry; the Factory supplies the kernel wiring. This is the single entry
-// point the `reasonix acp` command calls.
+// point the `tempora acp` command calls.
 //
 // stdout is the JSON-RPC channel: callers must keep all other output (logs,
 // diagnostics) off w and on stderr, or the wire corrupts.
@@ -208,17 +208,17 @@ func (s *service) clientCapabilities() ClientCapabilities {
 }
 
 // extensionSurfaceSupported reports whether the connected client advertised
-// reasonix.extensionSurface support in its initialize handshake.
+// tempora.extensionSurface support in its initialize handshake.
 func (s *service) extensionSurfaceSupported() bool {
 	return clientExtensionSurfaceSupported(s.clientCapabilities())
 }
 
 // clientExtensionSurfaceSupported tolerantly parses the client's vendor
-// capability block: _meta["reasonix.io"]["extensionSurface"]["supported"] must
+// capability block: _meta["tempora.io"]["extensionSurface"]["supported"] must
 // be an explicit true. Absent keys, wrong shapes, or a malformed block all
 // mean unsupported — the sink then sends only the text fallback.
 func clientExtensionSurfaceSupported(caps ClientCapabilities) bool {
-	vendor, ok := caps.Meta["reasonix.io"].(map[string]any)
+	vendor, ok := caps.Meta["tempora.io"].(map[string]any)
 	if !ok {
 		return false
 	}
@@ -295,7 +295,7 @@ type acpSession struct {
 	// work-mode change queued back to back during one turn both survive to the
 	// drain instead of the second overwriting the first.
 	pendingConfig []sessionConfigDelta
-	// pendingReload coalesces _reasonix.io/session/reloadExtensions requests
+	// pendingReload coalesces _tempora.io/session/reloadExtensions requests
 	// made while a turn or a rebuild is in flight; the finishTurn /
 	// post-maintenance drains run it once the session is idle.
 	pendingReload bool
@@ -590,7 +590,7 @@ func (s *service) initialize(_ context.Context, raw json.RawMessage) (any, error
 			},
 			MCPCapabilities: MCPCapabilities{HTTP: true, SSE: false},
 			Meta: map[string]any{
-				"reasonix.io": ReasonixExtensionCapabilities{
+				"tempora.io": TemporaExtensionCapabilities{
 					MCPInteraction: &MCPInteractionCapability{Supported: true, SchemaVersion: 1, Method: mcpInteractionMethod},
 					SessionSteer:   &SessionSteerCapability{Method: sessionSteerMethod},
 					SessionInbox: &SessionInboxCapability{
@@ -608,22 +608,22 @@ func (s *service) initialize(_ context.Context, raw json.RawMessage) (any, error
 						},
 					},
 					SessionReloadExtensions: &SessionReloadExtensionsCapability{Method: sessionReloadExtensionsMethod},
-					ExtensionSurface:        &ExtensionSurfaceCapability{Supported: true, SchemaVersion: reasonixExtensionSurfaceSchemaVersion},
+					ExtensionSurface:        &ExtensionSurfaceCapability{Supported: true, SchemaVersion: temporaExtensionSurfaceSchemaVersion},
 				},
-				sessionStatusMethod:       ReasonixSchemaCapability{SchemaVersion: reasonixStatusSchemaVersion},
-				sessionStatusUpdateMethod: ReasonixSchemaCapability{SchemaVersion: reasonixStatusSchemaVersion},
+				sessionStatusMethod:       TemporaSchemaCapability{SchemaVersion: temporaStatusSchemaVersion},
+				sessionStatusUpdateMethod: TemporaSchemaCapability{SchemaVersion: temporaStatusSchemaVersion},
 			},
 		},
 		AgentInfo:   Implementation{Name: s.info.Name, Version: s.info.Version},
-		AuthMethods: []AuthMethod{reasonixSetupAuthMethod()},
+		AuthMethods: []AuthMethod{temporaSetupAuthMethod()},
 	}, nil
 }
 
-func reasonixSetupAuthMethod() AuthMethod {
+func temporaSetupAuthMethod() AuthMethod {
 	return AuthMethod{
-		ID:          "reasonix-setup",
-		Name:        "Reasonix setup",
-		Description: "Configure Reasonix providers and credentials in a terminal",
+		ID:          "tempora-setup",
+		Name:        "Tempora setup",
+		Description: "Configure Tempora providers and credentials in a terminal",
 		Type:        "terminal",
 		Args:        []string{"setup"},
 	}
@@ -634,7 +634,7 @@ func (s *service) authenticate(_ context.Context, raw json.RawMessage) (any, err
 	if err := json.Unmarshal(raw, &p); err != nil {
 		return nil, &RPCError{Code: ErrInvalidParams, Message: "authenticate: " + err.Error()}
 	}
-	if strings.TrimSpace(p.MethodID) != reasonixSetupAuthMethod().ID {
+	if strings.TrimSpace(p.MethodID) != temporaSetupAuthMethod().ID {
 		return nil, &RPCError{Code: ErrInvalidParams, Message: "authenticate: unknown methodId " + p.MethodID}
 	}
 	return AuthenticateResult{}, nil

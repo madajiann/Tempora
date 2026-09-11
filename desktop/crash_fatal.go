@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 const (

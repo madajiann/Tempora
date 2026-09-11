@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/sessiontemp"
+	"tempora/internal/sessiontemp"
 )
 
 func TestWithSubagentSessionTempIsIndependent(t *testing.T) {

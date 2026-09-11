@@ -11,22 +11,22 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/ablation"
-	"reasonix/internal/acp"
-	"reasonix/internal/boot"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/extension/providerext"
-	"reasonix/internal/i18n"
-	"reasonix/internal/netclient"
-	"reasonix/internal/plugin"
-	"reasonix/internal/provider"
-	"reasonix/internal/sandbox"
-	"reasonix/internal/tool"
-	"reasonix/internal/tool/builtin"
+	"tempora/internal/ablation"
+	"tempora/internal/acp"
+	"tempora/internal/boot"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/extension/providerext"
+	"tempora/internal/i18n"
+	"tempora/internal/netclient"
+	"tempora/internal/plugin"
+	"tempora/internal/provider"
+	"tempora/internal/sandbox"
+	"tempora/internal/tool"
+	"tempora/internal/tool/builtin"
 )
 
-// acpCommand runs Reasonix as an Agent Client Protocol agent: a stdio JSON-RPC
+// acpCommand runs Tempora as an Agent Client Protocol agent: a stdio JSON-RPC
 // server that editors and other host clients drive (initialize, session/new,
 // session/prompt, session/cancel). It keeps v2 wire-compatible with the many
 // tools that integrated with v1 over ACP.
@@ -86,7 +86,7 @@ func acpCommand(args []string, version string) int {
 		networkOverride: networkOverride, workspaceOnly: *workspaceOnly,
 		bashOverride: bashMode, requireSandbox: bashMode == "enforce",
 	}
-	info := acp.AgentInfo{Name: "reasonix", Version: version}
+	info := acp.AgentInfo{Name: "tempora", Version: version}
 	if err := acp.Serve(ctx, os.Stdin, os.Stdout, factory, info); err != nil {
 		fmt.Fprintln(os.Stderr, i18n.M.ErrorPrefix, err)
 		return 1

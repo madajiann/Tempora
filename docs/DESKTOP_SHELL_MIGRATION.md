@@ -11,7 +11,7 @@ inventory in `docs/desktop-migration/INVENTORY.md`.
 
 ## Decision
 
-Reasonix Desktop moves from Wails v2 (WebKit on macOS, WebView2 on Windows,
+Tempora Desktop moves from Wails v2 (WebKit on macOS, WebView2 on Windows,
 WebKitGTK on Linux) to Electron with a Chromium renderer, because the product
 needs a native browser that the user and the agent operate together, and no
 system webview offers a second, isolated, scriptable web surface with a stable
@@ -57,7 +57,7 @@ React UI ──typed IPC via preload──▶ Electron main ──stdio JSON-RPC
                                         ├─ WebContentsView (websites)    └─ control.Controller, sessions,
                                         ├─ remote Serve windows              tools, leases, recovery, billing
                                         └─ menu, tray, dialogs, clipboard
-Remote Reasonix agent ◀── restricted host RPC over the existing SSH channel ──▶ Go desktop service
+Remote Tempora agent ◀── restricted host RPC over the existing SSH channel ──▶ Go desktop service
 ```
 
 | Layer | Owns |
@@ -116,7 +116,7 @@ case. Met for the inventory; acceptance cases are listed under gates below.
   emitter, strict JSON-RPC server over `rpcwire`, event envelope, reverse host
   requests: implemented, locally tested; all 575 commands accepted by the
   registry.
-- `reasonix-desktop --host-rpc`: one Go service process for all sessions and
+- `tempora-desktop --host-rpc`: one Go service process for all sessions and
   tabs; `-emit-contract` writes the generated TypeScript and JSON; the RPC
   native host, tray and quit hooks run over the shell connection:
   implemented, locally tested.
@@ -130,7 +130,7 @@ is mapped by the contract; business code has no direct shell calls.
 ### C. Electron hosts the complete existing desktop
 
 Main window, trusted preload, error recovery page, service supervisor,
-`reasonix://app` asset scheme with forwarded authorised media, window state,
+`tempora://app` asset scheme with forwarded authorised media, window state,
 theme, title bar drag, shortcuts, file drop, clipboard, dialogs, remote Serve
 windows, menu, tray, background close and restore. The transcript kernel,
 stable message identity and single scroll writer are untouched.
@@ -170,7 +170,7 @@ snapshot/refs, trusted actions, generation-bound grants with the
 stale/taken-over/no-grant error codes, downloads, screenshots) passes 81/81
 unit tests and the shell smoke now opens example.com and verifies the tab
 title end to end (15/15). The renderer browser API is fixed at
-`window.reasonixDesktop.browser`. The frontend browser panel
+`window.temporaDesktop.browser`. The frontend browser panel
 (`BrowserPanel`, dock tab, address bar, zoom, DevTools, downloads,
 take-over banner, overlay gating) ships as one lazy chunk with the initial
 bundle budget ratcheted by measurement (2408.2 → 2408.8 KiB raw, zero
@@ -207,7 +207,7 @@ Windows/Linux cross-builds passing. The release pipeline now packages the
 Electron shell end to end: `desktop/packaging/` assembles the `app/` tree
 with @electron/packager (+ universal on macOS), `scripts/desktop-build.sh`
 runs the contract drift check and drives packaging without `wails build`,
-NSIS installs the tree via `File /r`, the deb ships `/usr/lib/reasonix/app`
+NSIS installs the tree via `File /r`, the deb ships `/usr/lib/tempora/app`
 with a root-owned 4755 `chrome-sandbox`, the SignPath configurations cover
 the tree's PE set with two-stage installer signing kept, and the CI/release
 workflows run `packaging/smoke.mjs` against the packaged shell (the
@@ -227,9 +227,9 @@ Design notes for the versioned install layout (Windows and Linux): the
 `versions/<v>/`. The Electron payload adds one tree member, `app/`, holding
 the Electron bundle; the Windows payload manifest moves to schema 2 and lists
 every file under `app/` with its digest so the activator validates the tree
-before `current.json` moves. `reasonix-desktop(.exe)` stays the active desktop
+before `current.json` moves. `tempora-desktop(.exe)` stays the active desktop
 executable the thin launcher starts: without `--host-rpc` it bootstraps
-`app/Reasonix(.exe)` and exits, and Electron spawns the same binary with
+`app/Tempora(.exe)` and exits, and Electron spawns the same binary with
 `--host-rpc` as the service. Launcher, `current.json`, single-instance
 identity and relaunch logic therefore keep their current shape. On macOS the
 bundle's main executable is Electron and the Go service lives in
@@ -238,7 +238,7 @@ bundle's main executable is Electron and the Go service lives in
 directory, either a whitelisted base name or `app/...` (no `..`, absolute
 paths, backslashes or symlinks); manifest readers accept schema 1 (flat list)
 and schema 2 (flat list plus `app/`); the migration window's
-`REASONIX_DESKTOP_SHELL=wails` in-process fallback left with phase F; under the
+`TEMPORA_DESKTOP_SHELL=wails` in-process fallback left with phase F; under the
 shell the
 macOS hand-off waits for the Electron process (the service's parent, passed
 as `-owner-pid`) and reopens the swapped bundle with `open -n` while the shell
@@ -282,16 +282,16 @@ the WebView2/WebKitGTK recovery coordinators, diagnostics observers, native
 smoke harnesses (`cmd/transcript-native-smoke`, `cmd/transcript-selection-smoke`),
 the vendored go-webview2 fork, the `webkit2_41` build tag and the CI WebKitGTK
 toolchain steps. The desktop module's `go list -m all` is Wails-free; the
-frontend reaches only `window.reasonixDesktop` (enforced by
+frontend reaches only `window.temporaDesktop` (enforced by
 `check-desktop-host-boundary.mjs`) and the test seam is an Electron host stub.
-`REASONIX_DESKTOP_SHELL=wails` no longer exists: a plain launch without an
+`TEMPORA_DESKTOP_SHELL=wails` no longer exists: a plain launch without an
 installed shell exits with an install hint. The prototype's crash fault cases
 (renderer crash before dispatch cancels the act; crash after dispatch settles
 executed without replay; recovery keeps the login partition) run as real tests
 in `desktop/electron/src/main/browser/`. Kept on purpose: the fyne systray
 in-process fallback behind `startNativeShellSupport` (unreachable under the
 shell but still the bare-service path), the legacy crash-report decode fields,
-the `com.wails.reasonix-desktop` bundle identity, and the update helper's
+the `com.wails.tempora-desktop` bundle identity, and the update helper's
 `wails-app-` single-instance lookup (upgrade-from-Wails detection). Open: the
 four-platform acceptance matrix, the interaction p95 comparison against the
 Wails baseline, and CI runner verification on Windows/Linux.
@@ -308,7 +308,7 @@ classes and to a gate below.
 | Capability | Today (Wails) | Target (Electron) | Class |
 | --- | --- | --- | --- |
 | Sessions: send, stop, model/effort switch, history, recovery, leases | `App` methods over Wails bindings | same methods over `desktop/invoke` | keep-business |
-| Projects, worktrees, file preview, workspace watch | Go + asset middleware | Go + `reasonix://app` forwarding to the resource origin | keep-business |
+| Projects, worktrees, file preview, workspace watch | Go + asset middleware | Go + `tempora://app` forwarding to the resource origin | keep-business |
 | Terminal | Go PTY/ConPTY, events | unchanged over `desktop/event` | keep-business |
 | Settings, MCP, MCP Apps, skills, plugins | Go | unchanged; MCP Apps keep their loopback origins | keep-business |
 | Remote workspaces and remote Serve windows | SSH manager + child Wails process per window | SSH manager unchanged; `BrowserWindow` per host with isolated partition | migrate-host |

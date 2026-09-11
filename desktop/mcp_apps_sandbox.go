@@ -15,8 +15,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"reasonix/internal/control"
-	"reasonix/internal/plugin"
+	"tempora/internal/control"
+	"tempora/internal/plugin"
 )
 
 // mcpAppsSandbox serves MCP Apps resources from per-server loopback origins:

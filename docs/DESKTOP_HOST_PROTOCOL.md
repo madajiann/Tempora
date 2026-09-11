@@ -19,7 +19,7 @@ React renderer ──typed IPC (preload)──▶ Electron main ──stdio JSON
 
 - Framing: newline-delimited JSON-RPC 2.0 (`rpcwire` strict mode). One frame
   per line, UTF-8, no batch arrays.
-- The Go service is started as `reasonix-desktop --host-rpc`. Its stdout carries
+- The Go service is started as `tempora-desktop --host-rpc`. Its stdout carries
   only protocol frames; stderr carries logs. The shell closes stdin to request
   exit after `desktop/shutdown`.
 - Limits: 64 MiB per inbound frame on both sides, 512 concurrent inbound
@@ -42,7 +42,7 @@ fails with `-32002 not_ready`.
   "contractDigest": "sha256:…",       // digest embedded in the shell bundle
   "build": {"version":"v1.30.0","channel":"stable","commit":"abc123"},
   "host": {"name":"electron","version":"44.2.0","chrome":"152.0.0","platform":"darwin","arch":"arm64"},
-  "instance": {"home":"/Users/…/.reasonix","dev":false}
+  "instance": {"home":"/Users/…/.tempora","dev":false}
 }}
 // service → shell
 {"result":{
@@ -152,7 +152,7 @@ continue to use their existing owners and semantics.
 
 `args` preserves the variadic payload of the previous event bridge; most
 events carry one element. The shell forwards the frame to the renderer on the
-`reasonix:event` channel; the preload API `on(name, cb)` filters by `name` and
+`tempora:event` channel; the preload API `on(name, cb)` filters by `name` and
 calls `cb(...args)`. Sequence numbers are strictly increasing per generation
 so a renderer that re-attaches can detect a gap and re-snapshot instead of
 trusting stale state.
@@ -235,19 +235,19 @@ authorises through the existing workspace and media checks.
 ## Resource origin
 
 The service listens on a loopback port for the existing authorised asset
-handlers (`/__reasonix_workspace_media/…`, `/__reasonix_theme_asset/…`, the
+handlers (`/__tempora_workspace_media/…`, `/__tempora_theme_asset/…`, the
 remote markdown image proxy). The shell serves the packaged UI from the
-privileged `reasonix://app/` scheme and forwards only those prefixes to the
+privileged `tempora://app/` scheme and forwards only those prefixes to the
 resource origin, adding `Authorization: Bearer <token>` in the main process.
 The token never reaches the renderer, a website view, a remote window or an
 MCP App frame. Go keeps every file-identity and TTL check it has today.
 
 ## Renderer preload API
 
-The trusted preload exposes exactly one object, `window.reasonixDesktop`:
+The trusted preload exposes exactly one object, `window.temporaDesktop`:
 
 ```ts
-interface ReasonixDesktopHost {
+interface TemporaDesktopHost {
   readonly kind: "electron";
   readonly contract: { protocolVersion: number; digest: string; commands: readonly string[] };
   readonly platform: { os: "darwin" | "windows" | "linux"; arch: string; versions: Record<string, string> };
@@ -371,9 +371,9 @@ must still cover startup, extended use, foreground return and closing tabs.
 ## Security boundaries
 
 - The application window: sandbox on, context isolation on, Node integration
-  off, `reasonix://app` only, preload above.
+  off, `tempora://app` only, preload above.
 - Website views, remote Serve windows and MCP App frames: separate sessions,
-  no preload from the application, no `reasonix://` access, no `host/*` reach.
+  no preload from the application, no `tempora://` access, no `host/*` reach.
 - IPC handlers accept requests only from the application window's
   `webContents`. Any other sender is rejected and logged.
 - `desktop/invoke` names outside the embedded contract fail before reaching Go.

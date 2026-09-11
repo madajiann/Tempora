@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/historycatalog"
-	"reasonix/internal/tool"
+	"tempora/internal/historycatalog"
+	"tempora/internal/tool"
 )
 
 type historyTool struct {

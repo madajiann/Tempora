@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/event"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/tool"
 )
 
 // AskTool lets the model put a structured multiple-choice question (or a few) to

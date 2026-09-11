@@ -5,8 +5,8 @@ import (
 	"slices"
 	"strings"
 
-	"reasonix/internal/diff"
-	fileenc "reasonix/internal/fileutil/encoding"
+	"tempora/internal/diff"
+	fileenc "tempora/internal/fileutil/encoding"
 )
 
 // TurnChangesBudget bounds retained patches and the content processed per turn.

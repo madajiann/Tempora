@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/provider"
-	"reasonix/internal/sessioncatalog"
+	"tempora/internal/agent"
+	"tempora/internal/provider"
+	"tempora/internal/sessioncatalog"
 )
 
 func TestGetRecoveryLineageIncludesOriginalAndUserFacingMetadata(t *testing.T) {

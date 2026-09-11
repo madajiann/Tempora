@@ -3,7 +3,7 @@ package cli
 import (
 	"strings"
 
-	"reasonix/internal/event"
+	"tempora/internal/event"
 )
 
 func (m *chatTUI) collapseFinalToolOutput(tool event.Tool) {

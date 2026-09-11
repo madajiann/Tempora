@@ -1,6 +1,6 @@
-# Releasing Reasonix
+# Releasing Tempora
 
-Reasonix has one user-facing release line: the official `X.Y.Z` version. The
+Tempora has one user-facing release line: the official `X.Y.Z` version. The
 release engine keeps the proven Stable publication topology: three immutable
 Git tags on one `main-v2` commit and one protected orchestrator.
 
@@ -113,7 +113,7 @@ For the first release after this change, independently prove:
 - npm root and all six platform packages report that SHA and
   `latest == canary == next`;
 - R2 immutable and latest manifests are byte-identical and every URL works;
-- Homebrew and reasonix.io show the same version;
+- Homebrew and tempora.io show the same version;
 - old bridge clients can upgrade to the official release.
 
 The release is incomplete until every public surface reaches a terminal,

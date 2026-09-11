@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 func TestRepairBackoffPersistsAndSourceChangesResetIt(t *testing.T) {

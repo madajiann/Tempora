@@ -10,8 +10,8 @@ import (
 	"runtime"
 	"testing"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
+	"tempora/internal/config"
+	"tempora/internal/control"
 )
 
 func TestDeleteSessionValidatesLocalBasenameBeforeCleanup(t *testing.T) {

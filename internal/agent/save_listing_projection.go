@@ -7,7 +7,7 @@ import (
 	"math"
 	"strings"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func (s *Session) classifySnapshotWriteForCommit(path string, msgs []provider.Message, digest [sha256.Size]byte, version uint64, ownedRewrite bool, mode sessionSaveMode) (snapshotWriteDecision, error) {

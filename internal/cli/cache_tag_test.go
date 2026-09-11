@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/control"
-	"reasonix/internal/provider"
+	"tempora/internal/control"
+	"tempora/internal/provider"
 )
 
 // cacheTagCtrl stubs the two SessionAPI reads cacheTag performs; every other

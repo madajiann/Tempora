@@ -321,8 +321,8 @@ export function renderGitHubRelease(release, lang = "zh") {
     `**${isZh ? "发布渠道" : "Release channel"}：${channelLabel} · v${release.version}**`,
     "",
     isZh
-      ? `[English →](https://reasonix.io/changelog/v${release.version}/?lang=en) · [网页版完整更新日志 →](https://reasonix.io/changelog/v${release.version}/)`
-      : `[中文 →](https://reasonix.io/changelog/v${release.version}/?lang=zh) · [Full release notes →](https://reasonix.io/changelog/v${release.version}/?lang=en)`,
+      ? `[English →](https://tempora.io/changelog/v${release.version}/?lang=en) · [网页版完整更新日志 →](https://tempora.io/changelog/v${release.version}/)`
+      : `[中文 →](https://tempora.io/changelog/v${release.version}/?lang=zh) · [Full release notes →](https://tempora.io/changelog/v${release.version}/?lang=en)`,
     "",
   ];
 
@@ -337,7 +337,7 @@ export function renderGitHubRelease(release, lang = "zh") {
   lines.push(
     `## ${isZh ? "概览" : "Overview"}`,
     "",
-    `**Reasonix v${release.version} — ${localized(release.title, lang)}**`,
+    `**Tempora v${release.version} — ${localized(release.title, lang)}**`,
     "",
     localized(release.summary, lang),
     "",

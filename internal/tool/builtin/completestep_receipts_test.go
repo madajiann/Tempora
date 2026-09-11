@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/tool"
+	"tempora/internal/evidence"
+	"tempora/internal/tool"
 )
 
 func recordReceiptID(t *testing.T, ledger *evidence.Ledger, r evidence.Receipt) string {

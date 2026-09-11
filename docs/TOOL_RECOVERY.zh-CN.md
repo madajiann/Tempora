@@ -39,7 +39,7 @@ Remote tab 转发到 Serve 的 `GET/POST /tool-recovery`，沿用认证、会话
 ## 重试与幂等
 
 默认关闭重试。只在拥有该 session 的 Go 主机设置
-`REASONIX_TOOL_RECOVERY_RETRY=1` 才开放重试操作，远程能力由远端主机决定。
+`TEMPORA_TOOL_RECOVERY_RETRY=1` 才开放重试操作，远程能力由远端主机决定。
 
 重试使用新 call ID 和 attempt ID，保留原幂等键和原始参数，经过正常的参数、权限、
 hook、租约和工具执行管线。旧请求不能再次提交同一重试。

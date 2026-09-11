@@ -1,5 +1,5 @@
 // desktopHost is the only module allowed to touch the shell global: Electron's
-// window.reasonixDesktop (preload). scripts/check-desktop-host-boundary.mjs
+// window.temporaDesktop (preload). scripts/check-desktop-host-boundary.mjs
 // enforces that boundary.
 import type { AppBindings } from "./bridge";
 import type { DesktopBrowserHost } from "./browserHost";
@@ -56,7 +56,7 @@ export interface BrowserControlApi {
 }
 
 // Mirrors docs/DESKTOP_HOST_PROTOCOL.md "Renderer preload API".
-export interface ReasonixDesktopHost {
+export interface TemporaDesktopHost {
   readonly kind: "electron";
   readonly contract: { protocolVersion: number; digest: string; commands: readonly string[] };
   readonly platform: { os: "darwin" | "windows" | "linux"; arch: string; versions: Record<string, string> };
@@ -88,7 +88,7 @@ export interface ReasonixDesktopHost {
 
 declare global {
   interface Window {
-    reasonixDesktop?: ReasonixDesktopHost;
+    temporaDesktop?: TemporaDesktopHost;
   }
 }
 
@@ -163,7 +163,7 @@ const serverHost: DesktopHost = {
 };
 
 let electronHost: DesktopHost | undefined;
-let electronHostFor: ReasonixDesktopHost | undefined;
+let electronHostFor: TemporaDesktopHost | undefined;
 const dropListeners = new Set<(paths: string[]) => void>();
 
 const insideDropTarget = (target: EventTarget | null) =>
@@ -184,7 +184,7 @@ const installElectronDropHandlers = () => {
     if (!insideDropTarget(e.target) && e.dataTransfer) e.dataTransfer.dropEffect = "none";
   });
   doc.addEventListener("drop", (e) => {
-    const host = win()?.reasonixDesktop;
+    const host = win()?.temporaDesktop;
     if (!host || !dataTransferLooksLikeFileDrag(e.dataTransfer)) return;
     e.preventDefault();
     if (!insideDropTarget(e.target) || !e.dataTransfer) return;
@@ -193,7 +193,7 @@ const installElectronDropHandlers = () => {
   });
 };
 
-const electronHostFrom = (host: ReasonixDesktopHost): DesktopHost => {
+const electronHostFrom = (host: TemporaDesktopHost): DesktopHost => {
   if (electronHost && electronHostFor === host) return electronHost;
   electronHostFor = host;
   electronHost = {
@@ -237,11 +237,11 @@ const electronHostFrom = (host: ReasonixDesktopHost): DesktopHost => {
 };
 
 // Resolved at call time, never cached by callers: the preload may install
-// window.reasonixDesktop after this module first evaluates, and the browser
+// window.temporaDesktop after this module first evaluates, and the browser
 // dev mock must only win when no shell is present.
 export function desktopHost(): DesktopHost {
   if (typeof window === "undefined") return serverHost;
-  const electron = window.reasonixDesktop;
+  const electron = window.temporaDesktop;
   if (electron) return electronHostFrom(electron);
   return serverHost;
 }

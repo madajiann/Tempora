@@ -5,8 +5,8 @@ import (
 	"slices"
 	"strings"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/taskcontract"
+	"tempora/internal/evidence"
+	"tempora/internal/taskcontract"
 )
 
 // PlanGuard hard-blocks writes while Plan mode is active, including YOLO.

@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/config"
-	"reasonix/internal/topicstate"
+	"tempora/internal/config"
+	"tempora/internal/topicstate"
 )
 
 func seedLegacyTopicBridge(t *testing.T, workspaceRoot string) {

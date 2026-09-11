@@ -3,7 +3,7 @@ import type { GuestFrame, GuestPage } from "./guestView.js";
 import { scriptCall } from "./pageScripts.js";
 import { SNAPSHOT_SCRIPT_SOURCE, type SnapshotOutput } from "./snapshotScript.js";
 
-export const REGISTRY_KEY = "__reasonixBrowserRegistry";
+export const REGISTRY_KEY = "__temporaBrowserRegistry";
 export const ISOLATED_WORLD = 1;
 export const MAX_SNAPSHOT_NODES = 4000;
 

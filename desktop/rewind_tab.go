@@ -3,8 +3,8 @@ package main
 import (
 	"strings"
 
-	"reasonix/internal/checkpoint"
-	"reasonix/internal/control"
+	"tempora/internal/checkpoint"
+	"tempora/internal/control"
 )
 
 // CommitRewindForTab executes prepare (if planID empty) then commit immediately.

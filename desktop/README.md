@@ -1,11 +1,11 @@
-# Reasonix Desktop (Electron shell)
+# Tempora Desktop (Electron shell)
 
 Model/provider setup: [English guide](../docs/MODEL_SETTINGS.md) · [中文指南](../docs/MODEL_SETTINGS.zh-CN.md).
 
-A native desktop window around the Reasonix Go kernel. The same
+A native desktop window around the Tempora Go kernel. The same
 transport-agnostic `control.Controller` that backs the chat TUI and the HTTP/SSE
 server is driven by the Electron shell through the desktop host protocol — the
-Go binary runs as a supervised service (`reasonix-desktop --host-rpc` over
+Go binary runs as a supervised service (`tempora-desktop --host-rpc` over
 stdio), the shell owns the window, tray, menu and renderer lifecycle. See
 [the host protocol](../docs/DESKTOP_HOST_PROTOCOL.md) and
 [the migration record](../docs/DESKTOP_SHELL_MIGRATION.md).
@@ -13,7 +13,7 @@ stdio), the shell owns the window, tray, menu and renderer lifecycle. See
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  Electron shell (desktop/electron)                           │
-│    renderer: bridge.ts ──invoke──▶ window.reasonixDesktop     │
+│    renderer: bridge.ts ──invoke──▶ window.temporaDesktop     │
 │    bridge.ts ◀─events── host.on("agent:event")                │
 └───────────────▲───────────────────────────┬─────────────────┘
         desktop/invoke (JSON-RPC over stdio) │ desktop/event
@@ -30,11 +30,11 @@ stdio), the shell owns the window, tray, menu and renderer lifecycle. See
 
 ## Why a nested module
 
-`desktop/` is its own Go module (`module reasonix/desktop`, `replace reasonix =>
+`desktop/` is its own Go module (`module tempora/desktop`, `replace tempora =>
 ../`). That keeps the CGO desktop build entirely separate from the CLI's
 `CGO_ENABLED=0` single-static-binary guarantee: the parent module's `go build /
 vet / test ./...` skip this directory, while the import path stays under
-`reasonix/` so it can still import the `reasonix/internal/*` kernel.
+`tempora/` so it can still import the `tempora/internal/*` kernel.
 
 ## Prerequisites
 
@@ -48,7 +48,7 @@ vet / test ./...` skip this directory, while the import path stays under
 ```sh
 cd desktop
 pnpm install                                   # one workspace: frontend + electron
-go build -o build/bin/reasonix-desktop-service .
+go build -o build/bin/tempora-desktop-service .
 pnpm --dir frontend build:electron             # rewrites drag regions for Chromium
 pnpm --dir electron start                      # launches the shell against the service
 ```
@@ -137,7 +137,7 @@ git tag desktop-v1.1.0 && git push origin desktop-v1.1.0
 ```
 
 The app checks `latest.json` on startup (R2 first, then the
-`crash.reasonix.io` desktop release gateway) and shows an update banner when a
+`crash.tempora.io` desktop release gateway) and shows an update banner when a
 newer version is published; **Settings → Software update** has a manual check.
 The gateway resolves only the desktop `desktop-v*` release line and never uses
 GitHub's repository-wide `/releases/latest` shortcut, so updater behavior does
@@ -150,7 +150,7 @@ not depend on homepage badge semantics. Self-update behavior by platform:
   --only-upgrade`, then relaunch through Guard. The first build that ships the
   update helper and Polkit policy is a one-time bootstrap: existing `.deb` users
   should overwrite-install once with
-  `sudo apt install ./Reasonix-linux-amd64.deb` (no uninstall required). After
+  `sudo apt install ./Tempora-linux-amd64.deb` (no uninstall required). After
   that, in-app authorized updates work. If Polkit/`pkexec` is unavailable, use
   the same manual command. Failed installs leave the running app intact so you
   can retry; successful installs are managed by apt/dpkg and are not auto-downgraded.
@@ -168,11 +168,11 @@ not depend on homepage badge semantics. Self-update behavior by platform:
   brand-new version can still show SmartScreen until the signature accumulates
   reputation: *More info → Run anyway*.
 - **macOS** — still unsigned and un-notarized. Open
-  `Reasonix-darwin-universal.dmg`, drag Reasonix into Applications, then clear the
+  `Tempora-darwin-universal.dmg`, drag Tempora into Applications, then clear the
   quarantine attribute when Gatekeeper reports the app "is damaged" or is from an
   unidentified developer:
   ```sh
-  xattr -dr com.apple.quarantine /Applications/Reasonix.app
+  xattr -dr com.apple.quarantine /Applications/Tempora.app
   ```
   This is also why macOS has no in-place self-update: the swap would be blocked.
   Adding a Developer ID certificate flips the release workflow's `HAS_APPLE_CERT`
@@ -185,7 +185,7 @@ signature sits next to each artifact in the release; verify with the
 [minisign](https://jedisct1.github.io/minisign/) CLI:
 
 ```sh
-minisign -Vm Reasonix-darwin-arm64.zip \
+minisign -Vm Tempora-darwin-arm64.zip \
   -P RWSw66n0RsoSr6Zhh6qt5YO95YkpCayTOCMFVDNUQSjJYwxoYngNVBSq
 ```
 
@@ -232,7 +232,7 @@ is native-shell behavior, not per-engine rendering quirks:
   root-owned 4755 `chrome-sandbox`, never `--no-sandbox`). Close-to-background is
   enabled only after a DBus health probe confirms a live StatusNotifierWatcher,
   a registered visual host, and this app's registered StatusNotifierItem. If any
-  of them disappears while the main window is hidden, Reasonix presents the
+  of them disappears while the main window is hidden, Tempora presents the
   window again until the tray recovers.
 - **Windows** — the shell follows the OS light/dark setting. Remote Markdown
   images are fetched by the Go backend with the configured proxy and re-served
@@ -241,7 +241,7 @@ is native-shell behavior, not per-engine rendering quirks:
   HTTP(S)-proxy, and SOCKS-proxy connections are pinned to those vetted IPs
   while preserving the original Host and TLS SNI.
 - **macOS** — inset/hidden title bar; the CSS marks the top bar as an OS drag
-  region (the Electron build rewrites `--reasonix-draggable` to
+  region (the Electron build rewrites `--tempora-draggable` to
   `-webkit-app-region`) and leaves room for the traffic lights.
 - **Renderer recovery** — the shell reloads a crashed renderer
   (`render-process-gone`) and reports service state to the UI; a renderer that
@@ -269,7 +269,7 @@ desktop/
       lib/
         types.ts         wire contract (mirrors wire.go)
         bridge.ts        desktop host bridge + browser dev mock
-        desktopHost.ts   the only module touching window.reasonixDesktop
+        desktopHost.ts   the only module touching window.temporaDesktop
         useController.ts event-stream reducer + command surface (the hook)
       components/
         Transcript, Message, ToolCard, Composer, ApprovalModal, ContextGauge,
@@ -279,7 +279,7 @@ desktop/
 
 ## Telemetry
 
-The desktop app sends one anonymous ping per launch to `crash.reasonix.io`:
+The desktop app sends one anonymous ping per launch to `crash.tempora.io`:
 a random anonymous install id (generated locally and not an account id), app
 version, OS, architecture, Windows build/revision or bounded Linux
 distribution/kernel/session facts, and the renderer engine tag. When the

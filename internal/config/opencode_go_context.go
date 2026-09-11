@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"strings"
 
-	"reasonix/internal/billing"
-	"reasonix/internal/provider"
+	"tempora/internal/billing"
+	"tempora/internal/provider"
 )
 
 const (

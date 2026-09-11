@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"sort"
 
-	"reasonix/internal/provider"
-	"reasonix/internal/readcoord"
-	"reasonix/internal/tool"
+	"tempora/internal/provider"
+	"tempora/internal/readcoord"
+	"tempora/internal/tool"
 )
 
 // readDelivery contains no source text. References always name an original

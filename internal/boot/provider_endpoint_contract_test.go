@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/config"
-	"reasonix/internal/netclient"
+	"tempora/internal/config"
+	"tempora/internal/netclient"
 )
 
 func TestRuntimeRejectsProtocolEndpointMismatch(t *testing.T) {

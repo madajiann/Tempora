@@ -5,14 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"reasonix/internal/sandbox"
-	"reasonix/internal/tool"
+	"tempora/internal/sandbox"
+	"tempora/internal/tool"
 )
 
 func init() { tool.RegisterBuiltin(multiEdit{}) }
 
 // multiEdit applies a batch of edits to one file. roots confines the target to
-// the workspace when non-empty (see writeFile); guard rejects Reasonix
+// the workspace when non-empty (see writeFile); guard rejects Tempora
 // session-data targets (see SessionDataGuard); workDir, when non-empty, is the
 // directory a relative path resolves against (see resolveIn).
 type multiEdit struct {

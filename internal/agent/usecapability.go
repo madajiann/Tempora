@@ -10,11 +10,11 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/capability"
-	"reasonix/internal/config"
-	"reasonix/internal/event"
-	"reasonix/internal/plugin"
-	"reasonix/internal/tool"
+	"tempora/internal/capability"
+	"tempora/internal/config"
+	"tempora/internal/event"
+	"tempora/internal/plugin"
+	"tempora/internal/tool"
 )
 
 // MCPCapabilityRuntime is the session-shared MCP substrate: Host, boot specs,
@@ -1034,7 +1034,7 @@ func (o *onDemandMCPTool) executeWithImages(ctx context.Context, args json.RawMe
 	}
 	defer unlock()
 	if !plugin.MCPRuntimeSpecMatches(spec, o.spec) {
-		return "", nil, fmt.Errorf("MCP server %q runtime identity changed after resolution; retry so Reasonix can bind the current configuration", o.server)
+		return "", nil, fmt.Errorf("MCP server %q runtime identity changed after resolution; retry so Tempora can bind the current configuration", o.server)
 	}
 	tools, err := o.proxy.ensureServerToolsForSpec(ctx, o.server, spec)
 	if err != nil {
@@ -1066,7 +1066,7 @@ func (o *onDemandMCPTool) executeWithImages(ctx context.Context, args json.RawMe
 	// before tools/call even when Reconcile did not see a cache promotion.
 	if tool.HasNonDestructiveMCPExecutionIntent(ctx) {
 		if !mcpServerAuthorized(target) || mcpDestructiveHint(target) {
-			return "", nil, fmt.Errorf("MCP server %q changed the authorization or destructive classification for tool %q; the call was blocked before dispatch — retry so Reasonix can re-apply the current Planner MCP safety boundary", o.server, o.raw)
+			return "", nil, fmt.Errorf("MCP server %q changed the authorization or destructive classification for tool %q; the call was blocked before dispatch — retry so Tempora can re-apply the current Planner MCP safety boundary", o.server, o.raw)
 		}
 	}
 	if blocked, msg := hostValidateBeforeDispatch(target, args, "mcp-tool:"+o.server+"/"+o.raw); blocked {
@@ -1389,7 +1389,7 @@ func (o *onDemandMCPConnect) Execute(ctx context.Context, _ json.RawMessage) (st
 	}
 	defer unlock()
 	if !plugin.MCPRuntimeSpecMatches(spec, o.spec) {
-		return "", fmt.Errorf("MCP server %q runtime identity changed after resolution; retry so Reasonix can bind the current configuration", o.server)
+		return "", fmt.Errorf("MCP server %q runtime identity changed after resolution; retry so Tempora can bind the current configuration", o.server)
 	}
 	if _, err := o.proxy.ensureServerToolsForSpec(ctx, o.server, spec); err != nil {
 		if o.proxy.ledger != nil {

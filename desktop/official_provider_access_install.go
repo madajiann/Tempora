@@ -5,7 +5,7 @@ import (
 	"slices"
 	"strings"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 // AddOfficialProviderAccess adds one curated desktop provider template to the

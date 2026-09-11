@@ -6,11 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
-	_ "reasonix/internal/tool/builtin"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
+	_ "tempora/internal/tool/builtin"
 )
 
 func bashProgressReceipt(t *testing.T, command string, success bool) evidence.Receipt {

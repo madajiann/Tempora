@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"testing"
 
-	"reasonix/internal/config"
-	"reasonix/internal/provider"
+	"tempora/internal/config"
+	"tempora/internal/provider"
 )
 
 func TestOpenCodeGoDeepSeekReasoningContract(t *testing.T) {

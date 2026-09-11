@@ -74,7 +74,7 @@ const race = await createTranscriptHarness({ deterministic: true, viewportHeight
 try {
   const calls: string[] = [];
   const writes: unknown[] = [];
-  window.__REASONIX_TRANSCRIPT_SCROLL_WRITE__ = (write) => { writes.push(write); };
+  window.__TEMPORA_TRANSCRIPT_SCROLL_WRITE__ = (write) => { writes.push(write); };
   const page = turns(8).slice(4);
   const base = { questionNavigator: true, hasOlderHistory: true, historyStartTurn: 5, historyTotalTurns: 8 };
   let finish!: (loaded: boolean) => void;

@@ -16,8 +16,8 @@ const { _electron: electron } = require("playwright");
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const artifacts = resolve(root, "artifacts", "smoke");
 mkdirSync(artifacts, { recursive: true });
-const service = process.env.REASONIX_DESKTOP_SERVICE
-  || resolve(root, "../build/bin", process.platform === "win32" ? "reasonix-desktop-service.exe" : "reasonix-desktop-service");
+const service = process.env.TEMPORA_DESKTOP_SERVICE
+  || resolve(root, "../build/bin", process.platform === "win32" ? "tempora-desktop-service.exe" : "tempora-desktop-service");
 if (!existsSync(service)) {
   console.error(`desktop service binary not found: ${service}`);
   process.exit(2);
@@ -27,7 +27,7 @@ if (!existsSync(resolve(root, "dist/main.cjs"))) {
   process.exit(2);
 }
 
-const home = mkdtempSync(join(tmpdir(), "reasonix-electron-smoke-"));
+const home = mkdtempSync(join(tmpdir(), "tempora-electron-smoke-"));
 const checks = [];
 const check = (name, ok, detail = "") => {
   checks.push({ name, ok: Boolean(ok), detail });
@@ -70,11 +70,11 @@ const app = await electron.launch({
   args: [root],
   env: {
     ...process.env,
-    REASONIX_HOME: home,
-    REASONIX_STATE_HOME: home,
-    REASONIX_CACHE_HOME: join(home, "cache"),
-    REASONIX_DEV: "1",
-    REASONIX_DESKTOP_SERVICE: service,
+    TEMPORA_HOME: home,
+    TEMPORA_STATE_HOME: home,
+    TEMPORA_CACHE_HOME: join(home, "cache"),
+    TEMPORA_DEV: "1",
+    TEMPORA_DESKTOP_SERVICE: service,
   },
   timeout: 60_000,
 });
@@ -82,11 +82,11 @@ const shellPid = app.process().pid;
 let exitCode = 1;
 try {
   const page = await app.firstWindow({ timeout: 60_000 });
-  await page.waitForFunction(() => Boolean(window.reasonixDesktop), null, { timeout: 30_000 });
+  await page.waitForFunction(() => Boolean(window.temporaDesktop), null, { timeout: 30_000 });
   const contract = await page.evaluate(() => ({
-    digest: window.reasonixDesktop.contract.digest,
-    commands: window.reasonixDesktop.contract.commands.length,
-    protocolVersion: window.reasonixDesktop.contract.protocolVersion,
+    digest: window.temporaDesktop.contract.digest,
+    commands: window.temporaDesktop.contract.commands.length,
+    protocolVersion: window.temporaDesktop.contract.protocolVersion,
   }));
   check("preload exposes the contract", contract.digest.startsWith("sha256:") && contract.commands > 500, `${contract.commands} commands, ${contract.digest.slice(0, 19)}`);
 
@@ -95,7 +95,7 @@ try {
   check("React replaced the boot shell", true, `${readyMs} ms after launch`);
 
   const state = await page.evaluate(() => new Promise((resolveState) => {
-    const off = window.reasonixDesktop.native.onServiceState((s) => {
+    const off = window.temporaDesktop.native.onServiceState((s) => {
       if (s.phase === "ready" || s.phase === "failed" || s.phase === "exited") {
         queueMicrotask(() => { off(); resolveState(s); });
       }
@@ -104,17 +104,17 @@ try {
   }));
   check("late subscribers receive the service state", state.phase === "ready", `phase=${state.phase} generation=${state.generation ?? ""}`);
 
-  const version = await page.evaluate(() => window.reasonixDesktop.invoke("Version", []));
-  const platform = await page.evaluate(() => window.reasonixDesktop.invoke("Platform", []));
+  const version = await page.evaluate(() => window.temporaDesktop.invoke("Version", []));
+  const platform = await page.evaluate(() => window.temporaDesktop.invoke("Platform", []));
   check("desktop/invoke round-trips business commands", typeof version === "string" && typeof platform === "string", `Version=${version} Platform=${platform}`);
 
-  const unknown = await page.evaluate(() => window.reasonixDesktop.invoke("NoSuchCommand", []).then(() => "resolved", (e) => String(e.message)));
+  const unknown = await page.evaluate(() => window.temporaDesktop.invoke("NoSuchCommand", []).then(() => "resolved", (e) => String(e.message)));
   check("unknown commands are rejected before reaching Go", unknown.includes("-32601"), unknown);
 
-  const shellStatus = await page.evaluate(() => window.reasonixDesktop.invoke("GetDesktopShellStatus", []));
+  const shellStatus = await page.evaluate(() => window.temporaDesktop.invoke("GetDesktopShellStatus", []));
   check("shell status is served by Go", shellStatus && typeof shellStatus === "object", JSON.stringify(shellStatus).slice(0, 120));
 
-  const bounds = await page.evaluate(() => window.reasonixDesktop.native.window.getBounds());
+  const bounds = await page.evaluate(() => window.temporaDesktop.native.window.getBounds());
   check("native window bounds are readable", bounds.width >= 760 && bounds.height >= 480, `${bounds.width}x${bounds.height} at ${bounds.x},${bounds.y}`);
 
   const leaked = await page.evaluate(() => ({ go: typeof window.go, runtime: typeof window.runtime, require: typeof window.require, process: typeof window.process }));
@@ -123,11 +123,11 @@ try {
   const errors = await page.evaluate(() => document.querySelector(".error-boundary, [data-crash-overlay]") !== null);
   check("no crash overlay is showing", !errors);
 
-  const tab = await page.evaluate(() => window.reasonixDesktop.browser.open("example.com", { temporary: true }));
+  const tab = await page.evaluate(() => window.temporaDesktop.browser.open("example.com", { temporary: true }));
   check("browser opens a website view", typeof tab.id === "string" && new URL(tab.url).origin === "https://example.com", `${tab.id} ${tab.url}`);
   const title = await page.evaluate(async (tabId) => {
     for (let attempt = 0; attempt < 50; attempt += 1) {
-      const tabs = await window.reasonixDesktop.browser.list();
+      const tabs = await window.temporaDesktop.browser.list();
       const found = tabs.find((entry) => entry.id === tabId);
       if (found && found.title !== "") return found.title;
       await new Promise((resolveWait) => setTimeout(resolveWait, 200));
@@ -135,13 +135,13 @@ try {
     return "";
   }, tab.id);
   check("the website view loads example.com", title === "Example Domain", `title=${JSON.stringify(title)}`);
-  await page.evaluate((tabId) => window.reasonixDesktop.browser.close(tabId), tab.id);
-  const remaining = await page.evaluate(() => window.reasonixDesktop.browser.list());
+  await page.evaluate((tabId) => window.temporaDesktop.browser.close(tabId), tab.id);
+  const remaining = await page.evaluate(() => window.temporaDesktop.browser.list());
   check("browser tab closes cleanly", remaining.every((entry) => entry.id !== tab.id), `${remaining.length} tabs left`);
 
   await page.screenshot({ path: join(artifacts, "main-window.png") });
   const tree = processTree(shellPid);
-  const servicePids = tree.filter((p) => p.comm.includes("reasonix-desktop")).map((p) => p.pid);
+  const servicePids = tree.filter((p) => p.comm.includes("tempora-desktop")).map((p) => p.pid);
   check("Go service runs as a child of the shell", servicePids.length === 1, `pids=${servicePids.join(",")} tree=${tree.length}`);
 
   await app.close();

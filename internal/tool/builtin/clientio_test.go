@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/sandbox"
-	"reasonix/internal/secrets"
+	"tempora/internal/sandbox"
+	"tempora/internal/secrets"
 )
 
 // fakeOverlay serves a fixed path→content map and records writes.

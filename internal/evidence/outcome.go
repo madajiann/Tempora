@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"reasonix/internal/shellsafe"
+	"tempora/internal/shellsafe"
 )
 
 // OutcomeSample decomposes one tool round's receipts by outcome: information

@@ -3,7 +3,7 @@ package agent
 import (
 	"strings"
 
-	"reasonix/internal/plugin"
+	"tempora/internal/plugin"
 )
 
 // The live-connection view every frontend on one session observes. It is

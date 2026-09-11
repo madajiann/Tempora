@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/provider"
-	"reasonix/internal/sessioncatalog"
+	"tempora/internal/agent"
+	"tempora/internal/provider"
+	"tempora/internal/sessioncatalog"
 )
 
 func TestRetargetOpenTabsUsesUniqueLinearCompactedLeaf(t *testing.T) {

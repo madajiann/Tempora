@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
+	"tempora/internal/config"
+	"tempora/internal/control"
 )
 
 type extensionFormController struct {

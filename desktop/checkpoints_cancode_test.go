@@ -9,11 +9,11 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/checkpoint"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/checkpoint"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 func TestDesktopRewindCommitAndUndoUseAuthoritativeControllerState(t *testing.T) {

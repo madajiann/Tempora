@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	"reasonix/internal/filelock"
+	"tempora/internal/filelock"
 )
 
 // All workspaces share a fixed set of hashed path-lock files. Hash collisions

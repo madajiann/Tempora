@@ -9,11 +9,11 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
-	"reasonix/internal/permission"
-	"reasonix/internal/sandbox"
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/event"
+	"tempora/internal/permission"
+	"tempora/internal/sandbox"
+	"tempora/internal/tool"
 )
 
 func TestResolveApprovalWriteAccessOnceDoesNotGrantSession(t *testing.T) {
@@ -158,7 +158,7 @@ func TestCheckWriteAccessHeadlessMissingDir(t *testing.T) {
 		Tool:       "write_file",
 		Expandable: true,
 		Declaration: tool.WriteAccessDeclaration{
-			Directories: []string{filepath.Join(os.TempDir(), "reasonix-write-access-outside")},
+			Directories: []string{filepath.Join(os.TempDir(), "tempora-write-access-outside")},
 		},
 	})
 	if err != nil {
@@ -181,7 +181,7 @@ func TestCheckWriteAccessSubagentCannotExpand(t *testing.T) {
 		Tool:       "write_file",
 		Expandable: false,
 		Declaration: tool.WriteAccessDeclaration{
-			Directories: []string{filepath.Join(os.TempDir(), "reasonix-write-access-child")},
+			Directories: []string{filepath.Join(os.TempDir(), "tempora-write-access-child")},
 		},
 	})
 	if err != nil {

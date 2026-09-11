@@ -3,7 +3,7 @@ package responses
 import (
 	"bytes"
 	"encoding/json"
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 	"testing"
 )
 

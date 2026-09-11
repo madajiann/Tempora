@@ -103,7 +103,7 @@ contracts when touching anything that can move the transcript viewport.
   every future measurement until release. Apply the same geometry boundary to
   wheel, touch, selection, keyboard and native-thumb ownership; the Kernel
   still rejects programmatic reader writes throughout those leases.
-  Publish one immutable Reasonix snapshot, then transfer that exact published
+  Publish one immutable Tempora snapshot, then transfer that exact published
   batch into TanStack's keyed size cache in the same browser task. Close the
   batch with a layout-effect state update and acknowledge that publication in
   the geometry commit; TanStack notification scheduling alone is insufficient. Never call

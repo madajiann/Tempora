@@ -7,9 +7,9 @@ import (
 	"slices"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 func TestPinnedContextNeverChangesBasePrompt(t *testing.T) {

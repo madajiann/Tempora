@@ -24,14 +24,14 @@ DESKTOP="$ROOT/desktop"
 INSTALLER_DIR="$DESKTOP/build/windows/installer"
 BIN_DIR="$DESKTOP/build/bin"
 DIST="$ROOT/dist"
-APPNAME="Reasonix"
-BINNAME="reasonix-desktop"
-GUARDNAME="reasonix-guard"
-LAUNCHERNAME="reasonix-launcher"
-UPDATE_HELPER="reasonix-update-helper.exe"
-WINDOWS_CLINAME="reasonix-cli"
+APPNAME="Tempora"
+BINNAME="tempora-desktop"
+GUARDNAME="tempora-guard"
+LAUNCHERNAME="tempora-launcher"
+UPDATE_HELPER="tempora-update-helper.exe"
+WINDOWS_CLINAME="tempora-cli"
 SIGNING_LIST="signing-files.txt"
-PAYLOAD_MANIFEST="reasonix-payload.json"
+PAYLOAD_MANIFEST="tempora-payload.json"
 PAYLOAD_SIGNATURE="$PAYLOAD_MANIFEST.minisig"
 
 [ -d "$payload_input" ] || { echo "Windows payload directory is missing: $payload_input" >&2; exit 1; }
@@ -43,7 +43,7 @@ required_payload=(
 	"$LAUNCHERNAME.exe"
 	"$UPDATE_HELPER"
 	"$WINDOWS_CLINAME.exe"
-	"reasonix-uninstall.exe"
+	"tempora-uninstall.exe"
 )
 for name in "${required_payload[@]}"; do
 	[ -s "$PAYLOAD/$name" ] || { echo "Windows payload file is missing or empty: $name" >&2; exit 1; }
@@ -69,7 +69,7 @@ if [ "$manifest_present" != "$signature_present" ]; then
 	echo "Windows payload manifest and signature must be provided together" >&2
 	exit 1
 fi
-if [ "${REASONIX_REQUIRE_PAYLOAD_MANIFEST:-0}" = "1" ] && [ "$manifest_present" != "1" ]; then
+if [ "${TEMPORA_REQUIRE_PAYLOAD_MANIFEST:-0}" = "1" ] && [ "$manifest_present" != "1" ]; then
 	echo "signed Windows packaging requires $PAYLOAD_MANIFEST and $PAYLOAD_SIGNATURE" >&2
 	exit 1
 fi
@@ -89,18 +89,18 @@ if [ "$manifest_present" = "1" ]; then
 	cp "$PAYLOAD/$PAYLOAD_SIGNATURE" "$INSTALLER_DIR/$PAYLOAD_SIGNATURE"
 fi
 
-[ -s "$INSTALLER_DIR/reasonix_project.nsh" ] || {
-	echo "reasonix_project.nsh is missing; run desktop/packaging/package.mjs first" >&2
+[ -s "$INSTALLER_DIR/tempora_project.nsh" ] || {
+	echo "tempora_project.nsh is missing; run desktop/packaging/package.mjs first" >&2
 	exit 1
 }
 
 # Delete only generated installers so a stale first-pass package cannot be
 # mistaken for the rebuilt payload-signed installer.
 find "$BIN_DIR" -maxdepth 1 -type f -name '*installer*.exe' -delete
-binary_define="ARG_REASONIX_AMD64_BINARY"
-[ "$arch" = arm64 ] && binary_define="ARG_REASONIX_ARM64_BINARY"
+binary_define="ARG_TEMPORA_AMD64_BINARY"
+[ "$arch" = arm64 ] && binary_define="ARG_TEMPORA_ARM64_BINARY"
 binary_path="$INSTALLER_DIR/$BINNAME.exe"
-uninstaller_path="$PAYLOAD/reasonix-uninstall.exe"
+uninstaller_path="$PAYLOAD/tempora-uninstall.exe"
 if command -v cygpath >/dev/null 2>&1; then
 	binary_path="$(cygpath -w "$binary_path")"
 	uninstaller_path="$(cygpath -w "$uninstaller_path")"
@@ -109,7 +109,7 @@ fi
 	cd "$INSTALLER_DIR"
 	makensis \
 		"-D${binary_define}=${binary_path}" \
-		"-DARG_REASONIX_SIGNED_UNINSTALLER=${uninstaller_path}" \
+		"-DARG_TEMPORA_SIGNED_UNINSTALLER=${uninstaller_path}" \
 		project.nsi
 )
 
@@ -135,8 +135,8 @@ trap cleanup EXIT
 # versioned-v1 portable layout (no Guard, no flat desktop at InstallRoot); the
 # Electron bundle is the app/ tree member of the active version directory.
 version_label="${VERSION:-}"
-if [ -z "$version_label" ] && [ -f "$INSTALLER_DIR/reasonix_project.nsh" ]; then
-	version_label=$(sed -n 's/^!define REASONIX_VERSION_TAG "\(.*\)"$/\1/p' "$INSTALLER_DIR/reasonix_project.nsh" | tr -d '\r' | head -n 1)
+if [ -z "$version_label" ] && [ -f "$INSTALLER_DIR/tempora_project.nsh" ]; then
+	version_label=$(sed -n 's/^!define TEMPORA_VERSION_TAG "\(.*\)"$/\1/p' "$INSTALLER_DIR/tempora_project.nsh" | tr -d '\r' | head -n 1)
 fi
 version_label="${version_label:-0.0.0}"
 case "$version_label" in

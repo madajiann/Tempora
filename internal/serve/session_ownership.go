@@ -13,19 +13,19 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/eventwire"
-	"reasonix/internal/provider"
-	"reasonix/internal/store"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/eventwire"
+	"tempora/internal/provider"
+	"tempora/internal/store"
 )
 
 // Session ownership handoff: the single-writer protocol behind local takeover.
 //
 // A session has exactly one writer at a time — the runtime holding its lease.
 // When the machine hosting Serve is also where the user now sits (the remote
-// desktop came "home"), the local Reasonix window can take a session over:
+// desktop came "home"), the local Tempora window can take a session over:
 // Serve releases the lease and the local window acquires it. Serve keeps no
 // controller authority for a mirrored session, but stays the rendezvous: the
 // remote tab's SSE stream keeps rendering because the local writer pushes its
@@ -70,7 +70,7 @@ var leaseHeldByForeignRuntime = agent.SessionLeaseHeldByOtherRuntime
 // errSessionTakenOver is the stable refusal every mutating endpoint returns
 // while the foreground session is mirrored to a local writer. Clients match
 // the leading sentence to surface the read-only state.
-const errSessionTakenOver = "session is taken over by a local Reasonix window and is read-only here; use POST /reclaim to take it back"
+const errSessionTakenOver = "session is taken over by a local Tempora window and is read-only here; use POST /reclaim to take it back"
 
 // mirroredSession is Serve's bookkeeping for a session whose lease a local
 // runtime now holds. Serve answers reads from the transcript file and mirrors
@@ -535,8 +535,8 @@ func (s *Server) handoffLocked(realPath, targetWriterID string) (mirroredSession
 		Kind:        event.Notice,
 		Level:       event.LevelWarn,
 		Code:        event.NoticeCodeSessionTakenOver,
-		Text:        "This session was taken over by a local Reasonix window and is read-only here.",
-		Detail:      "A Reasonix window on this machine took over the conversation. It keeps streaming here; use \"take back\" to reclaim it.",
+		Text:        "This session was taken over by a local Tempora window and is read-only here.",
+		Detail:      "A Tempora window on this machine took over the conversation. It keeps streaming here; use \"take back\" to reclaim it.",
 		SessionPath: canonical,
 	})
 	return m, nil
@@ -657,7 +657,7 @@ func (s *Server) reclaim(w http.ResponseWriter, r *http.Request) {
 			deadline := time.Now().Add(10 * time.Second)
 			for leaseHeldByForeignRuntime(realPath) {
 				if time.Now().After(deadline) {
-					http.Error(w, "session is held by a local Reasonix window that never registered a mirror; close that window or retry after it exits", http.StatusConflict)
+					http.Error(w, "session is held by a local Tempora window that never registered a mirror; close that window or retry after it exits", http.StatusConflict)
 					return
 				}
 				time.Sleep(handoffPollInterval)
@@ -878,8 +878,8 @@ func (s *Server) adopt(w http.ResponseWriter, r *http.Request) {
 		Kind:        event.Notice,
 		Level:       event.LevelWarn,
 		Code:        event.NoticeCodeSessionTakenOver,
-		Text:        "This session was taken over by a local Reasonix window and is read-only here.",
-		Detail:      "A Reasonix window on this machine opened this session; it keeps streaming here. Use \"take back\" to reclaim it.",
+		Text:        "This session was taken over by a local Tempora window and is read-only here.",
+		Detail:      "A Tempora window on this machine opened this session; it keeps streaming here. Use \"take back\" to reclaim it.",
 		SessionPath: agent.CanonicalSessionPath(realPath),
 	})
 	writeJSON(w, m.grant("adopted"))

@@ -17,7 +17,7 @@ OpenAI Chat 和受支持的 Anthropic 适配器已有工具图片转发。Respon
 显式开启的实测使用随机短码和彩色色块生成图片，读取已配置的官方 DeepSeek 凭据但不打印凭据，验证三种原生协议及显式、自动摘要服务路线，并更换图片检查新内容：
 
 ```sh
-REASONIX_LIVE_TOOL_IMAGES=1 go test -tags live ./internal/imageinput -run TestLiveToolImages -v -count=1
+TEMPORA_LIVE_TOOL_IMAGES=1 go test -tags live ./internal/imageinput -run TestLiveToolImages -v -count=1
 ```
 
 实测的 `auto` 用例注入同服务商选择器以验证服务路线；真实配置目录的选择由 Boot 负责。实测会产生 API 用量。请求成功不等于读图成功，必须通过图片内容断言。OCR 仍可能误认相似字符，摘要不能替代逐像素的视觉输入。

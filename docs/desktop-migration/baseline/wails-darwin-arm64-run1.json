@@ -1,6 +1,6 @@
 {
   "label": "wails-darwin-arm64-run1",
-  "executable": "desktop/build/bin/reasonix-desktop.app/Contents/MacOS/reasonix-desktop",
+  "executable": "desktop/build/bin/tempora-desktop.app/Contents/MacOS/tempora-desktop",
   "measuredAt": "2026-09-08T17:04:03.652717+00:00",
   "machine": {
     "platform": "macOS-26.6.2-arm64-arm-64bit",
@@ -15,19 +15,19 @@
       "afterHealthySeconds": 2,
       "rssKiB": 398608,
       "processCount": 4,
-      "processes": "com.apple.WebKit.GPU;com.apple.WebKit.Networking;com.apple.WebKit.WebContent;reasonix-desktop"
+      "processes": "com.apple.WebKit.GPU;com.apple.WebKit.Networking;com.apple.WebKit.WebContent;tempora-desktop"
     },
     {
       "afterHealthySeconds": 10,
       "rssKiB": 389040,
       "processCount": 4,
-      "processes": "com.apple.WebKit.GPU;com.apple.WebKit.Networking;com.apple.WebKit.WebContent;reasonix-desktop"
+      "processes": "com.apple.WebKit.GPU;com.apple.WebKit.Networking;com.apple.WebKit.WebContent;tempora-desktop"
     },
     {
       "afterHealthySeconds": 30,
       "rssKiB": 413792,
       "processCount": 4,
-      "processes": "com.apple.WebKit.GPU;com.apple.WebKit.Networking;com.apple.WebKit.WebContent;reasonix-desktop"
+      "processes": "com.apple.WebKit.GPU;com.apple.WebKit.Networking;com.apple.WebKit.WebContent;tempora-desktop"
     }
   ],
   "exit": {

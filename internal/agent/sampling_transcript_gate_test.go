@@ -6,12 +6,12 @@ import (
 	"encoding/json"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/extension"
-	"reasonix/internal/extension/dispatch"
-	"reasonix/internal/extension/protocol"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/extension"
+	"tempora/internal/extension/dispatch"
+	"tempora/internal/extension/protocol"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 func TestSamplingTranscriptGateBlocksInvalidArgumentsBeforeProvider(t *testing.T) {

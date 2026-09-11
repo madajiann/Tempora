@@ -13,14 +13,14 @@ import (
 	"runtime"
 	"strings"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 // crash_app.go is the crash/feedback/performance reporting surface. Frontend
 // reports are sent on an explicit user click. Native fatal/lifecycle reports are
 // queued locally and sent on a later launch only when desktop telemetry is on.
 
-var crashEndpoint = "https://crash.reasonix.io/v1/report"
+var crashEndpoint = "https://crash.tempora.io/v1/report"
 
 const maxCrashDetailBytes = 16 << 10
 const maxCrashStackBytes = 8 << 10

@@ -7,10 +7,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/tool"
 )
 
 func recoveryHTTPFixture(t *testing.T) (*httptest.Server, control.ToolRecoverySnapshot) {

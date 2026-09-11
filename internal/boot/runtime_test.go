@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/control"
-	"reasonix/internal/provider"
+	"tempora/internal/control"
+	"tempora/internal/provider"
 )
 
 func TestBuildRuntimeDisablesImplicitSkillInvocation(t *testing.T) {
@@ -19,7 +19,7 @@ func TestBuildRuntimeDisablesImplicitSkillInvocation(t *testing.T) {
 	dir := robustTempDir(t)
 	t.Chdir(dir)
 	writeRuntimeFixture(t, dir)
-	configPath := filepath.Join(dir, "reasonix.toml")
+	configPath := filepath.Join(dir, "tempora.toml")
 	content, err := os.ReadFile(configPath)
 	if err != nil {
 		t.Fatalf("read fixture config: %v", err)
@@ -54,7 +54,7 @@ func TestRebuildFromForceFullRebuildRefreshesSkillPolicy(t *testing.T) {
 	dir := robustTempDir(t)
 	t.Chdir(dir)
 	writeRuntimeFixture(t, dir)
-	configPath := filepath.Join(dir, "reasonix.toml")
+	configPath := filepath.Join(dir, "tempora.toml")
 	content, err := os.ReadFile(configPath)
 	if err != nil {
 		t.Fatalf("read fixture config: %v", err)
@@ -98,7 +98,7 @@ func TestRebuildFromForceFullRebuildRefreshesSkillPolicy(t *testing.T) {
 // environment probe section disabled (it embeds machine-specific data).
 func writeRuntimeFixture(t *testing.T, dir string) {
 	t.Helper()
-	writeFile(t, dir, "reasonix.toml", `
+	writeFile(t, dir, "tempora.toml", `
 default_model = "test-model"
 
 [agent]
@@ -112,7 +112,7 @@ name = "test-model"
 kind = "openai"
 base_url = "https://example.invalid"
 model = "x"
-api_key_env = "REASONIX_TEST_KEY_UNSET"
+api_key_env = "TEMPORA_TEST_KEY_UNSET"
 `)
 }
 

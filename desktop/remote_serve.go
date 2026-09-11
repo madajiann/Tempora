@@ -18,11 +18,11 @@ import (
 
 	"golang.org/x/crypto/ssh"
 
-	"reasonix/internal/config"
-	"reasonix/internal/jobs"
-	"reasonix/internal/remote/bootstrap"
-	"reasonix/internal/remote/forward"
-	"reasonix/internal/store"
+	"tempora/internal/config"
+	"tempora/internal/jobs"
+	"tempora/internal/remote/bootstrap"
+	"tempora/internal/remote/forward"
+	"tempora/internal/store"
 )
 
 const remoteProviderReloadTimeout = jobs.DefaultTeardownGrace + 15*time.Second
@@ -53,7 +53,7 @@ func (m *desktopRemoteManager) SwitchCredentialProxyModel(ctx context.Context, h
 	serve := mh.serves[workspace]
 	m.mu.Unlock()
 	if serve == nil || serve.view.State != "ready" || serve.view.LocalURL == "" || serve.token == "" {
-		return fmt.Errorf("workspace %q has no ready Reasonix Serve", workspace)
+		return fmt.Errorf("workspace %q has no ready Tempora Serve", workspace)
 	}
 	app, ok := m.sink.(*App)
 	if !ok || app == nil {
@@ -118,7 +118,7 @@ func credentialProxyBootstrapOptions(workspace string, remotePort int, info cred
 	return &bootstrap.CredentialProxyOptions{
 		BaseURL:  fmt.Sprintf("http://127.0.0.1:%d", remotePort),
 		Token:    info.token,
-		TokenEnv: "REASONIX_PROXY_TOKEN_" + strings.ToUpper(strings.ReplaceAll(suffix, "-", "_")),
+		TokenEnv: "TEMPORA_PROXY_TOKEN_" + strings.ToUpper(strings.ReplaceAll(suffix, "-", "_")),
 		Provider: credentialProxyProviderName + "-" + suffix,
 		Model:    info.model,
 		Kind:     info.kind,

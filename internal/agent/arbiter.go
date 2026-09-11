@@ -3,7 +3,7 @@ package agent
 import (
 	"strings"
 
-	"reasonix/internal/event"
+	"tempora/internal/event"
 )
 
 // verdict is the escalation ladder every run signal speaks. A round reduces its

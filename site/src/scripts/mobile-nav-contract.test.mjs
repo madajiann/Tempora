@@ -63,7 +63,7 @@ test("≤360px: hero install command keeps its copy control inside the bar", asy
     source("../pages/index.astro"),
   ]);
   const block = mediaBlock(css, 360);
-  assert.match(page, /class=\"install-command\">npm i -g reasonix<\/span>/);
+  assert.match(page, /class=\"install-command\">npm i -g tempora<\/span>/);
   assert.match(css, /\.hero-install \.install-command\s*\{[\s\S]*?min-width:\s*0;/);
   assert.match(block, /\.hero-install \.install \{ gap: 6px; padding-inline: 6px; \}/);
   assert.match(block, /\.hero-install \.install button \{ padding-inline: 10px; \}/);
@@ -73,7 +73,7 @@ test("≤440px: community nav budgets for the async account control", async () =
   const css = await source("../styles/community.css");
   const layout = await source("../layouts/Community.astro");
   const block = mediaBlock(css, 440);
-  assert.match(layout, /class="brand-name">Reasonix/);
+  assert.match(layout, /class="brand-name">Tempora/);
   assert.match(layout, /id="nav-account"/);
   assert.match(block, /\.nav \.brand-name \{ display: none/);
   assert.match(block, /\.nav-right \{ gap: 8px/);

@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"reasonix/internal/fileutil"
-	"reasonix/internal/provider"
+	"tempora/internal/fileutil"
+	"tempora/internal/provider"
 )
 
 const sessionContextWriteChunk = 256 << 10

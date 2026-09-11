@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 func TestTerminalStartupFailureRemainsInProjectHistoryAfterRestart(t *testing.T) {

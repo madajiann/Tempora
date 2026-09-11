@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"reasonix/internal/fileutil"
-	fileenc "reasonix/internal/fileutil/encoding"
+	"tempora/internal/fileutil"
+	fileenc "tempora/internal/fileutil/encoding"
 )
 
 func (s *Store) turnsDir() string {

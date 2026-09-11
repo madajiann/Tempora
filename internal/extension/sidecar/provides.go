@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/extension/protocol"
-	"reasonix/internal/pluginpkg"
+	"tempora/internal/extension/protocol"
+	"tempora/internal/pluginpkg"
 )
 
 func (c *Client) initializeParams() protocol.InitializeParams {

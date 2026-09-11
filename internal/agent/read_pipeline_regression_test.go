@@ -11,12 +11,12 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/provider"
-	"reasonix/internal/readcoord"
-	"reasonix/internal/runtimepolicy"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/provider"
+	"tempora/internal/readcoord"
+	"tempora/internal/runtimepolicy"
+	"tempora/internal/tool"
 )
 
 func TestReadPipelineDefaultFullReadCompletesAndKeepsOneTask(t *testing.T) {

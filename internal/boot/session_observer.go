@@ -1,8 +1,8 @@
 package boot
 
 import (
-	"reasonix/internal/agent"
-	"reasonix/internal/history"
+	"tempora/internal/agent"
+	"tempora/internal/history"
 )
 
 func newObservedSession(systemPrompt string) *agent.Session {

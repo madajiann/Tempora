@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/bot"
-	"reasonix/internal/event"
+	"tempora/internal/bot"
+	"tempora/internal/event"
 )
 
 type bridgeNotifyCall struct {

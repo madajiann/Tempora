@@ -9,11 +9,11 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/provider"
-	"reasonix/internal/transcript"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/provider"
+	"tempora/internal/transcript"
 )
 
 func TestTranscriptHTTPBindsSessionAndImmutableContent(t *testing.T) {

@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/sftp"
 
-	"reasonix/internal/remote/sftpfs"
+	"tempora/internal/remote/sftpfs"
 )
 
 type serveLockFS interface {

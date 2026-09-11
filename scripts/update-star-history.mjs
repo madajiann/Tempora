@@ -4,7 +4,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
 const API_VERSION = '2026-03-10';
-const DEFAULT_REPOSITORY = 'esengine/DeepSeek-Reasonix';
+const DEFAULT_REPOSITORY = 'tempora-dev/Tempora';
 
 export function parseLinkHeader(value) {
   const links = {};

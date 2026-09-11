@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/runtimepolicy"
-	"reasonix/internal/taskcontract"
-	"reasonix/internal/tool"
+	"tempora/internal/evidence"
+	"tempora/internal/runtimepolicy"
+	"tempora/internal/taskcontract"
+	"tempora/internal/tool"
 )
 
 // A closed-loop turn is a delivery-floor turn: the floor alone arms the

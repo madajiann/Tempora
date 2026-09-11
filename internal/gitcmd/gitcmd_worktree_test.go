@@ -26,7 +26,7 @@ func TestLocalFilterDriversReadsRealLinkedWorktreeConfigs(t *testing.T) {
 		t.Fatal(err)
 	}
 	run(main, "add", "tracked.txt")
-	run(main, "-c", "user.name=Reasonix Test", "-c", "user.email=reasonix@example.invalid", "commit", "--quiet", "-m", "initial")
+	run(main, "-c", "user.name=Tempora Test", "-c", "user.email=tempora@example.invalid", "commit", "--quiet", "-m", "initial")
 	run(main, "config", "extensions.worktreeConfig", "true")
 	run(main, "config", "filter.common.process", "malicious-process")
 	run(main, "worktree", "add", "--quiet", "--detach", linked, "HEAD")

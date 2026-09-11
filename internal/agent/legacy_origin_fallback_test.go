@@ -3,7 +3,7 @@ package agent
 import (
 	"testing"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func TestLegacyOriginFallbackCoversCurrentHostMessageFamilies(t *testing.T) {

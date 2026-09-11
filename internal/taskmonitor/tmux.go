@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/proc"
+	"tempora/internal/proc"
 )
 
 // TmuxRunner is the narrow command surface used by Adapter. Implementations
@@ -208,9 +208,9 @@ func (a *TmuxAdapter) Detach(ctx context.Context, projectDir, taskID string) Tmu
 }
 
 const (
-	tmuxOwnerOption       = "@reasonix-owner"
+	tmuxOwnerOption       = "@tempora-owner"
 	tmuxOwnerTokenBytes   = 16
-	defaultTmuxNamePrefix = "reasonix-"
+	defaultTmuxNamePrefix = "tempora-"
 
 	ErrTmuxUnavailable   = "tmux_unavailable"
 	ErrTmuxInvalidName   = "tmux_invalid_name"

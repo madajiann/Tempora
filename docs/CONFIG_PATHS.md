@@ -1,42 +1,42 @@
 # Configuration Paths
 
-Starting with **Reasonix v1.8.1**, Reasonix uses one user-facing home directory
+Starting with **Tempora v1.8.1**, Tempora uses one user-facing home directory
 for global configuration and user-owned state. CLI and desktop share this
 location.
 
-## Reasonix Home
+## Tempora Home
 
-| Platform | Reasonix home |
+| Platform | Tempora home |
 | --- | --- |
-| macOS | `~/.reasonix` |
-| Linux | `~/.reasonix` |
-| Windows | `%APPDATA%\reasonix` |
+| macOS | `~/.tempora` |
+| Linux | `~/.tempora` |
+| Windows | `%APPDATA%\tempora` |
 
-Set `REASONIX_HOME` to override Reasonix home for tests, CI, or portable
+Set `TEMPORA_HOME` to override Tempora home for tests, CI, or portable
 installations. Normal users should not need it.
 
-When `REASONIX_HOME` is set, the runtime is fully self-contained: all
+When `TEMPORA_HOME` is set, the runtime is fully self-contained: all
 configuration, state, cache, and data live under that directory tree. Legacy
 migration, OS-home convention directory scanning, and all other fallback paths
 are skipped so no data leaks in from a system-wide production install.
 
-Advanced test and portable setups may set `REASONIX_STATE_HOME` to move runtime
+Advanced test and portable setups may set `TEMPORA_STATE_HOME` to move runtime
 state such as sessions, archives, and memory. It does not move global config or
-provider credentials: those remain under `REASONIX_HOME`. If an older build wrote
-provider keys to `REASONIX_STATE_HOME/.env`, Reasonix imports those keys
-non-destructively when `<Reasonix home>/.env` is missing them.
+provider credentials: those remain under `TEMPORA_HOME`. If an older build wrote
+provider keys to `TEMPORA_STATE_HOME/.env`, Tempora imports those keys
+non-destructively when `<Tempora home>/.env` is missing them.
 
 ## What Lives There
 
 | Data | Path |
 | --- | --- |
-| Global config | `<Reasonix home>/config.toml` |
-| Global provider credentials | `<Reasonix home>/.env` |
-| Legacy credentials import source | `<Reasonix home>/credentials` |
-| Global slash commands | `<Reasonix home>/commands/` |
-| Global skills | `<Reasonix home>/skills/` |
-| Global hooks | `<Reasonix home>/settings.json` |
-| Remote-SSH managed known_hosts | `<Reasonix home>/remote/known_hosts` |
+| Global config | `<Tempora home>/config.toml` |
+| Global provider credentials | `<Tempora home>/.env` |
+| Legacy credentials import source | `<Tempora home>/credentials` |
+| Global slash commands | `<Tempora home>/commands/` |
+| Global skills | `<Tempora home>/skills/` |
+| Global hooks | `<Tempora home>/settings.json` |
+| Remote-SSH managed known_hosts | `<Tempora home>/remote/known_hosts` |
 | Sessions | `<state root>/sessions/` |
 | Archives | `<state root>/archive/` |
 | Memory | `<state root>/memory/` and `<state root>/projects/` |
@@ -47,16 +47,16 @@ non-destructively when `<Reasonix home>/.env` is missing them.
 | Disposable usage catalog | `<cache root>/usage-catalog/v1.sqlite` |
 | Disposable task catalog | `<cache root>/task-catalog/v1.sqlite` |
 
-`<state root>` defaults to `<Reasonix home>`. It only differs when
-`REASONIX_STATE_HOME` is set.
+`<state root>` defaults to `<Tempora home>`. It only differs when
+`TEMPORA_STATE_HOME` is set.
 
 Desktop topic titles, title sources, creation times, and automatic-title state
 are authoritative in these SQLite files. On first access, Desktop imports the
-legacy `desktop-topic-*.json` files from a project's `.reasonix/` directory (or
-the global Reasonix directory). A scope with legacy files continues mirroring
+legacy `desktop-topic-*.json` files from a project's `.tempora/` directory (or
+the global Tempora directory). A scope with legacy files continues mirroring
 them for downgrade compatibility; a fresh scope does not create them. Legacy
 files are retained, and project-local settings, skills, commands, attachments,
-and `reasonix.toml` are unaffected.
+and `tempora.toml` are unaffected.
 
 The session catalog is a rebuildable query projection, not user data. Session
 JSONL, event logs, metadata sidecars, and `desktop-projects.json` remain
@@ -68,20 +68,20 @@ Task snapshots and event logs likewise remain authoritative; the rebuildable
 cross-project projection is documented in [Task Catalog](./TASK_CATALOG.md).
 
 The global user config is named `config.toml`. Project-local config files keep
-the name `reasonix.toml`. If someone says "global reasonix.toml", they usually
-mean `<Reasonix home>/config.toml`.
+the name `tempora.toml`. If someone says "global tempora.toml", they usually
+mean `<Tempora home>/config.toml`.
 
 ## Global `config.toml`
 
-`<Reasonix home>/config.toml` stores non-secret configuration shared by the CLI
+`<Tempora home>/config.toml` stores non-secret configuration shared by the CLI
 and desktop app. It may contain the same provider, plugin, UI, desktop, tool,
-skill, sandbox, bot, and agent settings that Reasonix renders into user config.
+skill, sandbox, bot, and agent settings that Tempora renders into user config.
 Provider entries store the name of the credential variable in `api_key_env`, not
 the secret value.
 
 Saved provider and bot credential variables are removed from every
 model-controlled child-process environment. The global credential `.env` is
-also hidden from Reasonix's file readers, sandboxed shell commands, and MCP
+also hidden from Tempora's file readers, sandboxed shell commands, and MCP
 servers; this does not change the visibility of a project's ordinary `.env`.
 On Windows, shell commands remain outside an OS sandbox as documented in the
 Guide, so approve shell access only for trusted tasks.
@@ -130,12 +130,12 @@ remain active. The default is `true`.
 
 ### Custom provider `api_key_env` names
 
-When a custom provider is added from the desktop settings or `reasonix setup`,
-Reasonix stores a generated `api_key_env` in `config.toml` and writes the secret
+When a custom provider is added from the desktop settings or `tempora setup`,
+Tempora stores a generated `api_key_env` in `config.toml` and writes the secret
 value to the matching key in the global `.env`. The generated name is stable, so
 the same provider keeps using the same credential slot after restart.
 
-Reasonix derives the default from the provider name. Names that normalize to
+Tempora derives the default from the provider name. Names that normalize to
 ASCII keep readable env names such as `LOCAL_GATEWAY_API_KEY`; names made
 entirely of non-ASCII characters get a stable hash suffix such as
 `CUSTOM_d39b9067_API_KEY` so two Chinese provider names do not share
@@ -159,14 +159,14 @@ providers accidentally share `CUSTOM_API_KEY`, edit each provider's
 ### Custom provider endpoint URLs
 
 The desktop custom-provider form treats its **API address** as the exact request
-URL and stores it in `request_url`; Reasonix does not append or rewrite its path.
+URL and stores it in `request_url`; Tempora does not append or rewrite its path.
 Existing TOML entries are not reinterpreted: legacy `chat_url` keeps its former
 OpenAI-only behavior, while Anthropic and Responses continue deriving their path
 from `base_url` until the provider is explicitly saved in the current desktop UI.
 Saving an OpenAI-compatible provider mirrors the exact address into legacy
 `chat_url`, so previous releases continue using the same target. Previous
 releases cannot honor arbitrary Anthropic or Responses request paths.
-If model discovery needs a separate address, set `models_url`; otherwise Reasonix
+If model discovery needs a separate address, set `models_url`; otherwise Tempora
 probes candidates derived from `base_url`.
 
 If a gateway requires vendor-specific top-level request body fields, set
@@ -176,8 +176,8 @@ core fields such as `model`, `messages`, `tools`, or `stream` to be overridden.
 
 ## Global `.env`
 
-`<Reasonix home>/.env` is the single runtime source for provider API keys saved
-by Reasonix. The setup wizard, desktop settings, CLI missing-key prompts, and
+`<Tempora home>/.env` is the single runtime source for provider API keys saved
+by Tempora. The setup wizard, desktop settings, CLI missing-key prompts, and
 provider-key delete actions all read or write this file through the same
 credential helpers.
 
@@ -187,7 +187,7 @@ Structure:
 DEEPSEEK_API_KEY=sk-...
 GEMINI_API_KEY=...
 ANTHROPIC_API_KEY=...
-# reasonix-cleared OLD_API_KEY
+# tempora-cleared OLD_API_KEY
 ```
 
 Rules:
@@ -195,14 +195,14 @@ Rules:
 - one `KEY=value` assignment per line;
 - blank lines and `#` comments are ignored;
 - `export KEY=value` and quoted values are accepted when reading;
-- multiline values are rejected by Reasonix writes;
+- multiline values are rejected by Tempora writes;
 - keys must use shell-style names such as `DEEPSEEK_API_KEY`;
-- `# reasonix-cleared KEY` comments are non-secret tombstones written after a key
+- `# tempora-cleared KEY` comments are non-secret tombstones written after a key
   is deleted so legacy stores do not silently re-import it;
-- Reasonix writes this file with restricted permissions where the OS supports
+- Tempora writes this file with restricted permissions where the OS supports
   them.
 
-For provider requests, Reasonix resolves only this global `.env`. Project `.env`
+For provider requests, Tempora resolves only this global `.env`. Project `.env`
 files, home `.env` files, inherited shell environment variables, the old
 `credentials` file, and the OS keyring do not act as runtime provider-key
 fallbacks. Project `.env`, home `.env`, and inherited shell environment values
@@ -211,15 +211,15 @@ and old keyring entries are read only as non-destructive migration sources when
 the new global `.env` is missing a key. Project `.env` files are still read as
 workspace-scoped, non-provider expansion sources for `${VAR}` references in
 MCP/plugin env, headers, URLs, commands, and args; those values are not written
-into the process environment, and Reasonix control variables such as
-`REASONIX_HOME`, `REASONIX_STATE_HOME`, and `XDG_CONFIG_HOME` are ignored there.
+into the process environment, and Tempora control variables such as
+`TEMPORA_HOME`, `TEMPORA_STATE_HOME`, and `XDG_CONFIG_HOME` are ignored there.
 
 Caches remain in the OS cache directory, for example
-`~/Library/Caches/reasonix` on macOS, `$XDG_CACHE_HOME/reasonix` or
-`~/.cache/reasonix` on Linux, and `%LOCALAPPDATA%\reasonix\cache` on Windows.
-Set `REASONIX_CACHE_HOME` to override the cache root. When `REASONIX_HOME` is
-set, the cache is placed under `$REASONIX_HOME/cache` (unless
-`REASONIX_CACHE_HOME` is also set, which takes precedence).
+`~/Library/Caches/tempora` on macOS, `$XDG_CACHE_HOME/tempora` or
+`~/.cache/tempora` on Linux, and `%LOCALAPPDATA%\tempora\cache` on Windows.
+Set `TEMPORA_CACHE_HOME` to override the cache root. When `TEMPORA_HOME` is
+set, the cache is placed under `$TEMPORA_HOME/cache` (unless
+`TEMPORA_CACHE_HOME` is also set, which takes precedence).
 
 ## Config Priority
 
@@ -227,8 +227,8 @@ Runtime configuration is resolved in this order:
 
 ```text
 command-line flags
-> project ./reasonix.toml
-> global <Reasonix home>/config.toml
+> project ./tempora.toml
+> global <Tempora home>/config.toml
 > compatible legacy global config
 > built-in defaults
 ```
@@ -236,35 +236,35 @@ command-line flags
 Writes always target the new global path:
 
 ```text
-macOS/Linux: ~/.reasonix/config.toml
-Windows:     %APPDATA%\reasonix\config.toml
+macOS/Linux: ~/.tempora/config.toml
+Windows:     %APPDATA%\tempora\config.toml
 ```
 
 ## Legacy Migration
 
-Starting with **v1.8.1**, Reasonix automatically checks legacy locations on
+Starting with **v1.8.1**, Tempora automatically checks legacy locations on
 startup before the first config load. Migration is synchronous, one-time, and
-non-destructive: old files are copied or converted to Reasonix home and left
+non-destructive: old files are copied or converted to Tempora home and left
 untouched.
 
 Legacy config sources include:
 
 ```text
-~/Library/Application Support/reasonix/config.toml
-~/.config/reasonix/config.toml
-~/.reasonix/reasonix.toml
-~/.reasonix/config.json
+~/Library/Application Support/tempora/config.toml
+~/.config/tempora/config.toml
+~/.tempora/tempora.toml
+~/.tempora/config.json
 ```
 
-Legacy credentials, memory files, and sessions are also imported into Reasonix
+Legacy credentials, memory files, and sessions are also imported into Tempora
 home when the new destination does not already exist. Legacy provider keys are
-copied into `<Reasonix home>/.env` only when that file does not already contain
+copied into `<Tempora home>/.env` only when that file does not already contain
 the same key. If the new global config already exists, it wins and legacy config
 files are only kept as compatibility fallbacks.
 
-Starting in **v1.9.1**, Reasonix also backfills MCP servers from known legacy
+Starting in **v1.9.1**, Tempora also backfills MCP servers from known legacy
 paths, legacy `config.json`, desktop-registered projects, and restored tab
-projects into the global `<Reasonix home>/config.toml`. Existing global
+projects into the global `<Tempora home>/config.toml`. Existing global
 `[[plugins]]` entries win by name, so project or legacy entries never overwrite a
 server the user already configured globally. Source files are left untouched, and
 the backfill writes a one-time marker so a user-deleted global MCP server is not
@@ -272,7 +272,7 @@ recreated repeatedly from an old project config.
 
 ## Manual Migration Rescue
 
-If Reasonix has already created the new home directory but some legacy data was
+If Tempora has already created the new home directory but some legacy data was
 not present yet, or if the desktop app was opened before the old paths were
 available, run the migration rescue command from either frontend:
 
@@ -294,16 +294,16 @@ Windows v0.52 install/data directory chosen during setup — pass that directory
 explicitly:
 
 ```text
-/migrate --from "D:\OldReasonix"
+/migrate --from "D:\OldTempora"
 ```
 
 The explicit form imports sessions only. The path may be the old install
-directory, a `.reasonix`/data directory, or the `sessions` directory itself;
-Reasonix checks the common layouts below that root and uses a source-specific
+directory, a `.tempora`/data directory, or the `sessions` directory itself;
+Tempora checks the common layouts below that root and uses a source-specific
 marker, so a previous plain `/migrate` run does not hide the later import.
 
 The rescue command is intentionally non-destructive. It does not overwrite an
-existing `<Reasonix home>/config.toml`; if the new config already exists, copy
+existing `<Tempora home>/config.toml`; if the new config already exists, copy
 any missing legacy settings across by hand. It copies legacy memory files only
 when the destination file is absent. It also respects session import markers, so
 sessions that were already imported and later deleted by the user will not be
@@ -312,8 +312,8 @@ restored on a later `/migrate` run.
 Version limits:
 
 - Automatic migration starts in **v1.8.1**.
-- `/migrate` is available only in Go-based Reasonix builds that include the
-  command. If Reasonix reports `unknown command`, upgrade first and rerun it.
+- `/migrate` is available only in Go-based Tempora builds that include the
+  command. If Tempora reports `unknown command`, upgrade first and rerun it.
 - The command is not available in the legacy `0.x` TypeScript line.
 - Plain `/migrate` rescans the legacy locations listed above. Use
   `/migrate --from <path>` only for a known v0.x session source; it is not a

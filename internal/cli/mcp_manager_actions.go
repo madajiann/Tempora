@@ -12,11 +12,11 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/mcpdiag"
-	"reasonix/internal/plugin"
-	"reasonix/internal/shellparse"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/mcpdiag"
+	"tempora/internal/plugin"
+	"tempora/internal/shellparse"
 )
 
 func (m chatTUI) applyMCPAction(v mcpServerView, action mcpAction) (tea.Model, tea.Cmd) {
@@ -279,7 +279,7 @@ func (m chatTUI) clearMCPAuthentication(v mcpServerView) (tea.Model, tea.Cmd) {
 	workspace := m.mcpWorkspaceRoot()
 	if _, err := plugin.ClearHTTPMCPOAuth(plugin.Spec{
 		Name:     v.Name,
-		StateDir: plugin.MCPStateDir(config.ReasonixHomeDir(), workspace, v.Name),
+		StateDir: plugin.MCPStateDir(config.TemporaHomeDir(), workspace, v.Name),
 	}); err != nil {
 		m.notice("clear authentication: " + err.Error())
 		return m, nil

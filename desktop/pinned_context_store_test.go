@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/store"
+	"tempora/internal/agent"
+	"tempora/internal/store"
 )
 
 func TestPinnedContextSidecarRoundTripAndCopy(t *testing.T) {

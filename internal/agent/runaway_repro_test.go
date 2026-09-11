@@ -7,9 +7,9 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 // readProbe is a read-only tool taking a path, so its receipt is classified the

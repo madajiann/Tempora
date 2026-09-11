@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/boot"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/secrets"
+	"tempora/internal/agent"
+	"tempora/internal/boot"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/secrets"
 )
 
 type builtBotSession struct {

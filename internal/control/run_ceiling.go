@@ -3,8 +3,8 @@ package control
 import (
 	"context"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/tool"
 )
 
 // bindTurnScope binds a Goal turn's spend budget and its usage recorder, the

@@ -1,7 +1,7 @@
 package completion
 
 import (
-	"reasonix/internal/evidence"
+	"tempora/internal/evidence"
 	"testing"
 )
 

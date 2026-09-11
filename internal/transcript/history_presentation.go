@@ -6,10 +6,10 @@ import (
 	"regexp"
 	"strings"
 
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/i18n"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/i18n"
+	"tempora/internal/provider"
 )
 
 var pastedLabel = regexp.MustCompile(`^\[(?:已粘贴文本|已貼上文字|Pasted text) #[0-9]+ · [0-9]+ (?:行|lines)\]$`)

@@ -3,8 +3,8 @@ package agent
 import (
 	"context"
 	"encoding/json"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 	"testing"
 )
 

@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"time"
 
-	"reasonix/internal/sessioninbox"
+	"tempora/internal/sessioninbox"
 )
 
 const maxInboxDispatchRetryAttempts = 3

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	mcpsdk "github.com/modelcontextprotocol/go-sdk/mcp"
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 func newInMemorySDKTransport(t *testing.T, serverFactory func() *mcpsdk.Server) *sdkSessionTransport {

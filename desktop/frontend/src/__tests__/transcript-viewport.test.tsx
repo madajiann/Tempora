@@ -282,7 +282,7 @@ try {
   });
   const selected = document.getSelection()?.toString();
   const accepted: unknown[] = [];
-  window.__REASONIX_TRANSCRIPT_SCROLL_WRITE__ = (write) => { if (write.outcome === "accepted") accepted.push(write); };
+  window.__TEMPORA_TRANSCRIPT_SCROLL_WRITE__ = (write) => { if (write.outcome === "accepted") accepted.push(write); };
   harness.dom.window.history.replaceState(null, "", "?transcriptRenderMode=full");
   await harness.render(turns(135), { geometrySessionKey: "safety-reader" });
   const retainedBlock = Array.from(reader.querySelectorAll<HTMLElement>("[data-transcript-block-key]"))
@@ -297,7 +297,7 @@ try {
   await harness.render(turns(135), { geometrySessionKey: "fresh-geometry" });
   await harness.settle();
   const diagnostics: unknown[] = [];
-  window.__REASONIX_TRANSCRIPT_SCROLL_DIAGNOSTIC__ = (type, fields) => { if (type === "kernel") diagnostics.push(fields); };
+  window.__TEMPORA_TRANSCRIPT_SCROLL_DIAGNOSTIC__ = (type, fields) => { if (type === "kernel") diagnostics.push(fields); };
   await act(async () => oldObservers.forEach(({ notify }) => notify()));
   await harness.settle();
   ok(diagnostics.length === 0, "queued old observers cannot advance or write the replacement surface geometry");

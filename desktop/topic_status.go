@@ -1,6 +1,6 @@
 package main
 
-import "reasonix/internal/event"
+import "tempora/internal/event"
 
 // topicStatusAwaitingDelivery is a delivery-check pause, not a recovery pause.
 const topicStatusAwaitingDelivery = "awaiting_delivery"

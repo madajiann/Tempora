@@ -2,7 +2,7 @@ package openai
 
 import (
 	"context"
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func (c *client) ReasoningReplayCapabilities() provider.ReasoningReplayCapabilities {

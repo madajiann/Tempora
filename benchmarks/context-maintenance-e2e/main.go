@@ -13,11 +13,11 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	_ "reasonix/internal/provider/openai"
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	_ "tempora/internal/provider/openai"
+	"tempora/internal/tool"
 )
 
 const (

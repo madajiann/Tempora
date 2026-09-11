@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/control"
+	"tempora/internal/control"
 )
 
 func TestProjectTreeRuntimeSnapshotWailsArraysAreNonNil(t *testing.T) {

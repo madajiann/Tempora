@@ -2,10 +2,10 @@ package control
 
 import (
 	"errors"
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 
-	"reasonix/internal/transcript"
-	"reasonix/internal/turnevent"
+	"tempora/internal/transcript"
+	"tempora/internal/turnevent"
 )
 
 func (c *Controller) captureTranscriptCheckpoint(ledger *turnevent.Ledger, digest string) {

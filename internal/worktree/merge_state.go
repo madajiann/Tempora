@@ -31,7 +31,7 @@ func worktreeStateToken(ctx context.Context, root string) (string, error) {
 		return "", err
 	}
 	hash := sha256.New()
-	_, _ = io.WriteString(hash, "reasonix-worktree-state-v3\x00status\x00")
+	_, _ = io.WriteString(hash, "tempora-worktree-state-v3\x00status\x00")
 	_, _ = io.WriteString(hash, status)
 	_, _ = io.WriteString(hash, "\x00index\x00")
 	_, _ = io.WriteString(hash, index)

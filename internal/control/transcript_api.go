@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 
-	"reasonix/internal/transcript"
-	"reasonix/internal/turnevent"
+	"tempora/internal/transcript"
+	"tempora/internal/turnevent"
 )
 
 var ErrTranscriptProjectionUnavailable = errors.New("transcript projection is unavailable")

@@ -7,17 +7,17 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/checkpoint"
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/instruction"
-	"reasonix/internal/jobs"
-	"reasonix/internal/mcpinteraction"
-	"reasonix/internal/memory"
-	"reasonix/internal/planmode"
-	"reasonix/internal/provider"
-	"reasonix/internal/sandbox"
-	"reasonix/internal/tool"
+	"tempora/internal/checkpoint"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/instruction"
+	"tempora/internal/jobs"
+	"tempora/internal/mcpinteraction"
+	"tempora/internal/memory"
+	"tempora/internal/planmode"
+	"tempora/internal/provider"
+	"tempora/internal/sandbox"
+	"tempora/internal/tool"
 )
 
 // executeOne runs a single tool call. It is pure with respect to the event sink

@@ -5,8 +5,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"reasonix/internal/agentpreset"
-	"reasonix/internal/i18n"
+	"tempora/internal/agentpreset"
+	"tempora/internal/i18n"
 )
 
 // /preset, /work-mode, and /profile set the session quality floor:

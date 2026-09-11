@@ -10,13 +10,13 @@ import (
 	"sync"
 	"unicode/utf8"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/eventwire"
-	"reasonix/internal/permission"
-	"reasonix/internal/provider"
-	"reasonix/internal/shellparse"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/eventwire"
+	"tempora/internal/permission"
+	"tempora/internal/provider"
+	"tempora/internal/shellparse"
 )
 
 // notifier is the slice of Conn the dispatch sink depends on: it pushes
@@ -60,7 +60,7 @@ type updateSink struct {
 	answerMCPInteraction    func(string, string, map[string]any) error
 	status                  func(event.Event)
 	// extensionSurface records the client's negotiated
-	// reasonix.extensionSurface support: structured surfaces go out as vendor
+	// tempora.extensionSurface support: structured surfaces go out as vendor
 	// session/update payloads on top of the always-sent text fallback.
 	extensionSurface bool
 	// speculativeToolIDs tracks parent-sampling tool IDs published under the
@@ -239,7 +239,7 @@ func (s *updateSink) Emit(e event.Event) {
 }
 
 // emitExtension maps one extension structured-UI event onto ACP updates. A
-// client that negotiated reasonix.extensionSurface receives the structured DTO
+// client that negotiated tempora.extensionSurface receives the structured DTO
 // (the shared eventwire JSON contract) in a vendor session/update variant;
 // every client — including that one, belt and suspenders — also receives the
 // flattened text fallback as an ordinary agent_message_chunk. Blocking
@@ -255,7 +255,7 @@ func (s *updateSink) emitExtension(e event.Event) {
 			s.send(extensionSurfaceUpdate{
 				SessionUpdate: extensionSurfaceUpdateKind,
 				Meta: map[string]any{
-					"reasonix.io": map[string]any{
+					"tempora.io": map[string]any{
 						"extensionSurface": dto,
 					},
 				},
@@ -429,13 +429,13 @@ func (s *updateSink) requestPermission(ctx context.Context, a event.Approval) {
 		var res PermissionRequestResult
 		if json.Unmarshal(raw, &res) == nil && res.Outcome.Outcome == "selected" {
 			switch res.Outcome.OptionID {
-			case "reasonix_write_once":
+			case "tempora_write_once":
 				allow = true
-			case "reasonix_write_session":
+			case "tempora_write_session":
 				allow, session = true, true
-			case "reasonix_write_project":
+			case "tempora_write_project":
 				allow, session, persist = true, true, true
-			case "reasonix_write_deny":
+			case "tempora_write_deny":
 			case string(OptAllowOnce):
 				allow = true
 			case string(OptAllowAlways):
@@ -448,36 +448,36 @@ func (s *updateSink) requestPermission(ctx context.Context, a event.Approval) {
 
 func writeAccessApprovalOptions() []PermissionOption {
 	return []PermissionOption{
-		{OptionID: "reasonix_write_once", Name: "Allow once", Kind: OptAllowOnce},
-		{OptionID: "reasonix_write_session", Name: "Allow these directories for this session", Kind: OptAllowAlways},
-		{OptionID: "reasonix_write_project", Name: "Add to project allow_write", Kind: OptAllowAlways},
-		{OptionID: "reasonix_write_deny", Name: "Reject", Kind: OptRejectOnce},
+		{OptionID: "tempora_write_once", Name: "Allow once", Kind: OptAllowOnce},
+		{OptionID: "tempora_write_session", Name: "Allow these directories for this session", Kind: OptAllowAlways},
+		{OptionID: "tempora_write_project", Name: "Add to project allow_write", Kind: OptAllowAlways},
+		{OptionID: "tempora_write_deny", Name: "Reject", Kind: OptRejectOnce},
 	}
 }
 
-// permissionMeta carries Reasonix-owned structured data that an ACP supervisor
+// permissionMeta carries Tempora-owned structured data that an ACP supervisor
 // may trust independently from model-supplied rawInput. A foreground bash call
 // receives argv only when the command is a single static command: shell
 // expansion, control operators, redirects, assignments, and background jobs all
 // fail closed and remain interactive.
 func (s *updateSink) permissionMeta(a event.Approval) map[string]any {
-	reasonix := map[string]any{
+	tempora := map[string]any{
 		"approvalId": a.ID,
 		"tool":       a.Tool,
 		"subject":    a.Subject,
 		"fresh":      a.Fresh,
 	}
 	if reason := strings.TrimSpace(a.Reason); reason != "" {
-		reasonix["reason"] = reason
+		tempora["reason"] = reason
 	}
 	if wa := a.WriteAccess; wa != nil {
-		reasonix["kind"] = event.ApprovalKindWriteAccess
-		reasonix["directories"] = append([]string{}, wa.Directories...)
-		reasonix["displayDirectories"] = append([]string{}, wa.DisplayDirectories...)
-		reasonix["justification"] = wa.Justification
-		reasonix["broadHomeAccess"] = wa.BroadHomeAccess
-		reasonix["ordinaryPermissionNeeded"] = wa.OrdinaryPermissionNeeded
-		reasonix["persistAllowed"] = wa.PersistAllowed
+		tempora["kind"] = event.ApprovalKindWriteAccess
+		tempora["directories"] = append([]string{}, wa.Directories...)
+		tempora["displayDirectories"] = append([]string{}, wa.DisplayDirectories...)
+		tempora["justification"] = wa.Justification
+		tempora["broadHomeAccess"] = wa.BroadHomeAccess
+		tempora["ordinaryPermissionNeeded"] = wa.OrdinaryPermissionNeeded
+		tempora["persistAllowed"] = wa.PersistAllowed
 	}
 	if a.Tool == "bash" && strings.TrimSpace(s.cwd) != "" {
 		var input struct {
@@ -500,13 +500,13 @@ func (s *updateSink) permissionMeta(a event.Approval) map[string]any {
 				}
 			}
 			if cwdErr == nil && commandErr == nil && exact && len(command.Argv) > 0 {
-				reasonix["commandSchemaVersion"] = 1
-				reasonix["argv"] = command.Argv
-				reasonix["cwd"] = cwd
+				tempora["commandSchemaVersion"] = 1
+				tempora["argv"] = command.Argv
+				tempora["cwd"] = cwd
 			}
 		}
 	}
-	return map[string]any{"reasonix.io": reasonix}
+	return map[string]any{"tempora.io": tempora}
 }
 
 func (s *updateSink) requestAsk(ctx context.Context, a event.Ask) {

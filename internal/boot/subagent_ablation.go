@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"reasonix/internal/ablation"
-	"reasonix/internal/skill"
-	"reasonix/internal/tool"
+	"tempora/internal/ablation"
+	"tempora/internal/skill"
+	"tempora/internal/tool"
 )
 
 // gateSubagentArm refuses skills that would spawn a child while the subagent

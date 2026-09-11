@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/netclient"
-	"reasonix/internal/provider"
-	"reasonix/internal/recovery"
+	"tempora/internal/event"
+	"tempora/internal/netclient"
+	"tempora/internal/provider"
+	"tempora/internal/recovery"
 )
 
 type Options struct {

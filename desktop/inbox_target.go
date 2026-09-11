@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"reasonix/internal/sessioninbox"
+	"tempora/internal/sessioninbox"
 )
 
 // InboxTargetView fences follow-ups across both local replacement and remote

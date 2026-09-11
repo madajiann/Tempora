@@ -1313,9 +1313,9 @@ function registryBindings(env: Env): RegistryBindings {
   return {
     DB: env.REGISTRY_DB,
     WRITE_LIMITER: env.WRITE_LIMITER,
-    ACCOUNTS_ORIGIN: env.ID_ORIGIN ?? "https://id.reasonix.io",
-    APP_ORIGIN: env.APP_ORIGIN ?? "https://reasonix.io",
-    ALLOWED_ORIGINS: env.ALLOWED_ORIGINS ?? "https://reasonix.io,https://www.reasonix.io",
+    ACCOUNTS_ORIGIN: env.ID_ORIGIN ?? "https://id.tempora.io",
+    APP_ORIGIN: env.APP_ORIGIN ?? "https://tempora.io",
+    ALLOWED_ORIGINS: env.ALLOWED_ORIGINS ?? "https://tempora.io,https://www.tempora.io",
   };
 }
 
@@ -1531,7 +1531,7 @@ async function runIngestSentinel(env: Env): Promise<void> {
     problems.push(`ping progress check failed: ${errText(err)}`);
   }
   if (!problems.length) return;
-  const message = `crash.reasonix.io ingest sentinel: ${problems.join("; ")} — https://crash.reasonix.io/stats`;
+  const message = `crash.tempora.io ingest sentinel: ${problems.join("; ")} — https://crash.tempora.io/stats`;
   console.error(message);
   await sendAlert(env, message);
 }
@@ -1596,7 +1596,7 @@ export default {
 
     const login = loginUrl(env, request);
 
-    // Authentication moved to id.reasonix.io; these paths just bounce there.
+    // Authentication moved to id.tempora.io; these paths just bounce there.
     if ((path === "/login" || path === "/register") && method === "GET") return redirect(login);
     if (path === "/logout" && method === "POST") return redirect(login, await sharedLogout(request, env));
 

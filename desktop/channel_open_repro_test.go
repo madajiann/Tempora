@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
+	"tempora/internal/config"
+	"tempora/internal/control"
 )
 
 // TestOpenChannelSessionGlobalBotAcrossDirs 回归：bot/channel 会话可能位于

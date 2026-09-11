@@ -60,10 +60,10 @@ standing_instruction_changed=()
 
 for file in "${changed_files[@]:-}"; do
   case "$file" in
-    REASONIX.md|AGENTS.md|CLAUDE.md|\
-    REASONIX.local.md|AGENTS.local.md|CLAUDE.local.md|\
-    */REASONIX.md|*/AGENTS.md|*/CLAUDE.md|\
-    */REASONIX.local.md|*/AGENTS.local.md|*/CLAUDE.local.md)
+    TEMPORA.md|AGENTS.md|CLAUDE.md|\
+    TEMPORA.local.md|AGENTS.local.md|CLAUDE.local.md|\
+    */TEMPORA.md|*/AGENTS.md|*/CLAUDE.md|\
+    */TEMPORA.local.md|*/AGENTS.local.md|*/CLAUDE.local.md)
       standing_instruction_changed+=("$file")
       cache_sensitive+=("$file")
       system_prompt_sensitive+=("$file")

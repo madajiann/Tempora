@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/mcpinteraction"
+	"tempora/internal/event"
+	"tempora/internal/mcpinteraction"
 )
 
 type interactionProbeSink struct {

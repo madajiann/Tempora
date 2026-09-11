@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"reasonix/internal/event"
-	"reasonix/internal/mcpinteraction"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/mcpinteraction"
+	"tempora/internal/provider"
 )
 
 // pendingMCPInteraction is one server-initiated elicitation awaiting the user's

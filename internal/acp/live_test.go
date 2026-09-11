@@ -18,11 +18,11 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/provider"
-	_ "reasonix/internal/provider/openai" // registers the "openai" provider kind
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/provider"
+	_ "tempora/internal/provider/openai" // registers the "openai" provider kind
+	"tempora/internal/tool"
 )
 
 type liveFactory struct{ prov provider.Provider }

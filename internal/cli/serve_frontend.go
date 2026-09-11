@@ -9,11 +9,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/i18n"
-	"reasonix/internal/serve"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/i18n"
+	"tempora/internal/serve"
 )
 
 // runServe exposes the controller's HTTP and SSE frontend.
@@ -84,7 +84,7 @@ func prepareServeFrontend(opts serveFrontendOptions) (_ *serveFrontendResources,
 		resources.artifacts = append(resources.artifacts, opts.pidFile)
 	}
 	if opts.command == "web" {
-		resources.registration, err = registerWebInstance(config.ReasonixHomeDir(), resources.displayAddr)
+		resources.registration, err = registerWebInstance(config.TemporaHomeDir(), resources.displayAddr)
 		if err != nil {
 			return nil, err
 		}
@@ -118,7 +118,7 @@ func runServeFrontend(ctrl *control.Controller, srv *serve.Server, cfg config.Se
 }
 
 func reportServeFrontend(ctrl *control.Controller, srv *serve.Server, cfg config.ServeConfig, address string, opts serveFrontendOptions) {
-	fmt.Printf("reasonix %s — %s on http://%s\n", opts.command, ctrl.Label(), address)
+	fmt.Printf("tempora %s — %s on http://%s\n", opts.command, ctrl.Label(), address)
 	if srv.AuthMode() == "token" {
 		fmt.Println("  auth: token")
 		// Supervised Serve already owns the token file, so avoid logging its value.

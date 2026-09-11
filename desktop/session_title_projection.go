@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 // syncSessionTitleFromBranchMeta projects the current canonical custom title

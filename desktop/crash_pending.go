@@ -13,9 +13,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"reasonix/internal/config"
-	"reasonix/internal/filelock"
-	"reasonix/internal/fileutil"
+	"tempora/internal/config"
+	"tempora/internal/filelock"
+	"tempora/internal/fileutil"
 )
 
 // crash_pending.go captures Go-side panics to disk and ships them on the next

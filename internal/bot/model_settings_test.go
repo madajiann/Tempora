@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/history"
-	"reasonix/internal/provider"
-	"reasonix/internal/stats"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/history"
+	"tempora/internal/provider"
+	"tempora/internal/stats"
 )
 
 func TestBotNewRunAppliesModelSettingsAndKeepsSessionOnFailure(t *testing.T) {
@@ -27,7 +27,7 @@ func TestBotNewRunAppliesModelSettingsAndKeepsSessionOnFailure(t *testing.T) {
 		}
 	}
 	closeCatalogs()
-	t.Setenv("REASONIX_HOME", t.TempDir())
+	t.Setenv("TEMPORA_HOME", t.TempDir())
 	root := t.TempDir()
 	// These projections belong to the process, not an individual controller.
 	// Release SQLite handles before the isolated home is removed on Windows.

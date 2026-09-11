@@ -5,8 +5,8 @@ import (
 	"path"
 	"strings"
 
-	"reasonix/internal/config"
-	"reasonix/internal/store"
+	"tempora/internal/config"
+	"tempora/internal/store"
 )
 
 // ListRemoteProjects returns every pinned remote workspace in config order.

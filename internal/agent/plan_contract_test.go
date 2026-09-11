@@ -5,11 +5,11 @@ import (
 	"slices"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/plancontract"
-	"reasonix/internal/provider"
-	"reasonix/internal/taskcontract"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/plancontract"
+	"tempora/internal/provider"
+	"tempora/internal/taskcontract"
 )
 
 func contractPlan() plancontract.Plan {

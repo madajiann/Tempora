@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/boot"
-	"reasonix/internal/control"
+	"tempora/internal/boot"
+	"tempora/internal/control"
 )
 
 func testTab(id, root string) *WorkspaceTab {
@@ -78,7 +78,7 @@ model = "deepseek-v4-flash"
 api_key_env = "PROJECT_API_KEY"
 effort = "max"
 `
-	if err := os.WriteFile(filepath.Join(projectRoot, "reasonix.toml"), []byte(configBody), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(projectRoot, "tempora.toml"), []byte(configBody), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -107,7 +107,7 @@ base_url = "https://proxy.example.com/v1"
 model = "deepseek-v4-flash"
 api_key_env = "PROJECT_API_KEY"
 `
-	if err := os.WriteFile(filepath.Join(projectRoot, "reasonix.toml"), []byte(configBody), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(projectRoot, "tempora.toml"), []byte(configBody), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -176,9 +176,9 @@ name = "deepseek-flash"
 kind = "openai"
 base_url = "https://example.invalid/v1"
 model = "deepseek-v4-flash"
-api_key_env = "REASONIX_TEST_KEY_UNSET"
+api_key_env = "TEMPORA_TEST_KEY_UNSET"
 `
-	if err := os.WriteFile(filepath.Join(root, "reasonix.toml"), []byte(configBody), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "tempora.toml"), []byte(configBody), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -574,7 +574,7 @@ func TestSetBypassPreservesPlanMode(t *testing.T) {
 
 func userConfigPathForTest() string {
 	if dir, err := os.UserConfigDir(); err == nil {
-		return dir + "/reasonix/reasonix.toml"
+		return dir + "/tempora/tempora.toml"
 	}
 	return ""
 }

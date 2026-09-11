@@ -2,8 +2,8 @@ package eventwire
 
 import (
 	"encoding/json"
-	"reasonix/internal/checkpoint"
-	"reasonix/internal/event"
+	"tempora/internal/checkpoint"
+	"tempora/internal/event"
 	"testing"
 )
 

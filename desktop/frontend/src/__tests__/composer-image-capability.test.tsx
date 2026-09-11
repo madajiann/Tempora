@@ -214,7 +214,7 @@ console.log("\ncomposer image capability");
   installBridgeApp({
     SavePastedImage: async () => {
       saveCalls += 1;
-      return ".reasonix/attachments/mock.png";
+      return ".tempora/attachments/mock.png";
     },
     AttachmentDataURL: async () => "data:image/png;base64,iVBORw0KGgo=",
   });
@@ -243,7 +243,7 @@ console.log("\ncomposer image capability");
   const dom = installDom();
   const sent: Array<{ display: string; submit?: string }> = [];
   installBridgeApp({
-    SavePastedImage: async () => ".reasonix/attachments/mock.png",
+    SavePastedImage: async () => ".tempora/attachments/mock.png",
     AttachmentDataURL: async () => "data:image/png;base64,iVBORw0KGgo=",
   });
   const { root, rerender } = await renderComposer({
@@ -270,7 +270,7 @@ console.log("\ncomposer image capability");
   eq(sent.length, 1, "switching to a text-only model still sends the image ref for tool use");
   ok(toastText().includes("image-understanding model") || toastText().includes("图片理解模型"), "text-only send points to the image-understanding setting");
   eq(document.querySelector(".composer__prompt") === null, true, "image-input warning does not render inside the composer layout");
-  ok(sent[0]?.submit?.includes("@.reasonix/attachments/mock.png") === true, "submitted text retains the local image attachment ref");
+  ok(sent[0]?.submit?.includes("@.tempora/attachments/mock.png") === true, "submitted text retains the local image attachment ref");
 
   await act(async () => {
     root.unmount();
@@ -282,7 +282,7 @@ console.log("\ncomposer image capability");
   const dom = installDom();
   const sent: string[] = [];
   installBridgeApp({
-    SavePastedImage: async () => ".reasonix/attachments/mock.png",
+    SavePastedImage: async () => ".tempora/attachments/mock.png",
     AttachmentDataURL: async () => "data:image/png;base64,iVBORw0KGgo=",
   });
   const { root } = await renderComposer({
@@ -314,7 +314,7 @@ console.log("\ncomposer image capability");
 {
   const dom = installDom();
   installBridgeApp({
-    SavePastedImage: async () => ".reasonix/attachments/mock.png",
+    SavePastedImage: async () => ".tempora/attachments/mock.png",
     AttachmentDataURL: async () => "data:image/png;base64,iVBORw0KGgo=",
   });
   const { root } = await renderComposer({ imageInputEnabled: true });
@@ -353,7 +353,7 @@ console.log("\ncomposer image capability");
   installBridgeApp({
     AttachmentDataURL: async () => "data:image/png;base64,iVBORw0KGgo=",
   });
-  const { root, paint } = renderUserMessage("check @[photo.png](.reasonix/attachments/mock.png)");
+  const { root, paint } = renderUserMessage("check @[photo.png](.tempora/attachments/mock.png)");
   await paint();
   await waitFor(() => Boolean(document.querySelector(".msg-attachment--image img")));
   const thumb = document.querySelector(".msg-attachment--image") as HTMLElement | null;
@@ -385,7 +385,7 @@ console.log("\ncomposer image capability");
   installBridgeApp({
     AttachmentDataURL: async () => "data:image/png;base64,iVBORw0KGgo=",
   });
-  const { root, paint } = renderUserMessage("check @[photo.png](.reasonix/attachments/mock.png)", {
+  const { root, paint } = renderUserMessage("check @[photo.png](.tempora/attachments/mock.png)", {
     turn: 1,
     onEdit: () => true,
   });

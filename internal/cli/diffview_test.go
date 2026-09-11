@@ -7,7 +7,7 @@ import (
 	"github.com/charmbracelet/colorprofile"
 	"github.com/charmbracelet/x/ansi"
 
-	"reasonix/internal/event"
+	"tempora/internal/event"
 )
 
 func TestDiffBodyDropsHeadersKeepsLineNumbers(t *testing.T) {

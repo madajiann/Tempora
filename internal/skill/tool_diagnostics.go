@@ -5,7 +5,7 @@ import (
 	"path"
 	"strings"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 // ToolReferenceOptions separates known identities from a session snapshot.

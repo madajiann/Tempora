@@ -9,7 +9,7 @@ import (
 
 func TestPersistProjectWriteAccessWritesBothSections(t *testing.T) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, "reasonix.toml")
+	path := filepath.Join(dir, "tempora.toml")
 	if err := os.WriteFile(path, []byte("# keep\n[permissions]\nallow = [\"Bash(go test:*)\"]\n\n[sandbox]\nbash = \"enforce\"\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -35,7 +35,7 @@ func TestPersistProjectWriteAccessWritesBothSections(t *testing.T) {
 
 func TestPersistProjectWriteAccessDoesNotDuplicateAncestor(t *testing.T) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, "reasonix.toml")
+	path := filepath.Join(dir, "tempora.toml")
 	parent := filepath.Join(dir, "home")
 	if err := os.MkdirAll(parent, 0o755); err != nil {
 		t.Fatal(err)

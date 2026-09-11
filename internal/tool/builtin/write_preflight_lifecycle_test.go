@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 func TestWritePreflightRejectsRacedCreationAndDisappearance(t *testing.T) {

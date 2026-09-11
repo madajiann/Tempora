@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"reasonix/internal/agent/testutil"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/agent/testutil"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 func TestGoalRunHasNoDefaultModelRoundCeiling(t *testing.T) {

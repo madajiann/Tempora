@@ -7,8 +7,8 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/tool"
+	"tempora/internal/evidence"
+	"tempora/internal/tool"
 )
 
 type transientOnceTool struct {

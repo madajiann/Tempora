@@ -12,8 +12,8 @@ import (
 
 	"github.com/BurntSushi/toml"
 
-	"reasonix/internal/fileutil"
-	fileencoding "reasonix/internal/fileutil/encoding"
+	"tempora/internal/fileutil"
+	fileencoding "tempora/internal/fileutil/encoding"
 )
 
 const deepSeekOfficialBalanceURL = "https://api.deepseek.com/user/balance"

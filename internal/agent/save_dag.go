@@ -8,8 +8,8 @@ import (
 	"os"
 	"time"
 
-	"reasonix/internal/provider"
-	"reasonix/internal/store"
+	"tempora/internal/provider"
+	"tempora/internal/store"
 )
 
 type dagRoute int
@@ -22,7 +22,7 @@ const (
 
 // SessionLogSchemaEnv is the emergency switch back to the schema-1 writer for
 // sessions that have not been upgraded yet; upgraded logs stay schema 2.
-const SessionLogSchemaEnv = "REASONIX_SESSION_LOG"
+const SessionLogSchemaEnv = "TEMPORA_SESSION_LOG"
 
 func dagWriterEnabled() bool {
 	return os.Getenv(SessionLogSchemaEnv) != "v1"

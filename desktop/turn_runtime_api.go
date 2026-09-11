@@ -6,9 +6,9 @@ import (
 	"log/slog"
 	"strings"
 
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/turnevent"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/turnevent"
 )
 
 // TurnStartView is the synchronous admission receipt for the new Wails turn

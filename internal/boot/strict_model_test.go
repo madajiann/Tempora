@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/agent/testutil"
-	"reasonix/internal/event"
+	"tempora/internal/agent/testutil"
+	"tempora/internal/event"
 )
 
 func TestBuildFailsWhenGuardianModelIsUnresolvable(t *testing.T) {
@@ -16,7 +16,7 @@ func TestBuildFailsWhenGuardianModelIsUnresolvable(t *testing.T) {
 	registerBootTokenProfileTestProvider()
 	setBootTokenProfileTestProvider(t, testutil.NewMock("guardian-missing"))
 
-	writeFile(t, dir, "reasonix.toml", `
+	writeFile(t, dir, "tempora.toml", `
 default_model = "executor"
 
 [agent]
@@ -41,7 +41,7 @@ func TestBuildFailsWhenRecoveryModelIsUnresolvable(t *testing.T) {
 	registerBootTokenProfileTestProvider()
 	setBootTokenProfileTestProvider(t, testutil.NewMock("recovery-missing"))
 
-	writeFile(t, dir, "reasonix.toml", `
+	writeFile(t, dir, "tempora.toml", `
 default_model = "executor"
 
 [agent]
@@ -66,7 +66,7 @@ func TestBuildLeavesOptionalRolesOffWithoutExplicitModels(t *testing.T) {
 	registerBootTokenProfileTestProvider()
 	setBootTokenProfileTestProvider(t, testutil.NewMock("roles-off"))
 
-	writeFile(t, dir, "reasonix.toml", `
+	writeFile(t, dir, "tempora.toml", `
 default_model = "executor"
 
 [[providers]]

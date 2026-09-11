@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/fileutil"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/fileutil"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 // reentrantSnapshotSink re-enters ContextMaintenanceSnapshot on every emit,

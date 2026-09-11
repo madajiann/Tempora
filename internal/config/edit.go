@@ -15,12 +15,12 @@ import (
 
 	"github.com/BurntSushi/toml"
 
-	"reasonix/internal/extension/protocol"
-	"reasonix/internal/fileutil"
-	fileencoding "reasonix/internal/fileutil/encoding"
-	"reasonix/internal/mcpdiag"
-	"reasonix/internal/netclient"
-	"reasonix/internal/permission"
+	"tempora/internal/extension/protocol"
+	"tempora/internal/fileutil"
+	fileencoding "tempora/internal/fileutil/encoding"
+	"tempora/internal/mcpdiag"
+	"tempora/internal/netclient"
+	"tempora/internal/permission"
 )
 
 var validDesktopExternalOpenerID = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{0,63}$`)
@@ -28,7 +28,7 @@ var validDesktopExternalOpenerID = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{0,63
 // edit.go is the programmatic mutation surface a settings UI drives: change the
 // default model, add/remove a provider, set the planner, edit permission rules,
 // add/remove an MCP server — each validated, then persisted with SaveTo. It is
-// separate from the `reasonix setup` wizard (cli) so a GUI can apply one setting at a
+// separate from the `tempora setup` wizard (cli) so a GUI can apply one setting at a
 // time without replaying the whole interactive flow. Every mutator works on the
 // in-memory *Config; nothing writes to disk until SaveTo/Save is called, so a UI
 // can stage several changes and commit once. Mutations round-trip through
@@ -213,7 +213,7 @@ func (c *Config) SetProviderEffort(name, effort string) error {
 	return fmt.Errorf("set provider effort: no provider %q", name)
 }
 
-// SetLanguage pins the CLI UI/model language; empty/auto clears the override so runtime detection falls back to REASONIX_LANG / locale.
+// SetLanguage pins the CLI UI/model language; empty/auto clears the override so runtime detection falls back to TEMPORA_LANG / locale.
 func (c *Config) SetLanguage(lang string) error {
 	switch strings.ToLower(strings.TrimSpace(lang)) {
 	case "", "auto":
@@ -423,7 +423,7 @@ func (c *Config) SetCLIUpdateChannel(channel string) error {
 	case "", "stable", "preview", "canary", "beta", "next":
 		c.CLI.UpdateChannel = ""
 	default:
-		return fmt.Errorf("CLI update channel %q is unsupported; Reasonix now uses the official release channel", channel)
+		return fmt.Errorf("CLI update channel %q is unsupported; Tempora now uses the official release channel", channel)
 	}
 	return nil
 }
@@ -929,7 +929,7 @@ func (c *Config) ClearPluginAuthentication(name string) (PluginEntry, bool, erro
 // ClearPluginAuthenticationInSource clears auth material in the file that actually
 // owns the MCP server. Load() merges user/project TOML and project .mcp.json into
 // one Config, so callers must not mutate that merged view and Save() it back: a
-// .mcp.json-only server would otherwise be serialized into reasonix.toml or the
+// .mcp.json-only server would otherwise be serialized into tempora.toml or the
 // user config. Source priority mirrors Load(): project TOML, user TOML, then the
 // project .mcp.json entry if TOML did not define that server.
 func ClearPluginAuthenticationInSource(name string) (PluginEntry, bool, string, error) {
@@ -938,14 +938,14 @@ func ClearPluginAuthenticationInSource(name string) (PluginEntry, bool, string, 
 
 // ClearPluginAuthenticationInSourceForRoot clears auth material in the source
 // that owns name for the supplied workspace. The root is explicit so a desktop
-// action cannot drift to another project's reasonix.toml or .mcp.json after the
+// action cannot drift to another project's tempora.toml or .mcp.json after the
 // user switches tabs while the action is waiting on a lifecycle lock.
 func ClearPluginAuthenticationInSourceForRoot(root, name string) (PluginEntry, bool, string, error) {
 	resolvedRoot := resolveRoot(root)
-	projectTOML := "reasonix.toml"
+	projectTOML := "tempora.toml"
 	projectMCPJSON := mcpJSONFile
 	if resolvedRoot != "." {
-		projectTOML = filepath.Join(resolvedRoot, "reasonix.toml")
+		projectTOML = filepath.Join(resolvedRoot, "tempora.toml")
 		projectMCPJSON = filepath.Join(resolvedRoot, mcpJSONFile)
 	}
 	lockPaths := append([]string{}, userConfigCandidatePaths()...)
@@ -992,9 +992,9 @@ func ClearPluginAuthenticationInSourceForRoot(root, name string) (PluginEntry, b
 }
 
 func pluginTOMLSourcePathForRoot(root, name string) string {
-	projectTOML := "reasonix.toml"
+	projectTOML := "tempora.toml"
 	if resolved := resolveRoot(root); resolved != "." {
-		projectTOML = filepath.Join(resolved, "reasonix.toml")
+		projectTOML = filepath.Join(resolved, "tempora.toml")
 	}
 	paths := append([]string{projectTOML}, userConfigCandidatePaths()...)
 	for _, path := range paths {
@@ -1017,10 +1017,10 @@ func pluginTOMLSourcePathForRoot(root, name string) string {
 // the highest priority.
 func MCPConfigPathForEntry(root string, entry PluginEntry) string {
 	resolvedRoot := resolveRoot(root)
-	projectTOML := "reasonix.toml"
+	projectTOML := "tempora.toml"
 	projectMCPJSON := mcpJSONFile
 	if resolvedRoot != "." {
-		projectTOML = filepath.Join(resolvedRoot, "reasonix.toml")
+		projectTOML = filepath.Join(resolvedRoot, "tempora.toml")
 		projectMCPJSON = filepath.Join(resolvedRoot, mcpJSONFile)
 	}
 	switch entry.Source {
@@ -1246,10 +1246,10 @@ func RemovePluginFromEffectiveSourceForRoot(root, name string) (PluginEntry, boo
 // of a now-shadowed source.
 func mcpConfigSourcePathsForRoot(root string) []string {
 	resolvedRoot := resolveRoot(root)
-	projectTOML := "reasonix.toml"
+	projectTOML := "tempora.toml"
 	projectMCPJSON := mcpJSONFile
 	if resolvedRoot != "." {
-		projectTOML = filepath.Join(resolvedRoot, "reasonix.toml")
+		projectTOML = filepath.Join(resolvedRoot, "tempora.toml")
 		projectMCPJSON = filepath.Join(resolvedRoot, mcpJSONFile)
 	}
 	paths := append([]string{}, userConfigCandidatePaths()...)
@@ -1442,7 +1442,7 @@ func planLegacyMCPDisable(path, name string) (configSourceEdit, bool, error) {
 // config source that can contribute it for root. Removing all matching TOML
 // declarations prevents a lower-priority duplicate from reappearing after the
 // higher-priority entry is deleted. Every edit is planned before the first write,
-// and legacy JSON receives a disable marker for older Reasonix versions.
+// and legacy JSON receives a disable marker for older Tempora versions.
 func RemovePluginFromSourcesForRoot(root, name string) (bool, error) {
 	name = strings.TrimSpace(name)
 	if name == "" {
@@ -1451,9 +1451,9 @@ func RemovePluginFromSourcesForRoot(root, name string) (bool, error) {
 
 	userPaths := userConfigCandidatePaths()
 	resolvedRoot := resolveRoot(root)
-	projectTOML := "reasonix.toml"
+	projectTOML := "tempora.toml"
 	if resolvedRoot != "." {
-		projectTOML = filepath.Join(resolvedRoot, "reasonix.toml")
+		projectTOML = filepath.Join(resolvedRoot, "tempora.toml")
 	}
 	isUserPath := false
 	for _, path := range userPaths {
@@ -1562,10 +1562,10 @@ func validatePlugin(e PluginEntry) error {
 
 // SaveTo writes the configuration to path as annotated TOML, atomically: it
 // writes a sibling temp file then renames, so a crash mid-write can't leave a
-// half-written reasonix.toml that fails to parse on next load. Parent directories
+// half-written tempora.toml that fails to parse on next load. Parent directories
 // are created as needed.
 //
-// For project configs (./reasonix.toml) the write is incremental: only sections
+// For project configs (./tempora.toml) the write is incremental: only sections
 // and fields that differ from built-in defaults are written, so the file never
 // accumulates fields that override the user's global config. User configs still
 // write the full annotated template since they are the user's own settings store.
@@ -1811,7 +1811,7 @@ func SaveMinimalProjectReasoningLanguage(path, lang string) (string, error) {
 	if err := cfg.SetReasoningLanguage(lang); err != nil {
 		return "", err
 	}
-	body := fmt.Sprintf(`# Reasonix project configuration.
+	body := fmt.Sprintf(`# Tempora project configuration.
 # Project-local overrides are merged over the user config.
 
 [agent]
@@ -1827,7 +1827,7 @@ func SaveMinimalProjectCompactRatio(path string, ratio float64) (float64, error)
 	if err := cfg.SetCompactRatio(ratio); err != nil {
 		return 0, err
 	}
-	body := fmt.Sprintf(`# Reasonix project configuration.
+	body := fmt.Sprintf(`# Tempora project configuration.
 # Project-local overrides are merged over the user config.
 
 [agent]

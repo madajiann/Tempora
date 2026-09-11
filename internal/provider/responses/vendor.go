@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"strings"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 // vendorCapabilities describes how a Responses-compatible endpoint deviates

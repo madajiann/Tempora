@@ -10,12 +10,12 @@ import (
 	"strings"
 	"sync"
 
-	"reasonix/internal/filelock"
-	"reasonix/internal/fileutil"
+	"tempora/internal/filelock"
+	"tempora/internal/fileutil"
 )
 
 // oauthRefreshGates prevent duplicate refresh requests from transports in the
-// same Reasonix process. The file lock below remains the cross-process source
+// same Tempora process. The file lock below remains the cross-process source
 // of truth, but it must not be held across the token endpoint network request.
 var oauthRefreshGates sync.Map // map[string]chan struct{}
 

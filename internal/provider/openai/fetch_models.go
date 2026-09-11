@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/netclient"
-	"reasonix/internal/provider"
+	"tempora/internal/netclient"
+	"tempora/internal/provider"
 )
 
 type modelFetchStatusError struct {

@@ -15,8 +15,8 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/projectiondb"
+	"tempora/internal/agent"
+	"tempora/internal/projectiondb"
 )
 
 func (c *Catalog) ReconcileDirectory(ctx context.Context, target DirectoryTarget) error {
@@ -653,7 +653,7 @@ func setCatalogRevisionFloor(ctx context.Context, db *sql.DB, revisionFloor uint
 }
 
 // Inspect is read-only. It never migrates, repairs, quarantines, or rewrites a
-// catalog, making it suitable for `reasonix doctor sessions`.
+// catalog, making it suitable for `tempora doctor sessions`.
 func Inspect(ctx context.Context, path string) (Status, error) {
 	if strings.TrimSpace(path) == "" {
 		path = DefaultPath()

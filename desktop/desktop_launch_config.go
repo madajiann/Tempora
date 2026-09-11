@@ -3,7 +3,7 @@ package main
 import (
 	goruntime "runtime"
 
-	"reasonix/desktop/internal/hostrpc"
+	"tempora/desktop/internal/hostrpc"
 )
 
 const (

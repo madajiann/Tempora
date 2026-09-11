@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"reasonix/internal/config"
-	"reasonix/internal/hook"
-	"reasonix/internal/installsource"
-	"reasonix/internal/pluginpkg"
+	"tempora/internal/config"
+	"tempora/internal/hook"
+	"tempora/internal/installsource"
+	"tempora/internal/pluginpkg"
 )
 
 func pluginCommand(args []string) int {
@@ -49,14 +49,14 @@ func pluginCommand(args []string) int {
 
 func pluginUsage() {
 	fmt.Fprintln(os.Stderr, `usage:
-  reasonix plugin install <source> [--yes] [--dry-run] [--link] [--replace]
-  reasonix plugin list
-  reasonix plugin show <name>
-  reasonix plugin enable <name>
-  reasonix plugin disable <name>
-  reasonix plugin remove <name>
-  reasonix plugin doctor <name>
-  reasonix plugin migrate <name> --to-v2`)
+  tempora plugin install <source> [--yes] [--dry-run] [--link] [--replace]
+  tempora plugin list
+  tempora plugin show <name>
+  tempora plugin enable <name>
+  tempora plugin disable <name>
+  tempora plugin remove <name>
+  tempora plugin doctor <name>
+  tempora plugin migrate <name> --to-v2`)
 }
 
 func pluginInstallCommand(args []string) int {
@@ -190,7 +190,7 @@ func runInstallSourceJSON(body map[string]any) int {
 }
 
 func pluginListCommand() int {
-	st, err := pluginpkg.LoadState(config.ReasonixHomeDir())
+	st, err := pluginpkg.LoadState(config.TemporaHomeDir())
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
@@ -230,7 +230,7 @@ func pluginShowCommand(args []string) int {
 		fmt.Fprintf(os.Stderr, "plugin %q is not installed\n", args[0])
 		return 1
 	}
-	root := pluginpkg.ResolveRoot(config.ReasonixHomeDir(), p.Root)
+	root := pluginpkg.ResolveRoot(config.TemporaHomeDir(), p.Root)
 	pkg, warnings, err := pluginpkg.ParseDir(root)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -360,7 +360,7 @@ func pluginMigrateCommand(args []string) int {
 		fmt.Fprintf(os.Stderr, "plugin %q is not installed\n", name)
 		return 1
 	}
-	root := pluginpkg.ResolveRoot(config.ReasonixHomeDir(), p.Root)
+	root := pluginpkg.ResolveRoot(config.TemporaHomeDir(), p.Root)
 	pkg, _, err := pluginpkg.ParseNativeForMigrate(root)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "migrate parse:", err)
@@ -397,12 +397,12 @@ func pluginDoctorCommand(args []string) int {
 		fmt.Fprintf(os.Stderr, "plugin %q is not installed\n", args[0])
 		return 1
 	}
-	root := pluginpkg.ResolveRoot(config.ReasonixHomeDir(), p.Root)
+	root := pluginpkg.ResolveRoot(config.TemporaHomeDir(), p.Root)
 	pkg, warnings, err := pluginpkg.ParseDir(root)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "invalid:", err)
 		if strings.Contains(err.Error(), "missing apiVersion") {
-			fmt.Fprintf(os.Stderr, "remediation: reasonix plugin migrate %s --to-v2\n", args[0])
+			fmt.Fprintf(os.Stderr, "remediation: tempora plugin migrate %s --to-v2\n", args[0])
 		}
 		return 1
 	}
@@ -469,7 +469,7 @@ func pluginDoctorCommand(args []string) int {
 }
 
 // checkRuntimeCommand verifies a Manifest v2 runtime command resolves to
-// something runnable. ${REASONIX_PLUGIN_ROOT} expands to the installed root;
+// something runnable. ${TEMPORA_PLUGIN_ROOT} expands to the installed root;
 // other relative path forms resolve against the plugin root. Bare executable
 // names are looked up on PATH (a miss is a warning, not a failure — PATH
 // varies by environment).
@@ -497,7 +497,7 @@ func pluginSetEnabledCommand(args []string, enabled bool) int {
 		fmt.Fprintln(os.Stderr, "plugin enable/disable requires a plugin name")
 		return 2
 	}
-	if err := pluginpkg.SetEnabled(config.ReasonixHomeDir(), args[0], enabled); err != nil {
+	if err := pluginpkg.SetEnabled(config.TemporaHomeDir(), args[0], enabled); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}
@@ -506,7 +506,7 @@ func pluginSetEnabledCommand(args []string, enabled bool) int {
 }
 
 func findInstalledPlugin(name string) (pluginpkg.InstalledPlugin, bool, error) {
-	st, err := pluginpkg.LoadState(config.ReasonixHomeDir())
+	st, err := pluginpkg.LoadState(config.TemporaHomeDir())
 	if err != nil {
 		return pluginpkg.InstalledPlugin{}, false, err
 	}

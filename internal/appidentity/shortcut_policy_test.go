@@ -8,33 +8,33 @@ import (
 
 func TestShortcutRepairPolicy(t *testing.T) {
 	root := t.TempDir()
-	launcher := filepath.Join(root, "reasonix-launcher.exe")
+	launcher := filepath.Join(root, "tempora-launcher.exe")
 	if err := os.WriteFile(launcher, []byte("launcher"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	electron := filepath.Join(root, "versions", "v1.38.6", "app", "Reasonix.exe")
-	goDesktop := filepath.Join(root, "versions", "v1.20.0", "reasonix-desktop.exe")
-	flat := filepath.Join(root, "reasonix-desktop.exe")
+	electron := filepath.Join(root, "versions", "v1.38.6", "app", "Tempora.exe")
+	goDesktop := filepath.Join(root, "versions", "v1.20.0", "tempora-desktop.exe")
+	flat := filepath.Join(root, "tempora-desktop.exe")
 	customIcon := filepath.Join(root, "custom.ico")
 	for _, tt := range []struct {
 		name, target, icon, id string
 		want                   shortcutRepair
 	}{
 		{"new pin", launcher, "", "", shortcutRepair{identity: AppUserModelID}},
-		{"legacy pin", launcher, "", "Reasonix", shortcutRepair{identity: AppUserModelID}},
+		{"legacy pin", launcher, "", "Tempora", shortcutRepair{identity: AppUserModelID}},
 		{"healthy", launcher, launcher, AppUserModelID, shortcutRepair{}},
-		{"versioned electron", electron, electron, "Reasonix", shortcutRepair{target: launcher, icon: launcher, identity: AppUserModelID}},
+		{"versioned electron", electron, electron, "Tempora", shortcutRepair{target: launcher, icon: launcher, identity: AppUserModelID}},
 		{"versioned Go", goDesktop, goDesktop, "", shortcutRepair{target: launcher, icon: launcher, identity: AppUserModelID}},
-		{"flat electron", filepath.Join(root, "app", "Reasonix.exe"), "", "Reasonix", shortcutRepair{target: launcher, identity: AppUserModelID}},
+		{"flat electron", filepath.Join(root, "app", "Tempora.exe"), "", "Tempora", shortcutRepair{target: launcher, identity: AppUserModelID}},
 		{"custom icon", electron, customIcon, "", shortcutRepair{target: launcher, identity: AppUserModelID}},
 		{"missing flat", flat, flat, "", shortcutRepair{target: launcher, icon: launcher, identity: AppUserModelID}},
 		{"current ID stale target", electron, launcher, AppUserModelID, shortcutRepair{target: launcher}},
 		{"stable target stale icon", launcher, electron, AppUserModelID, shortcutRepair{icon: launcher}},
-		{"studio ID", electron, electron, "io.reasonix.studio", shortcutRepair{}},
-		{"Tauri ID", electron, electron, "dev.reasonix.desktop", shortcutRepair{}},
+		{"studio ID", electron, electron, "io.tempora.studio", shortcutRepair{}},
+		{"Tauri ID", electron, electron, "dev.tempora.desktop", shortcutRepair{}},
 		{"unknown ID", electron, electron, "Custom.App", shortcutRepair{}},
-		{"other install", filepath.Join(t.TempDir(), "Reasonix.exe"), electron, "Reasonix", shortcutRepair{}},
-		{"Studio executable", filepath.Join(root, "Reasonix Studio.exe"), electron, "Reasonix", shortcutRepair{}},
+		{"other install", filepath.Join(t.TempDir(), "Tempora.exe"), electron, "Tempora", shortcutRepair{}},
+		{"Studio executable", filepath.Join(root, "Tempora Studio.exe"), electron, "Tempora", shortcutRepair{}},
 		{"unrelated executable", filepath.Join(root, "other.exe"), electron, "", shortcutRepair{}},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -55,7 +55,7 @@ func TestShortcutRepairPolicy(t *testing.T) {
 	if err := os.Remove(launcher); err != nil {
 		t.Fatal(err)
 	}
-	if got := planShortcutRepair(electron, electron, "Reasonix", root, false); got != (shortcutRepair{identity: AppUserModelID}) {
+	if got := planShortcutRepair(electron, electron, "Tempora", root, false); got != (shortcutRepair{identity: AppUserModelID}) {
 		t.Fatalf("missing launcher must not create a dangling entry: %+v", got)
 	}
 }
@@ -69,7 +69,7 @@ func TestShortcutOwnershipResolvesLinksBeforeCheckingLayout(t *testing.T) {
 	if err := os.Symlink(outside, filepath.Join(root, "versions", "v1.0.0")); err != nil {
 		t.Skipf("symbolic links unavailable: %v", err)
 	}
-	for _, suffix := range []string{"reasonix-desktop.exe", filepath.Join("app", "Reasonix.exe")} {
+	for _, suffix := range []string{"tempora-desktop.exe", filepath.Join("app", "Tempora.exe")} {
 		if ownedShortcutTarget(filepath.Join(root, "versions", "v1.0.0", suffix), root) {
 			t.Fatalf("external target %s treated as owned", suffix)
 		}
@@ -78,10 +78,10 @@ func TestShortcutOwnershipResolvesLinksBeforeCheckingLayout(t *testing.T) {
 	if err := os.Symlink(root, alias); err != nil {
 		t.Fatal(err)
 	}
-	if !ownedShortcutTarget(filepath.Join(alias, "versions", "v2.0.0", "app", "Reasonix.exe"), root) {
+	if !ownedShortcutTarget(filepath.Join(alias, "versions", "v2.0.0", "app", "Tempora.exe"), root) {
 		t.Fatal("alias of the owned root with a pruned version must remain repairable")
 	}
-	if ownedShortcutTarget(filepath.Join(root, "Reasonix.exe"), filepath.Join(root, "missing-root")) {
+	if ownedShortcutTarget(filepath.Join(root, "Tempora.exe"), filepath.Join(root, "missing-root")) {
 		t.Fatal("missing installation root must not establish ownership")
 	}
 }

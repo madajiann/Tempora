@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	fileencoding "reasonix/internal/fileutil/encoding"
-	"reasonix/internal/pluginpkg"
-	"reasonix/internal/sandbox"
+	fileencoding "tempora/internal/fileutil/encoding"
+	"tempora/internal/pluginpkg"
+	"tempora/internal/sandbox"
 )
 
 func writeSettings(t *testing.T, dir, json string) {
@@ -240,18 +240,18 @@ func TestNormalizeCommandRepairsOnlyPowerShellFileEscapedQuotes(t *testing.T) {
 	}{
 		{
 			name:    "powershell file path copied with json escaped quotes",
-			command: `powershell -File \"C:\Users\Example\.reasonix\hooks\archive-attachments.ps1\"`,
-			want:    `powershell -File "C:\Users\Example\.reasonix\hooks\archive-attachments.ps1"`,
+			command: `powershell -File \"C:\Users\Example\.tempora\hooks\archive-attachments.ps1\"`,
+			want:    `powershell -File "C:\Users\Example\.tempora\hooks\archive-attachments.ps1"`,
 		},
 		{
 			name:    "pwsh file path with spaces",
-			command: `pwsh.exe -NoProfile -NonInteractive -File \"C:\Program Files\Reasonix Hooks\archive attachments.ps1\"`,
-			want:    `pwsh.exe -NoProfile -NonInteractive -File "C:\Program Files\Reasonix Hooks\archive attachments.ps1"`,
+			command: `pwsh.exe -NoProfile -NonInteractive -File \"C:\Program Files\Tempora Hooks\archive attachments.ps1\"`,
+			want:    `pwsh.exe -NoProfile -NonInteractive -File "C:\Program Files\Tempora Hooks\archive attachments.ps1"`,
 		},
 		{
 			name:    "doubly escaped copied quotes",
-			command: `pwsh -File \\\"C:\Program Files\Reasonix Hooks\archive attachments.ps1\\\" \"arg with spaces\"`,
-			want:    `pwsh -File "C:\Program Files\Reasonix Hooks\archive attachments.ps1" "arg with spaces"`,
+			command: `pwsh -File \\\"C:\Program Files\Tempora Hooks\archive attachments.ps1\\\" \"arg with spaces\"`,
+			want:    `pwsh -File "C:\Program Files\Tempora Hooks\archive attachments.ps1" "arg with spaces"`,
 		},
 		{
 			name:    "powershell executable path copied with escaped quotes",
@@ -260,8 +260,8 @@ func TestNormalizeCommandRepairsOnlyPowerShellFileEscapedQuotes(t *testing.T) {
 		},
 		{
 			name:    "well formed file command stays unchanged",
-			command: `powershell -NoProfile -File "C:\Program Files\Reasonix Hooks\archive attachments.ps1"`,
-			want:    `powershell -NoProfile -File "C:\Program Files\Reasonix Hooks\archive attachments.ps1"`,
+			command: `powershell -NoProfile -File "C:\Program Files\Tempora Hooks\archive attachments.ps1"`,
+			want:    `powershell -NoProfile -File "C:\Program Files\Tempora Hooks\archive attachments.ps1"`,
 		},
 		{
 			name:    "command mode may intentionally contain escaped quotes",
@@ -310,8 +310,8 @@ func TestNormalizeCommandRepairsOnlyPowerShellFileEscapedQuotes(t *testing.T) {
 
 func TestLoadNormalizesPowerShellFileEscapedQuotes(t *testing.T) {
 	home := t.TempDir()
-	bad := `powershell -File \"C:\Program Files\Reasonix Hooks\archive attachments.ps1\"`
-	want := `powershell -File "C:\Program Files\Reasonix Hooks\archive attachments.ps1"`
+	bad := `powershell -File \"C:\Program Files\Tempora Hooks\archive attachments.ps1\"`
+	want := `powershell -File "C:\Program Files\Tempora Hooks\archive attachments.ps1"`
 	writeSettings(t, home, hookSettingsWithCommand(t, SessionStart, bad))
 
 	hooks := Load(LoadOptions{HomeDir: home})
@@ -324,7 +324,7 @@ func TestLoadNormalizesPowerShellFileEscapedQuotes(t *testing.T) {
 }
 
 func TestRepairablePowerShellFileArgs(t *testing.T) {
-	command := `powershell -NoProfile -NonInteractive -File \"C:\Program Files\Reasonix Hooks\archive attachments.ps1\" -Mode \"startup\"`
+	command := `powershell -NoProfile -NonInteractive -File \"C:\Program Files\Tempora Hooks\archive attachments.ps1\" -Mode \"startup\"`
 	name, args, ok := repairablePowerShellFileArgs(command)
 	if !ok {
 		t.Fatalf("repairablePowerShellFileArgs(%q) ok = false, want true", command)
@@ -332,7 +332,7 @@ func TestRepairablePowerShellFileArgs(t *testing.T) {
 	if name != "powershell" {
 		t.Fatalf("name = %q, want powershell", name)
 	}
-	wantArgs := []string{"-NoProfile", "-NonInteractive", "-File", `C:\Program Files\Reasonix Hooks\archive attachments.ps1`, "-Mode", "startup"}
+	wantArgs := []string{"-NoProfile", "-NonInteractive", "-File", `C:\Program Files\Tempora Hooks\archive attachments.ps1`, "-Mode", "startup"}
 	if strings.Join(args, "\x00") != strings.Join(wantArgs, "\x00") {
 		t.Fatalf("args = %#v, want %#v", args, wantArgs)
 	}
@@ -356,8 +356,8 @@ func TestRepairablePowerShellFileArgs(t *testing.T) {
 // use.
 func installSuperpowersV611HookFixture(t *testing.T, home string) string {
 	t.Helper()
-	reasonixHome := filepath.Join(home, ".reasonix")
-	root := filepath.Join(reasonixHome, "plugins", "superpowers fixture")
+	temporaHome := filepath.Join(home, ".tempora")
+	root := filepath.Join(temporaHome, "plugins", "superpowers fixture")
 	writeHookTestFile(t, filepath.Join(root, pluginpkg.CodexManifest), `{
   "name": "superpowers",
   "description": "Core skills library for Claude Code",
@@ -381,7 +381,7 @@ func installSuperpowersV611HookFixture(t *testing.T, home string) string {
 }`)
 	writeHookTestFile(t, filepath.Join(root, "hooks", "run-hook.cmd"),
 		"@echo off\r\nset /p hook_input=\r\necho %1:%hook_input%\r\n")
-	if err := pluginpkg.Upsert(reasonixHome, pluginpkg.InstalledPlugin{
+	if err := pluginpkg.Upsert(temporaHome, pluginpkg.InstalledPlugin{
 		Name:         "superpowers",
 		Root:         "plugins/superpowers fixture",
 		Version:      "6.1.1",
@@ -433,7 +433,7 @@ func TestLoadSuperpowersV611SessionStartExecutionContract(t *testing.T) {
 
 func TestLoadSuperpowersV620PreservesExplicitBashRequirement(t *testing.T) {
 	home := t.TempDir()
-	root := filepath.Join(home, ".reasonix", "plugins", "superpowers")
+	root := filepath.Join(home, ".tempora", "plugins", "superpowers")
 	writeHookTestFile(t, filepath.Join(root, pluginpkg.CodexManifest), `{
   "name": "superpowers",
   "version": "6.2.0",
@@ -453,7 +453,7 @@ func TestLoadSuperpowersV620PreservesExplicitBashRequirement(t *testing.T) {
   }
 }`)
 	writeHookTestFile(t, filepath.Join(root, "hooks", "run-hook.cmd"), "@echo off\r\n")
-	if err := pluginpkg.Upsert(filepath.Join(home, ".reasonix"), pluginpkg.InstalledPlugin{
+	if err := pluginpkg.Upsert(filepath.Join(home, ".tempora"), pluginpkg.InstalledPlugin{
 		Name:         "superpowers",
 		Root:         "plugins/superpowers",
 		Version:      "6.2.0",
@@ -481,13 +481,13 @@ func TestLoadSuperpowersV620PreservesExplicitBashRequirement(t *testing.T) {
 }
 
 func TestPluginExplicitBashCommandUsesPOSIXCompatibleRoot(t *testing.T) {
-	root := `C:\Users\Test User\AppData\Roaming\reasonix\plugins\superpowers`
+	root := `C:\Users\Test User\AppData\Roaming\tempora\plugins\superpowers`
 	config := pluginHookExecutionConfigForPlatform(pluginpkg.Hook{
 		Command:      `"${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.cmd" session-start`,
 		ShellCommand: true,
 		Shell:        "bash",
 	}, root, "windows")
-	want := `"C:/Users/Test User/AppData/Roaming/reasonix/plugins/superpowers/hooks/run-hook.cmd" session-start`
+	want := `"C:/Users/Test User/AppData/Roaming/tempora/plugins/superpowers/hooks/run-hook.cmd" session-start`
 	if config.Command != want {
 		t.Fatalf("explicit Bash command = %q, want POSIX-compatible root %q", config.Command, want)
 	}
@@ -528,8 +528,8 @@ func TestExplicitBashRuntimeReportsMissingDependency(t *testing.T) {
 
 func TestLoadIncludesPluginSessionStartHook(t *testing.T) {
 	home := t.TempDir()
-	reasonixHome := filepath.Join(home, ".reasonix")
-	root := filepath.Join(reasonixHome, "plugins", "superpowers")
+	temporaHome := filepath.Join(home, ".tempora")
+	root := filepath.Join(temporaHome, "plugins", "superpowers")
 	writeSettings(t, home, `{"hooks":{"PostToolUse":[{"command":"echo global"}]}}`)
 	writeHookTestFile(t, filepath.Join(root, pluginpkg.CodexManifest), `{
   "name": "superpowers",
@@ -537,7 +537,7 @@ func TestLoadIncludesPluginSessionStartHook(t *testing.T) {
   "skills": "./skills/"
 }`)
 	writeHookTestFile(t, filepath.Join(root, "hooks", "session-start-codex"), "#!/usr/bin/env bash\necho ok\n")
-	if err := pluginpkg.Upsert(reasonixHome, pluginpkg.InstalledPlugin{
+	if err := pluginpkg.Upsert(temporaHome, pluginpkg.InstalledPlugin{
 		Name:         "superpowers",
 		Root:         "plugins/superpowers",
 		Version:      "6.1.0",
@@ -554,7 +554,7 @@ func TestLoadIncludesPluginSessionStartHook(t *testing.T) {
 	if got[0].Scope != ScopePlugin || got[0].Event != SessionStart {
 		t.Fatalf("first hook = %+v, want plugin SessionStart", got[0])
 	}
-	if got[0].Env["REASONIX_PLUGIN_NAME"] != "superpowers" || got[0].Env["REASONIX_WORKSPACE_ROOT"] != "/workspace" {
+	if got[0].Env["TEMPORA_PLUGIN_NAME"] != "superpowers" || got[0].Env["TEMPORA_WORKSPACE_ROOT"] != "/workspace" {
 		t.Fatalf("plugin env = %#v", got[0].Env)
 	}
 	if got[1].Scope != ScopeGlobal {
@@ -563,15 +563,15 @@ func TestLoadIncludesPluginSessionStartHook(t *testing.T) {
 }
 
 // TestInspectNoHomeDirResolvesPluginRootFromPlatformHome: with HomeDir empty
-// (the hook-machine default after #7420) and an isolated REASONIX_HOME, the
-// plugin probe and global settings resolve from the platform Reasonix home —
-// <home>/plugins and <home>/settings.json — not a doubled .reasonix segment.
+// (the hook-machine default after #7420) and an isolated TEMPORA_HOME, the
+// plugin probe and global settings resolve from the platform Tempora home —
+// <home>/plugins and <home>/settings.json — not a doubled .tempora segment.
 func TestInspectNoHomeDirResolvesPluginRootFromPlatformHome(t *testing.T) {
 	home := t.TempDir()
-	t.Setenv("REASONIX_HOME", home)
+	t.Setenv("TEMPORA_HOME", home)
 	root := filepath.Join(home, "plugins", "superpowers")
-	// Global settings live directly under the platform Reasonix home
-	// (writeSettings would add .reasonix, the OS-home convention #7420 fixes).
+	// Global settings live directly under the platform Tempora home
+	// (writeSettings would add .tempora, the OS-home convention #7420 fixes).
 	if err := os.MkdirAll(home, 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -597,7 +597,7 @@ func TestInspectNoHomeDirResolvesPluginRootFromPlatformHome(t *testing.T) {
 	insp := Inspect(LoadOptions{ProjectRoot: "/workspace"})
 	// Inspect reports project + plugin + global sources; assertions focus on
 	// the two that #7420 broke: plugin and global must resolve from the
-	// platform Reasonix home, not a doubled .reasonix segment.
+	// platform Tempora home, not a doubled .tempora segment.
 	var pluginOK, globalOK bool
 	for _, s := range insp.Sources {
 		switch s.Scope {
@@ -617,8 +617,8 @@ func TestInspectNoHomeDirResolvesPluginRootFromPlatformHome(t *testing.T) {
 
 func TestLoadIncludesPluginClaudeCompatibilityHooks(t *testing.T) {
 	home := t.TempDir()
-	reasonixHome := filepath.Join(home, ".reasonix")
-	root := filepath.Join(reasonixHome, "plugins", "claude-pack")
+	temporaHome := filepath.Join(home, ".tempora")
+	root := filepath.Join(temporaHome, "plugins", "claude-pack")
 	writeHookTestFile(t, filepath.Join(root, pluginpkg.CodexManifest), `{
   "name": "claude-pack",
   "version": "1.0.0",
@@ -644,7 +644,7 @@ func TestLoadIncludesPluginClaudeCompatibilityHooks(t *testing.T) {
     ]
   }
 }`)
-	if err := pluginpkg.Upsert(reasonixHome, pluginpkg.InstalledPlugin{
+	if err := pluginpkg.Upsert(temporaHome, pluginpkg.InstalledPlugin{
 		Name:         "claude-pack",
 		Root:         "plugins/claude-pack",
 		Version:      "1.0.0",
@@ -674,7 +674,7 @@ func TestLoadIncludesPluginClaudeCompatibilityHooks(t *testing.T) {
 	if h := byEvent[UserPromptSubmit]; h.Command != "node hooks/prompt.js" || h.Cwd != root {
 		t.Fatalf("UserPromptSubmit hook = %+v", h)
 	}
-	if h := byEvent[PostToolUse]; h.Env["CLAUDE_PROJECT_DIR"] != "/workspace" || h.Env["REASONIX_PLUGIN_NAME"] != "claude-pack" {
+	if h := byEvent[PostToolUse]; h.Env["CLAUDE_PROJECT_DIR"] != "/workspace" || h.Env["TEMPORA_PLUGIN_NAME"] != "claude-pack" {
 		t.Fatalf("plugin env = %#v", h.Env)
 	}
 	if h := byEvent[PostToolUse]; h.PayloadFormat != "claude" || h.Env["CLAUDE_PLUGIN_ROOT"] != root {
@@ -684,10 +684,10 @@ func TestLoadIncludesPluginClaudeCompatibilityHooks(t *testing.T) {
 
 func TestLoadPluginHooksPreservesExecutionContract(t *testing.T) {
 	home := t.TempDir()
-	reasonixHome := filepath.Join(home, ".reasonix")
-	root := filepath.Join(reasonixHome, "plugins", "hook-contract")
+	temporaHome := filepath.Join(home, ".tempora")
+	root := filepath.Join(temporaHome, "plugins", "hook-contract")
 	writeHookTestFile(t, filepath.Join(root, pluginpkg.NativeManifest), `{
-  "apiVersion": "reasonix.io/plugin/v2", "name": "hook-contract",
+  "apiVersion": "tempora.io/plugin/v2", "name": "hook-contract",
   "hooks": {
     "SessionStart": [
       {"command":"bin/check","args":[],"shellCommand":true},
@@ -695,7 +695,7 @@ func TestLoadPluginHooksPreservesExecutionContract(t *testing.T) {
     ]
   }
 }`)
-	if err := pluginpkg.Upsert(reasonixHome, pluginpkg.InstalledPlugin{
+	if err := pluginpkg.Upsert(temporaHome, pluginpkg.InstalledPlugin{
 		Name:         "hook-contract",
 		Root:         "plugins/hook-contract",
 		ManifestKind: "native",
@@ -720,25 +720,25 @@ func TestLoadPluginHooksPreservesExecutionContract(t *testing.T) {
 	}
 }
 
-func TestLoadExpandsReasonixPluginRootBeforeShellLaunch(t *testing.T) {
+func TestLoadExpandsTemporaPluginRootBeforeShellLaunch(t *testing.T) {
 	home := t.TempDir()
-	reasonixHome := filepath.Join(home, ".reasonix")
-	root := filepath.Join(reasonixHome, "plugins", "impeccable")
+	temporaHome := filepath.Join(home, ".tempora")
+	root := filepath.Join(temporaHome, "plugins", "impeccable")
 	projectRoot := filepath.Join(home, "$CLAUDE_PLUGIN_ROOT-project")
 	writeHookTestFile(t, filepath.Join(root, pluginpkg.NativeManifest), `{
-  "apiVersion": "reasonix.io/plugin/v2", "name": "impeccable",
+  "apiVersion": "tempora.io/plugin/v2", "name": "impeccable",
   "version": "3.9.1",
   "hooks": {
     "PostToolUse": [{
       "match": "edit",
-      "command": "node \"${REASONIX_PLUGIN_ROOT}/skills/impeccable/scripts/hook.mjs\"",
+      "command": "node \"${TEMPORA_PLUGIN_ROOT}/skills/impeccable/scripts/hook.mjs\"",
       "shellCommand": true,
-      "cwd": "${REASONIX_PLUGIN_ROOT}/work",
-      "env": {"IMPECCABLE_CACHE": "%REASONIX_PLUGIN_ROOT%/cache"}
+      "cwd": "${TEMPORA_PLUGIN_ROOT}/work",
+      "env": {"IMPECCABLE_CACHE": "%TEMPORA_PLUGIN_ROOT%/cache"}
     }]
   }
 }`)
-	if err := pluginpkg.Upsert(reasonixHome, pluginpkg.InstalledPlugin{
+	if err := pluginpkg.Upsert(temporaHome, pluginpkg.InstalledPlugin{
 		Name:         "impeccable",
 		Root:         "plugins/impeccable",
 		Version:      "3.9.1",
@@ -762,16 +762,16 @@ func TestLoadExpandsReasonixPluginRootBeforeShellLaunch(t *testing.T) {
 	if got[0].Cwd != filepath.Join(root, "work") || got[0].Env["IMPECCABLE_CACHE"] != root+"/cache" {
 		t.Fatalf("expanded plugin cwd/env = cwd %q env %#v", got[0].Cwd, got[0].Env)
 	}
-	if got[0].Env["CLAUDE_PROJECT_DIR"] != projectRoot || got[0].Env["REASONIX_WORKSPACE_ROOT"] != projectRoot {
+	if got[0].Env["CLAUDE_PROJECT_DIR"] != projectRoot || got[0].Env["TEMPORA_WORKSPACE_ROOT"] != projectRoot {
 		t.Fatalf("host-provided workspace paths were expanded: %#v", got[0].Env)
 	}
 }
 
-func TestExpandPluginRootSupportsClaudeReasonixAndCmdAliases(t *testing.T) {
-	root := `C:\Program Files\Reasonix\plugins\impeccable`
+func TestExpandPluginRootSupportsClaudeTemporaAndCmdAliases(t *testing.T) {
+	root := `C:\Program Files\Tempora\plugins\impeccable`
 	for _, token := range []string{
 		"${CLAUDE_PLUGIN_ROOT}", "$CLAUDE_PLUGIN_ROOT", "%CLAUDE_PLUGIN_ROOT%",
-		"${REASONIX_PLUGIN_ROOT}", "$REASONIX_PLUGIN_ROOT", "%REASONIX_PLUGIN_ROOT%",
+		"${TEMPORA_PLUGIN_ROOT}", "$TEMPORA_PLUGIN_ROOT", "%TEMPORA_PLUGIN_ROOT%",
 	} {
 		t.Run(token, func(t *testing.T) {
 			command := `node "` + token + `/skills/impeccable/scripts/hook.mjs"`
@@ -789,7 +789,7 @@ func TestExpandPluginRootSupportsClaudeReasonixAndCmdAliases(t *testing.T) {
 	}
 	for _, longerName := range []string{
 		"$CLAUDE_PLUGIN_ROOT_SUFFIX",
-		"$REASONIX_PLUGIN_ROOT_OLD",
+		"$TEMPORA_PLUGIN_ROOT_OLD",
 		"$CLAUDE_PLUGIN_ROOT2",
 	} {
 		if got := expandPluginRoot(longerName, root); got != longerName {
@@ -799,14 +799,14 @@ func TestExpandPluginRootSupportsClaudeReasonixAndCmdAliases(t *testing.T) {
 	if got, want := expandPluginRoot(`$CLAUDE_PLUGIN_ROOT-child`, root), root+"-child"; got != want {
 		t.Fatalf("delimited unbraced variable = %q, want %q", got, want)
 	}
-	if got, want := expandPluginRoot(`$CLAUDE_PLUGIN_ROOT/$REASONIX_PLUGIN_ROOT`, root), root+"/"+root; got != want {
+	if got, want := expandPluginRoot(`$CLAUDE_PLUGIN_ROOT/$TEMPORA_PLUGIN_ROOT`, root), root+"/"+root; got != want {
 		t.Fatalf("both root aliases = %q, want %q", got, want)
 	}
 }
 
 func TestExpandPluginRootDoesNotReprocessResolvedRoot(t *testing.T) {
-	root := `/tmp/$REASONIX_PLUGIN_ROOT/%CLAUDE_PLUGIN_ROOT%/${CLAUDE_PLUGIN_ROOT}`
-	value := `${CLAUDE_PLUGIN_ROOT}|$REASONIX_PLUGIN_ROOT|%CLAUDE_PLUGIN_ROOT%`
+	root := `/tmp/$TEMPORA_PLUGIN_ROOT/%CLAUDE_PLUGIN_ROOT%/${CLAUDE_PLUGIN_ROOT}`
+	value := `${CLAUDE_PLUGIN_ROOT}|$TEMPORA_PLUGIN_ROOT|%CLAUDE_PLUGIN_ROOT%`
 	want := root + "|" + root + "|" + root
 	if got := expandPluginRoot(value, root); got != want {
 		t.Fatalf("resolved root was expanded again: got %q, want %q", got, want)
@@ -860,12 +860,12 @@ func TestWindowsPOSIXShellExecFormUsesDiscoveredBash(t *testing.T) {
 }
 
 func TestWindowsBatchCommandLinePreservesQuotedPluginPath(t *testing.T) {
-	command := `"C:\Users\Test User\AppData\Roaming\reasonix\plugins\superpowers/hooks/run-hook.cmd" session-start`
+	command := `"C:\Users\Test User\AppData\Roaming\tempora\plugins\superpowers/hooks/run-hook.cmd" session-start`
 	got, ok := windowsBatchCommandLine(command)
 	if !ok {
 		t.Fatal("quoted plugin batch command was not recognized")
 	}
-	want := `cmd.exe /d /s /c ""C:\Users\Test User\AppData\Roaming\reasonix\plugins\superpowers\hooks\run-hook.cmd" session-start"`
+	want := `cmd.exe /d /s /c ""C:\Users\Test User\AppData\Roaming\tempora\plugins\superpowers\hooks\run-hook.cmd" session-start"`
 	if got != want {
 		t.Fatalf("batch command line = %q, want %q", got, want)
 	}
@@ -885,13 +885,13 @@ func TestWindowsBatchCommandLinePreservesArgumentText(t *testing.T) {
 
 func TestWindowsBatchArgvCommandLineSupportsNativePluginHooks(t *testing.T) {
 	got, ok := windowsBatchArgvCommandLine(
-		`C:\Program Files\Reasonix\plugins\example/hooks/run-hook.cmd`,
+		`C:\Program Files\Tempora\plugins\example/hooks/run-hook.cmd`,
 		[]string{"session-start", "argument with spaces"},
 	)
 	if !ok {
 		t.Fatal("native plugin batch command was not recognized")
 	}
-	want := `cmd.exe /d /s /c ""C:\Program Files\Reasonix\plugins\example\hooks\run-hook.cmd" session-start "argument with spaces""`
+	want := `cmd.exe /d /s /c ""C:\Program Files\Tempora\plugins\example\hooks\run-hook.cmd" session-start "argument with spaces""`
 	if got != want {
 		t.Fatalf("batch argv command line = %q, want %q", got, want)
 	}
@@ -1001,57 +1001,57 @@ func TestDecodeHookOutputPreservesTruncatedUTF8Prefix(t *testing.T) {
 	}
 }
 
-func TestReasonixHomeOverridesGlobalHookPaths(t *testing.T) {
+func TestTemporaHomeOverridesGlobalHookPaths(t *testing.T) {
 	home := t.TempDir()
-	reasonixHome := filepath.Join(t.TempDir(), "rx-home")
+	temporaHome := filepath.Join(t.TempDir(), "rx-home")
 	t.Setenv("HOME", home)
 	t.Setenv("USERPROFILE", home)
-	t.Setenv("REASONIX_HOME", reasonixHome)
-	if err := os.MkdirAll(reasonixHome, 0o755); err != nil {
+	t.Setenv("TEMPORA_HOME", temporaHome)
+	if err := os.MkdirAll(temporaHome, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(reasonixHome, SettingsFilename), []byte(`{"hooks":{"PostToolUse":[{"command":"echo rx"}]}}`), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(temporaHome, SettingsFilename), []byte(`{"hooks":{"PostToolUse":[{"command":"echo rx"}]}}`), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	writeSettings(t, home, `{"hooks":{"PostToolUse":[{"command":"echo old"}]}}`)
 
-	if got := GlobalSettingsPath(""); got != filepath.Join(reasonixHome, SettingsFilename) {
-		t.Fatalf("GlobalSettingsPath = %q, want Reasonix home", got)
+	if got := GlobalSettingsPath(""); got != filepath.Join(temporaHome, SettingsFilename) {
+		t.Fatalf("GlobalSettingsPath = %q, want Tempora home", got)
 	}
 	hooks := Load(LoadOptions{})
 	if len(hooks) != 1 || hooks[0].Command != "echo rx" {
-		t.Fatalf("Load hooks = %+v, want Reasonix home hook only", hooks)
+		t.Fatalf("Load hooks = %+v, want Tempora home hook only", hooks)
 	}
 }
 
-func TestLoadOptionsReasonixHomeDirUsesExactGlobalHookPath(t *testing.T) {
+func TestLoadOptionsTemporaHomeDirUsesExactGlobalHookPath(t *testing.T) {
 	home := t.TempDir()
-	reasonixHome := filepath.Join(home, "AppData", "Roaming", "reasonix")
-	settingsPath := filepath.Join(reasonixHome, SettingsFilename)
-	if err := os.MkdirAll(reasonixHome, 0o755); err != nil {
+	temporaHome := filepath.Join(home, "AppData", "Roaming", "tempora")
+	settingsPath := filepath.Join(temporaHome, SettingsFilename)
+	if err := os.MkdirAll(temporaHome, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(settingsPath, []byte(`{"hooks":{"Stop":[{"command":"echo exact"}]}}`), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
-	hooks := Load(LoadOptions{HomeDir: home, ReasonixHomeDir: reasonixHome})
+	hooks := Load(LoadOptions{HomeDir: home, TemporaHomeDir: temporaHome})
 	if len(hooks) != 1 || hooks[0].Command != "echo exact" || hooks[0].Source != settingsPath {
-		t.Fatalf("Load hooks = %+v, want exact Reasonix home hook", hooks)
+		t.Fatalf("Load hooks = %+v, want exact Tempora home hook", hooks)
 	}
 }
 
-func TestReasonixHomeDoesNotFallBackToLegacyWhenIsolated(t *testing.T) {
+func TestTemporaHomeDoesNotFallBackToLegacyWhenIsolated(t *testing.T) {
 	home := t.TempDir()
-	reasonixHome := filepath.Join(t.TempDir(), "rx-home")
+	temporaHome := filepath.Join(t.TempDir(), "rx-home")
 	t.Setenv("HOME", home)
 	t.Setenv("USERPROFILE", home)
-	t.Setenv("REASONIX_HOME", reasonixHome)
+	t.Setenv("TEMPORA_HOME", temporaHome)
 	writeSettings(t, home, `{"hooks":{"PostToolUse":[{"command":"echo old"}]}}`)
 
 	hooks := Load(LoadOptions{})
 	if len(hooks) != 0 {
-		t.Fatalf("Load hooks = %+v, want empty (isolated REASONIX_HOME must not load legacy hooks)", hooks)
+		t.Fatalf("Load hooks = %+v, want empty (isolated TEMPORA_HOME must not load legacy hooks)", hooks)
 	}
 
 }
@@ -1118,40 +1118,40 @@ func TestMatchesToolTranslatesClaudeToolNames(t *testing.T) {
 		return ResolvedHook{HookConfig: HookConfig{Match: match, PayloadFormat: "claude"}, Event: PreToolUse}
 	}
 	if !MatchesTool(claude("Bash"), "bash") {
-		t.Error(`Claude matcher "Bash" should match Reasonix tool "bash"`)
+		t.Error(`Claude matcher "Bash" should match Tempora tool "bash"`)
 	}
 	if !MatchesTool(claude("Write|Edit"), "write_file") {
-		t.Error(`Claude matcher "Write|Edit" should match Reasonix tool "write_file"`)
+		t.Error(`Claude matcher "Write|Edit" should match Tempora tool "write_file"`)
 	}
 	if !MatchesTool(claude("Write|Edit"), "edit_file") {
-		t.Error(`Claude matcher "Write|Edit" should match Reasonix tool "edit_file"`)
+		t.Error(`Claude matcher "Write|Edit" should match Tempora tool "edit_file"`)
 	}
 	if MatchesTool(claude("Bash"), "write_file") {
-		t.Error(`Claude matcher "Bash" must not match Reasonix tool "write_file"`)
+		t.Error(`Claude matcher "Bash" must not match Tempora tool "write_file"`)
 	}
-	// A native (non-Claude) hook's matcher stays in Reasonix's own vocabulary.
+	// A native (non-Claude) hook's matcher stays in Tempora's own vocabulary.
 	native := ResolvedHook{HookConfig: HookConfig{Match: "bash"}, Event: PreToolUse}
 	if MatchesTool(native, "Bash") {
 		t.Error("native hook matcher must not be interpreted against Claude tool names")
 	}
 	// The subagent tool was renamed "Task" -> "Agent" by Claude; a matcher
-	// using either name must still fire against Reasonix's "task" tool.
+	// using either name must still fire against Tempora's "task" tool.
 	if !MatchesTool(claude("Agent"), "task") {
-		t.Error(`Claude matcher "Agent" (current name) should match Reasonix tool "task"`)
+		t.Error(`Claude matcher "Agent" (current name) should match Tempora tool "task"`)
 	}
 	if !MatchesTool(claude("Task"), "task") {
-		t.Error(`Claude matcher "Task" (legacy alias) should still match Reasonix tool "task"`)
+		t.Error(`Claude matcher "Task" (legacy alias) should still match Tempora tool "task"`)
 	}
 	if !MatchesTool(claude("AskUserQuestion"), "ask") {
-		t.Error(`Claude matcher "AskUserQuestion" should match Reasonix tool "ask"`)
+		t.Error(`Claude matcher "AskUserQuestion" should match Tempora tool "ask"`)
 	}
 	for _, name := range []string{"bash_output", "wait"} {
 		if !MatchesTool(claude("TaskOutput"), name) || !MatchesTool(claude("BashOutput"), name) {
-			t.Errorf(`current "TaskOutput" and legacy "BashOutput" matchers should match Reasonix tool %q`, name)
+			t.Errorf(`current "TaskOutput" and legacy "BashOutput" matchers should match Tempora tool %q`, name)
 		}
 	}
 	if !MatchesTool(claude("TaskStop"), "kill_shell") || !MatchesTool(claude("KillShell"), "kill_shell") {
-		t.Error(`current "TaskStop" and legacy "KillShell" matchers should match Reasonix tool "kill_shell"`)
+		t.Error(`current "TaskStop" and legacy "KillShell" matchers should match Tempora tool "kill_shell"`)
 	}
 }
 
@@ -1186,11 +1186,11 @@ func TestClaudeFacingToolNameUsesCurrentNames(t *testing.T) {
 		}
 		claude := ResolvedHook{HookConfig: HookConfig{Match: "Agent", PayloadFormat: "claude"}, Event: PreToolUse}
 		if !MatchesTool(claude, name) {
-			t.Errorf(`Claude matcher "Agent" should match Reasonix tool %q`, name)
+			t.Errorf(`Claude matcher "Agent" should match Tempora tool %q`, name)
 		}
 		legacy := ResolvedHook{HookConfig: HookConfig{Match: "Task", PayloadFormat: "claude"}, Event: PreToolUse}
 		if !MatchesTool(legacy, name) {
-			t.Errorf(`legacy Claude matcher "Task" should still match Reasonix tool %q`, name)
+			t.Errorf(`legacy Claude matcher "Task" should still match Tempora tool %q`, name)
 		}
 	}
 }
@@ -1246,7 +1246,7 @@ func TestClaudeFacingToolInputAdaptsMappedTools(t *testing.T) {
 }
 
 // TestClaudeFacingToolInputResolvesAbsolutePaths checks the Claude file-tool
-// contract ("file_path must be absolute"): a relative Reasonix path resolves
+// contract ("file_path must be absolute"): a relative Tempora path resolves
 // against the payload cwd — the same root the tool itself resolves against —
 // so a prefix-matching guard sees the path the tool actually accesses.
 func TestClaudeFacingToolInputResolvesAbsolutePaths(t *testing.T) {
@@ -1343,7 +1343,7 @@ func TestDecideOutcome(t *testing.T) {
 		{"timeout-nonblocking", Stop, "", SpawnResult{TimedOut: true}, DecisionWarn},
 		{"spawn-error", PreToolUse, "", SpawnResult{SpawnErr: os.ErrNotExist}, DecisionError},
 		// Claude's own PermissionRequest contract blocks on exit 2/timeout the
-		// same way PreToolUse does; native Reasonix PermissionRequest hooks
+		// same way PreToolUse does; native Tempora PermissionRequest hooks
 		// (format == "") stay advisory-only, verified above.
 		{"claude-permission-exit2-blocks", PermissionRequest, "claude", SpawnResult{ExitCode: 2}, DecisionBlock},
 		{"claude-permission-timeout-blocks", PermissionRequest, "claude", SpawnResult{TimedOut: true}, DecisionBlock},
@@ -1606,7 +1606,7 @@ func TestRunClaudePayloadAndDirectArgs(t *testing.T) {
 		t.Fatalf("Claude payload = %#v", payload)
 	}
 	if payload["tool_name"] != "Bash" {
-		t.Fatalf("Claude payload tool_name = %v, want the Claude vocabulary name Bash for Reasonix tool bash", payload["tool_name"])
+		t.Fatalf("Claude payload tool_name = %v, want the Claude vocabulary name Bash for Tempora tool bash", payload["tool_name"])
 	}
 	response, ok := payload["tool_response"].(map[string]any)
 	if !ok || response["stdout"] != "remote: denied" || response["stderr"] != "exit 1" || response["interrupted"] != false {
@@ -1620,7 +1620,7 @@ func TestRunClaudePayloadAndDirectArgs(t *testing.T) {
 // TestRunClaudeWriteFileGuardFiresAndSeesFilePath is an end-to-end check that
 // a Claude plugin's "block writes to secrets" style PreToolUse guard —
 // matcher "Write", reading .tool_input.file_path — actually fires against a
-// Reasonix write_file call and sees the absolute target path Claude's
+// Tempora write_file call and sees the absolute target path Claude's
 // file-tool contract specifies.
 func TestRunClaudeWriteFileGuardFiresAndSeesFilePath(t *testing.T) {
 	cwd := t.TempDir()
@@ -1634,7 +1634,7 @@ func TestRunClaudeWriteFileGuardFiresAndSeesFilePath(t *testing.T) {
 		ToolArgs: json.RawMessage(`{"path":"secrets/.env","content":"KEY=1"}`),
 	}, hooks, func(_ context.Context, in SpawnInput) SpawnResult { input = in; return SpawnResult{ExitCode: 0} })
 	if input.Command == "" {
-		t.Fatal(`matcher "Write" did not fire for Reasonix tool "write_file"`)
+		t.Fatal(`matcher "Write" did not fire for Tempora tool "write_file"`)
 	}
 	var payload map[string]any
 	if err := json.Unmarshal([]byte(input.Stdin), &payload); err != nil {
@@ -1648,12 +1648,12 @@ func TestRunClaudeWriteFileGuardFiresAndSeesFilePath(t *testing.T) {
 		t.Fatalf(`tool_input.file_path = %v, want absolute %q (a prefix-matching guard must see the path the tool accesses)`, toolInput["file_path"], want)
 	}
 	if _, hasPath := toolInput["path"]; hasPath {
-		t.Fatalf("tool_input still has Reasonix's \"path\" key: %#v", toolInput)
+		t.Fatalf("tool_input still has Tempora's \"path\" key: %#v", toolInput)
 	}
 }
 
 // TestRunClaudeAgentGuardFiresAndSeesRequiredFields covers the full matcher to
-// stdin path for a dedicated Reasonix subagent wrapper. Claude Agent requires
+// stdin path for a dedicated Tempora subagent wrapper. Claude Agent requires
 // both prompt and description even though the wrapper only accepts task.
 func TestRunClaudeAgentGuardFiresAndSeesRequiredFields(t *testing.T) {
 	hooks := []ResolvedHook{{
@@ -1666,7 +1666,7 @@ func TestRunClaudeAgentGuardFiresAndSeesRequiredFields(t *testing.T) {
 		ToolArgs: json.RawMessage(`{"task":"audit the auth changes"}`),
 	}, hooks, func(_ context.Context, in SpawnInput) SpawnResult { input = in; return SpawnResult{ExitCode: 0} })
 	if input.Command == "" {
-		t.Fatal(`matcher "Agent" did not fire for Reasonix tool "security_review"`)
+		t.Fatal(`matcher "Agent" did not fire for Tempora tool "security_review"`)
 	}
 	var payload map[string]any
 	if err := json.Unmarshal([]byte(input.Stdin), &payload); err != nil {

@@ -3,7 +3,7 @@ package agent
 import (
 	"os"
 
-	"reasonix/internal/store"
+	"tempora/internal/store"
 )
 
 // SessionPersistEvent is emitted only after the authoritative transcript,

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"reasonix/internal/control"
+	"tempora/internal/control"
 )
 
 func noopRuntimeAdmission() {}

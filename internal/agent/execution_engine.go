@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"strings"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/runtimepolicy"
-	"reasonix/internal/taskcontract"
-	"reasonix/internal/tool"
+	"tempora/internal/evidence"
+	"tempora/internal/runtimepolicy"
+	"tempora/internal/taskcontract"
+	"tempora/internal/tool"
 )
 
 // withInheritedHostConstraints re-applies the spawning turn's host constraints

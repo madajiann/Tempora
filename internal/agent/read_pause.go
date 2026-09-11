@@ -3,9 +3,9 @@ package agent
 import (
 	"errors"
 
-	"reasonix/internal/provider"
-	"reasonix/internal/readcoord"
-	"reasonix/internal/tool"
+	"tempora/internal/provider"
+	"tempora/internal/readcoord"
+	"tempora/internal/tool"
 )
 
 // finishReadRun records the verdict before closeReadStatuses cancels active

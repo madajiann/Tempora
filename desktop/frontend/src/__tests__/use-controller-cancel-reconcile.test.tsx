@@ -324,7 +324,7 @@ await act(async () => {
 });
 eq(cancelOutcome?.discardedItemIds.join(","), "withdrawn-guidance", "cancel returns only backend-confirmed withdrawn IDs");
 
-cancelInboxError = new Error("reasonix_error:inbox_invalid_state");
+cancelInboxError = new Error("tempora_error:inbox_invalid_state");
 await act(async () => {
   await controller?.cancel(["queued-guidance"]);
   await flushPromises();
@@ -334,7 +334,7 @@ const inboxCancelNotice = controller?.state.items.find((item) =>
 );
 eq(cancelInboxCalls, 2, "receipt-capable cancellation is called for durable guidance");
 ok(Boolean(inboxCancelNotice), "cancel failure formats the stable inbox code for the active locale");
-ok(inboxCancelNotice?.kind === "notice" && !inboxCancelNotice.text.includes("reasonix_error:"), "cancel failure never renders the stable transport code");
+ok(inboxCancelNotice?.kind === "notice" && !inboxCancelNotice.text.includes("tempora_error:"), "cancel failure never renders the stable transport code");
 
 // Stop is a session-level request: an exact-turn fence rejection (stale or
 // replaced turn id) must fall back to the unconditional cancel instead of
@@ -359,7 +359,7 @@ await waitFor("fallback cancel reconciliation", () => controller?.state.running 
 
 // An idle backend answers with a stable code; the UI reconciles quietly.
 backendRunning = false;
-interruptError = new Error("reasonix_error:turn_not_running");
+interruptError = new Error("tempora_error:turn_not_running");
 await act(async () => {
   desktopStub.emit("agent:event", { kind: "turn_started", tabId: "tab-a", turnId: "turn-idle" });
   await flushPromises();

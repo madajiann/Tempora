@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"reasonix/internal/config"
-	"reasonix/internal/stats"
+	"tempora/internal/config"
+	"tempora/internal/stats"
 )
 
 func closeCLIUsageCatalogs() {

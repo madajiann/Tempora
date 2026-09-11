@@ -15,19 +15,19 @@
       "afterHealthySeconds": 2,
       "rssKiB": 682720,
       "processCount": 5,
-      "processes": "Electron;Electron Helper;Electron Helper (Renderer);reasonix-desktop-service-versioned"
+      "processes": "Electron;Electron Helper;Electron Helper (Renderer);tempora-desktop-service-versioned"
     },
     {
       "afterHealthySeconds": 10,
       "rssKiB": 767264,
       "processCount": 5,
-      "processes": "Electron;Electron Helper;Electron Helper (Renderer);reasonix-desktop-service-versioned"
+      "processes": "Electron;Electron Helper;Electron Helper (Renderer);tempora-desktop-service-versioned"
     },
     {
       "afterHealthySeconds": 30,
       "rssKiB": 724976,
       "processCount": 5,
-      "processes": "Electron;Electron Helper;Electron Helper (Renderer);reasonix-desktop-service-versioned"
+      "processes": "Electron;Electron Helper;Electron Helper (Renderer);tempora-desktop-service-versioned"
     }
   ],
   "exit": {

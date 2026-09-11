@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/capdiag"
-	"reasonix/internal/pluginpkg"
+	"tempora/internal/capdiag"
+	"tempora/internal/pluginpkg"
 )
 
 // TestPluginPackageV2FieldsAreReported pins the Manifest v2 additions to the
@@ -16,31 +16,31 @@ import (
 func TestPluginPackageV2FieldsAreReported(t *testing.T) {
 	root := t.TempDir()
 	home := t.TempDir()
-	reasonixHome := filepath.Join(home, ".reasonix")
+	temporaHome := filepath.Join(home, ".tempora")
 	t.Setenv("HOME", home)
-	t.Setenv("REASONIX_HOME", reasonixHome)
+	t.Setenv("TEMPORA_HOME", temporaHome)
 
-	pluginRoot := filepath.Join(reasonixHome, "plugins", "demo")
+	pluginRoot := filepath.Join(temporaHome, "plugins", "demo")
 	write(t, filepath.Join(pluginRoot, pluginpkg.NativeManifest), `{
-  "apiVersion": "reasonix.io/plugin/v2",
+  "apiVersion": "tempora.io/plugin/v2",
   "name": "demo",
   "contributes": {
     "prompts": ["prompts"],
-    "themes": ["themes/*.reasonix-theme"]
+    "themes": ["themes/*.tempora-theme"]
   },
-  "runtime": {"command": "${REASONIX_PLUGIN_ROOT}/bin/demo", "intercepts": ["input.receive"]}
+  "runtime": {"command": "${TEMPORA_PLUGIN_ROOT}/bin/demo", "intercepts": ["input.receive"]}
 }`)
 	write(t, filepath.Join(pluginRoot, "prompts", "plan.md"), "---\ndescription: plan\n---\nPlan $ARGUMENTS\n")
-	write(t, filepath.Join(pluginRoot, "themes", "neon.reasonix-theme"), "theme bytes")
+	write(t, filepath.Join(pluginRoot, "themes", "neon.tempora-theme"), "theme bytes")
 	write(t, filepath.Join(pluginRoot, "bin", "demo"), "#!/bin/sh\n")
-	if err := pluginpkg.Upsert(reasonixHome, pluginpkg.InstalledPlugin{
-		Name: "demo", Root: "plugins/demo", ManifestKind: "reasonix", Enabled: true,
+	if err := pluginpkg.Upsert(temporaHome, pluginpkg.InstalledPlugin{
+		Name: "demo", Root: "plugins/demo", ManifestKind: "tempora", Enabled: true,
 	}); err != nil {
 		t.Fatal(err)
 	}
 
 	r := capdiag.Collect(capdiag.Options{
-		Root: root, HomeDir: home, ReasonixHomeDir: reasonixHome,
+		Root: root, HomeDir: home, TemporaHomeDir: temporaHome,
 	})
 	if len(r.Plugins.Packages) != 1 {
 		t.Fatalf("plugin packages = %+v, want demo", r.Plugins.Packages)
@@ -75,21 +75,21 @@ func TestPluginPackageV2FieldsAreReported(t *testing.T) {
 func TestPluginPackageLegacyOmitsV1Fields(t *testing.T) {
 	root := t.TempDir()
 	home := t.TempDir()
-	reasonixHome := filepath.Join(home, ".reasonix")
+	temporaHome := filepath.Join(home, ".tempora")
 	t.Setenv("HOME", home)
-	t.Setenv("REASONIX_HOME", reasonixHome)
+	t.Setenv("TEMPORA_HOME", temporaHome)
 
-	pluginRoot := filepath.Join(reasonixHome, "plugins", "legacy")
-	write(t, filepath.Join(pluginRoot, pluginpkg.NativeManifest), `{"apiVersion":"reasonix.io/plugin/v2","name":"legacy","skills":["skills"]}`)
+	pluginRoot := filepath.Join(temporaHome, "plugins", "legacy")
+	write(t, filepath.Join(pluginRoot, pluginpkg.NativeManifest), `{"apiVersion":"tempora.io/plugin/v2","name":"legacy","skills":["skills"]}`)
 	write(t, filepath.Join(pluginRoot, "skills", "s", "SKILL.md"), "---\ndescription: s\n---\nS\n")
-	if err := pluginpkg.Upsert(reasonixHome, pluginpkg.InstalledPlugin{
-		Name: "legacy", Root: "plugins/legacy", ManifestKind: "reasonix", Enabled: true,
+	if err := pluginpkg.Upsert(temporaHome, pluginpkg.InstalledPlugin{
+		Name: "legacy", Root: "plugins/legacy", ManifestKind: "tempora", Enabled: true,
 	}); err != nil {
 		t.Fatal(err)
 	}
 
 	r := capdiag.Collect(capdiag.Options{
-		Root: root, HomeDir: home, ReasonixHomeDir: reasonixHome,
+		Root: root, HomeDir: home, TemporaHomeDir: temporaHome,
 	})
 	if len(r.Plugins.Packages) != 1 {
 		t.Fatalf("plugin packages = %+v, want legacy", r.Plugins.Packages)

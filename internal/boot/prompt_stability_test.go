@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/agent/testutil"
-	"reasonix/internal/memory"
-	"reasonix/internal/provider"
-	"reasonix/internal/sessioncontext"
+	"tempora/internal/agent/testutil"
+	"tempora/internal/memory"
+	"tempora/internal/provider"
+	"tempora/internal/sessioncontext"
 )
 
 func sessionContextMessage(msgs []provider.Message) string {
@@ -36,7 +36,7 @@ func TestBuildComposesByteStableSystemPrompt(t *testing.T) {
 	dir := robustTempDir(t)
 	t.Chdir(dir)
 
-	writeFile(t, dir, "reasonix.toml", `
+	writeFile(t, dir, "tempora.toml", `
 default_model = "test-model"
 
 [agent]
@@ -47,9 +47,9 @@ name = "test-model"
 kind = "openai"
 base_url = "https://example.invalid"
 model = "x"
-api_key_env = "REASONIX_TEST_KEY_UNSET"
+api_key_env = "TEMPORA_TEST_KEY_UNSET"
 `)
-	writeFile(t, dir, "REASONIX.md", "Project rule: keep the prompt prefix stable.")
+	writeFile(t, dir, "TEMPORA.md", "Project rule: keep the prompt prefix stable.")
 
 	first, err := Build(context.Background(), Options{})
 	if err != nil {
@@ -78,7 +78,7 @@ func TestBackgroundMemoryAndSkillCatalogChangesDoNotChangeSystemPrompt(t *testin
 	isolateConfigHome(t)
 	dir := robustTempDir(t)
 	t.Chdir(dir)
-	writeFile(t, dir, "reasonix.toml", `
+	writeFile(t, dir, "tempora.toml", `
 default_model = "test-model"
 
 [agent]
@@ -92,7 +92,7 @@ name = "test-model"
 kind = "openai"
 base_url = "https://example.invalid"
 model = "x"
-api_key_env = "REASONIX_TEST_KEY_UNSET"
+api_key_env = "TEMPORA_TEST_KEY_UNSET"
 `)
 
 	buildSystem := func() (*memory.Set, string) {
@@ -110,8 +110,8 @@ api_key_env = "REASONIX_TEST_KEY_UNSET"
 	}); err != nil {
 		t.Fatal(err)
 	}
-	skillPath := filepath.Join(dir, ".reasonix", "skills", "dynamic-skill", "SKILL.md")
-	writeFile(t, dir, ".reasonix/skills/dynamic-skill/SKILL.md", "---\ndescription: dynamic catalog entry\n---\nbody")
+	skillPath := filepath.Join(dir, ".tempora", "skills", "dynamic-skill", "SKILL.md")
+	writeFile(t, dir, ".tempora/skills/dynamic-skill/SKILL.md", "---\ndescription: dynamic catalog entry\n---\nbody")
 
 	_, afterAdd := buildSystem()
 	if afterAdd != baseline {
@@ -145,7 +145,7 @@ func TestDisableImplicitSkillInvocationOmitsPolicyAndCatalogButKeepsSlashSkill(t
 	registerBootTokenProfileTestProvider()
 	prov := testutil.NewMock("implicit-off", testutil.Turn{Text: "done"})
 	setBootTokenProfileTestProvider(t, prov)
-	writeFile(t, dir, "reasonix.toml", `
+	writeFile(t, dir, "tempora.toml", `
 default_model = "test-model"
 
 [agent]
@@ -162,7 +162,7 @@ name = "test-model"
 kind = "boot-token-profile-test"
 model = "x"
 `)
-	writeFile(t, dir, ".reasonix/skills/hot/SKILL.md", "---\ndescription: explicit hot skill\n---\nHOT BODY")
+	writeFile(t, dir, ".tempora/skills/hot/SKILL.md", "---\ndescription: explicit hot skill\n---\nHOT BODY")
 
 	ctrl, err := Build(context.Background(), Options{})
 	if err != nil {

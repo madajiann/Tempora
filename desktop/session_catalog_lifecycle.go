@@ -10,9 +10,9 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	"reasonix/internal/history"
-	"reasonix/internal/sessioncatalog"
-	"reasonix/internal/taskcatalog"
+	"tempora/internal/history"
+	"tempora/internal/sessioncatalog"
+	"tempora/internal/taskcatalog"
 )
 
 func (a *App) runSessionCatalog(ctx context.Context) {

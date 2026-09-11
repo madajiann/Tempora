@@ -95,11 +95,11 @@ test("relaunch runs the shutdown and re-spawns with the requested args", async (
 
 test("relaunch waits for shutdown then starts the committed stable launcher", async () => {
   const { sequencer, calls, log } = build();
-  sequencer.relaunch(["--after-update"], "/opt/reasonix/reasonix-launcher");
+  sequencer.relaunch(["--after-update"], "/opt/tempora/tempora-launcher");
   assert.deepEqual(calls, ["quit"]);
   await tick();
   assert.deepEqual(log, ["shutdown", "closeAllowed"]);
-  assert.deepEqual(calls, ["quit", "relaunch:--after-update@/opt/reasonix/reasonix-launcher", "quit", "exit"]);
+  assert.deepEqual(calls, ["quit", "relaunch:--after-update@/opt/tempora/tempora-launcher", "quit", "exit"]);
 });
 
 test("cleanup failure cannot skip later cleanup or the final quit deadline", async () => {

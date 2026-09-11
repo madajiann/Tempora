@@ -30,7 +30,7 @@ const root = createRoot(document.getElementById("root")!);
 const snapshot = { sessionExperience: "deep", desktopLayoutStyle: "creation", desktopTheme: "light", desktopThemeStyle: "graphite",
   desktopLanguage: "en", checkUpdates: true, configWarnings: ["warning"], configWarningsRevision: 3 } as DesktopStartupSettingsView;
 try {
-  localStorage.setItem("reasonix-process-fold", "auto");
+  localStorage.setItem("tempora-process-fold", "auto");
   await act(async () => root.render(<LocaleProvider><Probe /></LocaleProvider>));
   assert.equal(requests, 1);
   await act(async () => { resolveStartup(snapshot); await import("../lib/themeExperience"); });

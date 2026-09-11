@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/agent/testutil"
-	"reasonix/internal/browser"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/agent/testutil"
+	"tempora/internal/browser"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 // bootBrowserExecutor is the smallest Executor a boot can attach: it lists
@@ -96,7 +96,7 @@ func TestBrowserToolsStayOffTheProviderSurface(t *testing.T) {
 	isolateConfigHome(t)
 	dir := robustTempDir(t)
 	t.Chdir(dir)
-	writeFile(t, dir, "reasonix.toml", browserBootConfig)
+	writeFile(t, dir, "tempora.toml", browserBootConfig)
 	registerBootTokenProfileTestProvider()
 
 	without := captureBrowserSurface(t, nil)
@@ -125,7 +125,7 @@ func TestUseCapabilityListsAndCallsBrowserTools(t *testing.T) {
 	isolateConfigHome(t)
 	dir := robustTempDir(t)
 	t.Chdir(dir)
-	writeFile(t, dir, "reasonix.toml", browserBootConfig)
+	writeFile(t, dir, "tempora.toml", browserBootConfig)
 	registerBootTokenProfileTestProvider()
 	listArgs, _ := json.Marshal(map[string]any{"action": "list"})
 	callArgs, _ := json.Marshal(map[string]any{"action": "call", "capability_id": "tool:browser_tabs", "arguments": map[string]any{}})

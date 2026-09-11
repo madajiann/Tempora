@@ -1,7 +1,7 @@
 package agent
 
 import (
-	"reasonix/internal/event"
+	"tempora/internal/event"
 )
 
 // nestedSink is the event view a fleet or parallel_tasks item runs under: tool

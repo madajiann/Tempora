@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 const sessionReadStrategyReceiptCapabilityID = "session:read_strategy_receipt"

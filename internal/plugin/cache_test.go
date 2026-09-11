@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/mcplaunch"
-	"reasonix/internal/sandbox"
-	"reasonix/internal/tool"
+	"tempora/internal/mcplaunch"
+	"tempora/internal/sandbox"
+	"tempora/internal/tool"
 )
 
 // redirectCache points config.CacheDir() at a fresh temp dir for the duration
@@ -20,7 +20,7 @@ import (
 func redirectCache(t *testing.T) string {
 	t.Helper()
 	dir := t.TempDir()
-	t.Setenv("REASONIX_CACHE_HOME", dir)
+	t.Setenv("TEMPORA_CACHE_HOME", dir)
 	return dir
 }
 

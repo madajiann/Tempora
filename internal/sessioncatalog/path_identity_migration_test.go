@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/projectiondb"
+	"tempora/internal/projectiondb"
 )
 
 func TestPathIdentityMigrationsInvalidateLegacyProjectionForAuthoritativeRebuild(t *testing.T) {

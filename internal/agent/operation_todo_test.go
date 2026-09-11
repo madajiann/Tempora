@@ -3,7 +3,7 @@ package agent
 import (
 	"testing"
 
-	"reasonix/internal/evidence"
+	"tempora/internal/evidence"
 )
 
 func agentWithTodos(t *testing.T, todos []evidence.TodoItem) *Agent {

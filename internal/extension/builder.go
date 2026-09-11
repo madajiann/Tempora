@@ -7,8 +7,8 @@ import (
 	"maps"
 	"strings"
 
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 // Activator binds live resources (MCP sidecars, watchers) to a freshly

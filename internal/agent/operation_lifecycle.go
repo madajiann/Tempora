@@ -7,11 +7,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/i18n"
-	"reasonix/internal/taskcontract"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/i18n"
+	"tempora/internal/taskcontract"
+	"tempora/internal/tool"
 )
 
 // maxCitableReceipts bounds how many host receipt IDs a rejection lists. The

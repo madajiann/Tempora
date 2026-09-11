@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/event"
-	"reasonix/internal/i18n"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/i18n"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 func (a *Agent) emitIncompleteReadNotice(code, text, detail string) {

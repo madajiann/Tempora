@@ -17,7 +17,7 @@ Deterministic coverage includes cancellation, concurrent cache reuse, restored t
 The opt-in live probe uses generated images with random codes and colored rectangles. It reads configured official DeepSeek credentials without printing them and tests three native protocols plus explicit/automatic summary-service routing with changed images:
 
 ```sh
-REASONIX_LIVE_TOOL_IMAGES=1 go test -tags live ./internal/imageinput -run TestLiveToolImages -v -count=1
+TEMPORA_LIVE_TOOL_IMAGES=1 go test -tags live ./internal/imageinput -run TestLiveToolImages -v -count=1
 ```
 
 The live `auto` case injects a same-provider selector to exercise the service route; actual configured catalog selection is owned by Boot. Live probes incur API usage. A successful request alone is insufficient: image-derived content must pass the assertions. OCR can still misread ambiguous characters, and summaries are not a substitute for pixel-exact visual access.

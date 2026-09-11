@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
+	"tempora/internal/event"
 )
 
 // Stop must reach the turn context before the cancelling status crosses the

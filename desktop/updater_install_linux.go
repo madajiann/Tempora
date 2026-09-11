@@ -19,7 +19,7 @@ func dirIsWritable(dir string) bool {
 	if err != nil || !info.IsDir() {
 		return false
 	}
-	f, err := os.CreateTemp(dir, ".reasonix-write-test-*")
+	f, err := os.CreateTemp(dir, ".tempora-write-test-*")
 	if err != nil {
 		return false
 	}
@@ -43,7 +43,7 @@ func resolveExecutablePath() string {
 
 // detectLinuxInstallProfile classifies the running Linux install.
 //
-//	deb      — dpkg owns the absolute executable path as reasonix-desktop, and the
+//	deb      — dpkg owns the absolute executable path as tempora-desktop, and the
 //	           Polkit helper + pkexec are present for authorized upgrades.
 //	portable — not dpkg-managed, install directory is writable (tarball flow).
 //	manual   — system directory not writable, package ownership unclear, or
@@ -58,7 +58,7 @@ func detectLinuxInstallProfile() installProfile {
 		}
 	}
 
-	if isDpkgOwnedReasonix(exe) {
+	if isDpkgOwnedTempora(exe) {
 		if linuxDebHelperReady() {
 			return installProfile{
 				Mode:          installModeDeb,
@@ -86,13 +86,13 @@ func detectLinuxInstallProfile() installProfile {
 	return installProfile{
 		Mode:          installModeManual,
 		CanSelfUpdate: false,
-		ManualReason:  "this install is not writable and is not managed by the reasonix-desktop package; download the package from the download page",
+		ManualReason:  "this install is not writable and is not managed by the tempora-desktop package; download the package from the download page",
 	}
 }
 
-// isDpkgOwnedReasonix reports whether absolute path belongs to the reasonix-desktop
+// isDpkgOwnedTempora reports whether absolute path belongs to the tempora-desktop
 // package. Uses absolute dpkg-query and requires both package name and path match.
-func isDpkgOwnedReasonix(absPath string) bool {
+func isDpkgOwnedTempora(absPath string) bool {
 	if absPath == "" || !filepath.IsAbs(absPath) {
 		return false
 	}
@@ -106,7 +106,7 @@ func isDpkgOwnedReasonix(absPath string) bool {
 	if err := cmd.Run(); err != nil {
 		return false
 	}
-	// Output shape: "reasonix-desktop: /usr/bin/reasonix-desktop"
+	// Output shape: "tempora-desktop: /usr/bin/tempora-desktop"
 	line := strings.TrimSpace(stdout.String())
 	if line == "" {
 		return false

@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"path/filepath"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/plancontract"
-	"reasonix/internal/taskcontract"
+	"tempora/internal/evidence"
+	"tempora/internal/plancontract"
+	"tempora/internal/taskcontract"
 )
 
 // SetPlanContract records the approved plan this turn executes, or clears it

@@ -4,10 +4,10 @@ import (
 	"context"
 	"strings"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/capability"
-	"reasonix/internal/config"
-	"reasonix/internal/plugin"
+	"tempora/internal/agent"
+	"tempora/internal/capability"
+	"tempora/internal/config"
+	"tempora/internal/plugin"
 )
 
 func (c *Controller) withCapabilityRoute(ctx context.Context, composed, routeInput string) string {

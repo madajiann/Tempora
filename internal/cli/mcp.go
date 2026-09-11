@@ -11,11 +11,11 @@ import (
 	"strconv"
 	"strings"
 
-	"reasonix/internal/config"
-	"reasonix/internal/mcpregistry"
+	"tempora/internal/config"
+	"tempora/internal/mcpregistry"
 )
 
-// mcp.go holds the MCP server-management surface shared by the `reasonix mcp`
+// mcp.go holds the MCP server-management surface shared by the `tempora mcp`
 // subcommand (config-only; takes effect next session) and the in-chat `/mcp add`
 // / `/mcp remove` slash commands (which hot-connect via the controller). Both
 // parse arguments through parseMCPAdd so the grammar is identical everywhere.
@@ -35,8 +35,8 @@ func parseMCPAdd(args []string) (config.PluginEntry, error) {
 	}
 
 	// Simplified forms:
-	//   reasonix mcp add -- npx -y chrome-devtools-mcp@latest
-	//   reasonix mcp add https://example.com/mcp
+	//   tempora mcp add -- npx -y chrome-devtools-mcp@latest
+	//   tempora mcp add https://example.com/mcp
 	// keep the historical "name command..." form as well.
 	if args[0] == "--" {
 		if len(args) < 2 {
@@ -70,7 +70,7 @@ func parseMCPAdd(args []string) (config.PluginEntry, error) {
 	}
 	rest := args[1:]
 	if len(rest) > 0 && rest[0] == "--" {
-		// reasonix mcp add <name> -- <argv...>
+		// tempora mcp add <name> -- <argv...>
 		if len(rest) < 2 {
 			return e, fmt.Errorf("mcp add: -- requires a command argv")
 		}
@@ -437,7 +437,7 @@ func mcpInstallCLI(args []string) int {
 
 func mcpInstallWithClient(args []string, client *mcpregistry.Client) int {
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: reasonix mcp install <registry-name> [--as <local-name>]")
+		fmt.Fprintln(os.Stderr, "usage: tempora mcp install <registry-name> [--as <local-name>]")
 		return 2
 	}
 	registryName := strings.TrimSpace(args[0])
@@ -494,7 +494,7 @@ func mcpInstallWithClient(args []string, client *mcpregistry.Client) int {
 		return 1
 	}
 	if installResult.State == "action_required" {
-		fmt.Printf("installed MCP Registry server %q as %q — authentication required; finish authentication and run `reasonix mcp retry %s`\n", entry.Name, pluginEntry.Name, pluginEntry.Name)
+		fmt.Printf("installed MCP Registry server %q as %q — authentication required; finish authentication and run `tempora mcp retry %s`\n", entry.Name, pluginEntry.Name, pluginEntry.Name)
 		return 0
 	}
 	fmt.Printf("installed MCP Registry server %q as %q — ready with %d tools\n", entry.Name, pluginEntry.Name, installResult.ToolCount)
@@ -507,7 +507,7 @@ func mcpEnableCLI(args []string, enabled bool) int {
 		if !enabled {
 			action = "disable"
 		}
-		fmt.Fprintf(os.Stderr, "usage: reasonix mcp %s <name>\n", action)
+		fmt.Fprintf(os.Stderr, "usage: tempora mcp %s <name>\n", action)
 		return 2
 	}
 	name := strings.TrimSpace(args[0])
@@ -545,7 +545,7 @@ func mcpEnableCLI(args []string, enabled bool) int {
 
 func mcpRetryCLI(args []string) int {
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: reasonix mcp retry <name>")
+		fmt.Fprintln(os.Stderr, "usage: tempora mcp retry <name>")
 		return 2
 	}
 	// Standalone CLI cannot talk to a live Host; enabling is the durable
@@ -555,7 +555,7 @@ func mcpRetryCLI(args []string) int {
 
 func mcpUpdateCLI(args []string) int {
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: reasonix mcp update <name>")
+		fmt.Fprintln(os.Stderr, "usage: tempora mcp update <name>")
 		return 2
 	}
 	name := strings.TrimSpace(args[0])
@@ -627,7 +627,7 @@ func mcpList() int {
 
 func mcpGetCLI(args []string) int {
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: reasonix mcp get <name>")
+		fmt.Fprintln(os.Stderr, "usage: tempora mcp get <name>")
 		return 2
 	}
 	name := args[0]
@@ -788,7 +788,7 @@ func persistCLIInstalledMCP(workspace string, entry config.PluginEntry) error {
 
 func mcpRemoveCLI(args []string) int {
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: reasonix mcp remove <name>")
+		fmt.Fprintln(os.Stderr, "usage: tempora mcp remove <name>")
 		return 2
 	}
 	name := args[0]
@@ -802,7 +802,7 @@ func mcpRemoveCLI(args []string) int {
 		fmt.Fprintf(os.Stderr, "no MCP server named %q in config\n", name)
 		return 1
 	}
-	// Uninstall clears activation overrides and Reasonix-owned OAuth state. A
+	// Uninstall clears activation overrides and Tempora-owned OAuth state. A
 	// same-resource lower-priority declaration keeps owning the shared state.
 	_ = config.DefaultMCPActivationStore().ClearServer(removed, workspace)
 	if err := reconcileRemovedMCPOAuth(workspace, name); err != nil {
@@ -824,23 +824,23 @@ func mcpUsage() {
 	fmt.Println(`Manage MCP servers (global installs use config.toml; project entries stay in project config).
 
 Usage:
-  reasonix mcp list
-  reasonix mcp get <name>
-  reasonix mcp install <registry-name> [--as <name>]
-  reasonix mcp add -- <command> [args...]            stdio argv (no shell)
-  reasonix mcp add <name> -- <command> [args...]
-  reasonix mcp add <name> <command> [args...]        legacy stdio form
-  reasonix mcp add https://example.com/mcp           remote HTTP
-  reasonix mcp add <name> --http <url> [--header K=V]
-  reasonix mcp add <name> --sse  <url>
-  reasonix mcp enable <name>
-  reasonix mcp disable <name>
-  reasonix mcp retry <name>
-  reasonix mcp auth <name>                          remote OAuth (opens browser)
-  reasonix mcp update <name>
-  reasonix mcp browse [query] [--limit N] [--json]
-  reasonix mcp import
-  reasonix mcp remove <name>
+  tempora mcp list
+  tempora mcp get <name>
+  tempora mcp install <registry-name> [--as <name>]
+  tempora mcp add -- <command> [args...]            stdio argv (no shell)
+  tempora mcp add <name> -- <command> [args...]
+  tempora mcp add <name> <command> [args...]        legacy stdio form
+  tempora mcp add https://example.com/mcp           remote HTTP
+  tempora mcp add <name> --http <url> [--header K=V]
+  tempora mcp add <name> --sse  <url>
+  tempora mcp enable <name>
+  tempora mcp disable <name>
+  tempora mcp retry <name>
+  tempora mcp auth <name>                          remote OAuth (opens browser)
+  tempora mcp update <name>
+  tempora mcp browse [query] [--limit N] [--json]
+  tempora mcp import
+  tempora mcp remove <name>
 
 Flags for add:
   --http <url> | --sse <url>   remote transport (omit for a stdio command)
@@ -848,18 +848,18 @@ Flags for add:
   --header K=V                 set an HTTP header (repeatable, remote)
 
 Examples:
-  reasonix mcp add fs npx -y @modelcontextprotocol/server-filesystem .
-  reasonix mcp add stripe --http https://mcp.stripe.com --header "Authorization=Bearer $STRIPE_KEY"
+  tempora mcp add fs npx -y @modelcontextprotocol/server-filesystem .
+  tempora mcp add stripe --http https://mcp.stripe.com --header "Authorization=Bearer $STRIPE_KEY"
 
 CLI config changes take effect on the next session. Inside a running chat, use
 /mcp add to save and connect a server immediately. Installing a server is also
 its launch authorization; there is no separate trust step. Remote OAuth, when
-requested by the server, is completed with reasonix mcp auth <name> and stored
-in Reasonix-private MCP state.
+requested by the server, is completed with tempora mcp auth <name> and stored
+in Tempora-private MCP state.
 
-Servers declared by project reasonix.toml or .mcp.json are trusted configuration
+Servers declared by project tempora.toml or .mcp.json are trusted configuration
 and need no separate launch confirmation. Project entries override same-name
-global entries; within a project, reasonix.toml overrides .mcp.json. Writer or
+global entries; within a project, tempora.toml overrides .mcp.json. Writer or
 destructive annotations never trigger per-call approval. Explicit deny rules
 still win; Plan Mode and strict read-only subagents may filter which tools are
 available.`)

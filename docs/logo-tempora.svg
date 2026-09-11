@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" style="max-width:420px;" role="img" aria-label="Tempora">
+  <defs>
+    <style>
+      .mark{animation:rise 1.6s cubic-bezier(.22,.9,.32,1) both}
+      .word{animation:fade 1.6s ease-out .2s both}
+      .tide{fill:#0153e5;fill-opacity:.14;animation:drift 3.6s ease-in-out infinite alternate}
+      .tide2{fill:#0153e5;fill-opacity:.08;animation:drift 4.8s ease-in-out .6s infinite alternate}
+      @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+      @keyframes fade{from{opacity:0}to{opacity:1}}
+      @keyframes drift{from{transform:translateX(-14px)}to{transform:translateX(14px)}}
+    </style>
+  </defs>
+  <!-- mark -->
+  <g class="mark" transform="translate(24 40) scale(0.6)">
+    <rect width="400" height="400" rx="126.37" ry="126.37" fill="#0153e5"/>
+    <rect x="112" y="92" width="176" height="16" rx="8" fill="#fff"/>
+    <rect x="112" y="292" width="176" height="16" rx="8" fill="#fff"/>
+    <path fill="#fff" d="M126,108 C126,158 168,176 194,197 L206,197 C232,176 274,158 274,108 Z"/>
+    <path fill="#9fc6ff" d="M126,292 C126,242 168,224 194,203 L206,203 C232,224 274,242 274,292 Z"/>
+    <rect x="196" y="195" width="8" height="10" fill="#fff"/>
+    <circle cx="200" cy="282" r="6" fill="#fff"/>
+  </g>
+  <!-- wordmark -->
+  <text class="word" x="286" y="212" font-family="'Segoe UI','PingFang SC','Microsoft YaHei',system-ui,sans-serif"
+        font-size="150" font-weight="650" letter-spacing="2" fill="#0153e5">Tempora</text>
+  <!-- tides -->
+  <g class="tide">
+    <path d="M290,242 C340,226 390,258 440,242 C490,226 540,258 590,242 C640,226 690,258 740,242
+             C790,226 840,258 890,242 C940,226 990,258 1040,242 L1040,252 L290,252 Z"/>
+  </g>
+  <g class="tide2">
+    <path d="M290,262 C340,246 390,278 440,262 C490,246 540,278 590,262 C640,246 690,278 740,262
+             C790,246 840,278 890,262 C940,246 990,278 1040,262 L1040,270 L290,270 Z"/>
+  </g>
+</svg>

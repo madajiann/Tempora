@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"reasonix/internal/ablation"
+	"tempora/internal/ablation"
 )
 
 func TestBuildRunTaskArgsEnablesUnattendedWorkspaceWrites(t *testing.T) {

@@ -3,8 +3,8 @@ package main
 import (
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/billing"
+	"tempora/internal/agent"
+	"tempora/internal/billing"
 )
 
 // ContextInfo is the prompt-vs-window gauge payload plus session totals. Used

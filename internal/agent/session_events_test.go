@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/provider"
-	"reasonix/internal/store"
+	"tempora/internal/provider"
+	"tempora/internal/store"
 )
 
 func sessionWithTurns(t *testing.T, path string, turns int) *Session {
@@ -662,7 +662,7 @@ func TestSessionsShareContentSeesEventLogDivergence(t *testing.T) {
 	}
 
 	// Grow A normally, then restore its old compatibility checkpoint to model a
-	// crash or an older Reasonix build that did not advance the display read
+	// crash or an older Tempora build that did not advance the display read
 	// model. Transcript equality must still follow the event log.
 	anchorB, err := os.ReadFile(pathB)
 	if err != nil {

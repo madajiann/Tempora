@@ -10,8 +10,8 @@ import (
 	"strings"
 	"sync"
 
-	"reasonix/internal/event"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/tool"
 )
 
 // ParallelTasksTool dispatches multiple read-only sub-agent tasks concurrently

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	mcpsdk "github.com/modelcontextprotocol/go-sdk/mcp"
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 // appsFixtureServer advertises the Apps extension and serves tools with

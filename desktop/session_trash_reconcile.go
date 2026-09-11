@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 func reconcileDesktopTrashSessionArtifacts(dir, sessionPath, key string) error {

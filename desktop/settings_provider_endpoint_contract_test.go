@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 func TestProviderViewCarriesHiddenCatalogIdentity(t *testing.T) {

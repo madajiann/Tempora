@@ -57,7 +57,7 @@ function prNumbersFromCommits(commits) {
 }
 
 async function githubJson(path, { allowMissing = false } = {}) {
-  const headers = { Accept: "application/vnd.github+json", "User-Agent": "reasonix-release-notes" };
+  const headers = { Accept: "application/vnd.github+json", "User-Agent": "tempora-release-notes" };
   if (process.env.GITHUB_TOKEN || process.env.GH_TOKEN) {
     headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN || process.env.GH_TOKEN}`;
   }
@@ -198,7 +198,7 @@ async function askDeepSeek(payload, retry = true) {
       messages: [
         {
           role: "system",
-          content: `You are Reasonix's release editor. Return one JSON object with a \"release\" property. Write factual, user-facing product release notes in equivalent English and Simplified Chinese. Group changes by user outcome, not by commit. Never invent capabilities, migrations, risks, PR numbers, contributors, URLs, or metrics. Every highlight and change must cite one or more supplied PR numbers. Use this exact release shape:
+          content: `You are Tempora's release editor. Return one JSON object with a \"release\" property. Write factual, user-facing product release notes in equivalent English and Simplified Chinese. Group changes by user outcome, not by commit. Never invent capabilities, migrations, risks, PR numbers, contributors, URLs, or metrics. Every highlight and change must cite one or more supplied PR numbers. Use this exact release shape:
 {
   \"version\": \"semver\", \"date\": \"YYYY-MM-DD\", \"channel\": \"stable|prerelease\", \"targetingVersion\": 1,
   \"title\": {\"en\":\"\",\"zh\":\"\"}, \"summary\": {\"en\":\"\",\"zh\":\"\"},
@@ -299,8 +299,8 @@ async function main() {
     github: `https://github.com/${repository}/releases/tag/${tag}`,
     compare: `https://github.com/${repository}/compare/${from}...${tag}`,
     download: channel === "prerelease"
-      ? "https://reasonix.io/?download=desktop&channel=preview#start"
-      : "https://reasonix.io/?download=desktop&channel=stable#start",
+      ? "https://tempora.io/?download=desktop&channel=preview#start"
+      : "https://tempora.io/?download=desktop&channel=stable#start",
   };
   release.guides = (release.guides || []).filter((guide) => docLinks.includes(guide.href));
   normalizeReleaseTargets(release);

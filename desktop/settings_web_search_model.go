@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 // SetWebSearchModel uses the same admission, locking and rebuild lifecycle as

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 func removeDesktopSessionArtifactsWithGuard(path string, guard *agent.SessionRemovalGuard) error {

@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/sys/windows"
 
-	"reasonix/internal/proc"
+	"tempora/internal/proc"
 )
 
 func TestReleasedJobHandleIsNeverClosedAgain(t *testing.T) {

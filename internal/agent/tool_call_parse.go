@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/tool"
+	"tempora/internal/evidence"
+	"tempora/internal/tool"
 )
 
 // parseToolCall resolves the canonical tool, rejects ambiguity/unknown tools,

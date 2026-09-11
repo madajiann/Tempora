@@ -6,10 +6,10 @@ import (
 	"log/slog"
 	"strings"
 
-	"reasonix/internal/extension"
-	"reasonix/internal/extension/protocol"
-	"reasonix/internal/pluginpkg"
-	"reasonix/internal/secrets"
+	"tempora/internal/extension"
+	"tempora/internal/extension/protocol"
+	"tempora/internal/pluginpkg"
+	"tempora/internal/secrets"
 )
 
 // PluginComponentID returns the dependency-graph component ID for an installed

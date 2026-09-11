@@ -1,8 +1,8 @@
 package serve
 
 import (
-	"reasonix/internal/agent"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/provider"
 )
 
 func historyMessageContent(message provider.Message) string {

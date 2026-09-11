@@ -1,6 +1,6 @@
-# Reasonix Engineering Spec
+# Tempora Engineering Spec
 
-> Reasonix is a coding agent: a thin harness driving multiple models, with **all
+> Tempora is a coding agent: a thin harness driving multiple models, with **all
 > capabilities supplied by configuration and plugins**. This document is the
 > contract — code follows it. Change the contract first, then the code.
 
@@ -26,14 +26,14 @@ README is bilingual (`README.md` English + `README.zh-CN.md`).
 ## 2. Layout
 
 ```
-reasonix/
-├── go.mod / go.sum          # module reasonix; require BurntSushi/toml
+tempora/
+├── go.mod / go.sum          # module tempora; require BurntSushi/toml
 ├── Makefile                 # build / cross / vet / fmt / test
 ├── README.md / README.zh-CN.md
-├── reasonix.example.toml         # sample config
+├── tempora.example.toml         # sample config
 ├── docs/SPEC.md             # this file
-├── cmd/reasonix/main.go          # entry; blank-imports built-in providers/tools
-├── cmd/reasonix-plugin-example/  # reference MCP stdio plugin (a runnable example)
+├── cmd/tempora/main.go          # entry; blank-imports built-in providers/tools
+├── cmd/tempora-plugin-example/  # reference MCP stdio plugin (a runnable example)
 └── internal/
     ├── cli/                 # subcommand routing, flags, assembly, exit codes
     ├── config/              # TOML loading (flag > project > user > defaults)
@@ -42,12 +42,12 @@ reasonix/
     ├── tool/                # Tool interface + Registry
     │   └── builtin/         # read_file/write_file/edit_file/move_file/bash/ls/glob/grep
     ├── permission/          # per-call Policy: allow/ask/deny rules → Decision
-    ├── command/             # custom slash commands loaded from .reasonix/commands/*.md
+    ├── command/             # custom slash commands loaded from .tempora/commands/*.md
     ├── plugin/              # stdio JSON-RPC (MCP) client; adapts remote tools
     ├── remote/              # SSH transport for the Remote-SSH module
     │   ├── forward/         # -L / -R port-forward lifecycle
     │   ├── sftpfs/          # SFTP file layer (quarantines pkg/sftp)
-    │   └── bootstrap/       # detached `reasonix serve` bootstrap over SSH
+    │   └── bootstrap/       # detached `tempora serve` bootstrap over SSH
     └── agent/               # Session + harness loop
 ```
 
@@ -131,7 +131,7 @@ type Tool interface {
 ### 3.3 Plugins (`internal/plugin`) — MCP client
 
 An external plugin is an MCP server declared in config. The wire protocol is
-**JSON-RPC 2.0** in every case; only the transport differs. Reasonix keeps the
+**JSON-RPC 2.0** in every case; only the transport differs. Tempora keeps the
 product-level client and delegates protocol negotiation, request correlation,
 cancellation, pagination, and transport framing to the official MCP Go SDK.
 One concurrency-safe session per configured server is shared by tools, prompts,
@@ -153,9 +153,9 @@ and resources.
     Server Metadata discovery, dynamic client registration, PKCE S256, a
     loopback callback, resource indicators, and refresh-token rotation. Client
     credentials and tokens are stored with mode `0600` in the server's private
-    Reasonix MCP state directory, outside the workspace; tokens are bound to the
+    Tempora MCP state directory, outside the workspace; tokens are bound to the
     configured resource URL and are never reused after that URL changes. OAuth
-    discovery, registration, and token requests honor Reasonix's resolved
+    discovery, registration, and token requests honor Tempora's resolved
     network-proxy settings. Removing a declaration clears this state unless the
     effective fallback uses the same OAuth resource.
   - `sse` — the legacy 2024-11-05 HTTP+SSE transport. A persistent GET stream
@@ -184,10 +184,10 @@ and resources.
   workflow gates rather than separate process sandboxes.
 - Configuration provenance is runtime metadata and determines persistence scope.
   Desktop and CLI installs write the user-global `config.toml`; project
-  `reasonix.toml` and `.mcp.json` entries remain in their owning project file.
+  `tempora.toml` and `.mcp.json` entries remain in their owning project file.
   Every configured source is trusted without a separate launch-confirmation
   step. Project entries override same-name global entries, and project
-  `reasonix.toml` overrides `.mcp.json`. Editing writes to the effective entry's
+  `tempora.toml` overrides `.mcp.json`. Editing writes to the effective entry's
   source; removing it reveals the next lower-priority declaration.
 - Each remote tool is adapted to the `Tool` interface and injected into the run
   registry, namespaced `mcp__<server>__<tool>` (spaces normalised to `_`) to
@@ -196,7 +196,7 @@ and resources.
   to false (a remote tool is opaque — we can't see its side effects), so a
   plugin opts a tool into parallel-batch dispatch and the permission layer's
   reader-default by declaring `readOnlyHint: true` in `tools/list`.
-- Installation is the trust decision for tool metadata. Reasonix assumes an
+- Installation is the trust decision for tool metadata. Tempora assumes an
   installed server reports `readOnlyHint` and `destructiveHint` honestly;
   planner/read-only filtering is a workflow boundary for trusted servers, not
   containment against a malicious MCP server. Explicit deny rules and the
@@ -207,7 +207,7 @@ and resources.
   server order. `/mcp` shows connected servers, counts, protocol/listening state,
   reconnect attempts, and a redacted error category; it never exposes a session
   identifier.
-- `cmd/reasonix-plugin-example` is a runnable reference stdio server (`echo`,
+- `cmd/tempora-plugin-example` is a runnable reference stdio server (`echo`,
   `wordcount`), driven by an end-to-end test that builds the real binary.
 
 ### 3.4 Agent (`internal/agent`)
@@ -267,7 +267,7 @@ executor:
 
 ### 3.6 Context management (content-driven summary)
 
-Long tasks fill the model window. Reasonix keeps a **cache-first, append-only**
+Long tasks fill the model window. Tempora keeps a **cache-first, append-only**
 canonical transcript and installs a short **provider-visible checkpoint** only
 when the sole automatic threshold is crossed.
 
@@ -282,7 +282,7 @@ when the sole automatic threshold is crossed.
 - **At the trigger** one singleflight maintenance transaction first persistently
   prunes every tool result over 8192 Unicode code points to `4096 head +
   "[... tool result middle pruned ...]" + 1024 tail`. If this clears pressure,
-  no summary request is made. Otherwise Reasonix summarizes the old contiguous
+  no summary request is made. Otherwise Tempora summarizes the old contiguous
   prefix and retains the newest **16%** of the context window verbatim, aligned so
   assistant tool calls and tool results are never split.
 - The summary request replays the original system message, the selected message
@@ -309,7 +309,7 @@ when the sole automatic threshold is crossed.
   marker until the view fits under the trigger; `ErrCompactionRequired` is
   returned only when even that cannot reclaim enough.
 - Users inspect or change the threshold with
-  `reasonix config compact-ratio [--local] [VALUE]`. Project config overrides the
+  `tempora config compact-ratio [--local] [VALUE]`. Project config overrides the
   user-global value used by desktop and new CLI sessions. UI always shows the
   **effective** ratio.
 - `max_output_tokens` is an independent **per-turn** completion ceiling and
@@ -326,7 +326,7 @@ when the sole automatic threshold is crossed.
     compatible APIs do not assume a shared window until a trusted context 400.
   - A positive value is an explicit cost cap and may still be clipped down to
     the physical remainder. A negative value force-omits optional wire limits;
-    if the known auto budget no longer fits, Reasonix compacts instead of
+    if the known auto budget no longer fits, Tempora compacts instead of
     overriding that choice.
 - Canonical tool storage remains backward compatible: `Content` is the stable
   provider-visible ≤32KB form and `RawContent` holds the full local original.
@@ -467,7 +467,7 @@ func (p Policy) Decide(toolName string, readOnly bool, args json.RawMessage) Dec
   grant is path-scoped when a path is available, stored as `Edit(<path>)` so all
   built-in file-mutating tools share it. A
   non-interactive run
-  (`reasonix run`, a sub-agent, anything with no TTY / no approver) cannot prompt.
+  (`tempora run`, a sub-agent, anything with no TTY / no approver) cannot prompt.
   Its explicit posture therefore resolves without blocking: Ask/manual fails
   closed, Auto allows only ordinary writer fallback, and YOLO may bypass ordinary
   Ask decisions. Nested or indirect Bash remains stricter: headless
@@ -559,7 +559,7 @@ func (p Policy) Decide(toolName string, readOnly bool, args json.RawMessage) Dec
   no-progress boundary. Goal-scoped novelty accepts new read/search results and state changes
   but rejects exact tool/argument/result repeats. All classes use the same Goal
   FSM, host receipts, Delivery readiness, and bounded evaluator; there is no second research
-  protocol or writable sidecar runtime. Legacy `.reasonix/autoresearch/...`
+  protocol or writable sidecar runtime. Legacy `.tempora/autoresearch/...`
   archives remain read-only and explicit old paths recover as ordinary Goals.
   Outside goal mode, ordinary prompts never change collaboration mode; the user
   must choose Goal or use `/goal` explicitly.
@@ -583,9 +583,9 @@ func (p Policy) Decide(toolName string, readOnly bool, args json.RawMessage) Dec
 | YOLO approval / `yolo` | Ordinary prompts auto-allowed, including `remember`/`forget`; deny rules and plan/sandbox/config reviews remain | Waits for user | Waits for user |
 | Approved-plan execution window | Approved plan's writer fallback is auto-allowed; explicit `ask` / `deny` rules remain | Future plans still wait | Waits for user |
 
-Out of the box (`mode = "ask"`, no rules), interactive `reasonix` prompts before
-each writer/bash call and `reasonix run` fails closed on those calls because it
-has no approver. Use `reasonix run --auto ...` / `-y` to allow ordinary writer
+Out of the box (`mode = "ask"`, no rules), interactive `tempora` prompts before
+each writer/bash call and `tempora run` fails closed on those calls because it
+has no approver. Use `tempora run --auto ...` / `-y` to allow ordinary writer
 fallback in unattended automation; `--permission-mode auto` is equivalent.
 Explicit `ask` rules still fail closed under Auto, and `deny` rules harden every
 posture.
@@ -599,8 +599,8 @@ The chat TUI accepts `/command` input. Three kinds share one dispatch:
   saving the previous transcript for resume/history. `/clear` requires
   confirmation, then discards the current context without saving it; it does not
   delete project memory.
-- **Custom commands** are Markdown files under `.reasonix/commands/` (project) and
-  the user config dir, e.g. `~/.reasonix/commands/` on macOS/Linux; the project dir overrides the user dir on a
+- **Custom commands** are Markdown files under `.tempora/commands/` (project) and
+  the user config dir, e.g. `~/.tempora/commands/` on macOS/Linux; the project dir overrides the user dir on a
   name clash. A file `review.md` becomes `/review`; a subdirectory namespaces it
   (`git/commit.md` → `/git:commit`). Invoking one renders its body and sends the
   result as the next user turn.
@@ -615,7 +615,7 @@ Review the staged diff. Focus on $ARGUMENTS, list bugs with file:line.
 ```
 
 - Frontmatter is an optional `---`-fenced block of simple `key: value` lines;
-  `description` and `argument-hint` are recognised (no YAML dependency — Reasonix
+  `description` and `argument-hint` are recognised (no YAML dependency — Tempora
   stays lean). The remainder is the body template.
 - Substitution in the body: `$ARGUMENTS` (all args, space-joined), `$1`…`$N`
   (positional, empty when absent), `$$` (a literal `$`). Arguments are the
@@ -678,10 +678,10 @@ the profile with the Boot-wired Skill runners. Each run gets an isolated child
 session and returns only its final answer to the caller. The headless contract is
 explicit:
 
-- `reasonix subagent try <name> ... <task>` uses the read-only Skill runner;
-- `reasonix subagent run <name> ... <task>` uses the normal permission and
+- `tempora subagent try <name> ... <task>` uses the read-only Skill runner;
+- `tempora subagent run <name> ... <task>` uses the normal permission and
   sandbox path; and
-- ordinary `Controller.Run` / `reasonix run` remains unchanged and does not
+- ordinary `Controller.Run` / `tempora run` remains unchanged and does not
   reinterpret slash-prefixed input as a subagent command.
 
 Desktop and CLI profile mutations share
@@ -787,7 +787,7 @@ A child inherits nothing implicitly. What it receives is exactly this:
 | Plan-mode marker, reasoning/response language | run options, when set |
 | A prior transcript | only via `continue_from` / `fork_from` |
 
-Not inherited, by construction: `REASONIX.md`, `AGENTS.md`, `CLAUDE.md`, project
+Not inherited, by construction: `TEMPORA.md`, `AGENTS.md`, `CLAUDE.md`, project
 and global memory (the memory queue is disabled, so a child cannot record memory
 either), the parent conversation, the current Goal, planner output, and sibling
 sub-agent results. A constraint that must reach a child today has to be in its
@@ -835,7 +835,7 @@ writer is never abandoned mid-write.
 ### 3.15 One child-construction primitive
 
 The APIs that spawn a child are many — `task`, `read_only_task`, `fleet`,
-`parallel_tasks`, `run_skill`, `/<profile>`, `reasonix subagent run|try`,
+`parallel_tasks`, `run_skill`, `/<profile>`, `tempora subagent run|try`,
 desktop preview. The execution primitive behind them must stay one. Each entry
 point compiles its request into a `ProfileExecSpec` and hands it to
 `TaskTool.RunProfileSpec`, which is the only place that resolves depth, tool
@@ -895,7 +895,7 @@ Orchestration is easy to add and hard to justify: more agents always cost more
 tokens, and the extra tokens alone can look like an improvement. Comparing arms
 therefore has to hold the model fixed and read host-recorded facts, not prose.
 
-`reasonix run --json` emits per-run delegation counters alongside the existing
+`tempora run --json` emits per-run delegation counters alongside the existing
 token, cache, cost, and duration totals:
 
 | Counter | Answers |
@@ -1017,22 +1017,22 @@ type Chunk struct {
 
 ## 5. Configuration (TOML)
 
-Resolution order: **flag > project `./reasonix.toml` > the user config file
-> built-in defaults**. Starting with **Reasonix v1.8.1**, the user config lives
-at `~/.reasonix/config.toml` on macOS/Linux and
-`%AppData%\reasonix\config.toml` on Windows. See
+Resolution order: **flag > project `./tempora.toml` > the user config file
+> built-in defaults**. Starting with **Tempora v1.8.1**, the user config lives
+at `~/.tempora/config.toml` on macOS/Linux and
+`%AppData%\tempora\config.toml` on Windows. See
 [Configuration paths](./CONFIG_PATHS.md) for migration and related data paths.
-Fields marked user/global only are not overridden by project `reasonix.toml`.
+Fields marked user/global only are not overridden by project `tempora.toml`.
 Provider entries name secrets with `api_key_env`; saved key values live in
-Reasonix's global `<Reasonix home>/.env`, shared by CLI and desktop. Project
+Tempora's global `<Tempora home>/.env`, shared by CLI and desktop. Project
 `.env`, home `.env`, inherited shell environment variables, legacy credentials,
 and the OS keyring are not provider-key runtime fallbacks. Project `.env` still
 feeds workspace-scoped, non-provider `${VAR}` expansion for MCP/plugin settings
-without importing provider keys or Reasonix control variables.
+without importing provider keys or Tempora control variables.
 
 ```toml
 default_model = "deepseek"   # provider name (→ its default model) or "provider/model"
-# language    = "zh"                # ui language tag; empty = auto-detect from $LANG / $REASONIX_LANG
+# language    = "zh"                # ui language tag; empty = auto-detect from $LANG / $TEMPORA_LANG
 
 [ui]
 # shortcut_layout = "desktop"       # classic|desktop; compatibility setting
@@ -1040,7 +1040,7 @@ default_model = "deepseek"   # provider name (→ its default model) or "provide
 show_turn_usage = false              # hide per-request token/cost receipts in the TUI; default true
 
 [agent]
-system_prompt = "You are Reasonix, a coding agent..."  # or system_prompt_file = "..."
+system_prompt = "You are Tempora, a coding agent..."  # or system_prompt_file = "..."
 temperature       = 0.0
 reasoning_language = "auto"       # visible reasoning text: auto|zh|en
 # plan_mode_read_only_commands = ["gh issue view"]   # legacy compatibility only; Plan bash uses Permissions
@@ -1111,12 +1111,12 @@ ask   = []                                 # force a prompt even if otherwise al
 [serve]
 auth_mode = "none"             # none|token|password; use auth before binding beyond localhost
 # token = ""                   # optional fixed token; empty token mode generates one at startup
-# password_hash = ""           # bcrypt hash generated with reasonix serve --hash-password --password '...'
+# password_hash = ""           # bcrypt hash generated with tempora serve --hash-password --password '...'
 # behind_proxy = false         # trust X-Forwarded-* only behind a trusted reverse proxy
 
 [[plugins]]
 name    = "example"            # type defaults to "stdio"
-command = "reasonix-plugin-example"
+command = "tempora-plugin-example"
 args    = []
 # env   = { FOO = "bar" }
 # startup_timeout_seconds = 60         # initialize + tools/list cap; 0 = global/default cap
@@ -1147,14 +1147,14 @@ parseable for upgrade compatibility, but are ignored and removed by a one-time
 migration. The CLI `--max-steps` flag and `[bot].max_steps` remain separate,
 explicit controls for one-off and unattended execution; bot `0` means continuous.
 
-`reasonix setup` writes this default config so the CLI is usable out of the box.
+`tempora setup` writes this default config so the CLI is usable out of the box.
 
 `[ui].cursor_shape` is normalized to `underline`, `block`, or `bar`; empty or
 unknown values fall back to `bar`. It applies to the Bubble Tea CLI/TUI
 textarea only, while desktop and browser inputs keep their platform-native
 cursor behavior.
 
-`[serve]` controls the HTTP browser frontend used by `reasonix serve`. The
+`[serve]` controls the HTTP browser frontend used by `tempora serve`. The
 default `auth_mode = "none"` is intended for the loopback default
 `127.0.0.1:8787`; deployments reachable from another machine must use `token` or
 `password`. Password mode requires either a startup `--password` or a stored
@@ -1165,9 +1165,9 @@ headers.
 MCP servers may also be declared in a project-root `.mcp.json` using Claude
 Code's exact `mcpServers` schema (`command`/`args`/`env`, `type`/`url`/`headers`,
 `${VAR}` expansion). It is read after the TOML files and merged into
-`[[plugins]]`; on a name collision `reasonix.toml` wins (it is the more explicit,
-Reasonix-specific source). This lets a server already configured for Claude work in
-Reasonix unchanged.
+`[[plugins]]`; on a name collision `tempora.toml` wins (it is the more explicit,
+Tempora-specific source). This lets a server already configured for Claude work in
+Tempora unchanged.
 
 MCP startup has a separate lifecycle from an individual tool call. A caller
 waits briefly for cold startup, while the shared launch/authorization/
@@ -1186,14 +1186,14 @@ the connection is ready.
 `[sandbox]` is the *enforcement* layer beneath permissions (which are *policy*).
 They stay two layers: a permitted call still cannot write outside the approved
 roots. Interactive sessions can extend those roots with a write-access approval
-(once / session / project `reasonix.toml` / deny). File tools request the target
+(once / session / project `tempora.toml` / deny). File tools request the target
 parent directory automatically. Bash must declare `additional_write_dirs` and a
 `justification`; the host does not infer paths from the command text. Headless
-`reasonix run` fails closed unless the directory is already in
+`tempora run` fails closed unless the directory is already in
 `[sandbox].allow_write` or `--add-dir`. Granting `${HOME}` is allowed with a
-high-risk warning; the filesystem root and Reasonix session/state paths are not.
+high-risk warning; the filesystem root and Tempora session/state paths are not.
 Phase 0 confines the file-writing built-ins (`write_file`, `edit_file`,
-`multi_edit`, `move_file`) to `workspace_root` (default cwd), the Reasonix user
+`multi_edit`, `move_file`) to `workspace_root` (default cwd), the Tempora user
 config dir, plus `allow_write`: a write whose target — resolved to an absolute,
 symlink-free path so a symlinked dir or `..` cannot tunnel out — falls outside
 every root is refused, and the error is fed back to the model. Confinement is on
@@ -1207,9 +1207,9 @@ Linux): each command is allowed to write only
 the same roots plus platform-specific command temp/cache roots, denied reads
 under `forbid_read`, and allowed to reach the network only when
 `network = true`.
-**Windows status:** Reasonix does not ship an OS-level Bash sandbox on Windows.
+**Windows status:** Tempora does not ship an OS-level Bash sandbox on Windows.
 The effective mode is fixed to `off`; an older config containing
-`bash = "enforce"` remains readable but resolves to `off`, `reasonix doctor`
+`bash = "enforce"` remains readable but resolves to `off`, `tempora doctor`
 reports the ignored value, and the desktop control is read-only. Bash therefore
 runs unconfined on Windows. The in-process file tools continue to enforce
 `workspace_root`, `allow_write`, and `forbid_read`.
@@ -1236,7 +1236,7 @@ behavior. The escape-prompt and broader OS support are Phase 1's remainder (§9)
 
 ## 8. Distribution
 
-- Build: `CGO_ENABLED=0 go build -ldflags "-s -w -X main.version=$(VERSION)" -o reasonix ./cmd/reasonix`
+- Build: `CGO_ENABLED=0 go build -ldflags "-s -w -X main.version=$(VERSION)" -o tempora ./cmd/tempora`
 - Cross matrix: `darwin|linux|windows` × `amd64|arm64`.
 - Version injected via ldflags (`git describe --tags --always`).
 - Install: prebuilt binary / `go install` / future `brew tap`.
@@ -1247,7 +1247,7 @@ behavior. The escape-prompt and broader OS support are Phase 1's remainder (§9)
   file-writer built-ins (Phase 0) — are confined to the workspace. **Seatbelt on
   macOS and bubblewrap on Linux ship, on by default when available** (see §5).
   Remaining: the escape-prompt — detect sandbox-unavailable or sandbox-denied failures and
-  offer an explicit, permission-gated unconfined rerun (in `reasonix run`, the
+  offer an explicit, permission-gated unconfined rerun (in `tempora run`, the
   command just fails and the model adapts), which completes the "allow inside the
   box, prompt at its edge" model. With this in place, "always allow" rule
   persistence becomes optional rather than load-bearing.
@@ -1259,4 +1259,4 @@ behavior. The escape-prompt and broader OS support are Phase 1's remainder (§9)
 - An Anthropic-native provider `kind` (native prompt-cache control), proving the
   registry generalises beyond one wire format.
 - "Always allow" persistence writing learned rules back to project config; a
-  per-session permission override flag for `reasonix run`.
+  per-session permission override flag for `tempora run`.

@@ -5,9 +5,9 @@ import (
 	"os"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 func TestBatchBarrierConsumesSharedCommandEffectMatrix(t *testing.T) {

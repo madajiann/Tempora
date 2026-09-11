@@ -13,7 +13,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 func TestScreenshotReturnsPNGImage(t *testing.T) {

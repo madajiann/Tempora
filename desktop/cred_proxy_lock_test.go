@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 func TestSaveProviderCredentialPreservesRouteWhileConfigEditLocked(t *testing.T) {

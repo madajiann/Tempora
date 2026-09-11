@@ -15,11 +15,11 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/provider/anthropic"
-	"reasonix/internal/provider/openai"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/provider/anthropic"
+	"tempora/internal/provider/openai"
+	"tempora/internal/tool"
 )
 
 type recordSink struct {

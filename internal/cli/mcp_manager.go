@@ -7,9 +7,9 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"reasonix/internal/config"
-	"reasonix/internal/mcpdiag"
-	"reasonix/internal/plugin"
+	"tempora/internal/config"
+	"tempora/internal/mcpdiag"
+	"tempora/internal/plugin"
 )
 
 const (

@@ -4,8 +4,8 @@ import (
 	"slices"
 	"strings"
 
-	"reasonix/internal/provider"
-	"reasonix/internal/provider/openai"
+	"tempora/internal/provider"
+	"tempora/internal/provider/openai"
 )
 
 // OfficialDeepSeekPinnedVisionModels returns the official vision SKU when it is

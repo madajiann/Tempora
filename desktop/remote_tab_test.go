@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 // fakeServe is a minimal Serve stand-in for bridge tests: token handshake,
@@ -122,13 +122,13 @@ func newFakeServe(t *testing.T, token string, sessions []serveSessionEntry) *fak
 			http.Error(w, "denied", http.StatusUnauthorized)
 			return
 		}
-		http.SetCookie(w, &http.Cookie{Name: "reasonix_token", Value: fs.token, Path: "/", HttpOnly: true})
+		http.SetCookie(w, &http.Cookie{Name: "tempora_token", Value: fs.token, Path: "/", HttpOnly: true})
 		w.WriteHeader(http.StatusNoContent)
 	})
 	mux.HandleFunc("POST /new", func(w http.ResponseWriter, r *http.Request) {
 		fs.mu.Lock()
 		fs.newCalled++
-		_, cookieErr := r.Cookie("reasonix_token")
+		_, cookieErr := r.Cookie("tempora_token")
 		fs.cookieOnNew = cookieErr == nil
 		fail := fs.failEnter
 		fs.failEnter = ""
@@ -162,7 +162,7 @@ func newFakeServe(t *testing.T, token string, sessions []serveSessionEntry) *fak
 			time.Sleep(enterDelay)
 		}
 		if newSessionPath != "" {
-			w.Header().Set("X-Reasonix-Session-Path", newSessionPath)
+			w.Header().Set("X-Tempora-Session-Path", newSessionPath)
 		}
 		w.WriteHeader(http.StatusNoContent)
 	})
@@ -359,7 +359,7 @@ func newFakeServe(t *testing.T, token string, sessions []serveSessionEntry) *fak
 			mux.ServeHTTP(w, r)
 			return
 		}
-		if c, err := r.Cookie("reasonix_token"); err == nil && c.Value == fs.token {
+		if c, err := r.Cookie("tempora_token"); err == nil && c.Value == fs.token {
 			mux.ServeHTTP(w, r)
 			return
 		}
@@ -384,7 +384,7 @@ func writeTestJSON(w http.ResponseWriter, v any) {
 func seedBridgeTestHost(t *testing.T, hostID string) {
 	t.Helper()
 	home := t.TempDir()
-	t.Setenv("REASONIX_HOME", home)
+	t.Setenv("TEMPORA_HOME", home)
 	t.Setenv("HOME", home)
 	if err := editUserConfig(func(c *config.Config) error {
 		return c.UpsertRemoteHost(config.RemoteHostEntry{Name: hostID, Host: "127.0.0.1", Port: 22, User: "dev"})

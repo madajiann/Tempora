@@ -13,10 +13,10 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/provider"
 )
 
 func saveServeTestSession(t *testing.T, path string) {
@@ -68,7 +68,7 @@ func TestResumeRefusedWhenSessionLeaseHeld(t *testing.T) {
 	if resp.StatusCode != http.StatusConflict {
 		t.Fatalf("held resume status = %d, want 409 (body %q)", resp.StatusCode, respBody)
 	}
-	if !strings.Contains(respBody, "in use by another Reasonix") {
+	if !strings.Contains(respBody, "in use by another Tempora") {
 		t.Fatalf("held resume body = %q, want holder wording", respBody)
 	}
 	if strings.Contains(respBody, held) {

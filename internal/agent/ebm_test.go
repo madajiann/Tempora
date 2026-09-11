@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
 )
 
 type ebmSink struct {

@@ -17,7 +17,7 @@ import (
 )
 
 func TestRepairOwnedShortcutMigratesVersionedElectronAndPreservesProperties(t *testing.T) {
-	for _, id := range []string{"Reasonix", ""} {
+	for _, id := range []string{"Tempora", ""} {
 		for _, customIcon := range []bool{false, true} {
 			name := id
 			if name == "" {
@@ -29,9 +29,9 @@ func TestRepairOwnedShortcutMigratesVersionedElectronAndPreservesProperties(t *t
 			t.Run(name, func(t *testing.T) {
 				migrationTestCOM(t)
 				root := t.TempDir()
-				launcher := filepath.Join(root, "reasonix-launcher.exe")
+				launcher := filepath.Join(root, "tempora-launcher.exe")
 				versionDir := filepath.Join(root, "versions", "v1.20.0")
-				target := filepath.Join(versionDir, "app", "Reasonix.exe")
+				target := filepath.Join(versionDir, "app", "Tempora.exe")
 				migrationTestFile(t, launcher)
 				migrationTestFile(t, target)
 				icon, iconIndex := target, int32(0)
@@ -40,10 +40,10 @@ func TestRepairOwnedShortcutMigratesVersionedElectronAndPreservesProperties(t *t
 					iconIndex = 2
 					migrationTestFile(t, icon)
 				}
-				path := filepath.Join(t.TempDir(), "Reasonix.lnk")
+				path := filepath.Join(t.TempDir(), "Tempora.lnk")
 				before := migrationShortcutState{
 					target: target, id: id, arguments: `--session "work space"`,
-					description: "My Reasonix workspace", workingDirectory: filepath.Dir(target),
+					description: "My Tempora workspace", workingDirectory: filepath.Dir(target),
 					icon: icon, iconIndex: iconIndex, showCmd: 3,
 				}
 				migrationTestShortcut(t, path, before)
@@ -53,8 +53,8 @@ func TestRepairOwnedShortcutMigratesVersionedElectronAndPreservesProperties(t *t
 					t.Fatalf("repair = (%v, %v), want (true, nil)", changed, err)
 				}
 				got := migrationReadShortcut(t, path)
-				if !migrationSamePath(got.target, launcher) || got.id != "io.reasonix.desktop" {
-					t.Fatalf("migrated target/id = %q/%q, want %q/io.reasonix.desktop", got.target, got.id, launcher)
+				if !migrationSamePath(got.target, launcher) || got.id != "io.tempora.desktop" {
+					t.Fatalf("migrated target/id = %q/%q, want %q/io.tempora.desktop", got.target, got.id, launcher)
 				}
 				if got.arguments != before.arguments || got.description != before.description || got.showCmd != before.showCmd {
 					t.Fatalf("repair changed unrelated properties: got %+v, before %+v", got, before)
@@ -92,16 +92,16 @@ func TestRepairOwnedShortcutMigratesVersionedElectronAndPreservesProperties(t *t
 
 func TestRepairOwnedShortcutLeavesSeparateStudioInstallationsByteIdentical(t *testing.T) {
 	for _, test := range []struct{ name, executable, id string }{
-		{"legacy_studio", "reasonix-studio.exe", "Reasonix"},
-		{"electron_studio", "Reasonix Studio.exe", "io.reasonix.studio"},
+		{"legacy_studio", "tempora-studio.exe", "Tempora"},
+		{"electron_studio", "Tempora Studio.exe", "io.tempora.studio"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			migrationTestCOM(t)
 			root, studioRoot := t.TempDir(), t.TempDir()
-			migrationTestFile(t, filepath.Join(root, "reasonix-launcher.exe"))
+			migrationTestFile(t, filepath.Join(root, "tempora-launcher.exe"))
 			target := filepath.Join(studioRoot, test.executable)
 			migrationTestFile(t, target)
-			path := filepath.Join(t.TempDir(), "Reasonix Studio.lnk")
+			path := filepath.Join(t.TempDir(), "Tempora Studio.lnk")
 			migrationTestShortcut(t, path, migrationShortcutState{
 				target: target, id: test.id, arguments: "--workspace studio",
 				description: "Studio", workingDirectory: studioRoot, icon: target, showCmd: 1,
@@ -112,14 +112,14 @@ func TestRepairOwnedShortcutLeavesSeparateStudioInstallationsByteIdentical(t *te
 }
 
 func TestRepairOwnedShortcutPreservesExplicitForeignIdentityInsideCurrentInstall(t *testing.T) {
-	for _, id := range []string{"io.reasonix.studio", "dev.reasonix.desktop", "com.example.custom"} {
+	for _, id := range []string{"io.tempora.studio", "dev.tempora.desktop", "com.example.custom"} {
 		t.Run(id, func(t *testing.T) {
 			migrationTestCOM(t)
 			root := t.TempDir()
-			target := filepath.Join(root, "versions", "v1.20.0", "app", "Reasonix.exe")
+			target := filepath.Join(root, "versions", "v1.20.0", "app", "Tempora.exe")
 			migrationTestFile(t, target)
-			migrationTestFile(t, filepath.Join(root, "reasonix-launcher.exe"))
-			path := filepath.Join(root, "Reasonix.lnk")
+			migrationTestFile(t, filepath.Join(root, "tempora-launcher.exe"))
+			path := filepath.Join(root, "Tempora.lnk")
 			migrationTestShortcut(t, path, migrationShortcutState{
 				target: target, id: id, workingDirectory: filepath.Dir(target), icon: target, showCmd: 1,
 			})
@@ -129,11 +129,11 @@ func TestRepairOwnedShortcutPreservesExplicitForeignIdentityInsideCurrentInstall
 }
 
 func TestRepairOwnedShortcutRejectsVersionJunctionEscapingCurrentInstall(t *testing.T) {
-	for _, executable := range []string{"reasonix-desktop.exe", filepath.Join("app", "Reasonix.exe")} {
+	for _, executable := range []string{"tempora-desktop.exe", filepath.Join("app", "Tempora.exe")} {
 		t.Run(executable, func(t *testing.T) {
 			migrationTestCOM(t)
 			root, externalRoot := t.TempDir(), t.TempDir()
-			migrationTestFile(t, filepath.Join(root, "reasonix-launcher.exe"))
+			migrationTestFile(t, filepath.Join(root, "tempora-launcher.exe"))
 			migrationTestFile(t, filepath.Join(externalRoot, executable))
 			versions := filepath.Join(root, "versions")
 			if err := os.MkdirAll(versions, 0o755); err != nil {
@@ -144,9 +144,9 @@ func TestRepairOwnedShortcutRejectsVersionJunctionEscapingCurrentInstall(t *test
 				t.Fatalf("create directory junction: %v: %s", err, output)
 			}
 			target := filepath.Join(junction, executable)
-			path := filepath.Join(root, "Reasonix.lnk")
+			path := filepath.Join(root, "Tempora.lnk")
 			migrationTestShortcut(t, path, migrationShortcutState{
-				target: target, id: "Reasonix", workingDirectory: filepath.Dir(target), icon: target, showCmd: 1,
+				target: target, id: "Tempora", workingDirectory: filepath.Dir(target), icon: target, showCmd: 1,
 			})
 			migrationAssertUnchanged(t, path, root)
 		})
@@ -157,19 +157,19 @@ func TestRepairOwnedShortcutRepairsFlatElectronAndPartiallyMigratedLinks(t *test
 	for _, test := range []struct {
 		name, target, icon, id string
 	}{
-		{"flat Electron", filepath.Join("app", "Reasonix.exe"), filepath.Join("app", "Reasonix.exe"), "Reasonix"},
-		{"new identity with version target", filepath.Join("versions", "v1.20.0", "app", "Reasonix.exe"), "reasonix-launcher.exe", "io.reasonix.desktop"},
-		{"stable target with version icon", "reasonix-launcher.exe", filepath.Join("versions", "v1.20.0", "app", "Reasonix.exe"), "io.reasonix.desktop"},
+		{"flat Electron", filepath.Join("app", "Tempora.exe"), filepath.Join("app", "Tempora.exe"), "Tempora"},
+		{"new identity with version target", filepath.Join("versions", "v1.20.0", "app", "Tempora.exe"), "tempora-launcher.exe", "io.tempora.desktop"},
+		{"stable target with version icon", "tempora-launcher.exe", filepath.Join("versions", "v1.20.0", "app", "Tempora.exe"), "io.tempora.desktop"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			migrationTestCOM(t)
 			root := t.TempDir()
-			launcher := filepath.Join(root, "reasonix-launcher.exe")
+			launcher := filepath.Join(root, "tempora-launcher.exe")
 			target, icon := filepath.Join(root, test.target), filepath.Join(root, test.icon)
-			for _, path := range []string{launcher, target, icon, filepath.Join(root, "reasonix-desktop.exe")} {
+			for _, path := range []string{launcher, target, icon, filepath.Join(root, "tempora-desktop.exe")} {
 				migrationTestFile(t, path)
 			}
-			path := filepath.Join(root, "Reasonix.lnk")
+			path := filepath.Join(root, "Tempora.lnk")
 			migrationTestShortcut(t, path, migrationShortcutState{
 				target: target, id: test.id, icon: icon,
 				workingDirectory: root, arguments: `--session "saved session"`, description: "Saved workspace", showCmd: 3,
@@ -179,7 +179,7 @@ func TestRepairOwnedShortcutRepairsFlatElectronAndPartiallyMigratedLinks(t *test
 				t.Fatalf("repair = (%v, %v), want (true, nil)", changed, err)
 			}
 			got := migrationReadShortcut(t, path)
-			if !migrationSamePath(got.target, launcher) || !migrationSamePath(got.icon, launcher) || got.id != "io.reasonix.desktop" {
+			if !migrationSamePath(got.target, launcher) || !migrationSamePath(got.icon, launcher) || got.id != "io.tempora.desktop" {
 				t.Fatalf("shortcut was not fully migrated: %+v", got)
 			}
 			if got.arguments != `--session "saved session"` || got.description != "Saved workspace" || got.showCmd != 3 || !migrationSamePath(got.workingDirectory, root) {
@@ -340,13 +340,13 @@ func migrationSamePath(left, right string) bool {
 func TestRepairShortcutsLeavesReadOnlyShortcutByteIdentical(t *testing.T) {
 	migrationTestCOM(t)
 	root := t.TempDir()
-	launcher := filepath.Join(root, "reasonix-launcher.exe")
-	target := filepath.Join(root, "versions", "v1.20.0", "app", "Reasonix.exe")
+	launcher := filepath.Join(root, "tempora-launcher.exe")
+	target := filepath.Join(root, "versions", "v1.20.0", "app", "Tempora.exe")
 	migrationTestFile(t, launcher)
 	migrationTestFile(t, target)
-	path := filepath.Join(root, "Reasonix.lnk")
+	path := filepath.Join(root, "Tempora.lnk")
 	migrationTestShortcut(t, path, migrationShortcutState{
-		target: target, id: "Reasonix", icon: target, workingDirectory: filepath.Dir(target), showCmd: 1,
+		target: target, id: "Tempora", icon: target, workingDirectory: filepath.Dir(target), showCmd: 1,
 	})
 	before := migrationReadBytes(t, path)
 	pathPtr, err := windows.UTF16PtrFromString(path)
@@ -377,13 +377,13 @@ func TestRepairShortcutsLeavesReadOnlyShortcutByteIdentical(t *testing.T) {
 func TestRepairShortcutsValidatesAllPathsBeforeWritingAnyShortcut(t *testing.T) {
 	migrationTestCOM(t)
 	root := t.TempDir()
-	launcher := filepath.Join(root, "reasonix-launcher.exe")
-	target := filepath.Join(root, "versions", "v1.20.0", "app", "Reasonix.exe")
+	launcher := filepath.Join(root, "tempora-launcher.exe")
+	target := filepath.Join(root, "versions", "v1.20.0", "app", "Tempora.exe")
 	migrationTestFile(t, launcher)
 	migrationTestFile(t, target)
-	path := filepath.Join(root, "Reasonix.lnk")
+	path := filepath.Join(root, "Tempora.lnk")
 	migrationTestShortcut(t, path, migrationShortcutState{
-		target: target, id: "Reasonix", icon: target, workingDirectory: filepath.Dir(target), showCmd: 1,
+		target: target, id: "Tempora", icon: target, workingDirectory: filepath.Dir(target), showCmd: 1,
 	})
 	before := migrationReadBytes(t, path)
 	if err := RepairShortcuts(root, []string{path, "relative.lnk"}); err == nil {

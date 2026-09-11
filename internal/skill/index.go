@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/textutil"
+	"tempora/internal/textutil"
 )
 
 // IndexMaxChars caps the session-context skills catalog; bodies never enter it.

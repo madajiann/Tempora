@@ -3,12 +3,12 @@ package main
 import (
 	"encoding/json"
 	"path/filepath"
-	"reasonix/internal/checkpoint"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/eventwire"
-	"reasonix/internal/provider"
-	"reasonix/internal/turnevent"
+	"tempora/internal/checkpoint"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/eventwire"
+	"tempora/internal/provider"
+	"tempora/internal/turnevent"
 	"testing"
 )
 

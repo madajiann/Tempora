@@ -3,7 +3,7 @@ package cli
 import (
 	"time"
 
-	"reasonix/internal/event"
+	"tempora/internal/event"
 
 	tea "charm.land/bubbletea/v2"
 )

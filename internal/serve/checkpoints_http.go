@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"sort"
 
-	"reasonix/internal/checkpoint"
+	"tempora/internal/checkpoint"
 )
 
 type serveCheckpointMeta struct {

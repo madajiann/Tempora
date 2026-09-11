@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/event"
 )
 
 func TestBuildOfficialDeepSeekV4ProPrependsPersona(t *testing.T) {
@@ -54,7 +54,7 @@ func TestBuildThirdPartyDeepSeekV4ProDoesNotPrependPersona(t *testing.T) {
 	}
 	dir := robustTempDir(t)
 	t.Chdir(dir)
-	writeFile(t, dir, "reasonix.toml", `
+	writeFile(t, dir, "tempora.toml", `
 default_model = "novita/deepseek-v4-pro"
 
 [agent]
@@ -89,7 +89,7 @@ func buildOfficialDeepSeekModel(t *testing.T, model string) *control.Controller 
 	}
 	dir := robustTempDir(t)
 	t.Chdir(dir)
-	writeFile(t, dir, "reasonix.toml", `
+	writeFile(t, dir, "tempora.toml", `
 default_model = "deepseek/`+model+`"
 
 [agent]

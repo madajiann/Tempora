@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"reasonix/internal/control"
-	"reasonix/internal/event"
+	"tempora/internal/control"
+	"tempora/internal/event"
 )
 
 func (s *Server) planDecision(w http.ResponseWriter, r *http.Request) {

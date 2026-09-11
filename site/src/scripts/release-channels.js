@@ -1,14 +1,14 @@
 const STABLE_TAG = /^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
-const DESKTOP_DOWNLOAD_PAGE = "https://reasonix.io/?download=desktop#start";
+const DESKTOP_DOWNLOAD_PAGE = "https://tempora.io/?download=desktop#start";
 const DESKTOP_ASSETS = [
-  ["platforms", "darwin-arm64", "Reasonix-darwin-arm64.zip"],
-  ["platforms", "darwin-amd64", "Reasonix-darwin-amd64.zip"],
-  ["platforms", "windows-amd64", "Reasonix-windows-amd64-installer.exe"],
-  ["platforms", "windows-arm64", "Reasonix-windows-arm64-installer.exe"],
-  ["platforms", "linux-amd64", "Reasonix-linux-amd64.tar.gz"],
-  ["native_packages", "linux-amd64", "Reasonix-linux-amd64.deb"],
-  ["downloads", "Reasonix-darwin-universal.dmg", "Reasonix-darwin-universal.dmg"],
-  ["downloads", "Reasonix-windows-amd64.zip", "Reasonix-windows-amd64.zip"],
+  ["platforms", "darwin-arm64", "Tempora-darwin-arm64.zip"],
+  ["platforms", "darwin-amd64", "Tempora-darwin-amd64.zip"],
+  ["platforms", "windows-amd64", "Tempora-windows-amd64-installer.exe"],
+  ["platforms", "windows-arm64", "Tempora-windows-arm64-installer.exe"],
+  ["platforms", "linux-amd64", "Tempora-linux-amd64.tar.gz"],
+  ["native_packages", "linux-amd64", "Tempora-linux-amd64.deb"],
+  ["downloads", "Tempora-darwin-universal.dmg", "Tempora-darwin-universal.dmg"],
+  ["downloads", "Tempora-windows-amd64.zip", "Tempora-windows-amd64.zip"],
 ];
 const DESKTOP_ASSET_NAMES = new Set(DESKTOP_ASSETS.map(([, , name]) => name));
 const OFFICIAL_DESKTOP_RELEASE_TAG = /^(?:desktop-)?(v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*))$/;
@@ -17,12 +17,12 @@ const MAX_RELEASE_ASSET_SIZE = 1 << 30;
 
 // Keep in lockstep with workers/crash-report CLI asset gate.
 export const CLI_RELEASE_ASSETS = [
-  "reasonix-darwin-amd64.tar.gz",
-  "reasonix-darwin-arm64.tar.gz",
-  "reasonix-linux-amd64.tar.gz",
-  "reasonix-linux-arm64.tar.gz",
-  "reasonix-windows-amd64.zip",
-  "reasonix-windows-arm64.zip",
+  "tempora-darwin-amd64.tar.gz",
+  "tempora-darwin-arm64.tar.gz",
+  "tempora-linux-amd64.tar.gz",
+  "tempora-linux-arm64.tar.gz",
+  "tempora-windows-amd64.zip",
+  "tempora-windows-arm64.zip",
   "SHA256SUMS",
 ];
 const CLI_RELEASE_ASSET_NAMES = new Set(CLI_RELEASE_ASSETS);
@@ -34,7 +34,7 @@ export function normalizePublicReleaseChannel(_value) {
 }
 
 export function cliUpgradeCommand(_value) {
-  return "reasonix upgrade";
+  return "tempora upgrade";
 }
 
 export function releaseVersionLabel(model) {
@@ -149,10 +149,10 @@ export function cliReleaseModel(releases, requestedChannel) {
   const assets = releaseAssetMap(release);
   if (!assets) return null;
   const releaseURL = `https://github.com/esengine/DeepSeek-Reasonix/releases/tag/${parsed.tag}`;
-  const exactChangelogURL = `https://reasonix.io/changelog/${parsed.tag}/`;
+  const exactChangelogURL = `https://tempora.io/changelog/${parsed.tag}/`;
   const changelogURL = release.release_notes_url === exactChangelogURL
     ? exactChangelogURL
-    : "https://reasonix.io/changelog/";
+    : "https://tempora.io/changelog/";
   return {
     channel,
     version: parsed.tag,
@@ -166,7 +166,7 @@ export function cliReleaseModel(releases, requestedChannel) {
 function desktopAssetBases(parsed) {
   const tag = `desktop-${parsed.tag}`;
   return [
-    `https://dl.reasonix.io/${tag}/`,
+    `https://dl.tempora.io/${tag}/`,
     `https://github.com/esengine/DeepSeek-Reasonix/releases/download/${tag}/`,
     `https://github.com/esengine/DeepSeek-Reasonix/releases/download/${parsed.tag}/`,
   ];
@@ -230,9 +230,9 @@ export function desktopReleaseModel(manifest, requestedChannel) {
     version: parsed.tag,
     displayVersion: parsed.tag.slice(1),
     assets,
-    changelogURL: manifest.release_notes_url === `https://reasonix.io/changelog/${parsed.tag}/`
+    changelogURL: manifest.release_notes_url === `https://tempora.io/changelog/${parsed.tag}/`
       ? manifest.release_notes_url
-      : "https://reasonix.io/changelog/",
+      : "https://tempora.io/changelog/",
   };
 }
 
@@ -273,7 +273,7 @@ export function desktopGitHubReleaseModel(release) {
     version: match[1],
     displayVersion: match[1].slice(1),
     assets: Object.fromEntries(DESKTOP_ASSETS.map(([, , name]) => [name, found[name]])),
-    changelogURL: "https://reasonix.io/changelog/",
+    changelogURL: "https://tempora.io/changelog/",
   };
 }
 

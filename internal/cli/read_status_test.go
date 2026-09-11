@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"reasonix/internal/event"
+	"tempora/internal/event"
 	"strings"
 	"testing"
 )

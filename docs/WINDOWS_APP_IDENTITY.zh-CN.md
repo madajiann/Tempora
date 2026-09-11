@@ -1,10 +1,10 @@
 # Windows 应用身份
 
-Reasonix Desktop 的 Electron 窗口、launcher、Go 桌面进程、快捷方式和通知统一使用
-不随版本变化的 AppUserModelID `io.reasonix.desktop`，通知显示名称仍为 `Reasonix`。
-它与 Reasonix Studio 的 `io.reasonix.studio`、旧 Tauri 桌面端的
-`dev.reasonix.desktop` 分离。Wails Studio v2.10.0 和旧 Reasonix Desktop 曾共用
-`Reasonix`，新版 Desktop 不再使用这个共享身份。
+Tempora Desktop 的 Electron 窗口、launcher、Go 桌面进程、快捷方式和通知统一使用
+不随版本变化的 AppUserModelID `io.tempora.desktop`，通知显示名称仍为 `Tempora`。
+它与 Tempora Studio 的 `io.tempora.studio`、旧 Tauri 桌面端的
+`dev.tempora.desktop` 分离。Wails Studio v2.10.0 和旧 Tempora Desktop 曾共用
+`Tempora`，新版 Desktop 不再使用这个共享身份。
 
 ## 安装与升级
 
@@ -17,16 +17,16 @@ launcher 维护命令 `--repair-shortcuts <绝对.lnk路径...>`；该命令只�
 本安装的链接，随后退出，不创建窗口、不启动服务或旧版迁移器。
 
 正常启动 launcher 和桌面进程时，也会修复安装目录、个人及公共桌面、个人及公共
-开始菜单 Programs 目录（含 Reasonix 子目录），以及当前用户任务栏固定目录内名称
-以 Reasonix 开头的已有链接。名称本身不能
+开始菜单 Programs 目录（含 Tempora 子目录），以及当前用户任务栏固定目录内名称
+以 Tempora 开头的已有链接。名称本身不能
 证明归属：解析后的目标必须是当前安装内可识别的入口，指向外部的目录联接不被接受。
 
-归属已确认且身份为空或旧 `Reasonix` 的链接会采用新身份。已经使用新身份的链接，
+归属已确认且身份为空或旧 `Tempora` 的链接会采用新身份。已经使用新身份的链接，
 仍可修复过期的目标和图标。明确标注 Studio、Tauri 或未知身份的链接，即便名称为
-Reasonix 也会保留原样；其他独立安装不会被修改。
+Tempora 也会保留原样；其他独立安装不会被修改。
 
-永久入口 `reasonix-launcher.exe` 存在时，指向
-`versions/<版本>/reasonix-desktop.exe`、`versions/<版本>/app/Reasonix.exe` 或平铺的 `app/Reasonix.exe`
+永久入口 `tempora-launcher.exe` 存在时，指向
+`versions/<版本>/tempora-desktop.exe`、`versions/<版本>/app/Tempora.exe` 或平铺的 `app/Tempora.exe`
 的链接会迁回永久入口，之后删除旧版本目录也不会让快捷方式失效。修复保留启动参数、
 描述、窗口显示状态和用户自定义图标；改写目标时，工作目录设为安装根目录。
 仍在使用的平铺 Go 安装保留其有效 Go 入口。
@@ -41,7 +41,7 @@ Windows Explorer 可能保留固定项缓存；若链接修复后仍显示为单
 回退须恢复完整旧版本。旧 launcher 或旧桌面端可能恢复旧快捷方式身份，再次完整
 升级后会重新修复自有链接；不同版本二进制混用不属于身份兼容保证。
 
-旧 `Reasonix` 通知注册和通知历史不删除、不迁移，因为已安装的 Studio 仍可能使用它们。
+旧 `Tempora` 通知注册和通知历史不删除、不迁移，因为已安装的 Studio 仍可能使用它们。
 新版 Desktop 通知使用自己的注册。绑定于旧身份的 Windows 通知偏好不会复制到新身份。
 
 Studio 自身 Electron 运行时和通知身份的统一单列后续修复。Desktop 不修改 Studio

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/plugin"
-	"reasonix/internal/tool"
+	"tempora/internal/plugin"
+	"tempora/internal/tool"
 )
 
 // resolveRegistryTool binds a registry tool by name for use_capability call.

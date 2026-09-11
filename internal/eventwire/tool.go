@@ -2,8 +2,8 @@ package eventwire
 
 import (
 	"encoding/json"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 // Tool is the JSON form of an event.Tool.

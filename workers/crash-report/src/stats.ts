@@ -772,7 +772,7 @@ ${filters}
   };
 
   return page(
-    "Reasonix · Crash & Telemetry",
+    "Tempora · Crash & Telemetry",
     "health",
     `${dashboardNav}
 <div id="top" class="hero-line"><div><h1>${i18n("Crash & Telemetry", "客户端健康看板")}</h1><p class="sub">${i18nHTML(

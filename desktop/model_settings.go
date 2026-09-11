@@ -6,9 +6,9 @@ import (
 	"log/slog"
 	"strings"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/extension/providerext"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/extension/providerext"
 )
 
 var errModelSettingsSuperseded = errors.New("model settings changed while building the session")

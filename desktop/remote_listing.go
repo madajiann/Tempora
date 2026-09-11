@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 const (
@@ -99,8 +99,8 @@ func servePost(ctx context.Context, client *http.Client, url string, body []byte
 	return err
 }
 
-const expectedSessionPathHeader = "X-Reasonix-Expected-Session-Path"
-const expectedModelSettingsHeader = "X-Reasonix-Expected-Model-Settings"
+const expectedSessionPathHeader = "X-Tempora-Expected-Session-Path"
+const expectedModelSettingsHeader = "X-Tempora-Expected-Model-Settings"
 
 // servePostForSession fences a foreground mutation to the session the Desktop
 // tab displayed when the command was issued. Older Serve binaries ignore the
@@ -141,7 +141,7 @@ func servePostSessionPathForSession(ctx context.Context, client *http.Client, ur
 	defer resp.Body.Close()
 	data, _ := io.ReadAll(io.LimitReader(resp.Body, 4<<10))
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		return strings.TrimSpace(resp.Header.Get("X-Reasonix-Session-Path")), nil
+		return strings.TrimSpace(resp.Header.Get("X-Tempora-Session-Path")), nil
 	}
 	return "", &serveHTTPStatusError{
 		url: url, statusCode: resp.StatusCode, message: strings.TrimSpace(string(data)),
@@ -170,7 +170,7 @@ func serveDoForSession(ctx context.Context, client *http.Client, method, url str
 
 // serveCapabilitiesHeader carries the comma-joined capability tokens a serve
 // advertises on a successful token handshake (e.g. "browser").
-const serveCapabilitiesHeader = "X-Reasonix-Serve-Capabilities"
+const serveCapabilitiesHeader = "X-Tempora-Serve-Capabilities"
 
 // serveHandshakeCapabilities exchanges the pre-shared token for the session
 // cookie and returns the serve's advertised capabilities; older serves omit

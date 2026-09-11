@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
+	"tempora/internal/config"
+	"tempora/internal/control"
 )
 
 var modelSettingsSourceClient = &http.Client{Transport: &http.Transport{Proxy: nil}, Timeout: 20 * time.Second}

@@ -6,8 +6,8 @@ import (
 	"math/rand"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 // defaultRecoveryWaitBudget bounds continuous waiting on an unreachable

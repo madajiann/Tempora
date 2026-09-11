@@ -7,16 +7,16 @@ const smokeRoots = [
   "appidentity", "checkpoint", "cli", "desktoplauncher", "extension/sidecar",
   "filelock", "fileutil", "hook", "instruction", "mcplaunch", "notify", "proc",
   "remote", "repair", "sandbox", "sessioncatalog", "sysproxy", "workspacelease",
-].map(name => `reasonix/internal/${name}`).concat("reasonix/cmd");
+].map(name => `tempora/internal/${name}`).concat("tempora/cmd");
 const beneath = (pkg, root) => pkg === root || pkg.startsWith(`${root}/`);
 
 export function selectPackages(packages, group) {
   if (!["full", "smoke", ...isolatedGroups].includes(group)) {
     throw new Error(`Unknown Windows test group: ${group}`);
   }
-  const isolated = pkg => isolatedGroups.some(name => beneath(pkg, `reasonix/internal/${name}`));
+  const isolated = pkg => isolatedGroups.some(name => beneath(pkg, `tempora/internal/${name}`));
   return packages.filter(pkg => {
-    if (isolatedGroups.includes(group)) return beneath(pkg, `reasonix/internal/${group}`);
+    if (isolatedGroups.includes(group)) return beneath(pkg, `tempora/internal/${group}`);
     return !isolated(pkg) && (group === "full" || smokeRoots.some(root => beneath(pkg, root)));
   });
 }

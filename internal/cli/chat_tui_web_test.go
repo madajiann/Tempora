@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/provider"
 )
 
 func TestWebSlashRequestsFrontendHandoff(t *testing.T) {

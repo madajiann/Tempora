@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/sessioninbox"
+	"tempora/internal/agent"
+	"tempora/internal/sessioninbox"
 )
 
 func steerAlreadyAdmitted(state sessioninbox.InboxState) bool {

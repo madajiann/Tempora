@@ -8,7 +8,7 @@ import (
 	"slices"
 	"strings"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 func openTool(exec Executor) tool.Tool {

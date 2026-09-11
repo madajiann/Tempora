@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 func (a *Agent) recoveryCall(attempt string) (provider.ToolCall, error) {

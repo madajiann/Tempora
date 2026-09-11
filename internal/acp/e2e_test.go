@@ -9,11 +9,11 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/permission"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/permission"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 // These tests drive the full real stack — acp.Serve → control.Controller →
@@ -162,7 +162,7 @@ func assertE2ERunPause(t *testing.T, responses [][]provider.Chunk, options *agen
 	var warned, paused bool
 	for _, notification := range notifications {
 		if notification.Method == sessionStatusUpdateMethod {
-			var update ReasonixStatusUpdate
+			var update TemporaStatusUpdate
 			if err := json.Unmarshal(notification.Params, &update); err != nil {
 				t.Fatalf("status update: %v", err)
 			}

@@ -3,8 +3,8 @@ package cli
 import (
 	"time"
 
-	"reasonix/internal/control"
-	"reasonix/internal/memory"
+	"tempora/internal/control"
+	"tempora/internal/memory"
 )
 
 func renderMemory(width int, set *memory.Set) string {

@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/bot"
-	"reasonix/internal/botruntime"
-	"reasonix/internal/config"
+	"tempora/internal/bot"
+	"tempora/internal/botruntime"
+	"tempora/internal/config"
 )
 
 type BotRuntimeStatusView struct {

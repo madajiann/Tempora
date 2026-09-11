@@ -50,7 +50,7 @@ jobs:
               # Root-module CI: desktop/ is a separate module, so only the
               # clearly unrelated paths below can skip it.
               if echo "$files" | grep -qvE '^(docs/|site/|release-notes/|desktop/|workers/|[^/]+\.md$)'; then code=true; fi
-              # desktop/ imports the root kernel via `replace reasonix => ../`,
+              # desktop/ imports the root kernel via `replace tempora => ../`,
               # so only this clearly-unrelated set is safe to skip.
               if echo "$files" | grep -qvE '^(docs/|site/|release-notes/|workers/|benchmarks/|npm/|[^/]+\.md$)'; then desktop=true; fi
               if echo "$files" | grep -q '^site/'; then site=true; fi
@@ -159,7 +159,7 @@ jobs:
           # Run the prompt-cache prefix-stability guard (TestCacheHit*) in CI: a
           # regression there silently tanks the cache hit rate the project is
           # built around.
-          REASONIX_RELEASE_CACHE_GUARD: "1"
+          TEMPORA_RELEASE_CACHE_GUARD: "1"
         run: go test ./...
 
       # Agent, boot and control own isolated Windows runners on PRs and pushes.
@@ -169,7 +169,7 @@ jobs:
         if: env.RUN_STEPS == 'true' && runner.os == 'Windows' && github.event_name == 'pull_request'
         timeout-minutes: 15
         env:
-          REASONIX_RELEASE_CACHE_GUARD: "1"
+          TEMPORA_RELEASE_CACHE_GUARD: "1"
           WINDOWS_SANDBOX_WAIT_MS: "20000"
         run: node scripts/windows-go-tests.mjs smoke
 
@@ -206,7 +206,7 @@ jobs:
           # Run the prompt-cache prefix-stability guard (TestCacheHit*) in CI: a
           # regression there silently tanks the cache hit rate the project is
           # built around.
-          REASONIX_RELEASE_CACHE_GUARD: "1"
+          TEMPORA_RELEASE_CACHE_GUARD: "1"
           # Bound sandbox helper children in Windows tests so a failed OS-level
           # launch cannot pin the Actions step after Go's package timeout fires.
           WINDOWS_SANDBOX_WAIT_MS: "20000"
@@ -262,7 +262,7 @@ jobs:
         if: env.RUN_STEPS == 'true'
         timeout-minutes: 10
         env:
-          REASONIX_RELEASE_CACHE_GUARD: "1"
+          TEMPORA_RELEASE_CACHE_GUARD: "1"
           WINDOWS_SANDBOX_WAIT_MS: "20000"
         run: node scripts/windows-go-tests.mjs control
 
@@ -305,7 +305,7 @@ jobs:
       - name: test
         timeout-minutes: 10
         env:
-          REASONIX_RELEASE_CACHE_GUARD: "1"
+          TEMPORA_RELEASE_CACHE_GUARD: "1"
           WINDOWS_SANDBOX_WAIT_MS: "20000"
         run: node scripts/windows-go-tests.mjs ${{ matrix.group }}
 
@@ -342,13 +342,13 @@ jobs:
       - name: test -race (concurrency packages)
         if: github.event_name == 'pull_request'
         env:
-          REASONIX_RELEASE_CACHE_GUARD: "1"
+          TEMPORA_RELEASE_CACHE_GUARD: "1"
         run: go test -race ./internal/agent/... ./internal/plugin/... ./internal/jobs/... ./internal/proc/... ./internal/sandbox/... ./internal/filelock/... ./internal/eventwire/... ./internal/remote/... ./internal/extension/... ./internal/boot/... ./internal/control/... ./internal/tool/...
 
       - name: test -race (full)
         if: github.event_name != 'pull_request'
         env:
-          REASONIX_RELEASE_CACHE_GUARD: "1"
+          TEMPORA_RELEASE_CACHE_GUARD: "1"
         run: go test -race ./...
 
   # sdk/go is a nested stdlib-only module invisible to root `go test ./...`.
@@ -417,7 +417,7 @@ jobs:
         shell: bash
         run: |
           # The SDK is a public module with a hard stdlib-only contract.
-          if go list -m all | grep -v '^github.com/esengine/DeepSeek-Reasonix/sdk/go$'; then
+          if go list -m all | grep -v '^github.com/tempora-dev/Tempora/sdk/go$'; then
             echo "sdk/go must not depend on anything outside the standard library"
             exit 1
           fi
@@ -487,7 +487,7 @@ jobs:
           pnpm --dir electron build
       - name: Test desktop frontend once per suite
         env:
-          REASONIX_TEST_CONCURRENCY: "2"
+          TEMPORA_TEST_CONCURRENCY: "2"
         run: node frontend/scripts/run-ci-tests.mjs
 
   desktop-browser:
@@ -521,9 +521,9 @@ jobs:
         run: |
           pnpm --dir frontend test:motion-browser
           PLAYWRIGHT_BROWSERS_PATH=.pw-browsers pnpm --dir frontend test:app-browser
-          PLAYWRIGHT_BROWSERS_PATH=.pw-browsers REASONIX_SETTINGS_BROWSERS=chromium pnpm --dir frontend test:settings-browser
-          xvfb-run -a env REASONIX_TRANSCRIPT_NATIVE_THUMB=1 pnpm --dir frontend test:transcript-browser
-          REASONIX_TRANSCRIPT_READER_BROWSERS=chromium PLAYWRIGHT_BROWSERS_PATH=.pw-browsers pnpm --dir frontend test:transcript-reader-browser
+          PLAYWRIGHT_BROWSERS_PATH=.pw-browsers TEMPORA_SETTINGS_BROWSERS=chromium pnpm --dir frontend test:settings-browser
+          xvfb-run -a env TEMPORA_TRANSCRIPT_NATIVE_THUMB=1 pnpm --dir frontend test:transcript-browser
+          TEMPORA_TRANSCRIPT_READER_BROWSERS=chromium PLAYWRIGHT_BROWSERS_PATH=.pw-browsers pnpm --dir frontend test:transcript-reader-browser
 
   desktop-prepare:
     needs: changes
@@ -725,7 +725,7 @@ jobs:
           DESKTOP_BUILD_SKIP_DMG: "1"
         run: |
           ../scripts/desktop-build.sh darwin/arm64 v0.0.0-ci canary
-          node packaging/verify.mjs ../dist/Reasonix-darwin-arm64.zip
+          node packaging/verify.mjs ../dist/Tempora-darwin-arm64.zip
 
   # Desktop project-root matching is case-insensitive only on Windows
   # (sameDesktopPath folds case when os.PathSeparator is '\'), so the
@@ -816,12 +816,12 @@ jobs:
         timeout-minutes: 15
         run: |
           pnpm install --frozen-lockfile
-          go build -trimpath -ldflags "-s -w -X main.version=v0.0.0-ci -X main.channel=canary" -o build/bin/reasonix-desktop.exe .
+          go build -trimpath -ldflags "-s -w -X main.version=v0.0.0-ci -X main.channel=canary" -o build/bin/tempora-desktop.exe .
           node packaging/package.mjs windows/amd64 v0.0.0-ci canary
 
       - name: Smoke-test Electron native startup
         timeout-minutes: 3
-        run: node packaging/smoke.mjs build/electron/windows-amd64/app --service build/bin/reasonix-desktop.exe
+        run: node packaging/smoke.mjs build/electron/windows-amd64/app --service build/bin/tempora-desktop.exe
 
       - name: Test native window geometry on Windows
         timeout-minutes: 2
@@ -830,7 +830,7 @@ jobs:
       - name: Test transcript content bounds in native Electron
         timeout-minutes: 5
         env:
-          REASONIX_LAYOUT_ARTIFACTS: ${{ runner.temp }}/transcript-layout-electron
+          TEMPORA_LAYOUT_ARTIFACTS: ${{ runner.temp }}/transcript-layout-electron
         run: pnpm --dir frontend test:transcript-electron
 
       - name: Upload native transcript layout evidence
@@ -887,7 +887,7 @@ jobs:
       - name: Verify packaged Windows artifacts
         if: github.event_name != 'pull_request'
         run: |
-          node packaging/verify.mjs ../dist/Reasonix-windows-amd64.zip
+          node packaging/verify.mjs ../dist/Tempora-windows-amd64.zip
           node packaging/signing-files.mjs build/windows/signing-payload --check
 
   # repolint scans desktop/ and sdk/ too, so this job also runs for diffs the

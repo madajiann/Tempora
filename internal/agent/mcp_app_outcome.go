@@ -1,8 +1,8 @@
 package agent
 
 import (
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 // toProviderMCPApp lifts the collected Apps presentation onto the outcome.

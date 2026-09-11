@@ -9,15 +9,15 @@ package main
 #include <stdint.h>
 #include <stdlib.h>
 
-typedef struct reasonix_fsevents_subscription reasonix_fsevents_subscription;
+typedef struct tempora_fsevents_subscription tempora_fsevents_subscription;
 
-reasonix_fsevents_subscription *reasonix_fsevents_start(
+tempora_fsevents_subscription *tempora_fsevents_start(
 	const char *path,
 	uintptr_t token,
 	double latency,
 	int *error_code
 );
-void reasonix_fsevents_stop(reasonix_fsevents_subscription *subscription);
+void tempora_fsevents_stop(tempora_fsevents_subscription *subscription);
 */
 import "C"
 
@@ -71,7 +71,7 @@ type darwinWorkspaceSubscription struct {
 	watcher    *darwinWorkspaceWatcher
 	path       string
 	recursive  bool
-	native     *C.reasonix_fsevents_subscription
+	native     *C.tempora_fsevents_subscription
 	handle     cgo.Handle
 	stopOnce   sync.Once
 	stopNative func()
@@ -110,7 +110,7 @@ func (w *darwinWorkspaceWatcher) Add(path string, recursive bool) error {
 	cPath := C.CString(path)
 	defer C.free(unsafe.Pointer(cPath))
 	var errorCode C.int
-	sub.native = C.reasonix_fsevents_start(cPath, C.uintptr_t(sub.handle), C.double(darwinWorkspaceLatency), &errorCode)
+	sub.native = C.tempora_fsevents_start(cPath, C.uintptr_t(sub.handle), C.double(darwinWorkspaceLatency), &errorCode)
 	if sub.native == nil {
 		sub.handle.Delete()
 		return fmt.Errorf("start FSEvents stream for %q: %s", path, darwinFSEventsStartError(int(errorCode)))
@@ -168,14 +168,14 @@ func (s *darwinWorkspaceSubscription) stop() {
 			s.stopNative()
 			return
 		}
-		C.reasonix_fsevents_stop(s.native)
+		C.tempora_fsevents_stop(s.native)
 		s.native = nil
 		s.handle.Delete()
 	})
 }
 
-//export reasonixFSEventsEvent
-func reasonixFSEventsEvent(token C.uintptr_t, eventPath *C.char, eventFlags C.uint32_t) {
+//export temporaFSEventsEvent
+func temporaFSEventsEvent(token C.uintptr_t, eventPath *C.char, eventFlags C.uint32_t) {
 	if eventPath == nil {
 		return
 	}

@@ -1,8 +1,8 @@
 package control
 
 import (
-	"reasonix/internal/evidence"
-	"reasonix/internal/goaleval"
+	"tempora/internal/evidence"
+	"tempora/internal/goaleval"
 )
 
 // completeDecision is the FSM's verdict on a complete claim for this turn.

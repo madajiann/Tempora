@@ -16,7 +16,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"reasonix/internal/filelock"
+	"tempora/internal/filelock"
 
 	moderncsqlite "modernc.org/sqlite"
 	sqlite3 "modernc.org/sqlite/lib"
@@ -201,7 +201,7 @@ func open(ctx context.Context, opts OpenOptions, mode Mode) (*sql.DB, error) {
 		// time.Now has coarse resolution on some platforms, notably Windows.
 		// A process-local sequence prevents concurrently opened projections with
 		// the same logical name from sharing one SQLite memory database by accident.
-		dsn = fmt.Sprintf("file:reasonix-%s-%d-%d?mode=memory&cache=shared", url.PathEscape(opts.MemoryName),
+		dsn = fmt.Sprintf("file:tempora-%s-%d-%d?mode=memory&cache=shared", url.PathEscape(opts.MemoryName),
 			opts.Now().UnixNano(), memoryDatabaseSequence.Add(1))
 	} else {
 		dsn = diskFileDSN(opts.Path)

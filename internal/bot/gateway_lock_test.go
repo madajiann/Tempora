@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/control"
+	"tempora/internal/control"
 )
 
 type closeProbeBotController struct {
@@ -357,7 +357,7 @@ func TestBotGatewayStopCancelsConcurrentStart(t *testing.T) {
 // sessionOptionsForMessage and the project/session index builders read them.
 // Run with -race; a lock-free read is a concurrent map read/write crash.
 func TestBotGatewayToolApprovalModeConcurrentWithConfigReaders(t *testing.T) {
-	t.Setenv("REASONIX_HOME", t.TempDir())
+	t.Setenv("TEMPORA_HOME", t.TempDir())
 	gw := &BotGateway{
 		cfg: GatewayConfig{
 			WorkspaceRoot: t.TempDir(),

@@ -101,7 +101,7 @@ await act(async () => {
 });
 
 await act(async () => {
-  window.dispatchEvent(new Event("reasonix:model-catalog-changed"));
+  window.dispatchEvent(new Event("tempora:model-catalog-changed"));
   fresh.resolve([{ ref: "glm-cn/glm-5.2", provider: "glm-cn", model: "glm-5.2", current: true }]);
   await fresh.promise;
 });
@@ -350,7 +350,7 @@ currentCatalog = [
   { ref: "a/shared", provider: "a", displayName: "Second connection", model: "shared", current: true },
 ];
 await act(async () => {
-  window.dispatchEvent(new Event("reasonix:model-catalog-changed"));
+  window.dispatchEvent(new Event("tempora:model-catalog-changed"));
   await new Promise(resolve => setTimeout(resolve, 0));
 });
 const connectionLabels = Array.from(document.querySelectorAll(".modelsw__group-label"), el => el.textContent);

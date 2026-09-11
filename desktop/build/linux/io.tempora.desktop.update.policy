@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<!--
+  Polkit policy for Tempora desktop in-app .deb upgrades.
+  The action only authorizes the fixed root-owned helper with argv1=install.
+  Active sessions require auth_admin every time; authorization is not retained.
+-->
+<policyconfig>
+  <vendor>Tempora</vendor>
+  <vendor_url>https://tempora.io</vendor_url>
+
+  <action id="io.tempora.desktop.update">
+    <description gettext-domain="tempora-desktop">Install a Tempora desktop update</description>
+    <description xml:lang="zh_CN" gettext-domain="tempora-desktop">安装 Tempora 桌面端更新</description>
+    <description xml:lang="zh_TW" gettext-domain="tempora-desktop">安裝 Tempora 桌面端更新</description>
+    <message gettext-domain="tempora-desktop">Authentication is required to install a Tempora update</message>
+    <message xml:lang="zh_CN" gettext-domain="tempora-desktop">安装 Tempora 更新需要管理员授权</message>
+    <message xml:lang="zh_TW" gettext-domain="tempora-desktop">安裝 Tempora 更新需要管理員授權</message>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>auth_admin</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/tempora/tempora-update-helper</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">install</annotate>
+  </action>
+</policyconfig>

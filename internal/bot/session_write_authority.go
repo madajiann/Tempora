@@ -1,7 +1,7 @@
 package bot
 
 import (
-	"reasonix/internal/control"
+	"tempora/internal/control"
 )
 
 func bindBotSessionWriteAuthority(state *sessionState) error {

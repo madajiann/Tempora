@@ -13,11 +13,11 @@ test("signing requires an explicit app and identity", async () => {
 test("signs both architectures of resource sidecars and framework binaries before sealing", {
   skip: process.platform !== "darwin",
 }, async () => {
-  const root = mkdtempSync(join(tmpdir(), "reasonix-signing-test-"));
+  const root = mkdtempSync(join(tmpdir(), "tempora-signing-test-"));
   try {
-    const app = join(root, "Reasonix.app");
+    const app = join(root, "Tempora.app");
     const plist = (executable, type) => `<?xml version="1.0"?><plist version="1.0"><dict>
-      <key>CFBundleIdentifier</key><string>io.reasonix.fixture.${executable}</string>
+      <key>CFBundleIdentifier</key><string>io.tempora.fixture.${executable}</string>
       <key>CFBundleExecutable</key><string>${executable}</string>
       <key>CFBundlePackageType</key><string>${type}</string>
       <key>CFBundleVersion</key><string>1</string></dict></plist>`;
@@ -25,14 +25,14 @@ test("signs both architectures of resource sidecars and framework binaries befor
       mkdirSync(dirname(join(app, name)), { recursive: true });
       writeFileSync(join(app, name), contents);
     };
-    put("Contents/Info.plist", plist("Reasonix", "APPL"));
+    put("Contents/Info.plist", plist("Tempora", "APPL"));
     put("Contents/Frameworks/Electron Framework.framework/Versions/A/Resources/Info.plist", plist("Electron Framework", "FMWK"));
     put("Contents/Frameworks/Squirrel.framework/Versions/A/Resources/Info.plist", plist("Squirrel", "FMWK"));
     const binaries = [
-      "Contents/MacOS/Reasonix",
-      "Contents/MacOS/reasonix-desktop",
-      "Contents/Resources/service/reasonix",
-      "Contents/Resources/service/reasonix-desktop",
+      "Contents/MacOS/Tempora",
+      "Contents/MacOS/tempora-desktop",
+      "Contents/Resources/service/tempora",
+      "Contents/Resources/service/tempora-desktop",
       "Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework",
       "Contents/Frameworks/Electron Framework.framework/Versions/A/Libraries/libffmpeg.dylib",
       "Contents/Frameworks/Electron Framework.framework/Versions/A/Libraries/libvk_swiftshader.dylib",

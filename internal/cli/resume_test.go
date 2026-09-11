@@ -10,11 +10,11 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 // TestResumeDispatchOpensPicker proves bare "/resume" opens the interactive
@@ -509,7 +509,7 @@ func TestResumeEntriesIncludeOtherProjects(t *testing.T) {
 	if err := os.MkdirAll(otherDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(config.ReasonixHomeDir(), "desktop-projects.json"),
+	if err := os.WriteFile(filepath.Join(config.TemporaHomeDir(), "desktop-projects.json"),
 		[]byte(`{"projects":[{"root":`+strconv.Quote(filepath.ToSlash(otherRoot))+`}]}`), 0o644); err != nil {
 		t.Fatal(err)
 	}

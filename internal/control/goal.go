@@ -10,13 +10,13 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/evidence"
-	fileencoding "reasonix/internal/fileutil/encoding"
-	"reasonix/internal/goaleval"
-	"reasonix/internal/store"
+	"tempora/internal/agent"
+	"tempora/internal/evidence"
+	fileencoding "tempora/internal/fileutil/encoding"
+	"tempora/internal/goaleval"
+	"tempora/internal/store"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 const (

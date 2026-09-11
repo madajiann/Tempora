@@ -7,8 +7,8 @@
       "channel": "stable",
       "targetingVersion": 1,
       "title": {
-        "en": "Reasonix 1.38.7",
-        "zh": "Reasonix 1.38.7"
+        "en": "Tempora 1.38.7",
+        "zh": "Tempora 1.38.7"
       },
       "summary": {
         "en": "Desktop reliability and usability improvements, including Windows startup fixes, browser controls, and transcript layout corrections.",
@@ -25,8 +25,8 @@
             "zh": "Windows 应用身份"
           },
           "body": {
-            "en": "How Reasonix desktop isolates its Windows taskbar identity from Studio and manages shortcuts.",
-            "zh": "Reasonix 桌面端如何隔离其 Windows 任务栏身份与 Studio，并管理快捷方式。"
+            "en": "How Tempora desktop isolates its Windows taskbar identity from Studio and manages shortcuts.",
+            "zh": "Tempora 桌面端如何隔离其 Windows 任务栏身份与 Studio，并管理快捷方式。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/0c35021eb330f38cadde7831a8bb561d5988a970/docs/WINDOWS_APP_IDENTITY.md"
         },
@@ -261,8 +261,8 @@
               "zh": "Windows 任务栏身份隔离"
             },
             "body": {
-              "en": "Desktop now uses io.reasonix.desktop for shell, launcher, service, shortcuts, and notifications to avoid grouping with Studio.",
-              "zh": "桌面端现使用 io.reasonix.desktop 作为壳、启动器、服务、快捷方式与通知的身份，避免与 Studio 归组。"
+              "en": "Desktop now uses io.tempora.desktop for shell, launcher, service, shortcuts, and notifications to avoid grouping with Studio.",
+              "zh": "桌面端现使用 io.tempora.desktop 作为壳、启动器、服务、快捷方式与通知的身份，避免与 Studio 归组。"
             },
             "refs": [
               10130
@@ -397,7 +397,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.38.7",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.38.6...desktop-v1.38.7",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.38.7",
       "baseVersion": "1.38.7",
@@ -513,7 +513,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.38.6",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.38.5...desktop-v1.38.6",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.38.6",
       "baseVersion": "1.38.6",
@@ -531,12 +531,12 @@
       "channel": "stable",
       "targetingVersion": 1,
       "title": {
-        "en": "Reasonix v1.38.5",
-        "zh": "Reasonix v1.38.5"
+        "en": "Tempora v1.38.5",
+        "zh": "Tempora v1.38.5"
       },
       "summary": {
-        "en": "Reasonix moves Desktop to Electron and adds DeepSeek V4.1 Flash image input, OpenCode Go provider presets, durable tool recovery, and independent dock tabs. This release includes the changes since v1.38.3, macOS signing and notarization fixes, and more reliable Windows extension shutdown; v1.38.4 was not published.",
-        "zh": "Reasonix 桌面端迁移至 Electron，新增 DeepSeek V4.1 Flash 图片输入、OpenCode Go 提供商预设、持久工具恢复和独立 dock 标签。本版本包含 v1.38.3 以来的改动、macOS 签名与公证修复，以及 Windows 扩展关闭稳定性修复；v1.38.4 未公开发布。"
+        "en": "Tempora moves Desktop to Electron and adds DeepSeek V4.1 Flash image input, OpenCode Go provider presets, durable tool recovery, and independent dock tabs. This release includes the changes since v1.38.3, macOS signing and notarization fixes, and more reliable Windows extension shutdown; v1.38.4 was not published.",
+        "zh": "Tempora 桌面端迁移至 Electron，新增 DeepSeek V4.1 Flash 图片输入、OpenCode Go 提供商预设、持久工具恢复和独立 dock 标签。本版本包含 v1.38.3 以来的改动、macOS 签名与公证修复，以及 Windows 扩展关闭稳定性修复；v1.38.4 未公开发布。"
       },
       "surfaces": [
         "desktop",
@@ -1066,7 +1066,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.38.5",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.38.3...desktop-v1.38.5",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.38.5",
       "baseVersion": "1.38.5",
@@ -1084,8 +1084,8 @@
       "channel": "stable",
       "targetingVersion": 1,
       "title": {
-        "en": "Reasonix 1.38.4",
-        "zh": "Reasonix 1.38.4"
+        "en": "Tempora 1.38.4",
+        "zh": "Tempora 1.38.4"
       },
       "summary": {
         "en": "This release brings DeepSeek V4.1 Flash support with native image input and updated pricing, durable tool recovery across desktop and remote sessions, a scoped dock launcher with independent view tabs, and numerous fixes for remote sends, evidence handling, and desktop stability.",
@@ -1529,7 +1529,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.38.4",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.38.3...desktop-v1.38.4",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.38.4",
       "baseVersion": "1.38.4",
@@ -1547,8 +1547,8 @@
       "channel": "stable",
       "targetingVersion": 1,
       "title": {
-        "en": "Reasonix 1.38.3",
-        "zh": "Reasonix 1.38.3"
+        "en": "Tempora 1.38.3",
+        "zh": "Tempora 1.38.3"
       },
       "summary": {
         "en": "This release improves model settings persistence, runtime state consistency, read evidence handling, and desktop UI polish, along with several fixes for shutdown, settings layout, and skill diagnostics.",
@@ -1872,7 +1872,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.38.3",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.38.2...desktop-v1.38.3",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.38.3",
       "baseVersion": "1.38.3",
@@ -1890,8 +1890,8 @@
       "channel": "stable",
       "targetingVersion": 1,
       "title": {
-        "en": "Reasonix 1.38.2",
-        "zh": "Reasonix 1.38.2"
+        "en": "Tempora 1.38.2",
+        "zh": "Tempora 1.38.2"
       },
       "summary": {
         "en": "This release improves session reliability, model service configuration, and desktop performance. It introduces append-only session logs with version heads, independent web search model assignment, unified image understanding, and fixes for navigation, cancellation, and CI stability.",
@@ -2718,7 +2718,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.38.2",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.38.1...desktop-v1.38.2",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.38.2",
       "baseVersion": "1.38.2",
@@ -3100,7 +3100,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.38.1",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.38.0...desktop-v1.38.1",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.38.1",
       "baseVersion": "1.38.1",
@@ -3118,8 +3118,8 @@
       "channel": "stable",
       "targetingVersion": 1,
       "title": {
-        "en": "Reasonix 1.38: Independent search, resilient recovery, and a unified desktop workspace",
-        "zh": "Reasonix 1.38：独立搜索、可靠恢复与统一桌面工作区"
+        "en": "Tempora 1.38: Independent search, resilient recovery, and a unified desktop workspace",
+        "zh": "Tempora 1.38：独立搜索、可靠恢复与统一桌面工作区"
       },
       "summary": {
         "en": "This release separates web search from the main conversation, hardens protocol recovery, and unifies desktop management pages. It also improves link menus, update relaunch stability, model image capability handling, and session actions.",
@@ -3481,7 +3481,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.38.0",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.37.0...desktop-v1.38.0",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.38.0",
       "baseVersion": "1.38.0",
@@ -3499,8 +3499,8 @@
       "channel": "stable",
       "targetingVersion": 1,
       "title": {
-        "en": "Reasonix 1.37.0",
-        "zh": "Reasonix 1.37.0"
+        "en": "Tempora 1.37.0",
+        "zh": "Tempora 1.37.0"
       },
       "summary": {
         "en": "This release simplifies the agent core, improves provider capability handling, stabilizes desktop scrolling, and adds ModelScope as a provider preset.",
@@ -3935,7 +3935,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.37.0",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.36.0...desktop-v1.37.0",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.37.0",
       "baseVersion": "1.37.0",
@@ -3953,8 +3953,8 @@
       "channel": "stable",
       "targetingVersion": 1,
       "title": {
-        "en": "Reasonix 1.36: Sticky context pinning, session takeover, and long-file read enforcement",
-        "zh": "Reasonix 1.36：粘性上下文固定、会话接管与长文件读取强制"
+        "en": "Tempora 1.36: Sticky context pinning, session takeover, and long-file read enforcement",
+        "zh": "Tempora 1.36：粘性上下文固定、会话接管与长文件读取强制"
       },
       "summary": {
         "en": "This release adds sticky context file pinning to Desktop, cooperative session takeover across Desktop and CLI, and enforced complete long-file reads. It also brings numerous stability and performance fixes for the CLI and Desktop.",
@@ -4389,7 +4389,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.36.0",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.35.0...desktop-v1.36.0",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.36.0",
       "baseVersion": "1.36.0",
@@ -4407,8 +4407,8 @@
       "channel": "stable",
       "targetingVersion": 1,
       "title": {
-        "en": "Reasonix 1.35.0",
-        "zh": "Reasonix 1.35.0"
+        "en": "Tempora 1.35.0",
+        "zh": "Tempora 1.35.0"
       },
       "summary": {
         "en": "This release brings isolated Git worktree forks, chunked-summary recovery for over-length sessions, a simplified session recovery versions dialog, and numerous stability fixes for transcript scrolling, compaction, and session catalog identity.",
@@ -4705,8 +4705,8 @@
               "zh": "将会话分叉至隔离 Git Worktree"
             },
             "body": {
-              "en": "Fork from any message turn into a new tab backed by a dedicated Git worktree. Isolated forks create a reasonix/delivery-* branch and linked worktree from the committed HEAD. Shared forks keep the current directory and uncommitted changes. A dirty source checkout blocks isolated creation and asks to commit/stash or use a shared fork. When prerequisites are unavailable, the conversation falls back to shared workspace with a visible notice. Successfully referenced isolated worktrees are registered as projects and remain discoverable after closing a tab or restarting.",
-              "zh": "从任意消息轮次分叉到由专用 Git 工作树支持的新标签页。隔离分叉从已提交的 HEAD 创建 reasonix/delivery-* 分支和关联工作树。共享分叉保留当前目录和未提交的更改。源检出脏时阻止隔离创建，并要求提交/暂存或使用共享分叉。当先决条件不可用时，会话回退到共享工作区并显示可见通知。成功引用的隔离工作树注册为项目，关闭标签页或重启后仍可发现。"
+              "en": "Fork from any message turn into a new tab backed by a dedicated Git worktree. Isolated forks create a tempora/delivery-* branch and linked worktree from the committed HEAD. Shared forks keep the current directory and uncommitted changes. A dirty source checkout blocks isolated creation and asks to commit/stash or use a shared fork. When prerequisites are unavailable, the conversation falls back to shared workspace with a visible notice. Successfully referenced isolated worktrees are registered as projects and remain discoverable after closing a tab or restarting.",
+              "zh": "从任意消息轮次分叉到由专用 Git 工作树支持的新标签页。隔离分叉从已提交的 HEAD 创建 tempora/delivery-* 分支和关联工作树。共享分叉保留当前目录和未提交的更改。源检出脏时阻止隔离创建，并要求提交/暂存或使用共享分叉。当先决条件不可用时，会话回退到共享工作区并显示可见通知。成功引用的隔离工作树注册为项目，关闭标签页或重启后仍可发现。"
             },
             "refs": [
               9645
@@ -4993,7 +4993,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.35.0",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.34.0...desktop-v1.35.0",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.35.0",
       "baseVersion": "1.35.0",
@@ -5011,8 +5011,8 @@
       "channel": "stable",
       "targetingVersion": 1,
       "title": {
-        "en": "Reasonix 1.34.0",
-        "zh": "Reasonix 1.34.0"
+        "en": "Tempora 1.34.0",
+        "zh": "Tempora 1.34.0"
       },
       "summary": {
         "en": "Security hardening for serve and git operations, MCP 2026 interactions and Apps, cache-stable capability controls, and multiple desktop stability fixes.",
@@ -5513,7 +5513,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.34.0",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.33.0...desktop-v1.34.0",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.34.0",
       "baseVersion": "1.34.0",
@@ -5531,8 +5531,8 @@
       "channel": "stable",
       "targetingVersion": 1,
       "title": {
-        "en": "Reasonix v1.33.0",
-        "zh": "Reasonix v1.33.0"
+        "en": "Tempora v1.33.0",
+        "zh": "Tempora v1.33.0"
       },
       "summary": {
         "en": "This release adds MCP 2026 elicitation and stable MCP Apps, improves shell configuration, remote credential security, interface stability, and notification volume control.",
@@ -5774,7 +5774,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.33.0",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.32.1...desktop-v1.33.0",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.33.0",
       "baseVersion": "1.33.0",
@@ -5792,8 +5792,8 @@
       "channel": "stable",
       "targetingVersion": 1,
       "title": {
-        "en": "Reasonix 1.32.1",
-        "zh": "Reasonix 1.32.1"
+        "en": "Tempora 1.32.1",
+        "zh": "Tempora 1.32.1"
       },
       "summary": {
         "en": "This release improves agent conversation flow by ending ordinary turns naturally, removing the need for a synthetic finish tool call.",
@@ -5913,7 +5913,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.32.1",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.32.0...desktop-v1.32.1",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.32.1",
       "baseVersion": "1.32.1",
@@ -5972,8 +5972,8 @@
             "zh": "配置路径"
           },
           "body": {
-            "en": "Where Reasonix stores configuration and state files.",
-            "zh": "Reasonix 存储配置和状态文件的位置。"
+            "en": "Where Tempora stores configuration and state files.",
+            "zh": "Tempora 存储配置和状态文件的位置。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/d7d0f2084bf9abbf4824e30a97f2ee019f2ff6f3/docs/CONFIG_PATHS.md"
         },
@@ -6233,8 +6233,8 @@
               "zh": "更清晰的记忆能力指引"
             },
             "body": {
-              "en": "The capability description now explains when and how to use Reasonix memory tools.",
-              "zh": "能力说明现在会解释何时以及如何使用 Reasonix 记忆工具。"
+              "en": "The capability description now explains when and how to use Tempora memory tools.",
+              "zh": "能力说明现在会解释何时以及如何使用 Tempora 记忆工具。"
             },
             "refs": [
               9376
@@ -6459,8 +6459,8 @@
             "zh": "新工作区的降级边界"
           },
           "body": {
-            "en": "Workspaces first created in v1.32.0 keep topic metadata only in SQLite. A direct downgrade may recover titles from session metadata but cannot guarantee creation timestamps or auto-title stages. Do not run old and new Reasonix versions against the same workspace concurrently.",
-            "zh": "在 v1.32.0 中首次创建的工作区仅在 SQLite 中保存主题元数据。直接降级时可从会话元数据恢复标题，但无法保证创建时间或自动标题阶段完整恢复。请勿让新旧 Reasonix 版本同时写入同一工作区。"
+            "en": "Workspaces first created in v1.32.0 keep topic metadata only in SQLite. A direct downgrade may recover titles from session metadata but cannot guarantee creation timestamps or auto-title stages. Do not run old and new Tempora versions against the same workspace concurrently.",
+            "zh": "在 v1.32.0 中首次创建的工作区仅在 SQLite 中保存主题元数据。直接降级时可从会话元数据恢复标题，但无法保证创建时间或自动标题阶段完整恢复。请勿让新旧 Tempora 版本同时写入同一工作区。"
           },
           "refs": [
             9466
@@ -6478,7 +6478,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.32.0",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.31.4...desktop-v1.32.0",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.32.0",
       "baseVersion": "1.32.0",
@@ -6515,8 +6515,8 @@
             "zh": "目标执行指南"
           },
           "body": {
-            "en": "Learn how goal enforcement works in Reasonix.",
-            "zh": "了解 Reasonix 中目标执行的工作原理。"
+            "en": "Learn how goal enforcement works in Tempora.",
+            "zh": "了解 Tempora 中目标执行的工作原理。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/aa3688814852ebae0835ca07731ee929fbd35c7e/docs/GOAL_ENFORCEMENT.zh-CN.md"
         },
@@ -6526,8 +6526,8 @@
             "zh": "用户指南"
           },
           "body": {
-            "en": "Comprehensive guide to using Reasonix.",
-            "zh": "使用 Reasonix 的综合指南。"
+            "en": "Comprehensive guide to using Tempora.",
+            "zh": "使用 Tempora 的综合指南。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/aa3688814852ebae0835ca07731ee929fbd35c7e/docs/GUIDE.md"
         },
@@ -6537,8 +6537,8 @@
             "zh": "用户指南（中文）"
           },
           "body": {
-            "en": "Comprehensive guide to using Reasonix in Chinese.",
-            "zh": "使用 Reasonix 的中文综合指南。"
+            "en": "Comprehensive guide to using Tempora in Chinese.",
+            "zh": "使用 Tempora 的中文综合指南。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/aa3688814852ebae0835ca07731ee929fbd35c7e/docs/GUIDE.zh-CN.md"
         }
@@ -6735,7 +6735,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.31.4",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.31.3...desktop-v1.31.4",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.31.4",
       "baseVersion": "1.31.4",
@@ -6780,8 +6780,8 @@
             "zh": "配置路径"
           },
           "body": {
-            "en": "Find configuration file locations for DeepSeek Reasonix.",
-            "zh": "查找 DeepSeek Reasonix 的配置文件位置。"
+            "en": "Find configuration file locations for DeepSeek Tempora.",
+            "zh": "查找 DeepSeek Tempora 的配置文件位置。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/ffe9885f5a12764a98e102aa4e34cb810db03c29/docs/CONFIG_PATHS.md"
         },
@@ -6791,8 +6791,8 @@
             "zh": "用户指南"
           },
           "body": {
-            "en": "Get started with DeepSeek Reasonix.",
-            "zh": "开始使用 DeepSeek Reasonix。"
+            "en": "Get started with DeepSeek Tempora.",
+            "zh": "开始使用 DeepSeek Tempora。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/ffe9885f5a12764a98e102aa4e34cb810db03c29/docs/GUIDE.md"
         },
@@ -6802,8 +6802,8 @@
             "zh": "规范"
           },
           "body": {
-            "en": "Technical specification for DeepSeek Reasonix.",
-            "zh": "DeepSeek Reasonix 的技术规范。"
+            "en": "Technical specification for DeepSeek Tempora.",
+            "zh": "DeepSeek Tempora 的技术规范。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/ffe9885f5a12764a98e102aa4e34cb810db03c29/docs/SPEC.md"
         }
@@ -6920,7 +6920,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.31.3",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.31.2...desktop-v1.31.3",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.31.3",
       "baseVersion": "1.31.3",
@@ -7045,7 +7045,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.31.2",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.31.1...desktop-v1.31.2",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.31.2",
       "baseVersion": "1.31.2",
@@ -7079,8 +7079,8 @@
             "zh": "配置路径"
           },
           "body": {
-            "en": "Learn where Reasonix stores configuration and session data.",
-            "zh": "了解 Reasonix 存储配置和会话数据的位置。"
+            "en": "Learn where Tempora stores configuration and session data.",
+            "zh": "了解 Tempora 存储配置和会话数据的位置。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/ca11dd05a08125e1ef5b72a736a76ec61a786454/docs/CONFIG_PATHS.md"
         },
@@ -7411,7 +7411,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.31.1",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.31.0...desktop-v1.31.1",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.31.1",
       "baseVersion": "1.31.1",
@@ -7683,7 +7683,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.31.0",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.30.0...desktop-v1.31.0",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.31.0",
       "baseVersion": "1.31.0",
@@ -7700,8 +7700,8 @@
       "date": "2026-08-20",
       "channel": "stable",
       "title": {
-        "en": "Reasonix 1.30.0",
-        "zh": "Reasonix 1.30.0"
+        "en": "Tempora 1.30.0",
+        "zh": "Tempora 1.30.0"
       },
       "summary": {
         "en": "Improved write conflict handling, added DingTalk bot adapter, and fixed multiple desktop UI issues for smoother long-session navigation and streaming.",
@@ -7761,8 +7761,8 @@
             "zh": "规范"
           },
           "body": {
-            "en": "Reasonix technical specification.",
-            "zh": "Reasonix 技术规范。"
+            "en": "Tempora technical specification.",
+            "zh": "Tempora 技术规范。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/771cbfe7ccc2e23f98cba6e890f0073d37c234f1/docs/SPEC.md"
         },
@@ -7772,8 +7772,8 @@
             "zh": "规范（中文）"
           },
           "body": {
-            "en": "Chinese version of the Reasonix technical specification.",
-            "zh": "Reasonix 技术规范的中文版本。"
+            "en": "Chinese version of the Tempora technical specification.",
+            "zh": "Tempora 技术规范的中文版本。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/771cbfe7ccc2e23f98cba6e890f0073d37c234f1/docs/SPEC.zh-CN.md"
         },
@@ -8024,7 +8024,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.30.0",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.29.0...desktop-v1.30.0",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.30.0",
       "baseVersion": "1.30.0",
@@ -8203,7 +8203,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.29.0",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.28.0...desktop-v1.29.0",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.29.0",
       "baseVersion": "1.29.0",
@@ -8220,8 +8220,8 @@
       "date": "2026-08-18",
       "channel": "stable",
       "title": {
-        "en": "Reasonix 1.28.0",
-        "zh": "Reasonix 1.28.0"
+        "en": "Tempora 1.28.0",
+        "zh": "Tempora 1.28.0"
       },
       "summary": {
         "en": "This release restores delivery-grade session quality floors, bounds background job lease retention, pins official DeepSeek-V4-Pro to the DSH persona, completes StepFun provider presets, and fixes several desktop transcript navigation issues.",
@@ -8436,7 +8436,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.28.0",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.27.0...desktop-v1.28.0",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.28.0",
       "baseVersion": "1.28.0",
@@ -8453,8 +8453,8 @@
       "date": "2026-08-17",
       "channel": "stable",
       "title": {
-        "en": "Reasonix Desktop 1.27.0",
-        "zh": "Reasonix 桌面版 1.27.0"
+        "en": "Tempora Desktop 1.27.0",
+        "zh": "Tempora 桌面版 1.27.0"
       },
       "summary": {
         "en": "This release improves transcript navigation reliability, adds ordered batch sign-offs with anchor safety, and hardens desktop window lifecycle recovery.",
@@ -8729,7 +8729,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.27.0",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.26.0...desktop-v1.27.0",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.27.0",
       "baseVersion": "1.27.0",
@@ -8962,7 +8962,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.26.0",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.25.4...desktop-v1.26.0",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.26.0",
       "baseVersion": "1.26.0",
@@ -8979,8 +8979,8 @@
       "date": "2026-08-16",
       "channel": "stable",
       "title": {
-        "en": "Reasonix Desktop 1.25.4",
-        "zh": "Reasonix 桌面版 1.25.4"
+        "en": "Tempora Desktop 1.25.4",
+        "zh": "Tempora 桌面版 1.25.4"
       },
       "summary": {
         "en": "This release focuses on desktop reliability and usability improvements, including fixes for long-session scrolling, terminal clipboard integration, project tree organization, and provider recovery.",
@@ -8996,8 +8996,8 @@
             "zh": "用户指南"
           },
           "body": {
-            "en": "Learn how to use Reasonix effectively.",
-            "zh": "了解如何有效使用 Reasonix。"
+            "en": "Learn how to use Tempora effectively.",
+            "zh": "了解如何有效使用 Tempora。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/3fb8642f650df8c729e840fc4c0489ac43c47695/docs/GUIDE.md"
         },
@@ -9277,7 +9277,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.25.4",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.25.3...desktop-v1.25.4",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.25.4",
       "baseVersion": "1.25.4",
@@ -9294,8 +9294,8 @@
       "date": "2026-08-16",
       "channel": "stable",
       "title": {
-        "en": "Reasonix v1.25.3: Adaptive execution, smoother streaming, and more robust recovery",
-        "zh": "Reasonix v1.25.3：自适应执行、更流畅的流式体验与更稳健的恢复"
+        "en": "Tempora v1.25.3: Adaptive execution, smoother streaming, and more robust recovery",
+        "zh": "Tempora v1.25.3：自适应执行、更流畅的流式体验与更稳健的恢复"
       },
       "summary": {
         "en": "This release replaces execution modes with a unified adaptive standard policy, makes desktop streaming and scrolling more reliable, and strengthens context recovery, session ownership, and provider compatibility.",
@@ -9311,8 +9311,8 @@
             "zh": "自适应执行策略"
           },
           "body": {
-            "en": "Reasonix now derives a per-turn policy from intent, risk, structure, and constraints, replacing Light, Balanced, and Delivery modes.",
-            "zh": "Reasonix 现在根据意图、风险、结构与约束逐轮推导策略，取代轻量、均衡与交付模式。"
+            "en": "Tempora now derives a per-turn policy from intent, risk, structure, and constraints, replacing Light, Balanced, and Delivery modes.",
+            "zh": "Tempora 现在根据意图、风险、结构与约束逐轮推导策略，取代轻量、均衡与交付模式。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/e4279b0dee36f0649698a9188f53b28537296e82/docs/SPEC.md"
         },
@@ -9347,8 +9347,8 @@
             "zh": "统一自适应执行策略取代轻量、均衡与交付模式"
           },
           "body": {
-            "en": "Reasonix no longer requires choosing an execution mode. Each turn derives a policy from intent, risk, structure, and constraints, used for planning, verification, and evidence closure.",
-            "zh": "Reasonix 不再要求选择执行模式。每轮根据意图、风险、结构与约束推导策略，并用于规划、验证与证据闭环。"
+            "en": "Tempora no longer requires choosing an execution mode. Each turn derives a policy from intent, risk, structure, and constraints, used for planning, verification, and evidence closure.",
+            "zh": "Tempora 不再要求选择执行模式。每轮根据意图、风险、结构与约束推导策略，并用于规划、验证与证据闭环。"
           },
           "refs": [
             8866
@@ -9675,7 +9675,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.25.3",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.25.2...desktop-v1.25.3",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.25.3",
       "baseVersion": "1.25.3",
@@ -9930,7 +9930,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.25.2",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.25.1...desktop-v1.25.2",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.25.2",
       "baseVersion": "1.25.2",
@@ -10244,7 +10244,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.25.1",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.25.0...desktop-v1.25.1",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.25.1",
       "baseVersion": "1.25.1",
@@ -10476,7 +10476,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.25.0",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.24.2...desktop-v1.25.0",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.25.0",
       "baseVersion": "1.25.0",
@@ -10493,8 +10493,8 @@
       "date": "2026-08-12",
       "channel": "stable",
       "title": {
-        "en": "Reasonix Desktop 1.24.2",
-        "zh": "Reasonix Desktop 1.24.2"
+        "en": "Tempora Desktop 1.24.2",
+        "zh": "Tempora Desktop 1.24.2"
       },
       "summary": {
         "en": "Stability and recovery improvements for session persistence, transcript scrolling, and Windows startup.",
@@ -10728,7 +10728,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.24.2",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.24.1...desktop-v1.24.2",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.24.2",
       "baseVersion": "1.24.2",
@@ -10745,8 +10745,8 @@
       "date": "2026-08-11",
       "channel": "stable",
       "title": {
-        "en": "Reasonix Desktop v1.24.1",
-        "zh": "Reasonix Desktop v1.24.1"
+        "en": "Tempora Desktop v1.24.1",
+        "zh": "Tempora Desktop v1.24.1"
       },
       "summary": {
         "en": "Fixes recovery catalog and Windows startup regressions, and improves compaction to keep user constraints verbatim.",
@@ -10962,7 +10962,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.24.1",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.24.0...desktop-v1.24.1",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.24.1",
       "baseVersion": "1.24.1",
@@ -10979,8 +10979,8 @@
       "date": "2026-08-11",
       "channel": "stable",
       "title": {
-        "en": "Reasonix v1.24.0: Continuous Goals, Unified Execution, and Desktop Polish",
-        "zh": "Reasonix v1.24.0：连续目标、统一执行与桌面体验优化"
+        "en": "Tempora v1.24.0: Continuous Goals, Unified Execution, and Desktop Polish",
+        "zh": "Tempora v1.24.0：连续目标、统一执行与桌面体验优化"
       },
       "summary": {
         "en": "Goals now run continuously until completion, with an optional token budget. Execution settings (light/balanced/delivery) replace work modes with a unified tool surface. Desktop gains crash diagnostics, streamlined task controls, and improved transcript scrolling. Billing is unified across all surfaces with multi-currency support.",
@@ -11503,7 +11503,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.24.0",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.23.0...desktop-v1.24.0",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.24.0",
       "baseVersion": "1.24.0",
@@ -11520,8 +11520,8 @@
       "date": "2026-08-10",
       "channel": "stable",
       "title": {
-        "en": "Reasonix v1.23.0: Smarter Context, Safer Delegation, and a Smoother Desktop",
-        "zh": "Reasonix v1.23.0：更智能的上下文、更安全的委托与更流畅的桌面体验"
+        "en": "Tempora v1.23.0: Smarter Context, Safer Delegation, and a Smoother Desktop",
+        "zh": "Tempora v1.23.0：更智能的上下文、更安全的委托与更流畅的桌面体验"
       },
       "summary": {
         "en": "This release brings a unified content-driven context maintenance system, a structured plan contract with acceptance criteria enforcement, bounded chat turns, and a durable session inbox. Desktop gains cross-message logical selection, live workspace refresh, and a three-mode reasoning display. The CLI now asks for the context window size and reports failures clearly. Many compaction, token estimation, and delegation bugs are fixed, making long sessions more predictable and cost-effective.",
@@ -11537,8 +11537,8 @@
             "zh": "用户指南"
           },
           "body": {
-            "en": "Learn how to use Reasonix effectively.",
-            "zh": "了解如何有效使用 Reasonix。"
+            "en": "Learn how to use Tempora effectively.",
+            "zh": "了解如何有效使用 Tempora。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/c1a3af4c99280e392d99b7f906e80e0178144dae/docs/GUIDE.md"
         },
@@ -12240,7 +12240,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.23.0",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.22.0...desktop-v1.23.0",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.23.0",
       "baseVersion": "1.23.0",
@@ -12257,8 +12257,8 @@
       "date": "2026-08-10",
       "channel": "stable",
       "title": {
-        "en": "Reasonix 1.22.0",
-        "zh": "Reasonix 1.22.0"
+        "en": "Tempora 1.22.0",
+        "zh": "Tempora 1.22.0"
       },
       "summary": {
         "en": "Desktop session durability, context maintenance, and workspace improvements, plus CLI web handoff and provider output budget fixes.",
@@ -12274,8 +12274,8 @@
             "zh": "CLI Web 交接指南"
           },
           "body": {
-            "en": "Use `reasonix web` to start a local web interface and `/web` to hand off an active CLI session to a browser.",
-            "zh": "使用 `reasonix web` 启动本地 Web 界面，使用 `/web` 将活动 CLI 会话交接至浏览器。"
+            "en": "Use `tempora web` to start a local web interface and `/web` to hand off an active CLI session to a browser.",
+            "zh": "使用 `tempora web` 启动本地 Web 界面，使用 `/web` 将活动 CLI 会话交接至浏览器。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/24be6e684f022166071ddc44736d86de6254f239/docs/GUIDE.md"
         },
@@ -12285,8 +12285,8 @@
             "zh": "插件包规范"
           },
           "body": {
-            "en": "Native v2 plugins now require explicit resource declarations in `reasonix-plugin.json`.",
-            "zh": "原生 v2 插件现在需要在 `reasonix-plugin.json` 中显式声明资源。"
+            "en": "Native v2 plugins now require explicit resource declarations in `tempora-plugin.json`.",
+            "zh": "原生 v2 插件现在需要在 `tempora-plugin.json` 中显式声明资源。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/24be6e684f022166071ddc44736d86de6254f239/docs/PLUGIN_PACKAGES.md"
         }
@@ -12341,8 +12341,8 @@
             "zh": "CLI Web 会话交接"
           },
           "body": {
-            "en": "Use `reasonix web` to start a local web interface and `/web` to hand off an active CLI session to a browser.",
-            "zh": "使用 `reasonix web` 启动本地 Web 界面，使用 `/web` 将活动 CLI 会话交接至浏览器。"
+            "en": "Use `tempora web` to start a local web interface and `/web` to hand off an active CLI session to a browser.",
+            "zh": "使用 `tempora web` 启动本地 Web 界面，使用 `/web` 将活动 CLI 会话交接至浏览器。"
           },
           "refs": [
             8059
@@ -12497,8 +12497,8 @@
               "zh": "CLI Web 会话交接"
             },
             "body": {
-              "en": "Added `reasonix web` command and `/web` slash command to hand off CLI sessions to a browser.",
-              "zh": "新增 `reasonix web` 命令和 `/web` 斜杠命令，用于将 CLI 会话交接至浏览器。"
+              "en": "Added `tempora web` command and `/web` slash command to hand off CLI sessions to a browser.",
+              "zh": "新增 `tempora web` 命令和 `/web` 斜杠命令，用于将 CLI 会话交接至浏览器。"
             },
             "refs": [
               8059
@@ -12690,7 +12690,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.22.0",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.21.5...desktop-v1.22.0",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.22.0",
       "baseVersion": "1.22.0",
@@ -12707,8 +12707,8 @@
       "date": "2026-08-09",
       "channel": "stable",
       "title": {
-        "en": "Reasonix 1.21.5",
-        "zh": "Reasonix 1.21.5"
+        "en": "Tempora 1.21.5",
+        "zh": "Tempora 1.21.5"
       },
       "summary": {
         "en": "Faster session switching, stable WebView2 animations, and completion receipts that show what changed.",
@@ -12820,7 +12820,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.21.5",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.21.4...desktop-v1.21.5",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.21.5",
       "baseVersion": "1.21.5",
@@ -12837,8 +12837,8 @@
       "date": "2026-08-09",
       "channel": "stable",
       "title": {
-        "en": "Reasonix v1.21.4: Memory Dimensions, Completion Contracts, and Desktop Refinements",
-        "zh": "Reasonix v1.21.4：记忆维度、完成契约与桌面体验优化"
+        "en": "Tempora v1.21.4: Memory Dimensions, Completion Contracts, and Desktop Refinements",
+        "zh": "Tempora v1.21.4：记忆维度、完成契约与桌面体验优化"
       },
       "summary": {
         "en": "This release introduces completion contracts that make goal claims verifiable against receipts. Memory gains activation, volatility, subject keys, and CJK bigram retrieval. Desktop optimizations include session-switch performance, local file link handling, and IME-aware ESC behavior. Agent improvements bring incremental fold digest carry, compaction bounds, and a reasoning governor shadow mode.",
@@ -13524,7 +13524,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.21.4",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.21.3...desktop-v1.21.4",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.21.4",
       "baseVersion": "1.21.4",
@@ -13541,8 +13541,8 @@
       "date": "2026-08-08",
       "channel": "stable",
       "title": {
-        "en": "Reasonix v1.21.3",
-        "zh": "Reasonix v1.21.3"
+        "en": "Tempora v1.21.3",
+        "zh": "Tempora v1.21.3"
       },
       "summary": {
         "en": "This release brings Markdown rendering to thinking traces, explicit Kimi K3 reasoning for custom gateways, visible storage paths, adaptive no-progress guard, and fixes for Windows install behavior, taskbar grouping, retry-inflated compaction, and stream coalescing.",
@@ -13783,7 +13783,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.21.3",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.21.2...desktop-v1.21.3",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.21.3",
       "baseVersion": "1.21.3",
@@ -13800,8 +13800,8 @@
       "date": "2026-08-07",
       "channel": "stable",
       "title": {
-        "en": "Reasonix v1.21.2: Output Budgets, Cache-Aware Context, and Agent Hardening",
-        "zh": "Reasonix v1.21.2：输出预算提升、缓存感知上下文与 Agent 加固"
+        "en": "Tempora v1.21.2: Output Budgets, Cache-Aware Context, and Agent Hardening",
+        "zh": "Tempora v1.21.2：输出预算提升、缓存感知上下文与 Agent 加固"
       },
       "summary": {
         "en": "This release raises output budgets to 128K, introduces cache-aware context projection for more efficient history management, hardens agent behavior with work-practice policies, and fixes issues in file tools, sandbox detection, hooks, and updates.",
@@ -13850,8 +13850,8 @@
             "zh": "用户指南"
           },
           "body": {
-            "en": "Comprehensive guide to using Reasonix.",
-            "zh": "使用 Reasonix 的综合指南。"
+            "en": "Comprehensive guide to using Tempora.",
+            "zh": "使用 Tempora 的综合指南。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/c2526217b992c31bbbbeac4506d70c3153d65ac3/docs/GUIDE.md"
         },
@@ -13916,8 +13916,8 @@
             "zh": "规范"
           },
           "body": {
-            "en": "Technical specification for Reasonix.",
-            "zh": "Reasonix 的技术规范。"
+            "en": "Technical specification for Tempora.",
+            "zh": "Tempora 的技术规范。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/c2526217b992c31bbbbeac4506d70c3153d65ac3/docs/SPEC.md"
         },
@@ -14219,7 +14219,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.21.2",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.21.1...desktop-v1.21.2",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.21.2",
       "baseVersion": "1.21.2",
@@ -14236,8 +14236,8 @@
       "date": "2026-08-07",
       "channel": "stable",
       "title": {
-        "en": "Reasonix 1.21.1",
-        "zh": "Reasonix 1.21.1"
+        "en": "Tempora 1.21.1",
+        "zh": "Tempora 1.21.1"
       },
       "summary": {
         "en": "Fixes a permanent updater deadlock on Windows/macOS and a TUI watchdog false-kill issue, plus internal refactors for maintainability.",
@@ -14324,7 +14324,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.21.1",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.21.0...desktop-v1.21.1",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.21.1",
       "baseVersion": "1.21.1",
@@ -14341,8 +14341,8 @@
       "date": "2026-08-06",
       "channel": "stable",
       "title": {
-        "en": "Reasonix 1.21.0: Shell Execution Contract, Cache Accuracy, and CLI Polish",
-        "zh": "Reasonix 1.21.0：Shell 执行契约、缓存精度与 CLI 打磨"
+        "en": "Tempora 1.21.0: Shell Execution Contract, Cache Accuracy, and CLI Polish",
+        "zh": "Tempora 1.21.0：Shell 执行契约、缓存精度与 CLI 打磨"
       },
       "summary": {
         "en": "This release introduces a structured shell execution contract with phase-aware error reporting, improves prompt-cache hit rates and cost accounting, and delivers a wave of CLI and desktop refinements — including stream recovery, session temp persistence, and a refreshed website.",
@@ -14358,8 +14358,8 @@
             "zh": "Shell 执行契约"
           },
           "body": {
-            "en": "Learn how Reasonix now reports shell identity, exit phase, and verification status for every command.",
-            "zh": "了解 Reasonix 如何为每条命令报告 Shell 身份、退出阶段与验证状态。"
+            "en": "Learn how Tempora now reports shell identity, exit phase, and verification status for every command.",
+            "zh": "了解 Tempora 如何为每条命令报告 Shell 身份、退出阶段与验证状态。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/a44361deba5de2e5450fc9ef63c382dafe585b48/docs/GUIDE.md"
         },
@@ -14540,8 +14540,8 @@
               "zh": "CLI：版本元信息与 Shell 补全"
             },
             "body": {
-              "en": "`reasonix version --verbose/--json` shows commit and build time. Shell completion registry aligned with real parsers.",
-              "zh": "`reasonix version --verbose/--json` 显示提交与构建时间。Shell 补全注册表与实际解析器对齐。"
+              "en": "`tempora version --verbose/--json` shows commit and build time. Shell completion registry aligned with real parsers.",
+              "zh": "`tempora version --verbose/--json` 显示提交与构建时间。Shell 补全注册表与实际解析器对齐。"
             },
             "refs": [
               7740
@@ -14594,8 +14594,8 @@
               "zh": "CLI：`--profile` 标志路由至交互式会话"
             },
             "body": {
-              "en": "Bare `reasonix --profile …` now correctly dispatches to the interactive session path as documented.",
-              "zh": "无子命令的 `reasonix --profile …` 现在按文档正确路由至交互式会话路径。"
+              "en": "Bare `tempora --profile …` now correctly dispatches to the interactive session path as documented.",
+              "zh": "无子命令的 `tempora --profile …` 现在按文档正确路由至交互式会话路径。"
             },
             "refs": [
               7656
@@ -14603,12 +14603,12 @@
           },
           {
             "title": {
-              "en": "CLI: Diagnostics, keyring migration, and Reasonix-home hardening",
-              "zh": "CLI：诊断、密钥环迁移与 Reasonix-home 加固"
+              "en": "CLI: Diagnostics, keyring migration, and Tempora-home hardening",
+              "zh": "CLI：诊断、密钥环迁移与 Tempora-home 加固"
             },
             "body": {
-              "en": "Startup diagnostics now expose progress and bounded recovery signals, keyring migration fails closed under timeout or error, and CLI tooling consistently uses the exact Reasonix home while redacting paths in reports.",
-              "zh": "启动诊断现在提供进度与有界恢复信号；密钥环迁移在超时或错误时安全停止；CLI 工具统一使用准确的 Reasonix home，并在报告中隐藏路径。"
+              "en": "Startup diagnostics now expose progress and bounded recovery signals, keyring migration fails closed under timeout or error, and CLI tooling consistently uses the exact Tempora home while redacting paths in reports.",
+              "zh": "启动诊断现在提供进度与有界恢复信号；密钥环迁移在超时或错误时安全停止；CLI 工具统一使用准确的 Tempora home，并在报告中隐藏路径。"
             },
             "refs": [
               7663
@@ -14633,8 +14633,8 @@
               "zh": "Serve：为迟到的 SSE 客户端重放待处理提示"
             },
             "body": {
-              "en": "When a browser attaches to `reasonix serve` after a confirm-gated tool is queued, the pending approval prompt is now replayed.",
-              "zh": "当浏览器在确认门控工具排队后连接到 `reasonix serve` 时，现在会重放待处理的批准提示。"
+              "en": "When a browser attaches to `tempora serve` after a confirm-gated tool is queued, the pending approval prompt is now replayed.",
+              "zh": "当浏览器在确认门控工具排队后连接到 `tempora serve` 时，现在会重放待处理的批准提示。"
             },
             "refs": [
               7708
@@ -14717,7 +14717,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.21.0",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.20.0...desktop-v1.21.0",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.21.0",
       "baseVersion": "1.21.0",
@@ -15158,7 +15158,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.20.0",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.19.7...desktop-v1.20.0",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.20.0",
       "baseVersion": "1.20.0",
@@ -15175,8 +15175,8 @@
       "date": "2026-08-05",
       "channel": "stable",
       "title": {
-        "en": "Reasonix v1.19.7",
-        "zh": "Reasonix v1.19.7"
+        "en": "Tempora v1.19.7",
+        "zh": "Tempora v1.19.7"
       },
       "summary": {
         "en": "This release improves sub-agent result handling, adds server-side web search controls, fixes multiple desktop and agent issues, and includes various stability and usability enhancements.",
@@ -15200,8 +15200,8 @@
             "zh": "用户指南"
           },
           "body": {
-            "en": "Learn how to use Reasonix effectively.",
-            "zh": "了解如何有效使用 Reasonix。"
+            "en": "Learn how to use Tempora effectively.",
+            "zh": "了解如何有效使用 Tempora。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/93243ab14b95c8235cf21ddae455ac9e453cb1b6/docs/GUIDE.md"
         },
@@ -15211,8 +15211,8 @@
             "zh": "用户指南（中文）"
           },
           "body": {
-            "en": "Learn how to use Reasonix effectively (Chinese).",
-            "zh": "了解如何有效使用 Reasonix（中文）。"
+            "en": "Learn how to use Tempora effectively (Chinese).",
+            "zh": "了解如何有效使用 Tempora（中文）。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/93243ab14b95c8235cf21ddae455ac9e453cb1b6/docs/GUIDE.zh-CN.md"
         },
@@ -15222,8 +15222,8 @@
             "zh": "规范"
           },
           "body": {
-            "en": "Reasonix technical specification.",
-            "zh": "Reasonix 技术规范。"
+            "en": "Tempora technical specification.",
+            "zh": "Tempora 技术规范。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/93243ab14b95c8235cf21ddae455ac9e453cb1b6/docs/SPEC.md"
         },
@@ -15233,8 +15233,8 @@
             "zh": "工具契约"
           },
           "body": {
-            "en": "Details of the tool contract used by Reasonix.",
-            "zh": "Reasonix 使用的工具契约详情。"
+            "en": "Details of the tool contract used by Tempora.",
+            "zh": "Tempora 使用的工具契约详情。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/93243ab14b95c8235cf21ddae455ac9e453cb1b6/docs/TOOL_CONTRACT.md"
         },
@@ -15244,8 +15244,8 @@
             "zh": "工具契约（中文）"
           },
           "body": {
-            "en": "Details of the tool contract used by Reasonix (Chinese).",
-            "zh": "Reasonix 使用的工具契约详情（中文）。"
+            "en": "Details of the tool contract used by Tempora (Chinese).",
+            "zh": "Tempora 使用的工具契约详情（中文）。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/93243ab14b95c8235cf21ddae455ac9e453cb1b6/docs/TOOL_CONTRACT.zh-CN.md"
         }
@@ -15487,8 +15487,8 @@
           },
           {
             "title": {
-              "en": "Resolve global hooks from platform Reasonix home in hook machine",
-              "zh": "在 hook 机器中从平台 Reasonix 主目录解析全局钩子"
+              "en": "Resolve global hooks from platform Tempora home in hook machine",
+              "zh": "在 hook 机器中从平台 Tempora 主目录解析全局钩子"
             },
             "body": {
               "en": "Fixed hook status/list commands reporting global hooks as missing when they are configured.",
@@ -15626,7 +15626,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.19.7",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.19.6...desktop-v1.19.7",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.19.7",
       "baseVersion": "1.19.7",
@@ -15665,8 +15665,8 @@
             "zh": "内置文档"
           },
           "body": {
-            "en": "Use /docs to access version-matched product documentation directly in Reasonix.",
-            "zh": "使用 /docs 直接在 Reasonix 中访问版本匹配的产品文档。"
+            "en": "Use /docs to access version-matched product documentation directly in Tempora.",
+            "zh": "使用 /docs 直接在 Tempora 中访问版本匹配的产品文档。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/786dc6d33e5ee396f17a3b7e936b803008deaa96/docs/GUIDE.md"
         }
@@ -15679,8 +15679,8 @@
             "zh": "内置版本匹配文档"
           },
           "body": {
-            "en": "Access official product docs and release history directly in Reasonix with the /docs command. The built-in docs tool retrieves version-matched evidence before the AI composes an answer.",
-            "zh": "使用 /docs 命令直接在 Reasonix 中访问官方产品文档和发布历史。内置文档工具在 AI 撰写答案前检索版本匹配的证据。"
+            "en": "Access official product docs and release history directly in Tempora with the /docs command. The built-in docs tool retrieves version-matched evidence before the AI composes an answer.",
+            "zh": "使用 /docs 命令直接在 Tempora 中访问官方产品文档和发布历史。内置文档工具在 AI 撰写答案前检索版本匹配的证据。"
           },
           "refs": [
             7402
@@ -15759,8 +15759,8 @@
               "zh": "内置版本匹配文档"
             },
             "body": {
-              "en": "Access official product docs and release history directly in Reasonix with the /docs command.",
-              "zh": "使用 /docs 命令直接在 Reasonix 中访问官方产品文档和发布历史。"
+              "en": "Access official product docs and release history directly in Tempora with the /docs command.",
+              "zh": "使用 /docs 命令直接在 Tempora 中访问官方产品文档和发布历史。"
             },
             "refs": [
               7402
@@ -15840,8 +15840,8 @@
               "zh": "工作区配置覆盖警告"
             },
             "body": {
-              "en": "The settings panel now warns when a workspace reasonix.toml overrides the user config.",
-              "zh": "设置面板现在会在工作区 reasonix.toml 覆盖用户配置时发出警告。"
+              "en": "The settings panel now warns when a workspace tempora.toml overrides the user config.",
+              "zh": "设置面板现在会在工作区 tempora.toml 覆盖用户配置时发出警告。"
             },
             "refs": [
               7413
@@ -15996,8 +15996,8 @@
               "zh": "已删除的工作区文件夹不再重新创建"
             },
             "body": {
-              "en": "Deleting a workspace folder in Explorer no longer causes Reasonix to recreate it on startup.",
-              "zh": "在资源管理器中删除工作区文件夹不再导致 Reasonix 在启动时重新创建它。"
+              "en": "Deleting a workspace folder in Explorer no longer causes Tempora to recreate it on startup.",
+              "zh": "在资源管理器中删除工作区文件夹不再导致 Tempora 在启动时重新创建它。"
             },
             "refs": [
               7432
@@ -16089,8 +16089,8 @@
               "zh": "CLI 升级 GitHub 认证"
             },
             "body": {
-              "en": "reasonix upgrade now uses GITHUB_TOKEN for authenticated GitHub API requests, avoiding rate limits.",
-              "zh": "reasonix upgrade 现在使用 GITHUB_TOKEN 进行认证的 GitHub API 请求，避免速率限制。"
+              "en": "tempora upgrade now uses GITHUB_TOKEN for authenticated GitHub API requests, avoiding rate limits.",
+              "zh": "tempora upgrade 现在使用 GITHUB_TOKEN 进行认证的 GitHub API 请求，避免速率限制。"
             },
             "refs": [
               7418
@@ -16218,7 +16218,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.19.6",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.19.5...desktop-v1.19.6",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.19.6",
       "baseVersion": "1.19.6",
@@ -16254,8 +16254,8 @@
       "guides": [
         {
           "title": {
-            "en": "Reasonix CLI guide",
-            "zh": "Reasonix CLI 指南"
+            "en": "Tempora CLI guide",
+            "zh": "Tempora CLI 指南"
           },
           "body": {
             "en": "Configure and inspect the context-compaction threshold from the command line.",
@@ -16265,8 +16265,8 @@
         },
         {
           "title": {
-            "en": "Reasonix specification",
-            "zh": "Reasonix 规范文档"
+            "en": "Tempora specification",
+            "zh": "Tempora 规范文档"
           },
           "body": {
             "en": "Review the configuration and provider behavior documented for this release.",
@@ -16297,8 +16297,8 @@
             "zh": "可配置的上下文压缩阈值"
           },
           "body": {
-            "en": "Choose guarded 70%, 80%, or 85% presets, or a custom 65%–85% threshold, from Desktop or the new `reasonix config compact-ratio` command. Project overrides and effective configuration sources are shown explicitly.",
-            "zh": "可在桌面端或新的 `reasonix config compact-ratio` 命令中选择受保护的 70%、80%、85% 预设，或 65%–85% 的自定义阈值，并明确显示项目覆盖与有效配置来源。"
+            "en": "Choose guarded 70%, 80%, or 85% presets, or a custom 65%–85% threshold, from Desktop or the new `tempora config compact-ratio` command. Project overrides and effective configuration sources are shown explicitly.",
+            "zh": "可在桌面端或新的 `tempora config compact-ratio` 命令中选择受保护的 70%、80%、85% 预设，或 65%–85% 的自定义阈值，并明确显示项目覆盖与有效配置来源。"
           },
           "refs": [
             7233
@@ -16311,8 +16311,8 @@
             "zh": "可选的服务端网页搜索"
           },
           "body": {
-            "en": "Anthropic-compatible providers can opt into the typed server-side web-search tool with `web_search = true`; search results stream back into the transcript without adding a search backend to Reasonix core.",
-            "zh": "Anthropic 兼容提供商可通过 `web_search = true` 启用类型化的服务端网页搜索工具；搜索结果会流式写入会话，无需在 Reasonix 核心中引入搜索后端。"
+            "en": "Anthropic-compatible providers can opt into the typed server-side web-search tool with `web_search = true`; search results stream back into the transcript without adding a search backend to Tempora core.",
+            "zh": "Anthropic 兼容提供商可通过 `web_search = true` 启用类型化的服务端网页搜索工具；搜索结果会流式写入会话，无需在 Tempora 核心中引入搜索后端。"
           },
           "refs": [
             7340
@@ -16618,8 +16618,8 @@
             "zh": "网页搜索用量可见性"
           },
           "body": {
-            "en": "When `web_search = true` is enabled, provider-side searches and returned result text can add metered search requests and input tokens; those search-request counts are not yet surfaced in Reasonix's cost pipeline.",
-            "zh": "启用 `web_search = true` 后，提供商侧搜索及返回的结果文本可能增加计费搜索请求与输入 token；这些搜索请求次数尚未显示在 Reasonix 成本管线中。"
+            "en": "When `web_search = true` is enabled, provider-side searches and returned result text can add metered search requests and input tokens; those search-request counts are not yet surfaced in Tempora's cost pipeline.",
+            "zh": "启用 `web_search = true` 后，提供商侧搜索及返回的结果文本可能增加计费搜索请求与输入 token；这些搜索请求次数尚未显示在 Tempora 成本管线中。"
           },
           "refs": [
             7340
@@ -16639,7 +16639,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.19.5",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.19.4...desktop-v1.19.5",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.19.5",
       "baseVersion": "1.19.5",
@@ -16669,23 +16669,23 @@
       "guides": [
         {
           "title": {
-            "en": "Reasonix Specification",
-            "zh": "Reasonix 规范文档"
+            "en": "Tempora Specification",
+            "zh": "Tempora 规范文档"
           },
           "body": {
-            "en": "Refer to the Reasonix specification for detailed protocol and features.",
-            "zh": "请参阅 Reasonix 规范文档以获取协议和功能的详细信息。"
+            "en": "Refer to the Tempora specification for detailed protocol and features.",
+            "zh": "请参阅 Tempora 规范文档以获取协议和功能的详细信息。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/26e004f4bad2a51b635793dc7f0531222c6700f3/docs/SPEC.md"
         },
         {
           "title": {
-            "en": "Reasonix Specification (Chinese)",
-            "zh": "Reasonix 规范文档（中文）"
+            "en": "Tempora Specification (Chinese)",
+            "zh": "Tempora 规范文档（中文）"
           },
           "body": {
-            "en": "Refer to the Chinese version of the Reasonix specification.",
-            "zh": "请参阅 Reasonix 规范文档的中文版本。"
+            "en": "Refer to the Chinese version of the Tempora specification.",
+            "zh": "请参阅 Tempora 规范文档的中文版本。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/26e004f4bad2a51b635793dc7f0531222c6700f3/docs/SPEC.zh-CN.md"
         }
@@ -16800,8 +16800,8 @@
             "zh": "更新后自动修复原生快捷方式图标"
           },
           "body": {
-            "en": "Reasonix now repairs only owned, stale icon integrations after upgrades: version-scoped Windows shortcut icons, broken or outdated macOS Finder aliases, and Linux desktop icon caches. Healthy, unrelated, and customized integrations are preserved, and repair failures never block startup.",
-            "zh": "Reasonix 现在会在升级后仅修复自身拥有且已过期的图标集成：Windows 版本目录中的快捷方式图标、损坏或过期的 macOS Finder 别名，以及 Linux 桌面图标缓存。健康、无关或自定义的集成会被保留，修复失败也不会阻止启动。"
+            "en": "Tempora now repairs only owned, stale icon integrations after upgrades: version-scoped Windows shortcut icons, broken or outdated macOS Finder aliases, and Linux desktop icon caches. Healthy, unrelated, and customized integrations are preserved, and repair failures never block startup.",
+            "zh": "Tempora 现在会在升级后仅修复自身拥有且已过期的图标集成：Windows 版本目录中的快捷方式图标、损坏或过期的 macOS Finder 别名，以及 Linux 桌面图标缓存。健康、无关或自定义的集成会被保留，修复失败也不会阻止启动。"
           },
           "refs": [
             7296
@@ -16955,8 +16955,8 @@
               "zh": "更新后的原生图标修复"
             },
             "body": {
-              "en": "Repairs stale Reasonix-owned shortcut icons and aliases across Windows, macOS, and native Linux packages without overwriting healthy customizations.",
-              "zh": "在 Windows、macOS 与原生 Linux 包中修复 Reasonix 自有的过期快捷方式图标和别名，同时不覆盖健康的自定义设置。"
+              "en": "Repairs stale Tempora-owned shortcut icons and aliases across Windows, macOS, and native Linux packages without overwriting healthy customizations.",
+              "zh": "在 Windows、macOS 与原生 Linux 包中修复 Tempora 自有的过期快捷方式图标和别名，同时不覆盖健康的自定义设置。"
             },
             "refs": [
               7296
@@ -17002,7 +17002,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.19.4",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.19.3...desktop-v1.19.4",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.19.4",
       "baseVersion": "1.19.4",
@@ -17019,8 +17019,8 @@
       "date": "2026-08-02",
       "channel": "stable",
       "title": {
-        "en": "Reasonix Desktop 1.19.3: Atomic updates, recovery improvements, and a unified stable release",
-        "zh": "Reasonix Desktop 1.19.3：原子更新、恢复优化及统一稳定版本"
+        "en": "Tempora Desktop 1.19.3: Atomic updates, recovery improvements, and a unified stable release",
+        "zh": "Tempora Desktop 1.19.3：原子更新、恢复优化及统一稳定版本"
       },
       "summary": {
         "en": "This release introduces atomic desktop updates with a permanent launcher, removes Guard and Safe Mode, adds recovery actions for blocked Delivery workspaces, simplifies the release path to a single stable channel, and adds a GitHub link to the website.",
@@ -17036,8 +17036,8 @@
             "zh": "用户指南"
           },
           "body": {
-            "en": "Comprehensive guide for using Reasonix.",
-            "zh": "Reasonix 使用综合指南。"
+            "en": "Comprehensive guide for using Tempora.",
+            "zh": "Tempora 使用综合指南。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/427fba0f27078da287dfdb2baca1ff417ecbb0a5/docs/GUIDE.md"
         },
@@ -17047,8 +17047,8 @@
             "zh": "用户指南（简体中文）"
           },
           "body": {
-            "en": "Comprehensive guide for using Reasonix in Simplified Chinese.",
-            "zh": "Reasonix 使用综合指南（简体中文）。"
+            "en": "Comprehensive guide for using Tempora in Simplified Chinese.",
+            "zh": "Tempora 使用综合指南（简体中文）。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/427fba0f27078da287dfdb2baca1ff417ecbb0a5/docs/GUIDE.zh-CN.md"
         },
@@ -17058,8 +17058,8 @@
             "zh": "CLI 指南"
           },
           "body": {
-            "en": "Documentation for the Reasonix command-line interface.",
-            "zh": "Reasonix 命令行界面文档。"
+            "en": "Documentation for the Tempora command-line interface.",
+            "zh": "Tempora 命令行界面文档。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/427fba0f27078da287dfdb2baca1ff417ecbb0a5/docs/CLI.md"
         },
@@ -17069,8 +17069,8 @@
             "zh": "CLI 指南（简体中文）"
           },
           "body": {
-            "en": "Documentation for the Reasonix command-line interface in Simplified Chinese.",
-            "zh": "Reasonix 命令行界面文档（简体中文）。"
+            "en": "Documentation for the Tempora command-line interface in Simplified Chinese.",
+            "zh": "Tempora 命令行界面文档（简体中文）。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/427fba0f27078da287dfdb2baca1ff417ecbb0a5/docs/CLI.zh-CN.md"
         },
@@ -17155,8 +17155,8 @@
             "zh": "工作区写入冲突恢复"
           },
           "body": {
-            "en": "When a Delivery workspace is blocked by another writer, Reasonix now shows a recovery dialog: reveal the local owner, continue in an isolated worktree, or cancel the waiting turn.",
-            "zh": "当 Delivery 工作区被另一个写入者阻塞时，Reasonix 现在会显示恢复对话框：显示本地所有者、在独立工作树中继续或取消等待。"
+            "en": "When a Delivery workspace is blocked by another writer, Tempora now shows a recovery dialog: reveal the local owner, continue in an isolated worktree, or cancel the waiting turn.",
+            "zh": "当 Delivery 工作区被另一个写入者阻塞时，Tempora 现在会显示恢复对话框：显示本地所有者、在独立工作树中继续或取消等待。"
           },
           "refs": [
             7198
@@ -17326,7 +17326,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.19.3",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.19.2...desktop-v1.19.3",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.19.3",
       "baseVersion": "1.19.3",
@@ -17343,8 +17343,8 @@
       "date": "2026-08-02",
       "channel": "stable",
       "title": {
-        "en": "Reasonix v1.19.2",
-        "zh": "Reasonix 1.19.2"
+        "en": "Tempora v1.19.2",
+        "zh": "Tempora 1.19.2"
       },
       "summary": {
         "en": "Unified update channel, adaptive syntax highlighting, and agent reliability fixes.",
@@ -17374,8 +17374,8 @@
             "zh": "用户指南"
           },
           "body": {
-            "en": "General user guide for Reasonix.",
-            "zh": "Reasonix 通用用户指南。"
+            "en": "General user guide for Tempora.",
+            "zh": "Tempora 通用用户指南。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/f72874d49b56610edca9e6968816b12988386bb9/docs/GUIDE.md"
         },
@@ -17385,8 +17385,8 @@
             "zh": "规范"
           },
           "body": {
-            "en": "Technical specification for Reasonix.",
-            "zh": "Reasonix 技术规范。"
+            "en": "Technical specification for Tempora.",
+            "zh": "Tempora 技术规范。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/f72874d49b56610edca9e6968816b12988386bb9/docs/SPEC.md"
         }
@@ -17543,8 +17543,8 @@
             "zh": "更新通道迁移"
           },
           "body": {
-            "en": "Legacy update channels (stable, preview) have been unified into the official release channel. The old `--channel` option and `reasonix upgrade stable/preview` commands are still accepted but deprecated and will show a notice.",
-            "zh": "旧更新通道（stable、preview）已统一为官方发布通道。旧的 `--channel` 选项以及 `reasonix upgrade stable/preview` 命令仍然可用，但已被弃用并会显示提示。"
+            "en": "Legacy update channels (stable, preview) have been unified into the official release channel. The old `--channel` option and `tempora upgrade stable/preview` commands are still accepted but deprecated and will show a notice.",
+            "zh": "旧更新通道（stable、preview）已统一为官方发布通道。旧的 `--channel` 选项以及 `tempora upgrade stable/preview` 命令仍然可用，但已被弃用并会显示提示。"
           },
           "refs": [
             7201
@@ -17560,7 +17560,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.19.2",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/v1.19.1...desktop-v1.19.2",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.19.2",
       "baseVersion": "1.19.2",
@@ -17577,8 +17577,8 @@
       "date": "2026-08-02",
       "channel": "prerelease",
       "title": {
-        "en": "Reasonix 1.19.2 Preview 1",
-        "zh": "Reasonix 1.19.2 预览版 1"
+        "en": "Tempora 1.19.2 Preview 1",
+        "zh": "Tempora 1.19.2 预览版 1"
       },
       "summary": {
         "en": "Unified update channel, adaptive syntax highlighting, and multiple agent reliability fixes.",
@@ -17619,8 +17619,8 @@
             "zh": "用户指南"
           },
           "body": {
-            "en": "General user guide for Reasonix.",
-            "zh": "Reasonix 通用用户指南。"
+            "en": "General user guide for Tempora.",
+            "zh": "Tempora 通用用户指南。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/ede7ceef0011f8cf389d269c83fc16d9cfefd827/docs/GUIDE.md"
         },
@@ -17630,8 +17630,8 @@
             "zh": "用户指南（中文）"
           },
           "body": {
-            "en": "General user guide for Reasonix (Chinese).",
-            "zh": "Reasonix 通用用户指南（中文）。"
+            "en": "General user guide for Tempora (Chinese).",
+            "zh": "Tempora 通用用户指南（中文）。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/ede7ceef0011f8cf389d269c83fc16d9cfefd827/docs/GUIDE.zh-CN.md"
         },
@@ -17641,8 +17641,8 @@
             "zh": "规范"
           },
           "body": {
-            "en": "Technical specification for Reasonix.",
-            "zh": "Reasonix 技术规范。"
+            "en": "Technical specification for Tempora.",
+            "zh": "Tempora 技术规范。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/ede7ceef0011f8cf389d269c83fc16d9cfefd827/docs/SPEC.md"
         },
@@ -17652,8 +17652,8 @@
             "zh": "规范（中文）"
           },
           "body": {
-            "en": "Technical specification for Reasonix (Chinese).",
-            "zh": "Reasonix 技术规范（中文）。"
+            "en": "Technical specification for Tempora (Chinese).",
+            "zh": "Tempora 技术规范（中文）。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/ede7ceef0011f8cf389d269c83fc16d9cfefd827/docs/SPEC.zh-CN.md"
         }
@@ -17812,7 +17812,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/v1.19.2-preview.1",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/v1.19.1...v1.19.2-preview.1",
-        "download": "https://reasonix.io/?download=desktop&channel=preview#start"
+        "download": "https://tempora.io/?download=desktop&channel=preview#start"
       },
       "releaseId": "1.19.2-preview.1",
       "baseVersion": "1.19.2",
@@ -17829,8 +17829,8 @@
       "date": "2026-08-01",
       "channel": "stable",
       "title": {
-        "en": "Reasonix Desktop v1.19.1",
-        "zh": "Reasonix 桌面端 v1.19.1"
+        "en": "Tempora Desktop v1.19.1",
+        "zh": "Tempora 桌面端 v1.19.1"
       },
       "summary": {
         "en": "This stable release fixes several user-reported issues, including wallet currency alignment, macOS icon rendering, menu clipping, and update recovery.",
@@ -18037,7 +18037,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.19.1",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/v1.19.0...desktop-v1.19.1",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.19.1",
       "baseVersion": "1.19.1",
@@ -18705,7 +18705,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.19.0",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/v1.18.0...desktop-v1.19.0",
-        "download": "https://reasonix.io/?download=desktop&channel=stable#start"
+        "download": "https://tempora.io/?download=desktop&channel=stable#start"
       },
       "releaseId": "1.19.0",
       "baseVersion": "1.19.0",
@@ -18722,8 +18722,8 @@
       "date": "2026-08-01",
       "channel": "prerelease",
       "title": {
-        "en": "Reasonix Desktop v1.19.0-preview.3",
-        "zh": "Reasonix 桌面端 v1.19.0-preview.3"
+        "en": "Tempora Desktop v1.19.0-preview.3",
+        "zh": "Tempora 桌面端 v1.19.0-preview.3"
       },
       "summary": {
         "en": "This preview release resolves several user-reported issues, including wallet currency alignment, macOS icon rendering, menu clipping, and update recovery.",
@@ -18916,7 +18916,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/v1.19.0-preview.3",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/v1.19.0-preview.2...v1.19.0-preview.3",
-        "download": "https://reasonix.io/?download=desktop&channel=preview#start"
+        "download": "https://tempora.io/?download=desktop&channel=preview#start"
       },
       "releaseId": "1.19.0-preview.3",
       "baseVersion": "1.19.0",
@@ -19000,7 +19000,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/v1.19.0-preview.2",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/v1.19.0-preview.1...v1.19.0-preview.2",
-        "download": "https://reasonix.io/?download=desktop&channel=preview#start"
+        "download": "https://tempora.io/?download=desktop&channel=preview#start"
       },
       "releaseId": "1.19.0-preview.2",
       "baseVersion": "1.19.0",
@@ -19668,7 +19668,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/v1.19.0-preview.1",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/v1.18.0-preview.2...v1.19.0-preview.1",
-        "download": "https://reasonix.io/?download=desktop&channel=preview#start"
+        "download": "https://tempora.io/?download=desktop&channel=preview#start"
       },
       "releaseId": "1.19.0-preview.1",
       "baseVersion": "1.19.0",
@@ -19689,8 +19689,8 @@
         "zh": "上下文引擎 v2、内置终端与双发布渠道"
       },
       "summary": {
-        "en": "Reasonix 1.18.0 introduces Context Engine v2, integrated Desktop terminal sessions, and public Stable and Preview channels. It also adds Kimi K3, regional CNY/USD pricing and broader localization, improves large-session responsiveness, and hardens repair, authorization, artifact, telemetry, and release paths.",
-        "zh": "Reasonix 1.18.0 引入上下文引擎 v2、桌面端内置终端会话，以及公开的 Stable 与 Preview 双渠道；同时新增 Kimi K3、区域化人民币/美元计价与更完整的本地化，改善大型会话响应，并加固修复、授权、产物、遥测和发布链路。"
+        "en": "Tempora 1.18.0 introduces Context Engine v2, integrated Desktop terminal sessions, and public Stable and Preview channels. It also adds Kimi K3, regional CNY/USD pricing and broader localization, improves large-session responsiveness, and hardens repair, authorization, artifact, telemetry, and release paths.",
+        "zh": "Tempora 1.18.0 引入上下文引擎 v2、桌面端内置终端会话，以及公开的 Stable 与 Preview 双渠道；同时新增 Kimi K3、区域化人民币/美元计价与更完整的本地化，改善大型会话响应，并加固修复、授权、产物、遥测和发布链路。"
       },
       "surfaces": [
         "agent",
@@ -19705,23 +19705,23 @@
       "guides": [
         {
           "title": {
-            "en": "Reasonix User Guide",
+            "en": "Tempora User Guide",
             "zh": "用户指南"
           },
           "body": {
-            "en": "Comprehensive guide for using Reasonix.",
-            "zh": "Reasonix 使用综合指南。"
+            "en": "Comprehensive guide for using Tempora.",
+            "zh": "Tempora 使用综合指南。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/ba2c4d31b7ad39cd635b153dc015f454ed14ee1a/docs/GUIDE.md"
         },
         {
           "title": {
-            "en": "Reasonix User Guide (Chinese)",
+            "en": "Tempora User Guide (Chinese)",
             "zh": "用户指南（中文）"
           },
           "body": {
-            "en": "Comprehensive guide for using Reasonix in Chinese.",
-            "zh": "Reasonix 使用综合指南（中文版）。"
+            "en": "Comprehensive guide for using Tempora in Chinese.",
+            "zh": "Tempora 使用综合指南（中文版）。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/ba2c4d31b7ad39cd635b153dc015f454ed14ee1a/docs/GUIDE.zh-CN.md"
         },
@@ -19731,8 +19731,8 @@
             "zh": "推理提供商配置"
           },
           "body": {
-            "en": "How to configure AI model providers in Reasonix.",
-            "zh": "如何在 Reasonix 中配置 AI 模型提供商。"
+            "en": "How to configure AI model providers in Tempora.",
+            "zh": "如何在 Tempora 中配置 AI 模型提供商。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/ba2c4d31b7ad39cd635b153dc015f454ed14ee1a/docs/REASONING_PROVIDERS.md"
         },
@@ -19742,8 +19742,8 @@
             "zh": "发布流程"
           },
           "body": {
-            "en": "Details on Reasonix release channels and process.",
-            "zh": "Reasonix 发布渠道与流程详情。"
+            "en": "Details on Tempora release channels and process.",
+            "zh": "Tempora 发布渠道与流程详情。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/ba2c4d31b7ad39cd635b153dc015f454ed14ee1a/docs/RELEASING.md"
         }
@@ -19989,8 +19989,8 @@
             "zh": "Guard 自动化必须绑定已审阅预览"
           },
           "body": {
-            "en": "Non-interactive reasonix-guard apply-plan --yes now requires the preview ID returned by the reviewed plan. Interactive use continues to bind it automatically.",
-            "zh": "非交互执行 reasonix-guard apply-plan --yes 现在必须携带已审阅计划返回的 preview ID；交互式使用仍会自动绑定。"
+            "en": "Non-interactive tempora-guard apply-plan --yes now requires the preview ID returned by the reviewed plan. Interactive use continues to bind it automatically.",
+            "zh": "非交互执行 tempora-guard apply-plan --yes 现在必须携带已审阅计划返回的 preview ID；交互式使用仍会自动绑定。"
           },
           "refs": [
             6973
@@ -20009,7 +20009,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.18.0",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/v1.17.21...desktop-v1.18.0",
-        "download": "https://reasonix.io/?download=desktop#start"
+        "download": "https://tempora.io/?download=desktop#start"
       }
     },
     {
@@ -20042,8 +20042,8 @@
             "zh": "用户指南"
           },
           "body": {
-            "en": "The official user guide for Reasonix Desktop.",
-            "zh": "Reasonix Desktop 的官方用户指南。"
+            "en": "The official user guide for Tempora Desktop.",
+            "zh": "Tempora Desktop 的官方用户指南。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/dcca564ec87e96632a65a8332455ee3f6c1370d7/docs/GUIDE.md"
         },
@@ -20053,8 +20053,8 @@
             "zh": "用户指南（中文）"
           },
           "body": {
-            "en": "The Chinese user guide for Reasonix Desktop.",
-            "zh": "Reasonix Desktop 的中文用户指南。"
+            "en": "The Chinese user guide for Tempora Desktop.",
+            "zh": "Tempora Desktop 的中文用户指南。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/dcca564ec87e96632a65a8332455ee3f6c1370d7/docs/GUIDE.zh-CN.md"
         },
@@ -20064,8 +20064,8 @@
             "zh": "规范"
           },
           "body": {
-            "en": "The Reasonix specification.",
-            "zh": "Reasonix 规范。"
+            "en": "The Tempora specification.",
+            "zh": "Tempora 规范。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/dcca564ec87e96632a65a8332455ee3f6c1370d7/docs/SPEC.md"
         },
@@ -20075,8 +20075,8 @@
             "zh": "规范（中文）"
           },
           "body": {
-            "en": "The Chinese Reasonix specification.",
-            "zh": "Reasonix 的中文规范。"
+            "en": "The Chinese Tempora specification.",
+            "zh": "Tempora 的中文规范。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/dcca564ec87e96632a65a8332455ee3f6c1370d7/docs/SPEC.zh-CN.md"
         }
@@ -20505,7 +20505,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.17.21",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/v1.17.20...desktop-v1.17.21",
-        "download": "https://reasonix.io/?download=desktop#start"
+        "download": "https://tempora.io/?download=desktop#start"
       }
     },
     {
@@ -20535,8 +20535,8 @@
             "zh": "CLI 自动化接口"
           },
           "body": {
-            "en": "Use the documented session, task, hook, and event-stream contracts to integrate Reasonix without parsing terminal presentation.",
-            "zh": "使用文档化的会话、任务、Hook 和事件流契约集成 Reasonix，无需解析终端展示文本。"
+            "en": "Use the documented session, task, hook, and event-stream contracts to integrate Tempora without parsing terminal presentation.",
+            "zh": "使用文档化的会话、任务、Hook 和事件流契约集成 Tempora，无需解析终端展示文本。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/16d71aa4758765b6e7f86d8659e794bdd4a5b535/docs/CLI.md"
         }
@@ -20760,8 +20760,8 @@
             "zh": "现有 Debian 安装需要一次性 bootstrap"
           },
           "body": {
-            "en": "Older .deb installs do not contain the new Polkit helper. Install the 1.17.20 .deb once with sudo apt install ./Reasonix-linux-amd64.deb; later in-app updates can use the authorized helper without uninstalling first.",
-            "zh": "旧版 .deb 尚未包含新的 Polkit helper。请先执行一次 sudo apt install ./Reasonix-linux-amd64.deb 安装 1.17.20；之后即可使用应用内授权更新，无需先卸载。"
+            "en": "Older .deb installs do not contain the new Polkit helper. Install the 1.17.20 .deb once with sudo apt install ./Tempora-linux-amd64.deb; later in-app updates can use the authorized helper without uninstalling first.",
+            "zh": "旧版 .deb 尚未包含新的 Polkit helper。请先执行一次 sudo apt install ./Tempora-linux-amd64.deb 安装 1.17.20；之后即可使用应用内授权更新，无需先卸载。"
           },
           "refs": [
             6866
@@ -20822,7 +20822,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.17.20",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.17.19...desktop-v1.17.20",
-        "download": "https://reasonix.io/?download=desktop#start"
+        "download": "https://tempora.io/?download=desktop#start"
       }
     },
     {
@@ -21049,8 +21049,8 @@
               "zh": "Windows 便携包保留图形启动器"
             },
             "body": {
-              "en": "The bundled CLI now uses a distinct internal filename, preventing case-insensitive staging from replacing Reasonix.exe with the console executable.",
-              "zh": "内置 CLI 现在使用独立的内部文件名，避免不区分大小写的打包目录把 Reasonix.exe 图形启动器替换成控制台程序。"
+              "en": "The bundled CLI now uses a distinct internal filename, preventing case-insensitive staging from replacing Tempora.exe with the console executable.",
+              "zh": "内置 CLI 现在使用独立的内部文件名，避免不区分大小写的打包目录把 Tempora.exe 图形启动器替换成控制台程序。"
             },
             "refs": [
               6806
@@ -21099,7 +21099,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.17.19",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.17.18...desktop-v1.17.19",
-        "download": "https://reasonix.io/?download=desktop#start"
+        "download": "https://tempora.io/?download=desktop#start"
       }
     },
     {
@@ -21294,8 +21294,8 @@
               "zh": "VS Code 扩展安装入口"
             },
             "body": {
-              "en": "Project documentation and the website now expose direct installation paths for the Reasonix VS Code extension.",
-              "zh": "项目文档和官网现在提供 Reasonix VS Code 扩展的直接安装入口。"
+              "en": "Project documentation and the website now expose direct installation paths for the Tempora VS Code extension.",
+              "zh": "项目文档和官网现在提供 Tempora VS Code 扩展的直接安装入口。"
             },
             "refs": [
               6735
@@ -21354,7 +21354,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.17.18",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.17.17...desktop-v1.17.18",
-        "download": "https://reasonix.io/?download=desktop#start"
+        "download": "https://tempora.io/?download=desktop#start"
       }
     },
     {
@@ -21362,8 +21362,8 @@
       "date": "2026-07-21",
       "channel": "stable",
       "title": {
-        "en": "Reasonix 1.17.17",
-        "zh": "Reasonix 1.17.17"
+        "en": "Tempora 1.17.17",
+        "zh": "Tempora 1.17.17"
       },
       "summary": {
         "en": "This release brings ACP mid-turn steering, workspace diffs in Changes, retirement of automatic Plan Mode, and various UI and lifecycle fixes.",
@@ -21452,8 +21452,8 @@
             "zh": "ACP 回合中引导"
           },
           "body": {
-            "en": "Clients can now steer active sessions using the `_reasonix.io/session/steer` vendor extension, with full capability negotiation.",
-            "zh": "客户端现在可使用 `_reasonix.io/session/steer` 供应商扩展在活动会话中引导，支持完整的能力协商。"
+            "en": "Clients can now steer active sessions using the `_tempora.io/session/steer` vendor extension, with full capability negotiation.",
+            "zh": "客户端现在可使用 `_tempora.io/session/steer` 供应商扩展在活动会话中引导，支持完整的能力协商。"
           },
           "refs": [
             6715
@@ -21510,8 +21510,8 @@
               "zh": "ACP 回合中引导"
             },
             "body": {
-              "en": "Support for the `_reasonix.io/session/steer` ACP vendor extension, allowing clients to guide active sessions.",
-              "zh": "支持 `_reasonix.io/session/steer` ACP 供应商扩展，允许客户端在活动会话中引导。"
+              "en": "Support for the `_tempora.io/session/steer` ACP vendor extension, allowing clients to guide active sessions.",
+              "zh": "支持 `_tempora.io/session/steer` ACP 供应商扩展，允许客户端在活动会话中引导。"
             },
             "refs": [
               6715
@@ -21601,12 +21601,12 @@
           },
           {
             "title": {
-              "en": "CC Switch MCP import respects enabled_reasonix",
-              "zh": "CC Switch MCP 导入遵循 enabled_reasonix"
+              "en": "CC Switch MCP import respects enabled_tempora",
+              "zh": "CC Switch MCP 导入遵循 enabled_tempora"
             },
             "body": {
-              "en": "MCP servers from CC Switch are now correctly imported using the `enabled_reasonix` flag, with compatible fallbacks for older schemas.",
-              "zh": "现在使用 `enabled_reasonix` 标志正确导入 CC Switch 的 MCP 服务器，并为旧架构提供兼容回退。"
+              "en": "MCP servers from CC Switch are now correctly imported using the `enabled_tempora` flag, with compatible fallbacks for older schemas.",
+              "zh": "现在使用 `enabled_tempora` 标志正确导入 CC Switch 的 MCP 服务器，并为旧架构提供兼容回退。"
             },
             "refs": [
               6730
@@ -21681,7 +21681,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.17.17",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.17.16...desktop-v1.17.17",
-        "download": "https://reasonix.io/?download=desktop#start"
+        "download": "https://tempora.io/?download=desktop#start"
       }
     },
     {
@@ -21689,8 +21689,8 @@
       "date": "2026-07-20",
       "channel": "stable",
       "title": {
-        "en": "Reasonix 1.17.16",
-        "zh": "Reasonix 1.17.16"
+        "en": "Tempora 1.17.16",
+        "zh": "Tempora 1.17.16"
       },
       "summary": {
         "en": "Remote SSH and parallel subagent fleets lead this release, alongside regional typography, customizable composer shortcuts, reliable exports, and stronger session and MCP recovery.",
@@ -21770,8 +21770,8 @@
             "zh": "远程 SSH"
           },
           "body": {
-            "en": "Connect to a remote host over SSH and run the full Reasonix agent and tools remotely. Includes host manager, file browser, port forwarding, and automatic reconnection.",
-            "zh": "通过 SSH 连接到远程主机并远程运行完整的 Reasonix 智能体与工具。包含主机管理、文件浏览、端口转发和自动重连。"
+            "en": "Connect to a remote host over SSH and run the full Tempora agent and tools remotely. Includes host manager, file browser, port forwarding, and automatic reconnection.",
+            "zh": "通过 SSH 连接到远程主机并远程运行完整的 Tempora 智能体与工具。包含主机管理、文件浏览、端口转发和自动重连。"
           },
           "refs": [
             6673
@@ -21894,8 +21894,8 @@
               "zh": "CLI 中键粘贴"
             },
             "body": {
-              "en": "Restore middle-click paste in the Reasonix CLI (tmux buffer or PRIMARY selection).",
-              "zh": "在 Reasonix CLI 中恢复中键粘贴功能（tmux 缓冲区或 PRIMARY 选择区）。"
+              "en": "Restore middle-click paste in the Tempora CLI (tmux buffer or PRIMARY selection).",
+              "zh": "在 Tempora CLI 中恢复中键粘贴功能（tmux 缓冲区或 PRIMARY 选择区）。"
             },
             "refs": [
               6589
@@ -22212,7 +22212,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.17.16",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.17.15...desktop-v1.17.16",
-        "download": "https://reasonix.io/?download=desktop#start"
+        "download": "https://tempora.io/?download=desktop#start"
       }
     },
     {
@@ -22220,8 +22220,8 @@
       "date": "2026-07-18",
       "channel": "stable",
       "title": {
-        "en": "Reasonix 1.17.15",
-        "zh": "Reasonix 1.17.15"
+        "en": "Tempora 1.17.15",
+        "zh": "Tempora 1.17.15"
       },
       "summary": {
         "en": "This release adds the new official Desktop theme experience, makes long-running chats and session switching more reliable, restores persistent MCP sessions, and polishes the CLI workflow.",
@@ -22376,8 +22376,8 @@
               "zh": "官网深色模式"
             },
             "body": {
-              "en": "reasonix.io now supports system, light, and dark themes, uses the prefix-cache block as a shared visual motif, and presents frequent patch releases in a compact changelog layout.",
-              "zh": "reasonix.io 现支持跟随系统、浅色和深色主题，以前缀缓存方块统一视觉母题，并用更紧凑的更新日志展示高频补丁版本。"
+              "en": "tempora.io now supports system, light, and dark themes, uses the prefix-cache block as a shared visual motif, and presents frequent patch releases in a compact changelog layout.",
+              "zh": "tempora.io 现支持跟随系统、浅色和深色主题，以前缀缓存方块统一视觉母题，并用更紧凑的更新日志展示高频补丁版本。"
             },
             "refs": [
               6627
@@ -22530,8 +22530,8 @@
             "zh": "分享会话前请主动脱敏"
           },
           "body": {
-            "en": "Ordinary model and tool content is now stored verbatim in private local files. If a tool prints a real credential, run reasonix doctor redact-sessions or review the files before sharing them.",
-            "zh": "普通模型与工具内容现在会原样写入私有本地文件。如果工具输出了真实凭据，分享前请运行 reasonix doctor redact-sessions 或人工检查相关文件。"
+            "en": "Ordinary model and tool content is now stored verbatim in private local files. If a tool prints a real credential, run tempora doctor redact-sessions or review the files before sharing them.",
+            "zh": "普通模型与工具内容现在会原样写入私有本地文件。如果工具输出了真实凭据，分享前请运行 tempora doctor redact-sessions 或人工检查相关文件。"
           },
           "refs": [
             6583
@@ -22559,7 +22559,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.17.15",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.17.14...desktop-v1.17.15",
-        "download": "https://reasonix.io/?download=desktop#start"
+        "download": "https://tempora.io/?download=desktop#start"
       }
     },
     {
@@ -22567,8 +22567,8 @@
       "date": "2026-07-16",
       "channel": "stable",
       "title": {
-        "en": "Reasonix 1.17.14",
-        "zh": "Reasonix 1.17.14"
+        "en": "Tempora 1.17.14",
+        "zh": "Tempora 1.17.14"
       },
       "summary": {
         "en": "This release improves the desktop experience with clearer MCP error messages, Windows plugin hook fixes, executable icons, and a new bilingual changelog.",
@@ -22584,8 +22584,8 @@
             "zh": "桌面 Hook"
           },
           "body": {
-            "en": "Guide for creating and using hooks in Reasonix Desktop.",
-            "zh": "在 Reasonix 桌面端中创建和使用 Hook 的指南。"
+            "en": "Guide for creating and using hooks in Tempora Desktop.",
+            "zh": "在 Tempora 桌面端中创建和使用 Hook 的指南。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/cc9b1f52e6bc787719b78e70db8d7e487fe2fdd1/docs/DESKTOP_HOOKS.zh-CN.md"
         },
@@ -22595,8 +22595,8 @@
             "zh": "插件包"
           },
           "body": {
-            "en": "How to create, configure, and distribute Reasonix plugins.",
-            "zh": "如何创建、配置和分发 Reasonix 插件。"
+            "en": "How to create, configure, and distribute Tempora plugins.",
+            "zh": "如何创建、配置和分发 Tempora 插件。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/cc9b1f52e6bc787719b78e70db8d7e487fe2fdd1/docs/PLUGIN_PACKAGES.md"
         },
@@ -22606,8 +22606,8 @@
             "zh": "插件包（中文）"
           },
           "body": {
-            "en": "Chinese guide for creating, configuring, and distributing Reasonix plugins.",
-            "zh": "中文指南：创建、配置和分发 Reasonix 插件。"
+            "en": "Chinese guide for creating, configuring, and distributing Tempora plugins.",
+            "zh": "中文指南：创建、配置和分发 Tempora 插件。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/cc9b1f52e6bc787719b78e70db8d7e487fe2fdd1/docs/PLUGIN_PACKAGES.zh-CN.md"
         },
@@ -22617,8 +22617,8 @@
             "zh": "发布流程"
           },
           "body": {
-            "en": "How to build, validate, and publish a Reasonix release.",
-            "zh": "如何构建、验证和发布 Reasonix 版本。"
+            "en": "How to build, validate, and publish a Tempora release.",
+            "zh": "如何构建、验证和发布 Tempora 版本。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/cc9b1f52e6bc787719b78e70db8d7e487fe2fdd1/docs/RELEASING.md"
         }
@@ -22659,8 +22659,8 @@
             "zh": "Windows 插件 Hook 兼容性"
           },
           "body": {
-            "en": "Plugin hooks on Windows now correctly expand aliases like ${REASONIX_PLUGIN_ROOT}, support bash hooks, and handle non-UTF-8 output.",
-            "zh": "Windows 插件 Hook 现在能正确展开 ${REASONIX_PLUGIN_ROOT} 等别名，支持 bash Hook，并能处理非 UTF-8 输出。"
+            "en": "Plugin hooks on Windows now correctly expand aliases like ${TEMPORA_PLUGIN_ROOT}, support bash hooks, and handle non-UTF-8 output.",
+            "zh": "Windows 插件 Hook 现在能正确展开 ${TEMPORA_PLUGIN_ROOT} 等别名，支持 bash Hook，并能处理非 UTF-8 输出。"
           },
           "refs": [
             6550
@@ -22673,8 +22673,8 @@
             "zh": "Windows 可执行程序图标"
           },
           "body": {
-            "en": "Windows launcher, guard, and updater now display the Reasonix icon and include version metadata.",
-            "zh": "Windows 启动器、守护程序和更新程序现在显示 Reasonix 图标，并包含版本元数据。"
+            "en": "Windows launcher, guard, and updater now display the Tempora icon and include version metadata.",
+            "zh": "Windows 启动器、守护程序和更新程序现在显示 Tempora 图标，并包含版本元数据。"
           },
           "refs": [
             6549
@@ -22718,8 +22718,8 @@
               "zh": "Windows 可执行程序图标"
             },
             "body": {
-              "en": "Launcher, guard, and update helper now have the Reasonix icon and version metadata.",
-              "zh": "启动器、守护程序和更新助手现具有 Reasonix 图标及版本元数据。"
+              "en": "Launcher, guard, and update helper now have the Tempora icon and version metadata.",
+              "zh": "启动器、守护程序和更新助手现具有 Tempora 图标及版本元数据。"
             },
             "refs": [
               6549
@@ -22776,7 +22776,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.17.14",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/v1.17.13...desktop-v1.17.14",
-        "download": "https://reasonix.io/?download=desktop#start"
+        "download": "https://tempora.io/?download=desktop#start"
       }
     },
     {
@@ -22805,8 +22805,8 @@
             "zh": "恢复损坏的安装"
           },
           "body": {
-            "en": "Use reasonix-guard to diagnose configuration and installation failures, restore a snapshot, or start in Safe Mode.",
-            "zh": "使用 reasonix-guard 诊断配置与安装故障、恢复快照，或进入安全模式。"
+            "en": "Use tempora-guard to diagnose configuration and installation failures, restore a snapshot, or start in Safe Mode.",
+            "zh": "使用 tempora-guard 诊断配置与安装故障、恢复快照，或进入安全模式。"
           },
           "href": "https://github.com/esengine/DeepSeek-Reasonix/blob/main-v2/docs/RECOVERY.zh-CN.md"
         },
@@ -22876,8 +22876,8 @@
             "zh": "Claude 插件兼容"
           },
           "body": {
-            "en": "Reasonix can consume Claude-compatible plugin packages and adapt their commands and hooks into the existing plugin runtime.",
-            "zh": "Reasonix 现在可以加载 Claude 兼容插件包，并把其中的命令与 Hooks 接入现有插件运行时。"
+            "en": "Tempora can consume Claude-compatible plugin packages and adapt their commands and hooks into the existing plugin runtime.",
+            "zh": "Tempora 现在可以加载 Claude 兼容插件包，并把其中的命令与 Hooks 接入现有插件运行时。"
           },
           "refs": [
             6434
@@ -23011,8 +23011,8 @@
             "zh": "Windows 原生沙箱后端已退役"
           },
           "body": {
-            "en": "If you previously selected the retired native Windows sandbox, open Settings → Sandbox after upgrading and choose a supported isolation mode. Reasonix reports a remediation message instead of silently falling back.",
-            "zh": "如果此前选择了已退役的 Windows 原生沙箱，升级后请打开“设置 → 沙箱”并选择受支持的隔离方式。Reasonix 会显示修复提示，不会静默降级。"
+            "en": "If you previously selected the retired native Windows sandbox, open Settings → Sandbox after upgrading and choose a supported isolation mode. Tempora reports a remediation message instead of silently falling back.",
+            "zh": "如果此前选择了已退役的 Windows 原生沙箱，升级后请打开“设置 → 沙箱”并选择受支持的隔离方式。Tempora 会显示修复提示，不会静默降级。"
           },
           "refs": [
             6516
@@ -23025,8 +23025,8 @@
             "zh": "MCP 信任可能需要重新确认"
           },
           "body": {
-            "en": "When a package identity or executable no longer matches its stored receipt, Reasonix asks for a new approval rather than reusing stale trust.",
-            "zh": "当插件包身份或可执行文件与已保存回执不一致时，Reasonix 会请求新的审批，而不会沿用过期信任。"
+            "en": "When a package identity or executable no longer matches its stored receipt, Tempora asks for a new approval rather than reusing stale trust.",
+            "zh": "当插件包身份或可执行文件与已保存回执不一致时，Tempora 会请求新的审批，而不会沿用过期信任。"
           },
           "refs": [
             6482
@@ -23062,7 +23062,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.17.13",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.17.12...desktop-v1.17.13",
-        "download": "https://reasonix.io/?download=desktop#start"
+        "download": "https://tempora.io/?download=desktop#start"
       }
     },
     {
@@ -23088,8 +23088,8 @@
         {
           "kind": "new",
           "title": {
-            "en": "Provider manager in reasonix setup",
-            "zh": "reasonix setup 变成 Provider 管理器"
+            "en": "Provider manager in tempora setup",
+            "zh": "tempora setup 变成 Provider 管理器"
           },
           "body": {
             "en": "Add, edit, test, and choose provider access from one terminal workflow instead of rerunning a first-use wizard.",
@@ -23199,7 +23199,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.17.12",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.17.11...desktop-v1.17.12",
-        "download": "https://reasonix.io/?download=desktop#start"
+        "download": "https://tempora.io/?download=desktop#start"
       }
     },
     {
@@ -23211,8 +23211,8 @@
         "zh": "运行档、插件命令与更安全的会话交接"
       },
       "summary": {
-        "en": "This release introduces configurable subagent and runtime profiles, maps Claude plugin commands into Reasonix, and closes several session handoff gaps that could hide messages, drop turns, or obscure provider failures.",
-        "zh": "这一版新增可配置子智能体与运行档，把 Claude 插件命令接入 Reasonix，并修复多个会话交接缺口，避免消息隐藏、回合丢失或 Provider 错误被掩盖。"
+        "en": "This release introduces configurable subagent and runtime profiles, maps Claude plugin commands into Tempora, and closes several session handoff gaps that could hide messages, drop turns, or obscure provider failures.",
+        "zh": "这一版新增可配置子智能体与运行档，把 Claude 插件命令接入 Tempora，并修复多个会话交接缺口，避免消息隐藏、回合丢失或 Provider 错误被掩盖。"
       },
       "surfaces": [
         "agent",
@@ -23336,7 +23336,7 @@
       "links": {
         "github": "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/desktop-v1.17.11",
         "compare": "https://github.com/esengine/DeepSeek-Reasonix/compare/desktop-v1.17.10...desktop-v1.17.11",
-        "download": "https://reasonix.io/?download=desktop#start"
+        "download": "https://tempora.io/?download=desktop#start"
       }
     }
   ]

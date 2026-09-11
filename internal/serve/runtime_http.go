@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
+	"tempora/internal/config"
+	"tempora/internal/control"
 )
 
 func (s *Server) modelSwitch(w http.ResponseWriter, r *http.Request) {

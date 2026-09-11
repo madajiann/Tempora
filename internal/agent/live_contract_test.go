@@ -3,10 +3,10 @@ package agent
 import (
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/taskcontract"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/taskcontract"
+	"tempora/internal/tool"
 )
 
 type contractShadowSink struct {

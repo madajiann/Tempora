@@ -7,18 +7,18 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/desktop/internal/update"
-	"reasonix/internal/repair"
+	"tempora/desktop/internal/update"
+	"tempora/internal/repair"
 )
 
 func TestLoadWindowsStagedReleaseUnitPreflightsAllMembersAndPublishesDesktopLast(t *testing.T) {
 	staging := t.TempDir()
 	for name, content := range map[string]string{
-		"reasonix-desktop.exe":       "desktop-v2",
-		"reasonix-guard.exe":         "guard-v2",
-		"reasonix-launcher.exe":      "launcher-v2",
-		"reasonix-update-helper.exe": "helper-v2",
-		"reasonix-cli.exe":           "cli-v2",
+		"tempora-desktop.exe":       "desktop-v2",
+		"tempora-guard.exe":         "guard-v2",
+		"tempora-launcher.exe":      "launcher-v2",
+		"tempora-update-helper.exe": "helper-v2",
+		"tempora-cli.exe":           "cli-v2",
 	} {
 		if err := os.WriteFile(filepath.Join(staging, name), []byte(content), 0o700); err != nil {
 			t.Fatal(err)
@@ -30,14 +30,14 @@ func TestLoadWindowsStagedReleaseUnitPreflightsAllMembersAndPublishesDesktopLast
 		SchemaVersion: 1,
 		ToVersion:     "v2",
 		TargetKind:    "file",
-		TargetPath:    filepath.Join(installDir, "reasonix-desktop.exe"),
+		TargetPath:    filepath.Join(installDir, "tempora-desktop.exe"),
 		Files: []repair.UpdateTransactionFile{
-			{TargetPath: filepath.Join(installDir, "reasonix-desktop.exe")},
-			{TargetPath: filepath.Join(installDir, "reasonix-guard.exe")},
-			{TargetPath: filepath.Join(installDir, "reasonix-launcher.exe")},
-			{TargetPath: filepath.Join(installDir, "reasonix-update-helper.exe")},
-			{TargetPath: filepath.Join(installDir, "reasonix-cli.exe")},
-			{TargetPath: filepath.Join(installDir, "Reasonix.exe")},
+			{TargetPath: filepath.Join(installDir, "tempora-desktop.exe")},
+			{TargetPath: filepath.Join(installDir, "tempora-guard.exe")},
+			{TargetPath: filepath.Join(installDir, "tempora-launcher.exe")},
+			{TargetPath: filepath.Join(installDir, "tempora-update-helper.exe")},
+			{TargetPath: filepath.Join(installDir, "tempora-cli.exe")},
+			{TargetPath: filepath.Join(installDir, "Tempora.exe")},
 		},
 	}
 
@@ -45,7 +45,7 @@ func TestLoadWindowsStagedReleaseUnitPreflightsAllMembersAndPublishesDesktopLast
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := filepath.Base(members[len(members)-1].targetPath); !strings.EqualFold(got, "reasonix-desktop.exe") {
+	if got := filepath.Base(members[len(members)-1].targetPath); !strings.EqualFold(got, "tempora-desktop.exe") {
 		t.Fatalf("last published member = %q, want desktop", got)
 	}
 	var published []string
@@ -59,17 +59,17 @@ func TestLoadWindowsStagedReleaseUnitPreflightsAllMembersAndPublishesDesktopLast
 	if len(receipts) != len(members) {
 		t.Fatalf("publish receipts = %d, want %d", len(receipts), len(members))
 	}
-	if got := strings.Join(published, ","); !strings.Contains(got, "Reasonix.exe=launcher-v2") {
+	if got := strings.Join(published, ","); !strings.Contains(got, "Tempora.exe=launcher-v2") {
 		t.Fatalf("portable alias did not reuse launcher payload: %s", got)
 	}
-	if !strings.HasPrefix(published[len(published)-1], "reasonix-desktop.exe=") {
+	if !strings.HasPrefix(published[len(published)-1], "tempora-desktop.exe=") {
 		t.Fatalf("publish order = %v", published)
 	}
 }
 
 func TestLoadWindowsStagedReleaseUnitRejectsIncompletePayloadBeforePublish(t *testing.T) {
 	staging := t.TempDir()
-	if err := os.WriteFile(filepath.Join(staging, "reasonix-desktop.exe"), []byte("desktop-v2"), 0o700); err != nil {
+	if err := os.WriteFile(filepath.Join(staging, "tempora-desktop.exe"), []byte("desktop-v2"), 0o700); err != nil {
 		t.Fatal(err)
 	}
 	useTestWindowsPayloadManifest(t, staging, "v2")
@@ -78,10 +78,10 @@ func TestLoadWindowsStagedReleaseUnitRejectsIncompletePayloadBeforePublish(t *te
 		SchemaVersion: 1,
 		ToVersion:     "v2",
 		TargetKind:    "file",
-		TargetPath:    filepath.Join(installDir, "reasonix-desktop.exe"),
+		TargetPath:    filepath.Join(installDir, "tempora-desktop.exe"),
 		Files: []repair.UpdateTransactionFile{
-			{TargetPath: filepath.Join(installDir, "reasonix-desktop.exe")},
-			{TargetPath: filepath.Join(installDir, "reasonix-guard.exe")},
+			{TargetPath: filepath.Join(installDir, "tempora-desktop.exe")},
+			{TargetPath: filepath.Join(installDir, "tempora-guard.exe")},
 		},
 	}
 	if _, err := loadWindowsStagedReleaseUnit(claimed, staging); err == nil {
@@ -130,7 +130,7 @@ func TestValidateWindowsClaimedReleaseUnitRequiresExactTargets(t *testing.T) {
 	})
 	t.Run("primary", func(t *testing.T) {
 		claimed := *complete
-		claimed.TargetPath = filepath.Join(filepath.Dir(complete.TargetPath), "reasonix-guard.exe")
+		claimed.TargetPath = filepath.Join(filepath.Dir(complete.TargetPath), "tempora-guard.exe")
 		if err := validateWindowsClaimedReleaseUnit(&claimed); err == nil ||
 			!strings.Contains(err.Error(), "primary") {
 			t.Fatalf("primary target error = %v", err)
@@ -152,14 +152,14 @@ func TestLoadWindowsStagedReleaseUnitDoesNotCreateMissingPortableAlias(t *testin
 		SchemaVersion: 1,
 		ToVersion:     "v2",
 		TargetKind:    "file",
-		TargetPath:    filepath.Join(installDir, "reasonix-desktop.exe"),
+		TargetPath:    filepath.Join(installDir, "tempora-desktop.exe"),
 		Files: []repair.UpdateTransactionFile{
-			{TargetPath: filepath.Join(installDir, "reasonix-desktop.exe")},
-			{TargetPath: filepath.Join(installDir, "reasonix-guard.exe")},
-			{TargetPath: filepath.Join(installDir, "reasonix-launcher.exe")},
-			{TargetPath: filepath.Join(installDir, "reasonix-update-helper.exe")},
-			{TargetPath: filepath.Join(installDir, "reasonix-cli.exe")},
-			{TargetPath: filepath.Join(installDir, "Reasonix.exe"), MissingBefore: true},
+			{TargetPath: filepath.Join(installDir, "tempora-desktop.exe")},
+			{TargetPath: filepath.Join(installDir, "tempora-guard.exe")},
+			{TargetPath: filepath.Join(installDir, "tempora-launcher.exe")},
+			{TargetPath: filepath.Join(installDir, "tempora-update-helper.exe")},
+			{TargetPath: filepath.Join(installDir, "tempora-cli.exe")},
+			{TargetPath: filepath.Join(installDir, "Tempora.exe"), MissingBefore: true},
 		},
 	}
 
@@ -168,7 +168,7 @@ func TestLoadWindowsStagedReleaseUnitDoesNotCreateMissingPortableAlias(t *testin
 		t.Fatal(err)
 	}
 	for _, member := range members {
-		if strings.EqualFold(filepath.Base(member.targetPath), "Reasonix.exe") {
+		if strings.EqualFold(filepath.Base(member.targetPath), "Tempora.exe") {
 			t.Fatalf("missing portable alias was added to publish set: %+v", members)
 		}
 	}
@@ -199,11 +199,11 @@ func TestPublishLoadedFileUpdateReleaseUnitStopsOnFirstFailedCompareAndPublish(t
 func TestLoadWindowsStagedReleaseUnitRejectsUnverifiedPayloadBeforePublish(t *testing.T) {
 	staging := t.TempDir()
 	for _, name := range []string{
-		"reasonix-desktop.exe",
-		"reasonix-guard.exe",
-		"reasonix-launcher.exe",
-		"reasonix-update-helper.exe",
-		"reasonix-cli.exe",
+		"tempora-desktop.exe",
+		"tempora-guard.exe",
+		"tempora-launcher.exe",
+		"tempora-update-helper.exe",
+		"tempora-cli.exe",
 	} {
 		if err := os.WriteFile(filepath.Join(staging, name), []byte(name), 0o700); err != nil {
 			t.Fatal(err)
@@ -226,11 +226,11 @@ func TestLoadWindowsStagedReleaseUnitRejectsUnverifiedPayloadBeforePublish(t *te
 func TestLoadWindowsStagedReleaseUnitReadsEachSourceThroughVerifier(t *testing.T) {
 	staging := t.TempDir()
 	for name, content := range map[string]string{
-		"reasonix-desktop.exe":       "desktop-v2",
-		"reasonix-guard.exe":         "guard-v2",
-		"reasonix-launcher.exe":      "launcher-v2",
-		"reasonix-update-helper.exe": "helper-v2",
-		"reasonix-cli.exe":           "cli-v2",
+		"tempora-desktop.exe":       "desktop-v2",
+		"tempora-guard.exe":         "guard-v2",
+		"tempora-launcher.exe":      "launcher-v2",
+		"tempora-update-helper.exe": "helper-v2",
+		"tempora-cli.exe":           "cli-v2",
 	} {
 		if err := os.WriteFile(filepath.Join(staging, name), []byte(content), 0o700); err != nil {
 			t.Fatal(err)
@@ -290,7 +290,7 @@ func TestLoadWindowsStagedReleaseUnitRejectsManifestMemberHashDrift(t *testing.T
 	writeWindowsPayloadManifestForTest(t, staging, "v2")
 	acceptWindowsPayloadManifestForTest(t)
 	useUnverifiedPayloadReaderForTest(t)
-	if err := os.WriteFile(filepath.Join(staging, "reasonix-guard.exe"), []byte("tampered"), 0o700); err != nil {
+	if err := os.WriteFile(filepath.Join(staging, "tempora-guard.exe"), []byte("tampered"), 0o700); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := loadWindowsStagedReleaseUnit(claimed, staging); err == nil ||
@@ -313,14 +313,14 @@ func completeWindowsStagedReleaseUnitForTest(t *testing.T, version string) (stri
 		files = append(files, repair.UpdateTransactionFile{TargetPath: filepath.Join(installDir, name)})
 	}
 	files = append(files, repair.UpdateTransactionFile{
-		TargetPath:    filepath.Join(installDir, "Reasonix.exe"),
+		TargetPath:    filepath.Join(installDir, "Tempora.exe"),
 		MissingBefore: true,
 	})
 	return staging, &repair.UpdateTransaction{
 		SchemaVersion: 1,
 		ToVersion:     version,
 		TargetKind:    "file",
-		TargetPath:    filepath.Join(installDir, "reasonix-desktop.exe"),
+		TargetPath:    filepath.Join(installDir, "tempora-desktop.exe"),
 		Files:         files,
 	}
 }

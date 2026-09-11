@@ -6,10 +6,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"reasonix/internal/command"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/skill"
+	"tempora/internal/command"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/skill"
 )
 
 func TestServeCommandsUsesActiveControllerCatalog(t *testing.T) {

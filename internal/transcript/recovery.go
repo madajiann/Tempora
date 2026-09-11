@@ -3,8 +3,8 @@ package transcript
 import (
 	"strings"
 
-	"reasonix/internal/event"
-	"reasonix/internal/turnevent"
+	"tempora/internal/event"
+	"tempora/internal/turnevent"
 )
 
 // PendingDisplayMessages is the legacy migration path. Modern recovery uses

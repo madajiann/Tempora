@@ -4,7 +4,7 @@ import (
 	"slices"
 	"testing"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 func TestInteractiveAgentToolsEndNaturallyWithoutFinish(t *testing.T) {

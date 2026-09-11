@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"reasonix/internal/tool"
-	"reasonix/internal/tool/builtin"
+	"tempora/internal/tool"
+	"tempora/internal/tool/builtin"
 )
 
 // pathBoundWriter wraps a built-in write tool so each Execute stays inside a

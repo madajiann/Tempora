@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 func TestOrphanRecoveryDistinguishesPendingAndStartedAndIsIdempotent(t *testing.T) {

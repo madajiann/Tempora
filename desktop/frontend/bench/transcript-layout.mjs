@@ -11,9 +11,9 @@ process.env.PLAYWRIGHT_BROWSERS_PATH = !process.env.PLAYWRIGHT_BROWSERS_PATH || 
   ? path.join(root, ".pw-browsers") : process.env.PLAYWRIGHT_BROWSERS_PATH;
 const { chromium, _electron } = await import("playwright");
 const electronEngine = process.argv.includes("--electron");
-if (electronEngine) process.env.REASONIX_SHELL = "electron";
-const output = await mkdtemp(path.join(tmpdir(), "reasonix-layout-build-"));
-const evidence = process.env.REASONIX_LAYOUT_ARTIFACTS;
+if (electronEngine) process.env.TEMPORA_SHELL = "electron";
+const output = await mkdtemp(path.join(tmpdir(), "tempora-layout-build-"));
+const evidence = process.env.TEMPORA_LAYOUT_ARTIFACTS;
 const samples = [];
 let server;
 let browser;
@@ -39,7 +39,7 @@ try {
     const electronRequire = createRequire(path.join(root, "../electron/package.json"));
     electronApp = await _electron.launch({
       executablePath: electronRequire("electron"), args: [main],
-      env: { ...process.env, REASONIX_LAYOUT_URL: url },
+      env: { ...process.env, TEMPORA_LAYOUT_URL: url },
     });
     page = await electronApp.firstWindow();
   } else {

@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
+	"tempora/internal/agent"
+	"tempora/internal/control"
 )
 
 func TestModelSettingsFinalAuthorityFailurePreservesRuntimeAndRecovers(t *testing.T) {

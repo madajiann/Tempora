@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/control"
 )
 
 func TestOpenCodeGoCLIResumeAndExplicitSelection(t *testing.T) {

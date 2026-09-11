@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/http"
 
-	"reasonix/internal/control"
+	"tempora/internal/control"
 )
 
 type toolRecoveryController interface {

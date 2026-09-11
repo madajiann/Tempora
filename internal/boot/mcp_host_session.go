@@ -3,8 +3,8 @@ package boot
 import (
 	"strings"
 
-	"reasonix/internal/config"
-	"reasonix/internal/plugin"
+	"tempora/internal/config"
+	"tempora/internal/plugin"
 )
 
 // capabilityServerInventory adds explicitly supplied host-session servers to

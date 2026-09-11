@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/command"
-	"reasonix/internal/hook"
-	"reasonix/internal/plugin"
-	"reasonix/internal/pluginpkg"
-	"reasonix/internal/provider"
-	"reasonix/internal/skill"
-	"reasonix/internal/tool"
+	"tempora/internal/command"
+	"tempora/internal/hook"
+	"tempora/internal/plugin"
+	"tempora/internal/pluginpkg"
+	"tempora/internal/provider"
+	"tempora/internal/skill"
+	"tempora/internal/tool"
 )
 
 // The adapters wrap existing discovery in the Contributor interface. They do

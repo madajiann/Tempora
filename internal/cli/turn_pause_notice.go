@@ -3,8 +3,8 @@ package cli
 import (
 	"strings"
 
-	"reasonix/internal/event"
-	"reasonix/internal/i18n"
+	"tempora/internal/event"
+	"tempora/internal/i18n"
 )
 
 // commitTurnPauseNotice renders a controlled-pause TurnDone outcome as one

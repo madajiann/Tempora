@@ -16,8 +16,8 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/bot"
-	"reasonix/internal/textutil"
+	"tempora/internal/bot"
+	"tempora/internal/textutil"
 
 	"golang.org/x/net/websocket"
 )
@@ -264,8 +264,8 @@ func (a *adapter) connectGateway(ctx context.Context, token string, intents int)
 		Shard:   [2]int{0, 1},
 		Properties: properties{
 			OS:      "linux",
-			Browser: "reasonix",
-			Device:  "reasonix-bot",
+			Browser: "tempora",
+			Device:  "tempora-bot",
 		},
 	}
 	identifyJSON, _ := json.Marshal(identify)

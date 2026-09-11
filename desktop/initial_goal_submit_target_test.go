@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"reasonix/internal/control"
+	"tempora/internal/control"
 )
 
 type initialGoalSubmitRecorder struct {

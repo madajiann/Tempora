@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 type cliCompletionValueKind uint8
@@ -97,7 +97,7 @@ func cliCompletionRootSpec() cliCompletionSpec {
 		completionFlag("--ablate", cliCompletionStaticValue, "none", "all", "evidence", "planner", "subagent", "retrieval", "compaction"),
 		help,
 	}
-	root := cliCompletionSpec{name: "reasonix", flags: append([]cliCompletionFlag{
+	root := cliCompletionSpec{name: "tempora", flags: append([]cliCompletionFlag{
 		model,
 		completionFlag("--max-steps", cliCompletionStaticValue),
 		completionFlag("--print -p", cliCompletionNoValue),
@@ -441,9 +441,9 @@ func completionCommand(args []string) int {
 
 func completionUsage(w *os.File) {
 	fmt.Fprintln(w, `Usage:
-  reasonix completion bash
-  reasonix completion zsh
-  reasonix completion fish
+  tempora completion bash
+  tempora completion zsh
+  tempora completion fish
 
 The command prints a completion script to stdout. Source it directly or save it
 in your shell's completion directory.`)
@@ -650,35 +650,35 @@ func stableUniqueCompletionValues(values []string) []string {
 	return out
 }
 
-const bashCompletionScript = `# bash completion for reasonix
-_reasonix_completion() {
+const bashCompletionScript = `# bash completion for tempora
+_tempora_completion() {
   local line
   COMPREPLY=()
   while IFS= read -r line; do
     COMPREPLY+=("$line")
-  done < <(command reasonix completion __complete "$COMP_CWORD" "${COMP_WORDS[@]}" 2>/dev/null)
+  done < <(command tempora completion __complete "$COMP_CWORD" "${COMP_WORDS[@]}" 2>/dev/null)
 }
-complete -o default -F _reasonix_completion reasonix
+complete -o default -F _tempora_completion tempora
 `
 
-const zshCompletionScript = `#compdef reasonix
-_reasonix_completion() {
+const zshCompletionScript = `#compdef tempora
+_tempora_completion() {
   local -a candidates
-  candidates=("${(@f)$(command reasonix completion __complete "$((CURRENT - 1))" "${words[@]}" 2>/dev/null)}")
+  candidates=("${(@f)$(command tempora completion __complete "$((CURRENT - 1))" "${words[@]}" 2>/dev/null)}")
   if (( ${#candidates[@]} )); then
     compadd -- "${candidates[@]}"
   else
     _default
   fi
 }
-compdef _reasonix_completion reasonix
+compdef _tempora_completion tempora
 `
 
-const fishCompletionScript = `function __reasonix_completion
+const fishCompletionScript = `function __tempora_completion
     set -l tokens (commandline -opc)
     set -a tokens (commandline -ct)
     set -l current_index (math (count $tokens) - 1)
-    command reasonix completion __complete $current_index $tokens 2>/dev/null
+    command tempora completion __complete $current_index $tokens 2>/dev/null
 end
-complete -c reasonix -a '(__reasonix_completion)'
+complete -c tempora -a '(__tempora_completion)'
 `

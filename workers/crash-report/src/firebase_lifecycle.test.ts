@@ -57,7 +57,7 @@ async function privateKeyPEM(): Promise<string> {
 async function envFor(db: DatabaseSync): Promise<Env> {
   return {
     DB: sqliteD1(db), CRASH_STORAGE_MODE: "firebase",
-    FIREBASE_DATABASE_URL: "https://reasonix-test.asia-southeast1.firebasedatabase.app",
+    FIREBASE_DATABASE_URL: "https://tempora-test.asia-southeast1.firebasedatabase.app",
     FIREBASE_CLIENT_EMAIL: "writer@example.iam.gserviceaccount.com",
     FIREBASE_PRIVATE_KEY: await privateKeyPEM(),
   } as Env;

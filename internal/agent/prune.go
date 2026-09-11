@@ -4,8 +4,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 // Legacy snip helpers still support compatibility storage. Their public APIs

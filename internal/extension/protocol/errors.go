@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"reasonix/internal/extension/rpcwire"
+	"tempora/internal/extension/rpcwire"
 )
 
 // DomainErrorCode is the JSON-RPC code every extension domain error uses on

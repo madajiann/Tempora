@@ -12,12 +12,12 @@ import (
 	"slices"
 	"strings"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/provider"
-	"reasonix/internal/runtimepolicy"
-	"reasonix/internal/sandbox"
-	"reasonix/internal/shellsafe"
-	"reasonix/internal/tool"
+	"tempora/internal/evidence"
+	"tempora/internal/provider"
+	"tempora/internal/runtimepolicy"
+	"tempora/internal/sandbox"
+	"tempora/internal/shellsafe"
+	"tempora/internal/tool"
 )
 
 // evidenceCheck is the host's verdict on whether a writer has the

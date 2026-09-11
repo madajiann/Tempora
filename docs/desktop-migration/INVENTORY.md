@@ -665,13 +665,13 @@ Every entry carries one class: `keep-business` keeps its Go implementation and c
 
 | Name | Detail | Location | Class | New owner |
 | --- | --- | --- | --- | --- |
-| `--reasonix-draggable` |  | desktop/frontend/src/app-runtime/useAppChromeCommands.ts | keep-business (保留业务实现) | rewritten to -webkit-app-region by scripts/shell-css.mjs for the Electron bundle |
-| `--reasonix-draggable` |  | desktop/frontend/src/components/ManagementPageShell.css | keep-business (保留业务实现) | rewritten to -webkit-app-region by scripts/shell-css.mjs for the Electron bundle |
-| `--reasonix-draggable` |  | desktop/frontend/src/components/ScrollDiagnosticPanel.css | keep-business (保留业务实现) | rewritten to -webkit-app-region by scripts/shell-css.mjs for the Electron bundle |
-| `--reasonix-draggable` |  | desktop/frontend/src/components/SettingsPanel.css | keep-business (保留业务实现) | rewritten to -webkit-app-region by scripts/shell-css.mjs for the Electron bundle |
-| `--reasonix-draggable` |  | desktop/frontend/src/components/SettingsSelect.css | keep-business (保留业务实现) | rewritten to -webkit-app-region by scripts/shell-css.mjs for the Electron bundle |
-| `--reasonix-draggable` |  | desktop/frontend/src/custom/features/heartbeat/heartbeat.css | keep-business (保留业务实现) | rewritten to -webkit-app-region by scripts/shell-css.mjs for the Electron bundle |
-| `--reasonix-draggable` |  | desktop/frontend/src/styles.css | keep-business (保留业务实现) | rewritten to -webkit-app-region by scripts/shell-css.mjs for the Electron bundle |
+| `--tempora-draggable` |  | desktop/frontend/src/app-runtime/useAppChromeCommands.ts | keep-business (保留业务实现) | rewritten to -webkit-app-region by scripts/shell-css.mjs for the Electron bundle |
+| `--tempora-draggable` |  | desktop/frontend/src/components/ManagementPageShell.css | keep-business (保留业务实现) | rewritten to -webkit-app-region by scripts/shell-css.mjs for the Electron bundle |
+| `--tempora-draggable` |  | desktop/frontend/src/components/ScrollDiagnosticPanel.css | keep-business (保留业务实现) | rewritten to -webkit-app-region by scripts/shell-css.mjs for the Electron bundle |
+| `--tempora-draggable` |  | desktop/frontend/src/components/SettingsPanel.css | keep-business (保留业务实现) | rewritten to -webkit-app-region by scripts/shell-css.mjs for the Electron bundle |
+| `--tempora-draggable` |  | desktop/frontend/src/components/SettingsSelect.css | keep-business (保留业务实现) | rewritten to -webkit-app-region by scripts/shell-css.mjs for the Electron bundle |
+| `--tempora-draggable` |  | desktop/frontend/src/custom/features/heartbeat/heartbeat.css | keep-business (保留业务实现) | rewritten to -webkit-app-region by scripts/shell-css.mjs for the Electron bundle |
+| `--tempora-draggable` |  | desktop/frontend/src/styles.css | keep-business (保留业务实现) | rewritten to -webkit-app-region by scripts/shell-css.mjs for the Electron bundle |
 | `data-native-drop-target` |  | desktop/frontend/src/components/Composer.tsx | keep-business (保留业务实现) | `native.onFilesDropped (HTML5 drop + getPathForFile)` |
 | `data-native-drop-target` |  | desktop/frontend/src/lib/desktopHost.ts | keep-business (保留业务实现) | `native.onFilesDropped (HTML5 drop + getPathForFile)` |
 
@@ -744,11 +744,11 @@ Every entry carries one class: `keep-business` keeps its Go implementation and c
 
 | Name | Detail | Location | Class | New owner |
 | --- | --- | --- | --- | --- |
-| `Reasonix-darwin-<arch>.zip` | ditto archive; updater channel | scripts/desktop-build.sh:9 | keep-business (保留业务实现) | same file name and installer identity; Electron payload inside |
-| `Reasonix-linux-<arch>.deb` | Debian/Ubuntu package; native updater | scripts/desktop-build.sh:14 | keep-business (保留业务实现) | same file name and installer identity; Electron payload inside |
-| `Reasonix-linux-<arch>.tar.gz` | desktop + guard + CLI + app/ tree; portable updater | scripts/desktop-build.sh:13 | keep-business (保留业务实现) | same file name and installer identity; Electron payload inside |
-| `Reasonix-windows-<arch>-installer.exe` | NSIS per-user installer; updater channel | scripts/desktop-build.sh:11 | keep-business (保留业务实现) | same file name and installer identity; Electron payload inside |
-| `Reasonix-windows-<arch>.zip` | portable human download | scripts/desktop-build.sh:12 | keep-business (保留业务实现) | same file name and installer identity; Electron payload inside |
+| `Tempora-darwin-<arch>.zip` | ditto archive; updater channel | scripts/desktop-build.sh:9 | keep-business (保留业务实现) | same file name and installer identity; Electron payload inside |
+| `Tempora-linux-<arch>.deb` | Debian/Ubuntu package; native updater | scripts/desktop-build.sh:14 | keep-business (保留业务实现) | same file name and installer identity; Electron payload inside |
+| `Tempora-linux-<arch>.tar.gz` | desktop + guard + CLI + app/ tree; portable updater | scripts/desktop-build.sh:13 | keep-business (保留业务实现) | same file name and installer identity; Electron payload inside |
+| `Tempora-windows-<arch>-installer.exe` | NSIS per-user installer; updater channel | scripts/desktop-build.sh:11 | keep-business (保留业务实现) | same file name and installer identity; Electron payload inside |
+| `Tempora-windows-<arch>.zip` | portable human download | scripts/desktop-build.sh:12 | keep-business (保留业务实现) | same file name and installer identity; Electron payload inside |
 
 ## CI and release jobs
 

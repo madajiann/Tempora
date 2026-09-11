@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/config"
-	"reasonix/internal/sessioncatalog"
+	"tempora/internal/config"
+	"tempora/internal/sessioncatalog"
 )
 
 func TestRebuildSessionCatalogDoesNotReplaceBeforeOldReconcileStops(t *testing.T) {

@@ -11,8 +11,8 @@ import (
 
 	"golang.org/x/crypto/ssh"
 
-	"reasonix/internal/remote/forward"
-	"reasonix/internal/remote/sshtest"
+	"tempora/internal/remote/forward"
+	"tempora/internal/remote/sshtest"
 )
 
 // TestCredentialProxyReverseForwardEndToEnd drives the real SSH forwarding

@@ -2,7 +2,7 @@ package control
 
 import (
 	"errors"
-	"reasonix/internal/sessioninbox"
+	"tempora/internal/sessioninbox"
 )
 
 var ErrInboxSessionChanged = errors.New("inbox session changed before submission")

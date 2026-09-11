@@ -6,27 +6,27 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"reasonix/internal/config"
-	"reasonix/internal/desktopinstance"
+	"tempora/internal/config"
+	"tempora/internal/desktopinstance"
 	"strings"
 
-	"reasonix/desktop/internal/update"
-	"reasonix/internal/installlayout"
-	"reasonix/internal/repair"
+	"tempora/desktop/internal/update"
+	"tempora/internal/installlayout"
+	"tempora/internal/repair"
 )
 
 // activateVersionedWindowsFromStaging publishes the versioned-v1 layout from a
 // staged NSIS payload whose signed manifest names every member:
 //
 //	InstallRoot/
-//	  reasonix-launcher.exe
-//	  Reasonix.exe              (launcher alias when present or portable)
-//	  reasonix-cli.exe          (CLI entry; full binary for now)
+//	  tempora-launcher.exe
+//	  Tempora.exe              (launcher alias when present or portable)
+//	  tempora-cli.exe          (CLI entry; full binary for now)
 //	  current.json
 //	  versions/<version>/
-//	    reasonix-desktop.exe
-//	    reasonix-cli.exe
-//	    reasonix-update-helper.exe
+//	    tempora-desktop.exe
+//	    tempora-cli.exe
+//	    tempora-update-helper.exe
 //	    app/...                 (Electron shell tree, schema 2 manifests)
 //
 // Any failure before the current.json pointer swap keeps the previous version active; the helper never rolls back.
@@ -60,7 +60,7 @@ func activateVersionedWindowsFromStaging(claimed *repair.UpdateTransaction, stag
 	if err != nil {
 		return fmt.Errorf("versioned activate: %w", err)
 	}
-	rootFiles, err := stagedWindowsPayloadMembers(stagingDir, hashes, []string{"reasonix-launcher.exe", "reasonix-cli.exe"})
+	rootFiles, err := stagedWindowsPayloadMembers(stagingDir, hashes, []string{"tempora-launcher.exe", "tempora-cli.exe"})
 	if err != nil {
 		return fmt.Errorf("versioned activate: %w", err)
 	}
@@ -70,7 +70,7 @@ func activateVersionedWindowsFromStaging(claimed *repair.UpdateTransaction, stag
 	if requestID == "" {
 		requestID = "helper-" + version
 	}
-	release, err := desktopinstance.PrepareInstall(installRoot, config.ReasonixHomeDir(), false)
+	release, err := desktopinstance.PrepareInstall(installRoot, config.TemporaHomeDir(), false)
 	if err != nil {
 		return err
 	}
@@ -79,15 +79,15 @@ func activateVersionedWindowsFromStaging(claimed *repair.UpdateTransaction, stag
 		InstallRoot:    installRoot,
 		Version:        version,
 		RequestID:      requestID,
-		CheckProcesses: func() error { return desktopinstance.CheckInstallVacant(installRoot, config.ReasonixHomeDir()) },
+		CheckProcesses: func() error { return desktopinstance.CheckInstallVacant(installRoot, config.TemporaHomeDir()) },
 		Members:        members,
 		RequiredNames:  versionNames,
 		RootMembers: []installlayout.Member{
-			{Name: "reasonix-launcher.exe", Path: launcherSrc, Mode: 0o700},
-			{Name: "Reasonix.exe", Path: launcherSrc, Mode: 0o700},
-			{Name: "reasonix-cli.exe", Path: cliSrc, Mode: 0o700},
+			{Name: "tempora-launcher.exe", Path: launcherSrc, Mode: 0o700},
+			{Name: "Tempora.exe", Path: launcherSrc, Mode: 0o700},
+			{Name: "tempora-cli.exe", Path: cliSrc, Mode: 0o700},
 		},
-		RequiredRootNames: []string{"reasonix-launcher.exe", "Reasonix.exe", "reasonix-cli.exe"},
+		RequiredRootNames: []string{"tempora-launcher.exe", "Tempora.exe", "tempora-cli.exe"},
 	}); err != nil {
 		return err
 	}
@@ -95,9 +95,9 @@ func activateVersionedWindowsFromStaging(claimed *repair.UpdateTransaction, stag
 	// Remove flat release-unit leftovers so the install root is the thin layout.
 	// Do not remove the launcher/CLI/alias we just wrote.
 	for _, name := range []string{
-		"reasonix-desktop.exe",
-		"reasonix-guard.exe",
-		"reasonix-update-helper.exe", // helper lives only under versions/
+		"tempora-desktop.exe",
+		"tempora-guard.exe",
+		"tempora-update-helper.exe", // helper lives only under versions/
 	} {
 		_ = os.Remove(filepath.Join(installRoot, name))
 	}
@@ -110,10 +110,10 @@ func activateVersionedWindowsFromStaging(claimed *repair.UpdateTransaction, stag
 // complete enough for versioned-v1 activation.
 func preferVersionedWindowsActivation(stagingDir string) bool {
 	for _, name := range []string{
-		"reasonix-desktop.exe",
-		"reasonix-cli.exe",
-		"reasonix-update-helper.exe",
-		"reasonix-launcher.exe",
+		"tempora-desktop.exe",
+		"tempora-cli.exe",
+		"tempora-update-helper.exe",
+		"tempora-launcher.exe",
 	} {
 		info, err := os.Lstat(filepath.Join(stagingDir, name))
 		if err != nil || !info.Mode().IsRegular() {

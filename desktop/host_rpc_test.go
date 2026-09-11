@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/desktop/internal/hostrpc"
-	"reasonix/internal/config"
-	"reasonix/internal/extension/rpcwire"
+	"tempora/desktop/internal/hostrpc"
+	"tempora/internal/config"
+	"tempora/internal/extension/rpcwire"
 )
 
 // hostRPCShell runs runHostRPC over pipes and returns the fake shell, the
@@ -62,7 +62,7 @@ func hostRPCHello(t *testing.T) hostrpc.HelloParams {
 		ContractDigest:  hostrpc.Build(registry, hostEventNames).Digest(),
 		Build:           hostrpc.BuildInfo{Version: version, Channel: channel},
 		Host:            hostrpc.HostInfo{Name: "electron", Platform: goruntime.GOOS},
-		Instance:        hostrpc.HelloInstance{Home: config.ReasonixHomeDir()},
+		Instance:        hostrpc.HelloInstance{Home: config.TemporaHomeDir()},
 	}
 }
 

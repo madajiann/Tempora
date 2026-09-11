@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 // maxStepsPause is a resumable stop after a positive model-round budget.
@@ -49,7 +49,7 @@ func (a *Agent) stopUnexecutedBoundaryCalls(ctx context.Context, state *turnRunt
 		}
 		a.pairUnexecutedGraceCalls(calls, "blocked: Auto recovery already paused this turn. Do not call tools; the user will continue in the next message.")
 		a.contextManager().ObserveUsage(usage)
-		return &RecoveryPauseError{Message: "Automatic retries paused. Reasonix stopped repeated attempts and kept completed work. Send \"continue\" to start a fresh attempt, or add instructions to change direction."}, true
+		return &RecoveryPauseError{Message: "Automatic retries paused. Tempora stopped repeated attempts and kept completed work. Send \"continue\" to start a fresh attempt, or add instructions to change direction."}, true
 	default:
 		return nil, false
 	}

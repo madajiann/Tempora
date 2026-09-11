@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func TestMockProviderStreamHonorsCanceledContext(t *testing.T) {

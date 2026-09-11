@@ -3,9 +3,9 @@ package cli
 import (
 	"strings"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/control"
 )
 
 // modelForResumePath answers which model a resumed run should use. An explicit

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/evidence"
+	"tempora/internal/evidence"
 )
 
 func deliveryWriteReceipt(t *testing.T, path string, floor PolicyFloor) evidence.Receipt {

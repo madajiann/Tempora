@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 func TestAssociateExpandsOnlyMissingCoverageWithoutResettingBudget(t *testing.T) {

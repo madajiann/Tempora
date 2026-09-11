@@ -2,7 +2,7 @@ import type { ForkBindings, ForkWorktreeResultView } from "./forkWorktree";
 import type { TabMeta } from "./types";
 
 export function mockForkWorktree(tab: TabMeta): ForkWorktreeResultView {
-  return { tab: { ...tab, workspaceRoot: `${tab.workspaceRoot}-worktree` }, isolated: true, branch: "reasonix/delivery-mock" };
+  return { tab: { ...tab, workspaceRoot: `${tab.workspaceRoot}-worktree` }, isolated: true, branch: "tempora/delivery-mock" };
 }
 
 interface MockForkBindings extends ForkBindings {

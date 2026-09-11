@@ -8,10 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/evidence"
-	"reasonix/internal/store"
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/evidence"
+	"tempora/internal/store"
+	"tempora/internal/tool"
 )
 
 func TestMergeGoalProgressEvidenceIsNovelAndBounded(t *testing.T) {

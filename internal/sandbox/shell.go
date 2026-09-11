@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/proc"
-	"reasonix/internal/secrets"
+	"tempora/internal/proc"
+	"tempora/internal/secrets"
 )
 
 // psUTF8Prologue forces PowerShell to emit UTF-8 instead of the host's OEM code

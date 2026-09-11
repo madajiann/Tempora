@@ -2,9 +2,9 @@ package boot
 
 import (
 	"errors"
-	"reasonix/internal/config"
-	"reasonix/internal/netclient"
-	"reasonix/internal/provider"
+	"tempora/internal/config"
+	"tempora/internal/netclient"
+	"tempora/internal/provider"
 	"reflect"
 	"testing"
 )

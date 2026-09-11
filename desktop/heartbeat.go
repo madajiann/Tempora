@@ -1,7 +1,7 @@
 // Heartbeat task engine — scheduled AI prompts that create or update topics.
 //
 // Each task is a prompt submitted to a dedicated topic on a schedule.
-// The config file under the Reasonix user state directory is human- and
+// The config file under the Tempora user state directory is human- and
 // AI-editable; the engine runs the schedule in a background goroutine and
 // exposes Wails bindings on App for the frontend panel.
 //
@@ -22,11 +22,11 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/filelock"
-	"reasonix/internal/secrets"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/filelock"
+	"tempora/internal/secrets"
 )
 
 // ── Data model ──────────────────────────────────────────────────────────────
@@ -297,7 +297,7 @@ func (e *HeartbeatEngine) executeTaskWithLease(t HeartbeatTask, prepare func(Hea
 	return updated
 }
 
-// tryAcquireTaskLease extends the in-process reservation to other Reasonix
+// tryAcquireTaskLease extends the in-process reservation to other Tempora
 // processes. The lease is held from before topic creation through prompt
 // submission, and the OS releases it automatically if the process is killed.
 func (e *HeartbeatEngine) tryAcquireTaskLease(taskID string) (func(), error) {

@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/extension"
+	"tempora/internal/event"
+	"tempora/internal/extension"
 )
 
 func TestAdmitGuardedTurnRejectsDrainingGeneration(t *testing.T) {

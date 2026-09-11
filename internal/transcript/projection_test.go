@@ -9,9 +9,9 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	"reasonix/internal/event"
-	"reasonix/internal/eventwire"
-	"reasonix/internal/turnevent"
+	"tempora/internal/event"
+	"tempora/internal/eventwire"
+	"tempora/internal/turnevent"
 )
 
 var testIdentity = Identity{SessionID: "session", HeadID: "head", RuntimeEpoch: "runtime", RewriteEpoch: 1}

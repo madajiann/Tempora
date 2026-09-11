@@ -21,18 +21,18 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/boot"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/jobs"
-	"reasonix/internal/nilutil"
-	"reasonix/internal/plugin"
-	"reasonix/internal/provider"
-	"reasonix/internal/sandbox"
-	"reasonix/internal/stats"
-	"reasonix/internal/store"
+	"tempora/internal/agent"
+	"tempora/internal/boot"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/jobs"
+	"tempora/internal/nilutil"
+	"tempora/internal/plugin"
+	"tempora/internal/provider"
+	"tempora/internal/sandbox"
+	"tempora/internal/stats"
+	"tempora/internal/store"
 )
 
 //go:embed index.html
@@ -1543,7 +1543,7 @@ func (s *Server) deleteSession(w http.ResponseWriter, r *http.Request) {
 	if s.sessionMirrored(abs) {
 		// A local runtime is writing this transcript; deleting it here would
 		// pull the file out from under the writer.
-		http.Error(w, "session is taken over by a local Reasonix window", http.StatusConflict)
+		http.Error(w, "session is taken over by a local Tempora window", http.StatusConflict)
 		return
 	}
 	destroy := s.ctl().BeginDestroySession(abs)

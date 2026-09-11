@@ -3,7 +3,7 @@ package control
 import (
 	"strings"
 
-	"reasonix/internal/skill"
+	"tempora/internal/skill"
 )
 
 var managementNoticeCommands = map[string]struct{}{

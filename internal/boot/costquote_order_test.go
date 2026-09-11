@@ -4,9 +4,9 @@ import (
 	"sync"
 	"testing"
 
-	"reasonix/internal/billing"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/billing"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 // TestCostQuoteReachesInnerSinkBeforeRecording documents the required wrap

@@ -38,16 +38,16 @@ func TestIdentityPreservesExistingFormatAndAliases(t *testing.T) {
 	}
 }
 func TestUpdateEnvironmentFreezesHome(t *testing.T) {
-	env := UpdateEnvironment([]string{"PATH=keep", "reasonix_home=old", "REASONIX_UPDATE_INSTANCE_ID=stale"}, "relative-home")
+	env := UpdateEnvironment([]string{"PATH=keep", "tempora_home=old", "TEMPORA_UPDATE_INSTANCE_ID=stale"}, "relative-home")
 	values := map[string]string{}
 	for _, e := range env {
 		k, v, _ := strings.Cut(e, "=")
 		values[k] = v
 	}
-	if len(env) != 3 || values["PATH"] != "keep" || !filepath.IsAbs(values["REASONIX_HOME"]) {
+	if len(env) != 3 || values["PATH"] != "keep" || !filepath.IsAbs(values["TEMPORA_HOME"]) {
 		t.Fatalf("bad environment: %v", env)
 	}
-	if id := values[UpdateEnvironmentKey]; !Valid(id) || id != ForHome(values["REASONIX_HOME"]) {
+	if id := values[UpdateEnvironmentKey]; !Valid(id) || id != ForHome(values["TEMPORA_HOME"]) {
 		t.Fatalf("bad identity %q", id)
 	}
 	for _, id := range []string{"", Prefix, Prefix + ".../../x", Prefix + ".0123456789ABCDEf"} {

@@ -11,12 +11,12 @@ import (
 	"charm.land/lipgloss/v2"
 	rw "github.com/mattn/go-runewidth"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/fileref"
-	"reasonix/internal/i18n"
-	"reasonix/internal/plugin"
-	"reasonix/internal/skill"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/fileref"
+	"tempora/internal/i18n"
+	"tempora/internal/plugin"
+	"tempora/internal/skill"
 )
 
 // compKind distinguishes the two completion menus.

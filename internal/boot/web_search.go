@@ -3,13 +3,13 @@ package boot
 import (
 	"slices"
 
-	"reasonix/internal/config"
-	"reasonix/internal/event"
-	"reasonix/internal/i18n"
-	"reasonix/internal/netclient"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
-	"reasonix/internal/websearch"
+	"tempora/internal/config"
+	"tempora/internal/event"
+	"tempora/internal/i18n"
+	"tempora/internal/netclient"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
+	"tempora/internal/websearch"
 )
 
 func addWebSearch(reg *tool.Registry, cfg *config.Config, current *config.ProviderEntry, proxy netclient.ProxySpec, sink event.Sink) {

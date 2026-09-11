@@ -35,7 +35,7 @@ func NewHTTPHandler(exec Executor, token string) http.Handler {
 
 func (h *httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !h.authorized(r) {
-		w.Header().Set("WWW-Authenticate", `Bearer realm="reasonix-browser"`)
+		w.Header().Set("WWW-Authenticate", `Bearer realm="tempora-browser"`)
 		writeWireError(w, http.StatusUnauthorized, "unauthorized", "invalid browser broker token")
 		return
 	}

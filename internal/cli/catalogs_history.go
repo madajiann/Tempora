@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"reasonix/internal/config"
-	"reasonix/internal/historycatalog"
+	"tempora/internal/config"
+	"tempora/internal/historycatalog"
 )
 
 func init() {

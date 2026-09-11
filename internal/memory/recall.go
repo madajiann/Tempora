@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	"reasonix/internal/retrieval"
-	"reasonix/internal/tool"
+	"tempora/internal/retrieval"
+	"tempora/internal/tool"
 )
 
 const (

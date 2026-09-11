@@ -28,12 +28,12 @@ import (
 	"sync/atomic"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/event"
-	"reasonix/internal/eventwire"
-	"reasonix/internal/remote/bootstrap"
-	"reasonix/internal/store"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/event"
+	"tempora/internal/eventwire"
+	"tempora/internal/remote/bootstrap"
+	"tempora/internal/store"
 )
 
 // SessionTakeoverView is what the confirmation dialog is built from.
@@ -79,7 +79,7 @@ type takeoverServeRecord struct {
 }
 
 // discoverLocalTakeoverServes enumerates the serve state files under
-// <Reasonix home>/remote. The bootstrap wrote them over SFTP; the takeover
+// <Tempora home>/remote. The bootstrap wrote them over SFTP; the takeover
 // reads them locally because this machine is now where the user sits.
 func discoverLocalTakeoverServes() []takeoverServeRecord {
 	dir := config.RemoteStateDir()

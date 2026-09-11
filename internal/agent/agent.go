@@ -13,30 +13,30 @@ import (
 
 	"mvdan.cc/sh/v3/syntax"
 
-	"reasonix/internal/ablation"
-	"reasonix/internal/capability"
-	"reasonix/internal/checkpoint"
-	"reasonix/internal/diff"
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/extension/dispatch"
-	"reasonix/internal/i18n"
-	"reasonix/internal/imageinput"
-	"reasonix/internal/instruction"
-	"reasonix/internal/jobs"
-	"reasonix/internal/mcpinteraction"
-	"reasonix/internal/memory"
-	"reasonix/internal/nilutil"
-	"reasonix/internal/plancontract"
-	"reasonix/internal/planmode"
-	"reasonix/internal/provider"
-	"reasonix/internal/runtimepolicy"
-	"reasonix/internal/sandbox"
-	"reasonix/internal/sessiontemp"
-	"reasonix/internal/shellparse"
-	"reasonix/internal/taskcontract"
-	"reasonix/internal/tool"
-	"reasonix/internal/workspacelease"
+	"tempora/internal/ablation"
+	"tempora/internal/capability"
+	"tempora/internal/checkpoint"
+	"tempora/internal/diff"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/extension/dispatch"
+	"tempora/internal/i18n"
+	"tempora/internal/imageinput"
+	"tempora/internal/instruction"
+	"tempora/internal/jobs"
+	"tempora/internal/mcpinteraction"
+	"tempora/internal/memory"
+	"tempora/internal/nilutil"
+	"tempora/internal/plancontract"
+	"tempora/internal/planmode"
+	"tempora/internal/provider"
+	"tempora/internal/runtimepolicy"
+	"tempora/internal/sandbox"
+	"tempora/internal/sessiontemp"
+	"tempora/internal/shellparse"
+	"tempora/internal/taskcontract"
+	"tempora/internal/tool"
+	"tempora/internal/workspacelease"
 )
 
 // maxToolOutputBytes bounds the stable provider-visible Content. RawContent
@@ -905,7 +905,7 @@ type Options struct {
 	// enforced OS sandbox fails. nil keeps fail-closed behavior.
 	SandboxEscapeApprover sandbox.EscapeApprover
 
-	// ConfigWriteApprover confirms file-tool writes to Reasonix-managed config
+	// ConfigWriteApprover confirms file-tool writes to Tempora-managed config
 	// files outside the workspace roots. nil keeps fail-closed behavior.
 	ConfigWriteApprover tool.ConfigWriteApprover
 

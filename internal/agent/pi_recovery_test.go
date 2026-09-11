@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent/testutil"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/agent/testutil"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 func TestCompatibleMissingReasoningDoesNotRegenerate(t *testing.T) {

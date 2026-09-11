@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 // ModeProvider reports the current tool-approval mode (ask|auto|yolo).

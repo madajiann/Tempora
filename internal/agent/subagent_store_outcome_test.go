@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func TestSubagentStorePartialOutcomeCanBeReadAndResumed(t *testing.T) {

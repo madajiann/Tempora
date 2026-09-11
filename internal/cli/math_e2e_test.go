@@ -8,7 +8,7 @@ import (
 
 	"github.com/charmbracelet/x/ansi"
 
-	"reasonix/internal/event"
+	"tempora/internal/event"
 )
 
 // TestMathStreamingEndToEnd drives the real streaming path (ingestEvent →

@@ -9,8 +9,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"reasonix/internal/nilutil"
-	"reasonix/internal/provider"
+	"tempora/internal/nilutil"
+	"tempora/internal/provider"
 )
 
 const (

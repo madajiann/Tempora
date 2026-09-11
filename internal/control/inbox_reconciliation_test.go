@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
-	"reasonix/internal/sessioninbox"
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/event"
+	"tempora/internal/sessioninbox"
+	"tempora/internal/tool"
 )
 
 func TestSteerEventFollowsDurableConsumedTransition(t *testing.T) {

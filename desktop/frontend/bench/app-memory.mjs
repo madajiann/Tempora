@@ -24,17 +24,17 @@ function integerEnv(name, fallback) {
   return Number.isInteger(value) && value > 0 ? value : fallback;
 }
 
-const CYCLES = integerEnv("REASONIX_APP_MEMORY_CYCLES", 128);
-const MIXED_CYCLES = integerEnv("REASONIX_APP_MEMORY_MIXED_CYCLES", 512);
-const BASELINE_ATTEMPTS = integerEnv("REASONIX_APP_MEMORY_BASELINE_ATTEMPTS", 4);
-const SHARD = process.env.REASONIX_APP_MEMORY_SHARD === undefined ? null : Number(process.env.REASONIX_APP_MEMORY_SHARD);
+const CYCLES = integerEnv("TEMPORA_APP_MEMORY_CYCLES", 128);
+const MIXED_CYCLES = integerEnv("TEMPORA_APP_MEMORY_MIXED_CYCLES", 512);
+const BASELINE_ATTEMPTS = integerEnv("TEMPORA_APP_MEMORY_BASELINE_ATTEMPTS", 4);
+const SHARD = process.env.TEMPORA_APP_MEMORY_SHARD === undefined ? null : Number(process.env.TEMPORA_APP_MEMORY_SHARD);
 if (SHARD !== null && ![1, 2, 3].includes(SHARD)) throw new Error("memory shard must be 1, 2 or 3");
-const PROCESSES = SHARD === null ? integerEnv("REASONIX_APP_MEMORY_PROCESSES", 3) : 1;
-const preparedFile = process.env.REASONIX_APP_MEMORY_PREPARED;
+const PROCESSES = SHARD === null ? integerEnv("TEMPORA_APP_MEMORY_PROCESSES", 3) : 1;
+const preparedFile = process.env.TEMPORA_APP_MEMORY_PREPARED;
 const prepared = preparedFile ? JSON.parse(readFileSync(preparedFile, "utf8")) : null;
 if (SHARD !== null && (!prepared || CYCLES !== 128 || MIXED_CYCLES !== 512)) throw new Error("memory shard requires the shared build and complete 128/512 protocol");
-const PORT = integerEnv("REASONIX_APP_MEMORY_PORT", 4647);
-const artifacts = path.resolve(process.env.REASONIX_APP_MEMORY_ARTIFACTS ?? path.join(frontendDir, "bench/app-memory-artifacts"));
+const PORT = integerEnv("TEMPORA_APP_MEMORY_PORT", 4647);
+const artifacts = path.resolve(process.env.TEMPORA_APP_MEMORY_ARTIFACTS ?? path.join(frontendDir, "bench/app-memory-artifacts"));
 mkdirSync(artifacts, { recursive: true });
 
 const fixtures = MEMORY_FIXTURES;
@@ -85,7 +85,7 @@ async function forceGc(cdp, page) {
   const [heap, dom, lifecycle, performance] = await Promise.all([
     cdp.send("Runtime.getHeapUsage"),
     cdp.send("Memory.getDOMCounters"),
-    page.evaluate(() => window.__reasonixAppLifecycle?.snapshot()),
+    page.evaluate(() => window.__temporaAppLifecycle?.snapshot()),
     page.evaluate(() => ({ entries: window.performance.getEntries().length, attachedElements: document.querySelectorAll("*").length })),
   ]);
   if (!lifecycle) throw new Error("App lifecycle probe was not published by the production build");

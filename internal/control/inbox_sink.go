@@ -1,9 +1,9 @@
 package control
 
 import (
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/sessioninbox"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/sessioninbox"
 )
 
 // inboxEventSink observes unapplied-steer events and forwards optional inbox

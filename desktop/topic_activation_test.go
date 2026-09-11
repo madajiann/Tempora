@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/evidence"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/evidence"
 )
 
 // activationEventRecorder captures "topic:activation" events through the
@@ -398,7 +398,7 @@ func TestStartTopicActivationFailureDetachesPreviousAndReattaches(t *testing.T) 
 	if failed.TabID != ticketB.TabID {
 		t.Fatalf("failed event tab = %q, want %q", failed.TabID, ticketB.TabID)
 	}
-	if !strings.Contains(failed.Error, "already open in another Reasonix window") {
+	if !strings.Contains(failed.Error, "already open in another Tempora window") {
 		t.Fatalf("failed error = %q, want the sanitized lease-busy message", failed.Error)
 	}
 	if strings.Contains(failed.Error, pathB) {

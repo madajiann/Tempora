@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/event"
-	"reasonix/internal/sessioninbox"
+	"tempora/internal/event"
+	"tempora/internal/sessioninbox"
 )
 
 // ResolvePlanDecision answers the Plan card without collapsing revise and exit.

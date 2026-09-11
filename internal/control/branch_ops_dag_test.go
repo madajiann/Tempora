@@ -5,10 +5,10 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/store"
+	"tempora/internal/agent"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/store"
 )
 
 func newSchemaTwoBranchController(t *testing.T) (*Controller, *agent.Session, string) {

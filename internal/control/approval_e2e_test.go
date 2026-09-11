@@ -8,11 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
-	"reasonix/internal/permission"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/event"
+	"tempora/internal/permission"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 func TestPlanApprovedMessageStatesAutoSemantics(t *testing.T) {

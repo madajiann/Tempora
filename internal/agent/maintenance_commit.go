@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 // maintenanceInstall is one free projection rewrite (no summarizer call): the

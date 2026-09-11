@@ -14,9 +14,9 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	"reasonix/internal/fileutil"
-	fileencoding "reasonix/internal/fileutil/encoding"
-	"reasonix/internal/provider"
+	"tempora/internal/fileutil"
+	fileencoding "tempora/internal/fileutil/encoding"
+	"tempora/internal/provider"
 )
 
 const openCodeGoUpgradeVersion = 10

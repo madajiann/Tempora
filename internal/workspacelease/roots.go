@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	"reasonix/internal/filelock"
+	"tempora/internal/filelock"
 )
 
 type rootLockDomain struct {

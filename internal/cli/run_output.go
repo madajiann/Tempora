@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/billing"
-	"reasonix/internal/event"
-	"reasonix/internal/eventwire"
+	"tempora/internal/billing"
+	"tempora/internal/event"
+	"tempora/internal/eventwire"
 )
 
 type runOutputFormat string

@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"testing"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/plancontract"
-	"reasonix/internal/taskcontract"
+	"tempora/internal/evidence"
+	"tempora/internal/plancontract"
+	"tempora/internal/taskcontract"
 )
 
 func completeStepReceipt(t *testing.T, criterionID, kind, command string) evidence.Receipt {

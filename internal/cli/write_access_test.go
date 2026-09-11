@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/event"
+	"tempora/internal/event"
 )
 
 func TestWriteAccessApprovalChoicesPreserveScopes(t *testing.T) {

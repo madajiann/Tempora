@@ -285,7 +285,7 @@ export function SettingsPanel({
       const next = await reload();
       if (seq !== settingsApplySeq.current) return isModelSettingsResult(result) ? result.persisted : true;
       onChanged(next);
-      window.dispatchEvent(new Event("reasonix:model-catalog-changed"));
+      window.dispatchEvent(new Event("tempora:model-catalog-changed"));
       if (isModelSettingsResult(result)) {
         if (!result.persisted) throw new Error(result.issues.map(issue => issue.message).join("\n"));
       }
@@ -303,7 +303,7 @@ export function SettingsPanel({
         const next = await reload();
         if (seq !== settingsApplySeq.current) return false;
         onChanged(next);
-        window.dispatchEvent(new Event("reasonix:model-catalog-changed"));
+        window.dispatchEvent(new Event("tempora:model-catalog-changed"));
       } catch {
         // Keep the original mutation error; it is the actionable failure.
       }
@@ -325,7 +325,7 @@ export function SettingsPanel({
       const next = await reload();
       if (seq !== settingsApplySeq.current) return;
       onChanged(next);
-      window.dispatchEvent(new Event("reasonix:model-catalog-changed"));
+      window.dispatchEvent(new Event("tempora:model-catalog-changed"));
     } catch (e) {
       if (seq !== settingsApplySeq.current) return;
       setErr(formatSettingsError(e, t));
@@ -1135,7 +1135,7 @@ function defaultBotSettings(): BotSettingsView {
     control: {
       enabled: false,
       addr: "127.0.0.1:37913",
-      tokenEnv: "REASONIX_BOT_CONTROL_TOKEN",
+      tokenEnv: "TEMPORA_BOT_CONTROL_TOKEN",
     },
     pairing: {
       enabled: true,
@@ -4951,10 +4951,10 @@ export function ProvidersSection({ s, busy, apply, onboarding, onOnboardingCompl
   const saveProvider = async (provider: ProviderView, key: string, create = false) => {
     if (create || !s.providers.some(p => p.name === provider.name)) {
       const id = crypto.randomUUID().replaceAll("-", "");
-      provider = {...provider, displayName: provider.displayName || provider.name, name: `${provider.name}-${id}`, apiKeyEnv: `REASONIX_CONNECTION_${id.toUpperCase()}_KEY`};
+      provider = {...provider, displayName: provider.displayName || provider.name, name: `${provider.name}-${id}`, apiKeyEnv: `TEMPORA_CONNECTION_${id.toUpperCase()}_KEY`};
     }
     if (key) {
-      provider = {...provider, apiKeyEnv: `REASONIX_CONNECTION_${crypto.randomUUID().replaceAll("-", "").toUpperCase()}_KEY`};
+      provider = {...provider, apiKeyEnv: `TEMPORA_CONNECTION_${crypto.randomUUID().replaceAll("-", "").toUpperCase()}_KEY`};
       const warning = await saveModelSettings(s, {kind: "provider_save", provider, key});
       invalidateProviderCacheByAPIKeyEnv(provider.apiKeyEnv);
       return warning;
@@ -7239,7 +7239,7 @@ function UpdatesSection({
         label={t("changelog.title")}
         hint={t("changelog.subtitle")}
       >
-        <button className="btn btn--small" onClick={() => void openExternal("https://reasonix.io/changelog/")}>
+        <button className="btn btn--small" onClick={() => void openExternal("https://tempora.io/changelog/")}>
           {t("changelog.openWeb")}
           <ExternalLink size={14} aria-hidden="true" />
         </button>

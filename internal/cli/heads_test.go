@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 func newSchemaTwoChatTUI(t *testing.T) (chatTUI, *control.Controller, *agent.Session, string) {
@@ -59,7 +59,7 @@ func TestBranchAndSwitchCommandsMoveBetweenHeadsInPlace(t *testing.T) {
 }
 
 func TestSessionsDiagnoseCountsSessionLogHeadsAndCleanupLeavesThem(t *testing.T) {
-	t.Setenv("REASONIX_HOME", t.TempDir())
+	t.Setenv("TEMPORA_HOME", t.TempDir())
 	dir := t.TempDir()
 	path := filepath.Join(dir, "log.jsonl")
 	s := agent.NewSession("system")

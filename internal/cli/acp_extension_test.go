@@ -13,11 +13,11 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/acp"
-	"reasonix/internal/config"
-	"reasonix/internal/event"
-	"reasonix/internal/pluginpkg"
-	"reasonix/internal/provider"
+	"tempora/internal/acp"
+	"tempora/internal/config"
+	"tempora/internal/event"
+	"tempora/internal/pluginpkg"
+	"tempora/internal/provider"
 )
 
 // ACP-level coverage for extension-hosted providers: a plugin/... model in
@@ -25,8 +25,8 @@ import (
 // mid-session switch (RebuildSession) moves to a config model and back.
 
 const (
-	acpFakeEnvEnable     = "REASONIX_ACP_FAKE_SIDECAR"
-	acpFakeEnvPluginName = "REASONIX_ACP_FAKE_PLUGIN_NAME"
+	acpFakeEnvEnable     = "TEMPORA_ACP_FAKE_SIDECAR"
+	acpFakeEnvPluginName = "TEMPORA_ACP_FAKE_PLUGIN_NAME"
 )
 
 // TestACPFakeSidecarHelperProcess is the re-exec entry point for the ACP fake
@@ -148,7 +148,7 @@ func installACPFakeProviderPlugin(t *testing.T, home, name string) {
 
 func writeACPFixture(t *testing.T, dir string) {
 	t.Helper()
-	if err := os.WriteFile(filepath.Join(dir, "reasonix.toml"), []byte(`
+	if err := os.WriteFile(filepath.Join(dir, "tempora.toml"), []byte(`
 default_model = "local/fake-model"
 
 [agent]
@@ -162,7 +162,7 @@ name = "local"
 kind = "acp-test-provider"
 base_url = "http://example.invalid"
 model = "fake-model"
-api_key_env = "REASONIX_TEST_KEY"
+api_key_env = "TEMPORA_TEST_KEY"
 `), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -195,14 +195,14 @@ func runACPTurnAssistant(t *testing.T, ctrl interface {
 // model and back to the plugin ref.
 func TestACPSessionWithPluginModelStreamsAndSwitches(t *testing.T) {
 	isolateCLIConfigHome(t)
-	if _, err := config.SetCredential("REASONIX_TEST_KEY", "test-key"); err != nil {
+	if _, err := config.SetCredential("TEMPORA_TEST_KEY", "test-key"); err != nil {
 		t.Fatalf("SetCredential: %v", err)
 	}
 	project := t.TempDir()
 	writeACPFixture(t, project)
 	name := "acpdemo"
 	ref := "plugin/" + name + "/fake/x"
-	installACPFakeProviderPlugin(t, config.ReasonixHomeDir(), name)
+	installACPFakeProviderPlugin(t, config.TemporaHomeDir(), name)
 
 	factory := &acpFactory{}
 

@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"testing"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func TestLegacyMigrationKeepsUnknownOriginForFallback(t *testing.T) {

@@ -6,9 +6,9 @@ import (
 	"slices"
 	"strings"
 
-	"reasonix/internal/fileutil"
-	fileenc "reasonix/internal/fileutil/encoding"
-	"reasonix/internal/tool"
+	"tempora/internal/fileutil"
+	fileenc "tempora/internal/fileutil/encoding"
+	"tempora/internal/tool"
 )
 
 // readFileEncoded reads a file and decodes its encoding to UTF-8.

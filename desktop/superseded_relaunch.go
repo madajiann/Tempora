@@ -4,13 +4,13 @@ import (
 	"log/slog"
 	"os"
 
-	"reasonix/internal/installlayout"
+	"tempora/internal/installlayout"
 )
 
 // supersededDesktopNeedsRelaunch reports whether this executable is a retained
 // versions/<old>/ desktop after current.json already points at a newer version.
 func supersededDesktopNeedsRelaunch(exe string) bool {
-	if os.Getenv("REASONIX_DEV") != "" {
+	if os.Getenv("TEMPORA_DEV") != "" {
 		return false
 	}
 	active, err := installlayout.IsActiveDesktopExecutable(exe)

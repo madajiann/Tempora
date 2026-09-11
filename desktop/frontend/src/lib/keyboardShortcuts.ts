@@ -59,8 +59,8 @@ export type ShortcutDefinition = {
   allowedKeys?: readonly string[];
 };
 
-const SHORTCUTS_STORAGE_KEY = "reasonix.customShortcuts";
-const SHORTCUTS_CHANGED_EVENT = "reasonix:shortcuts-changed";
+const SHORTCUTS_STORAGE_KEY = "tempora.customShortcuts";
+const SHORTCUTS_CHANGED_EVENT = "tempora:shortcuts-changed";
 
 export const SHORTCUT_DEFINITIONS: readonly ShortcutDefinition[] = [
   {
@@ -98,7 +98,7 @@ export const SHORTCUT_DEFINITIONS: readonly ShortcutDefinition[] = [
   },
   // Composer-owned shortcuts are handled inside its keydown path rather than
   // useGlobalShortcut. Undo/redo stay locked to the platform editing standard
-  // so native textarea history and Reasonix transactions share one chord.
+  // so native textarea history and Tempora transactions share one chord.
   {
     action: "composer.send",
     section: "session",

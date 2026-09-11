@@ -8,7 +8,7 @@ const catalog = JSON.parse(await readFile(resolve(repoRoot, "release-notes/relea
 const output = resolve(siteRoot, ".generated/publications.json");
 const headers = {
   Accept: "application/vnd.github+json",
-  "User-Agent": "reasonix-site-publications",
+  "User-Agent": "tempora-site-publications",
 };
 if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
 

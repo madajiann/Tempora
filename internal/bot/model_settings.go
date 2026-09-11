@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/boot"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/secrets"
+	"tempora/internal/boot"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/secrets"
 )
 
 // The session queue owns this new turn. Approval replies and child work never

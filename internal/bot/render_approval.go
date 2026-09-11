@@ -1,6 +1,6 @@
 package bot
 
-import "reasonix/internal/event"
+import "tempora/internal/event"
 
 func (s *renderSink) emitApproval(approval event.Approval) {
 	if s.onApproval != nil {

@@ -177,7 +177,7 @@ type APIError struct {
 	Body                string
 	TraceID             string // provider trace identifier from the response headers, when present
 	RequestPath         string // path only; query and URL userinfo are never retained
-	ToolContext         string // resolved Reasonix/MCP identity for provider-indexed tool schema errors
+	ToolContext         string // resolved Tempora/MCP identity for provider-indexed tool schema errors
 }
 
 func (e *APIError) Error() string {

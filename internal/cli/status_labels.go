@@ -6,8 +6,8 @@ import (
 	"slices"
 	"strings"
 
-	"reasonix/internal/event"
-	"reasonix/internal/i18n"
+	"tempora/internal/event"
+	"tempora/internal/i18n"
 )
 
 type readStatusState struct {

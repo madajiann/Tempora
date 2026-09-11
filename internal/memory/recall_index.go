@@ -7,7 +7,7 @@ package memory
 import (
 	"strings"
 
-	"reasonix/internal/retrieval"
+	"tempora/internal/retrieval"
 )
 
 // RecallIndex is the prebuilt retrieval state for one immutable Set snapshot.

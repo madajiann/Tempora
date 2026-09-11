@@ -21,15 +21,15 @@ function fixture(
   version = "1.5.0-canary.42",
   { forbidCleanup = false, visibilityDelayReads = 0 } = {},
 ) {
-  const root = mkdtempSync(join(tmpdir(), "reasonix-npm-publish-test-"));
+  const root = mkdtempSync(join(tmpdir(), "tempora-npm-publish-test-"));
   t.after(() => rmSync(root, { recursive: true, force: true }));
 
-  const packages = ["@reasonix/cli-linux-x64", "reasonix"].map((name, index) => {
+  const packages = ["@tempora/cli-linux-x64", "tempora"].map((name, index) => {
     const dir = join(root, `package-${index}`);
     mkdirSync(dir);
     writeFileSync(
       join(dir, "package.json"),
-      `${JSON.stringify({ name, version, reasonixCandidateSha: candidateSha })}\n`,
+      `${JSON.stringify({ name, version, temporaCandidateSha: candidateSha })}\n`,
     );
     return { name, dir };
   });
@@ -74,8 +74,8 @@ function fixture(
       state.versions.set(pkg.version, {
         name: pkg.name,
         version: pkg.version,
-        reasonixCandidateSha: pkg.reasonixCandidateSha,
-        gitHead: pkg.reasonixCandidateSha,
+        temporaCandidateSha: pkg.temporaCandidateSha,
+        gitHead: pkg.temporaCandidateSha,
       });
       state.tags.set(args[args.indexOf("--tag") + 1], pkg.version);
       hiddenReads.set(`${pkg.name}@${pkg.version}`, visibilityDelayReads);
@@ -114,7 +114,7 @@ function fixture(
     packageState(name).versions.set(publishedVersion, {
       name,
       version: publishedVersion,
-      reasonixCandidateSha: sha,
+      temporaCandidateSha: sha,
       gitHead: sha,
     });
   }

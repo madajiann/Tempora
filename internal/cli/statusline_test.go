@@ -13,14 +13,14 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/agent/testutil"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/i18n"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/agent/testutil"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/i18n"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 // TestRunStatuslineCmd checks the custom status-line runner: it returns the
@@ -237,7 +237,7 @@ func TestStatuslineShowsGitAndEffortInPersistentFooter(t *testing.T) {
 	if !strings.Contains(lines[0], "MODEL deepseek-v4-flash   EFFORT auto") {
 		t.Fatalf("session row should keep effort beside the model:\n%s", strings.Join(lines, "\n"))
 	}
-	if !strings.Contains(lines[2], "Reasonix@codex/demo  +3 -1 ?2") {
+	if !strings.Contains(lines[2], "Tempora@codex/demo  +3 -1 ?2") {
 		t.Fatalf("telemetry row should start with git identity:\n%s", strings.Join(lines, "\n"))
 	}
 }
@@ -345,7 +345,7 @@ func renderStatuslineViewWithGitAndEffort(t *testing.T) string {
 	m.label = "deepseek-v4-flash"
 	m.effortLevel = "auto"
 	m.gitStatus = gitStatus{
-		Repo:      "Reasonix",
+		Repo:      "Tempora",
 		Branch:    "codex/demo",
 		Added:     3,
 		Removed:   1,

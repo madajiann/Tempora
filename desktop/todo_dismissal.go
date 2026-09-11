@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 // DismissTodoBatchForTab records a closed completed todo list on the session

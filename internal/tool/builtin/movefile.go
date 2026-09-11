@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"reasonix/internal/sandbox"
-	"reasonix/internal/tool"
+	"tempora/internal/sandbox"
+	"tempora/internal/tool"
 )
 
 func init() { tool.RegisterBuiltin(moveFile{}) }
@@ -19,7 +19,7 @@ func init() { tool.RegisterBuiltin(moveFile{}) }
 var renameFile = os.Rename
 
 // moveFile moves or renames one file. roots, when non-empty, confine both the
-// source and destination to the workspace; guard rejects Reasonix session-data
+// source and destination to the workspace; guard rejects Tempora session-data
 // endpoints on either side (a move out of the store mutates it too); workDir
 // resolves relative paths.
 type moveFile struct {
@@ -129,7 +129,7 @@ func (m moveFile) Execute(ctx context.Context, args json.RawMessage) (string, er
 }
 
 func renameSameFileDestination(src, dst string) error {
-	tmp, err := os.CreateTemp(filepath.Dir(src), ".reasonix-move-*")
+	tmp, err := os.CreateTemp(filepath.Dir(src), ".tempora-move-*")
 	if err != nil {
 		return err
 	}

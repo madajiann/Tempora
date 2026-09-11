@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"reasonix/internal/jobs"
-	"reasonix/internal/planmode"
-	"reasonix/internal/tool"
+	"tempora/internal/jobs"
+	"tempora/internal/planmode"
+	"tempora/internal/tool"
 )
 
 type visibilityRecorder struct{}

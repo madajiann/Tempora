@@ -451,7 +451,7 @@ async function migrate(projectDir, database, mode, checkpointFile, now) {
 
 async function main() {
   const projectDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-  const database = process.env.DIAGNOSTICS_D1_DATABASE || "reasonix-crash";
+  const database = process.env.DIAGNOSTICS_D1_DATABASE || "tempora-crash";
   const args = parseArgs(process.argv.slice(2), projectDir);
   if (args.reset) {
     try { unlinkSync(args.checkpoint); } catch (error) { if (error?.code !== "ENOENT") throw error; }

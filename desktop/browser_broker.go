@@ -12,8 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/browser"
-	"reasonix/internal/remote/forward"
+	"tempora/internal/browser"
+	"tempora/internal/remote/forward"
 )
 
 // The desktop browser broker is the local end of the remote browser channel:
@@ -21,7 +21,7 @@ import (
 // tokens that a reconnect revokes at once.
 
 // browserBrokerForwardName prefixes the per-host reverse forward the remote
-// serve's REASONIX_BROWSER_BROKER endpoint points at.
+// serve's TEMPORA_BROWSER_BROKER endpoint points at.
 const browserBrokerForwardName = "browser-broker:"
 
 // browserBrokerRoute binds one token to one host connection generation.
@@ -168,7 +168,7 @@ func (b *browserBroker) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	route := b.routes[token]
 	b.mu.Unlock()
 	if token == "" || route == nil || (b.current != nil && !b.current(route.hostID, route.gen)) {
-		w.Header().Set("WWW-Authenticate", `Bearer realm="reasonix-browser-broker"`)
+		w.Header().Set("WWW-Authenticate", `Bearer realm="tempora-browser-broker"`)
 		http.Error(w, "invalid or stale browser broker token", http.StatusUnauthorized)
 		return
 	}

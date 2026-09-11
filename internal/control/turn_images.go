@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 // resolveTurnImages resolves each user attachment once. Text-only parents keep

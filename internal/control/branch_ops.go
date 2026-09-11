@@ -6,9 +6,9 @@ import (
 	"log/slog"
 	"strings"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 // Fork branches the conversation at the start of turn into a NEW session file,

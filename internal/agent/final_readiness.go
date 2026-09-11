@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/ablation"
-	"reasonix/internal/evidence"
-	"reasonix/internal/instruction"
-	"reasonix/internal/runtimepolicy"
-	"reasonix/internal/taskcontract"
+	"tempora/internal/ablation"
+	"tempora/internal/evidence"
+	"tempora/internal/instruction"
+	"tempora/internal/runtimepolicy"
+	"tempora/internal/taskcontract"
 )
 
 // Final readiness: whether the fact contract and ledger allow the turn to stop.

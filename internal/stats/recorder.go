@@ -6,10 +6,10 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/billing"
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/provider"
+	"tempora/internal/billing"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/provider"
 )
 
 // Recorder is a passthrough event.Sink that snapshots token usage (event.Usage)

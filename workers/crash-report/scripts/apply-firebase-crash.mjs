@@ -97,7 +97,7 @@ function assertSparkCapacity(projectDir, database) {
 
 function main() {
   const projectDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-  const database = process.env.DIAGNOSTICS_D1_DATABASE || "reasonix-crash";
+  const database = process.env.DIAGNOSTICS_D1_DATABASE || "tempora-crash";
   const before = inspect(projectDir, database);
   if (before.state === "complete") {
     console.log("Firebase crash D1 schema is already complete; migration skipped.");

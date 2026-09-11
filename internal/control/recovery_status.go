@@ -1,8 +1,8 @@
 package control
 
 import (
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 func (c *Controller) cancelledTurnWasSilent(completion *guardedTurnCompletion) bool {

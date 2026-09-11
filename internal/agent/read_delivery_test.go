@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
+	"tempora/internal/event"
 
-	"reasonix/internal/provider"
-	"reasonix/internal/readcoord"
-	"reasonix/internal/tool"
+	"tempora/internal/provider"
+	"tempora/internal/readcoord"
+	"tempora/internal/tool"
 )
 
 func deliveryFixture(t *testing.T) (*Agent, tool.ReadResultEnvelope, string) {

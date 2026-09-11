@@ -15,15 +15,15 @@ type cacheSessionContextKey struct{}
 // It deliberately replaces inherited identities when a child Agent starts.
 func WithCacheSession(ctx context.Context, identity string) context.Context {
 	sum := sha256.Sum256([]byte(identity))
-	return context.WithValue(ctx, cacheSessionContextKey{}, "reasonix-"+hex.EncodeToString(sum[:16]))
+	return context.WithValue(ctx, cacheSessionContextKey{}, "tempora-"+hex.EncodeToString(sum[:16]))
 }
 
 // NewCacheSessionID provides a stable per-client fallback for standalone calls.
-func NewCacheSessionID() string { return "reasonix-" + rand.Text() }
+func NewCacheSessionID() string { return "tempora-" + rand.Text() }
 
 // NewClientIdentityHeaders groups immutable transport identity by client lifetime.
 func NewClientIdentityHeaders() http.Header {
-	return http.Header{"User-Agent": []string{"Reasonix"}, "X-Opencode-Session": []string{NewCacheSessionID()}}
+	return http.Header{"User-Agent": []string{"Tempora"}, "X-Opencode-Session": []string{NewCacheSessionID()}}
 }
 
 // ApplyOpenCodeGoHeaders implements Go's client identification/cache contract

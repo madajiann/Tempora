@@ -11,7 +11,7 @@ export type LifecycleProbeSnapshot = {
 type AppLifecycleProbeApi = { snapshot(): LifecycleProbeSnapshot };
 
 declare global {
-  interface Window { __reasonixAppLifecycle?: AppLifecycleProbeApi }
+  interface Window { __temporaAppLifecycle?: AppLifecycleProbeApi }
 }
 
 // Qualification is finite. Overflow invalidates the evidence; never evict live refs.
@@ -40,8 +40,8 @@ function liveIds(): number[] {
 }
 
 function publishApi(): void {
-  if (!enabled() || window.__reasonixAppLifecycle) return;
-  window.__reasonixAppLifecycle = {
+  if (!enabled() || window.__temporaAppLifecycle) return;
+  window.__temporaAppLifecycle = {
     snapshot: () => {
       const liveRenderTokenIds = liveIds();
       return {

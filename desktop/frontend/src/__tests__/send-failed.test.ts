@@ -70,7 +70,7 @@ eq(confirmed.pendingUser, undefined, "matching submission id clears the pending 
 
 const memoryCitationMessage = {
   kind: "message",
-  memoryCitations: [{ kind: "memory_reference", source: "MEMORY.md", note: "reasonix workflow" }],
+  memoryCitations: [{ kind: "memory_reference", source: "MEMORY.md", note: "tempora workflow" }],
 } as WireEvent;
 const started = reducer(sent, { type: "event", e: { kind: "turn_started" } as WireEvent });
 const citationOnlyFinal = reducer(started, { type: "event", e: memoryCitationMessage });
@@ -205,7 +205,7 @@ const recoveryPaused = reducer(readinessStarted, {
     kind: "turn_done",
     submissionId: "send-0",
     outcome: "recovery_paused",
-    err: "Automatic retries paused. Reasonix stopped repeated attempts and kept completed work. Send \"continue\" to start a fresh attempt, or add instructions to change direction.",
+    err: "Automatic retries paused. Tempora stopped repeated attempts and kept completed work. Send \"continue\" to start a fresh attempt, or add instructions to change direction.",
   } as WireEvent,
 });
 const recoveryNotice = recoveryPaused.items[recoveryPaused.items.length - 1];
@@ -213,7 +213,7 @@ eq(recoveryNotice.kind === "notice" && recoveryNotice.level, "info", "recovery_p
 eq(recoveryNotice.kind === "notice" && Boolean(recoveryNotice.title), true, "recovery_paused shows a product title");
 eq(
   recoveryNotice.kind === "notice" && recoveryNotice.text,
-  "Reasonix stopped repeated attempts and kept completed work. Send “Continue” to start a fresh attempt, or add instructions to change direction.",
+  "Tempora stopped repeated attempts and kept completed work. Send “Continue” to start a fresh attempt, or add instructions to change direction.",
   "recovery_paused uses the localized product copy",
 );
 eq(
@@ -231,7 +231,7 @@ const completionUncertain = reducer(readinessStarted, {
     kind: "turn_done",
     submissionId: "send-0",
     outcome: "completion_uncertain",
-    err: "Completion could not be confirmed. Reasonix kept the current result and all completed work.",
+    err: "Completion could not be confirmed. Tempora kept the current result and all completed work.",
   } as WireEvent,
 });
 const uncertainNotice = completionUncertain.items[completionUncertain.items.length - 1];

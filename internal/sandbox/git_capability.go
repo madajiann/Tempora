@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/proc"
-	"reasonix/internal/secrets"
+	"tempora/internal/proc"
+	"tempora/internal/secrets"
 )
 
 // discoverGitCapability shares the shell inventory snapshot but remains a

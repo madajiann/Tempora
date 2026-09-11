@@ -3,7 +3,7 @@ package skill
 import (
 	"strings"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 // ToolBindingsForSkill applies the same ownership boundary to invocation and

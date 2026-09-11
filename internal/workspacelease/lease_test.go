@@ -13,12 +13,12 @@ import (
 )
 
 func TestWorkspaceLeaseHelperProcess(t *testing.T) {
-	if os.Getenv("REASONIX_WORKSPACE_LEASE_HELPER") != "1" {
+	if os.Getenv("TEMPORA_WORKSPACE_LEASE_HELPER") != "1" {
 		return
 	}
-	root := os.Getenv("REASONIX_WORKSPACE_LEASE_ROOT")
-	locks := os.Getenv("REASONIX_WORKSPACE_LEASE_DIR")
-	ready := os.Getenv("REASONIX_WORKSPACE_LEASE_READY")
+	root := os.Getenv("TEMPORA_WORKSPACE_LEASE_ROOT")
+	locks := os.Getenv("TEMPORA_WORKSPACE_LEASE_DIR")
+	ready := os.Getenv("TEMPORA_WORKSPACE_LEASE_READY")
 	o, err := New(root, locks, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -638,10 +638,10 @@ func TestCrossProcessLeaseBlocksAndCrashReleases(t *testing.T) {
 	ready := filepath.Join(t.TempDir(), "ready")
 	cmd := exec.Command(os.Args[0], "-test.run=^TestWorkspaceLeaseHelperProcess$")
 	cmd.Env = append(os.Environ(),
-		"REASONIX_WORKSPACE_LEASE_HELPER=1",
-		"REASONIX_WORKSPACE_LEASE_ROOT="+root,
-		"REASONIX_WORKSPACE_LEASE_DIR="+locks,
-		"REASONIX_WORKSPACE_LEASE_READY="+ready,
+		"TEMPORA_WORKSPACE_LEASE_HELPER=1",
+		"TEMPORA_WORKSPACE_LEASE_ROOT="+root,
+		"TEMPORA_WORKSPACE_LEASE_DIR="+locks,
+		"TEMPORA_WORKSPACE_LEASE_READY="+ready,
 	)
 	if err := cmd.Start(); err != nil {
 		t.Fatal(err)

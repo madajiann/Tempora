@@ -3,9 +3,9 @@ package agent
 import (
 	"os"
 
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/i18n"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/i18n"
 )
 
 // ebmBlindThreshold is the Evidence-Before-More-Mutation trigger: three
@@ -23,7 +23,7 @@ const ebmNudge = "[evidence nudge] You have made several unverified mutations. B
 // ebmEnabled gates enforcement for the A/B experiment; eligibility is always
 // recorded so baseline arms carry the same shadow. Env-scoped on purpose —
 // graduation to config waits on the experiment's verdict.
-var ebmEnabled = os.Getenv("REASONIX_EXPERIMENT_EBM") == "1"
+var ebmEnabled = os.Getenv("TEMPORA_EXPERIMENT_EBM") == "1"
 
 type ebmState struct {
 	fired        bool

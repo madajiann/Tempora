@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func TestBootToolContractMatchesProviderVisibleSurface(t *testing.T) {
@@ -21,7 +21,7 @@ func TestBootToolContractMatchesProviderVisibleSurface(t *testing.T) {
 			isolateConfigHome(t)
 			dir := robustTempDir(t)
 			t.Chdir(dir)
-			writeFile(t, dir, "reasonix.toml", `
+			writeFile(t, dir, "tempora.toml", `
 default_model = "test-model"
 
 [agent]

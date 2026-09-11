@@ -3,7 +3,7 @@ package boot
 import (
 	"strings"
 
-	"reasonix/internal/sandbox"
+	"tempora/internal/sandbox"
 )
 
 // resolvedShellLabel preserves the cache-stable kind label when the user did

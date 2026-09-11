@@ -5,14 +5,14 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/config"
-	"reasonix/internal/skill"
-	"reasonix/internal/tool"
+	"tempora/internal/config"
+	"tempora/internal/skill"
+	"tempora/internal/tool"
 )
 
 func TestSkillToolIssuesUseObservedMCPBindings(t *testing.T) {
 	root := t.TempDir()
-	file := filepath.Join(root, ".reasonix", "skills", "mcp-example", "SKILL.md")
+	file := filepath.Join(root, ".tempora", "skills", "mcp-example", "SKILL.md")
 	if err := os.MkdirAll(filepath.Dir(file), 0700); err != nil {
 		t.Fatal(err)
 	}

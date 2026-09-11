@@ -7,9 +7,9 @@ import (
 
 	"github.com/charmbracelet/x/ansi"
 
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/i18n"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/i18n"
 )
 
 // extensionStubCtrl stubs the SessionAPI surface the extension slash dispatch

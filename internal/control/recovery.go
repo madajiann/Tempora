@@ -8,9 +8,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
-	"reasonix/internal/recovery"
+	"tempora/internal/agent"
+	"tempora/internal/event"
+	"tempora/internal/recovery"
 )
 
 // ResolveRecovery applies a user decision on an Auto Guard card.

@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/eventwire"
-	"reasonix/internal/store"
+	"tempora/internal/event"
+	"tempora/internal/eventwire"
+	"tempora/internal/store"
 )
 
 func testSessionPath(t *testing.T) string {

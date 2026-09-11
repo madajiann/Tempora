@@ -7,7 +7,7 @@ import (
 	"reflect"
 
 	"github.com/BurntSushi/toml"
-	fileencoding "reasonix/internal/fileutil/encoding"
+	fileencoding "tempora/internal/fileutil/encoding"
 )
 
 // ModelSettingsBaseline must be captured before editing under the config lock.

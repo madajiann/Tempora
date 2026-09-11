@@ -14,17 +14,17 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/capability"
-	"reasonix/internal/config"
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/mcplaunch"
-	"reasonix/internal/permission"
-	"reasonix/internal/plugin"
-	"reasonix/internal/provider"
-	"reasonix/internal/skill"
+	"tempora/internal/capability"
+	"tempora/internal/config"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/mcplaunch"
+	"tempora/internal/permission"
+	"tempora/internal/plugin"
+	"tempora/internal/provider"
+	"tempora/internal/skill"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 type denyAllGate struct{}
@@ -241,7 +241,7 @@ func TestReadOnlyExecutionDoesNotStartUnauthorizedUnconnectedMCP(t *testing.T) {
 	host := plugin.NewHost()
 	defer host.Close()
 	proxy := NewUseCapabilityTool(context.Background(), host, []plugin.Spec{{
-		Name: "lazy", Type: "stdio", Command: "reasonix-test-definitely-missing-binary",
+		Name: "lazy", Type: "stdio", Command: "tempora-test-definitely-missing-binary",
 	}}, tool.NewRegistry(), capability.NewLedger(), nil, nil)
 	reg := tool.NewRegistry()
 	reg.Add(proxy)
@@ -424,7 +424,7 @@ func cacheExplicitReaderSchema(t *testing.T, spec plugin.Spec) {
 }
 
 func TestReadOnlyExecutionStartsInstalledUnconnectedMCPReader(t *testing.T) {
-	t.Setenv("REASONIX_CACHE_HOME", t.TempDir())
+	t.Setenv("TEMPORA_CACHE_HOME", t.TempDir())
 	var toolCalls atomic.Int32
 	server := explicitReaderMCPServer(t, nil, &toolCalls)
 	defer server.Close()
@@ -458,7 +458,7 @@ func TestReadOnlyExecutionStartsInstalledUnconnectedMCPReader(t *testing.T) {
 }
 
 func TestReadOnlyExecutionStartsPreviouslyAuthorizedProjectMCPReaderOnDemand(t *testing.T) {
-	t.Setenv("REASONIX_CACHE_HOME", t.TempDir())
+	t.Setenv("TEMPORA_CACHE_HOME", t.TempDir())
 	var toolCalls atomic.Int32
 	server := explicitReaderMCPServer(t, nil, &toolCalls)
 	defer server.Close()
@@ -494,7 +494,7 @@ func TestReadOnlyExecutionStartsPreviouslyAuthorizedProjectMCPReaderOnDemand(t *
 }
 
 func TestReadOnlyExecutionAllowsSchemaOnlyDriftForAuthorizedReader(t *testing.T) {
-	t.Setenv("REASONIX_CACHE_HOME", t.TempDir())
+	t.Setenv("TEMPORA_CACHE_HOME", t.TempDir())
 	var schemaDrift atomic.Bool
 	var toolCalls atomic.Int32
 	server := explicitReaderMCPServer(t, &schemaDrift, &toolCalls)
@@ -592,7 +592,7 @@ func TestUseCapabilityDeclineAndInspect(t *testing.T) {
 }
 
 func TestUseCapabilityInspectMCPToolDoesNotListSiblingSchemas(t *testing.T) {
-	t.Setenv("REASONIX_CACHE_HOME", t.TempDir())
+	t.Setenv("TEMPORA_CACHE_HOME", t.TempDir())
 	spec := plugin.Spec{Name: "db", Authorized: true}
 	if err := plugin.SaveCachedSchema(spec.Name, plugin.CachedSchema{
 		CacheKey: plugin.SchemaCacheKey(spec),
@@ -784,7 +784,7 @@ func TestReviewReportRejectsNonContentEvidence(t *testing.T) {
 func TestUseCapabilityServerConnectHonorsPermissionInPlanMode(t *testing.T) {
 	host := plugin.NewHost()
 	defer host.Close()
-	specs := []plugin.Spec{{Name: "lazy", Type: "stdio", Command: "reasonix-test-definitely-missing-binary", Authorized: true}}
+	specs := []plugin.Spec{{Name: "lazy", Type: "stdio", Command: "tempora-test-definitely-missing-binary", Authorized: true}}
 	reg := tool.NewRegistry()
 	uc := NewUseCapabilityTool(context.Background(), host, specs, reg, capability.NewLedger(), nil, nil)
 	reg.Add(uc)
@@ -821,7 +821,7 @@ func TestUseCapabilityServerConnectHonorsPermissionInPlanMode(t *testing.T) {
 func TestOnDemandModelNameMatchesPluginCanonicalName(t *testing.T) {
 	host := plugin.NewHost()
 	defer host.Close()
-	specs := []plugin.Spec{{Name: "lazy", Type: "stdio", Command: "reasonix-test-definitely-missing-binary"}}
+	specs := []plugin.Spec{{Name: "lazy", Type: "stdio", Command: "tempora-test-definitely-missing-binary"}}
 	tl := NewUseCapabilityTool(context.Background(), host, specs, tool.NewRegistry(), capability.NewLedger(), nil, nil)
 	for _, raw := range []string{"@model/tool", "search/issues", "with space", "plain_ok"} {
 		resolved, err := tl.ResolveCall(context.Background(),
@@ -920,7 +920,7 @@ func TestUseCapabilityResolveCallIsSideEffectFree(t *testing.T) {
 	specs := []plugin.Spec{{
 		Name:    "lazy",
 		Type:    "stdio",
-		Command: "reasonix-test-definitely-missing-binary",
+		Command: "tempora-test-definitely-missing-binary",
 	}}
 	tl := NewUseCapabilityTool(context.Background(), host, specs, tool.NewRegistry(), capability.NewLedger(), nil, nil)
 
@@ -952,7 +952,7 @@ func TestUseCapabilityResolveCallIsSideEffectFree(t *testing.T) {
 func TestUseCapabilityInspectDoesNotStartServer(t *testing.T) {
 	host := plugin.NewHost()
 	defer host.Close()
-	specs := []plugin.Spec{{Name: "lazy", Type: "stdio", Command: "reasonix-test-definitely-missing-binary"}}
+	specs := []plugin.Spec{{Name: "lazy", Type: "stdio", Command: "tempora-test-definitely-missing-binary"}}
 	tl := NewUseCapabilityTool(context.Background(), host, specs, tool.NewRegistry(), capability.NewLedger(), nil, func() capability.Catalog {
 		return capability.Catalog{Entries: []capability.Entry{{
 			ID: "mcp-server:lazy", Kind: capability.KindMCPServer, Name: "lazy", Source: "lazy", Status: capability.StatusConfigured,
@@ -1116,7 +1116,7 @@ func TestPlannerAllowsAuthorizedNonReadOnlyNonDestructiveMCP(t *testing.T) {
 }
 
 func TestPlannerPlanModeExecutesAuthorizedOpaqueMCPThroughRuntime(t *testing.T) {
-	t.Setenv("REASONIX_CACHE_HOME", t.TempDir())
+	t.Setenv("TEMPORA_CACHE_HOME", t.TempDir())
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -1148,7 +1148,7 @@ func TestPlannerPlanModeExecutesAuthorizedOpaqueMCPThroughRuntime(t *testing.T) 
 }
 
 func TestPlannerAllowsConnectedServerDirectoryCall(t *testing.T) {
-	t.Setenv("REASONIX_CACHE_HOME", t.TempDir())
+	t.Setenv("TEMPORA_CACHE_HOME", t.TempDir())
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -1384,7 +1384,7 @@ func TestPlannerSchemaStableAcrossProxyPresence(t *testing.T) {
 }
 
 func TestMCPCapabilityRuntimeTracksHotLifecycleAndSharedHostRevocation(t *testing.T) {
-	t.Setenv("REASONIX_CACHE_HOME", t.TempDir())
+	t.Setenv("TEMPORA_CACHE_HOME", t.TempDir())
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
@@ -1466,7 +1466,7 @@ func TestMCPCapabilityRuntimeTracksHotLifecycleAndSharedHostRevocation(t *testin
 }
 
 func TestSharedHostSameNameRequiresCurrentRuntimeAuthorizationAndIdentity(t *testing.T) {
-	t.Setenv("REASONIX_CACHE_HOME", t.TempDir())
+	t.Setenv("TEMPORA_CACHE_HOME", t.TempDir())
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -1512,7 +1512,7 @@ func TestSharedHostSameNameRequiresCurrentRuntimeAuthorizationAndIdentity(t *tes
 }
 
 func TestResolvedMCPCallRechecksRuntimeDisableBeforeDispatch(t *testing.T) {
-	t.Setenv("REASONIX_CACHE_HOME", t.TempDir())
+	t.Setenv("TEMPORA_CACHE_HOME", t.TempDir())
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -1543,7 +1543,7 @@ func TestResolvedMCPCallRechecksRuntimeDisableBeforeDispatch(t *testing.T) {
 }
 
 func TestRuntimeDisableLinearizesWithInFlightMCPDispatch(t *testing.T) {
-	t.Setenv("REASONIX_CACHE_HOME", t.TempDir())
+	t.Setenv("TEMPORA_CACHE_HOME", t.TempDir())
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -1604,7 +1604,7 @@ func TestRuntimeDisableLinearizesWithInFlightMCPDispatch(t *testing.T) {
 }
 
 func TestMCPCapabilityRuntimeConcurrentUpdatesAndSnapshots(t *testing.T) {
-	t.Setenv("REASONIX_CACHE_HOME", t.TempDir())
+	t.Setenv("TEMPORA_CACHE_HOME", t.TempDir())
 	runtime := NewMCPCapabilityRuntime(context.Background(), plugin.NewHost(), nil, tool.NewRegistry(), nil)
 	defer runtime.host.Close()
 	frontend := runtime.NewFrontend(nil, nil)
@@ -1687,7 +1687,7 @@ func TestUnauthorizedNonProjectMCPZeroProcessStart(t *testing.T) {
 func TestAuthorizedMCPConnectUsesExplicitDenyOnlyGate(t *testing.T) {
 	// dontAsk/ask policy must not block first connect of an authorized server;
 	// only ExplicitlyDenies should stop it.
-	t.Setenv("REASONIX_CACHE_HOME", t.TempDir())
+	t.Setenv("TEMPORA_CACHE_HOME", t.TempDir())
 	var toolCalls atomic.Int32
 	server := explicitReaderMCPServer(t, nil, &toolCalls)
 	defer server.Close()

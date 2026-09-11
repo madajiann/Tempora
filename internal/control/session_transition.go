@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/guardian"
+	"tempora/internal/agent"
+	"tempora/internal/guardian"
 )
 
 // SessionTransitionInfo describes an intentional controller path change. The

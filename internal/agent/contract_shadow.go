@@ -3,12 +3,12 @@ package agent
 import (
 	"strings"
 
-	"reasonix/internal/completion"
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/instruction"
-	"reasonix/internal/plancontract"
-	"reasonix/internal/taskcontract"
+	"tempora/internal/completion"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/instruction"
+	"tempora/internal/plancontract"
+	"tempora/internal/taskcontract"
 )
 
 // buildShadowContract replays a finished turn's receipts into a task

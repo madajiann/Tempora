@@ -8,10 +8,10 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
-	"reasonix/internal/tool/builtin"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
+	"tempora/internal/tool/builtin"
 )
 
 type anchorAuditSink struct {

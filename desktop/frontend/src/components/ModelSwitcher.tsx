@@ -78,8 +78,8 @@ export function ModelSwitcher({
 
   useEffect(() => {
     const refresh = () => void loadModels();
-    window.addEventListener("reasonix:model-catalog-changed", refresh);
-    return () => window.removeEventListener("reasonix:model-catalog-changed", refresh);
+    window.addEventListener("tempora:model-catalog-changed", refresh);
+    return () => window.removeEventListener("tempora:model-catalog-changed", refresh);
   }, [loadModels]);
 
   useEffect(() => {

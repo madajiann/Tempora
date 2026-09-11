@@ -3,12 +3,12 @@ package agent
 import (
 	"context"
 
-	"reasonix/internal/checkpoint"
-	"reasonix/internal/event"
-	"reasonix/internal/imageinput"
-	"reasonix/internal/provider"
-	"reasonix/internal/runtimepolicy"
-	"reasonix/internal/tool"
+	"tempora/internal/checkpoint"
+	"tempora/internal/event"
+	"tempora/internal/imageinput"
+	"tempora/internal/provider"
+	"tempora/internal/runtimepolicy"
+	"tempora/internal/tool"
 )
 
 // subagentOptions is the single construction point for the run options every

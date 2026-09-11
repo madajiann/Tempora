@@ -7,9 +7,9 @@ import (
 	"slices"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 func (s *Session) addWriteIntent(callID string, raw json.RawMessage) bool {

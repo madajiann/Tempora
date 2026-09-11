@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"reasonix/internal/pluginpkg"
+	"tempora/internal/pluginpkg"
 )
 
 // TestNthRequiredFailureClosesEarlierSuccesses: Nth required fail → nil manager.

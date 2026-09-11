@@ -9,12 +9,12 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/capability"
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/provider"
+	"tempora/internal/capability"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/provider"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 // fakeReadFileTool is a minimal read-only tool whose successful calls produce

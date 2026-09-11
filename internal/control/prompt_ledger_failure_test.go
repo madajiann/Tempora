@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/mcpinteraction"
-	"reasonix/internal/turnevent"
+	"tempora/internal/event"
+	"tempora/internal/mcpinteraction"
+	"tempora/internal/turnevent"
 )
 
 func blockPromptTestLedger(t *testing.T, c *Controller, root string) {

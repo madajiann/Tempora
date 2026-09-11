@@ -1,8 +1,8 @@
-# Reasonix Extension SDK for Go
+# Tempora Extension SDK for Go
 
-Write [Reasonix](https://github.com/esengine/DeepSeek-Reasonix) extensions in
+Write [Tempora](https://github.com/esengine/DeepSeek-Reasonix) extensions in
 Go. An extension is a small sidecar process speaking **Extension Protocol
-v2** (`reasonix.extension.v2`) over stdio: Reasonix launches it, hands it the
+v2** (`tempora.extension.v2`) over stdio: Tempora launches it, hands it the
 initialize handshake, and then drives intercepts, event observation,
 extension-hosted provider streams, and structured UI surfaces.
 
@@ -94,16 +94,16 @@ bounded shutdown — all in one small stdlib-only program.
 
 ```sh
 mkdir -p /tmp/full-sidecar/bin
-cp ./examples/fullsidecar/reasonix-plugin.json /tmp/full-sidecar/
+cp ./examples/fullsidecar/tempora-plugin.json /tmp/full-sidecar/
 go build -o /tmp/full-sidecar/bin/full-sidecar ./examples/fullsidecar
 ```
 
 The resulting directory is a complete Manifest v2 plugin package. The binary
 speaks the protocol on stdin/stdout, so install the directory as a plugin
 package (or point the host-side conformance suite at it) rather than running
-the binary interactively. It is installed into a temporary Reasonix home and
+the binary interactively. It is installed into a temporary Tempora home and
 driven end-to-end against the real host by `internal/extension/conformance` in
-the Reasonix repository.
+the Tempora repository.
 
 ## Generated wire types
 

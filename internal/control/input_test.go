@@ -9,15 +9,15 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 
-	"reasonix/internal/command"
-	"reasonix/internal/event"
-	"reasonix/internal/hook"
-	"reasonix/internal/memory"
-	"reasonix/internal/provider"
-	"reasonix/internal/skill"
-	"reasonix/internal/tool"
+	"tempora/internal/command"
+	"tempora/internal/event"
+	"tempora/internal/hook"
+	"tempora/internal/memory"
+	"tempora/internal/provider"
+	"tempora/internal/skill"
+	"tempora/internal/tool"
 )
 
 type fakeTurnRunner struct {
@@ -66,7 +66,7 @@ func TestSkillsReflectStoreChangesAfterControllerBuild(t *testing.T) {
 	if _, ok := c.RunSkill("/hot now"); ok {
 		t.Fatal("skill should not exist before it is written")
 	}
-	writeControlSkill(t, project, ".reasonix/skills/hot/SKILL.md", "---\nname: hot\ndescription: Hot install\n---\nHot body")
+	writeControlSkill(t, project, ".tempora/skills/hot/SKILL.md", "---\nname: hot\ndescription: Hot install\n---\nHot body")
 
 	if skills := c.Skills(); len(skills) != 1 || skills[0].Name != "hot" {
 		t.Fatalf("Skills() = %+v, want newly installed hot skill", skills)
@@ -1193,21 +1193,21 @@ func TestSubmitDocsPreservesExistingCustomCommand(t *testing.T) {
 	}
 }
 
-func TestSubmitQualifiedReasonixDocsPreservesExistingCommandAndUsesNextFallback(t *testing.T) {
+func TestSubmitQualifiedTemporaDocsPreservesExistingCommandAndUsesNextFallback(t *testing.T) {
 	runner := &fakeTurnRunner{}
 	events := make(chan event.Event, 8)
 	c := New(Options{
 		Runner: runner,
 		Commands: []command.Command{
 			{Name: "docs", Body: "legacy docs workflow: $ARGUMENTS"},
-			{Name: ReasonixDocsSlashName, Body: "must not shadow built-in docs: $ARGUMENTS"},
+			{Name: TemporaDocsSlashName, Body: "must not shadow built-in docs: $ARGUMENTS"},
 		},
 		Sink: event.FuncSink(func(e event.Event) {
 			events <- e
 		}),
 	})
 
-	c.Submit("/reasonix:docs existing workflow")
+	c.Submit("/tempora:docs existing workflow")
 	waitForTurnDone(t, events)
 	if len(runner.inputs) != 1 {
 		t.Fatalf("qualified custom command model turns = %d, inputs=%q", len(runner.inputs), runner.inputs)
@@ -1217,7 +1217,7 @@ func TestSubmitQualifiedReasonixDocsPreservesExistingCommandAndUsesNextFallback(
 	}
 	waitIdle(t, c)
 
-	c.Submit("/reasonix:builtin:docs 1.19.5 update notes")
+	c.Submit("/tempora:builtin:docs 1.19.5 update notes")
 	waitForTurnDone(t, events)
 	if len(runner.inputs) != 2 {
 		t.Fatalf("generated docs fallback model turns = %d, inputs=%q", len(runner.inputs), runner.inputs)

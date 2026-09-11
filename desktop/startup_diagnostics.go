@@ -5,7 +5,7 @@ import (
 	"runtime"
 	"time"
 
-	"reasonix/internal/repair"
+	"tempora/internal/repair"
 )
 
 func (a *App) recordPreviousRunDiagnostics() {
@@ -39,7 +39,7 @@ func previousRunReport(previous repair.PreviousRunObservation) crashReport {
 	}
 	message := fmt.Sprintf(`[desktop.legacy_abnormal_exit]
 
-Reasonix consumed a legacy v1.18-v1.19 startup record whose owner was no longer running.
+Tempora consumed a legacy v1.18-v1.19 startup record whose owner was no longer running.
 
 --- lifecycle context ---
 phase: %s
@@ -70,7 +70,7 @@ func desktopLifecycleReport(previous desktopLifecycleObservation) crashReport {
 	phase := metricBucket(previous.Phase)
 	message := fmt.Sprintf(`[desktop.abnormal_exit.v2]
 
-Reasonix found a per-process lifecycle record whose desktop process was no longer running.
+Tempora found a per-process lifecycle record whose desktop process was no longer running.
 
 --- lifecycle context ---
 phase: %s

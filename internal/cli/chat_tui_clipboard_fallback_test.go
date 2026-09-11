@@ -9,8 +9,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"reasonix/internal/control"
-	"reasonix/internal/i18n"
+	"tempora/internal/control"
+	"tempora/internal/i18n"
 )
 
 func stubEmptyImageClipboard(t *testing.T, text string, imageErrs ...error) {
@@ -193,7 +193,7 @@ func TestOverlappingCtrlVStillAttachesImageOnce(t *testing.T) {
 		t.Fatal("overlapping image paste started a duplicate probe")
 	}
 
-	next, _ = m.Update(clipboardImageMsg{path: ".reasonix/attachments/test.png"})
+	next, _ = m.Update(clipboardImageMsg{path: ".tempora/attachments/test.png"})
 	m = next.(chatTUI)
 	if got, want := m.input.Value(), "[image #1] "; got != want {
 		t.Fatalf("overlapping image paste produced %q, want %q", got, want)

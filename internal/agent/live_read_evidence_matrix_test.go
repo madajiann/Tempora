@@ -14,21 +14,21 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/extension"
-	"reasonix/internal/extension/dispatch"
-	"reasonix/internal/extension/protocol"
-	"reasonix/internal/provider"
-	"reasonix/internal/readcoord"
-	"reasonix/internal/tool"
-	"reasonix/internal/tool/builtin"
+	"tempora/internal/event"
+	"tempora/internal/extension"
+	"tempora/internal/extension/dispatch"
+	"tempora/internal/extension/protocol"
+	"tempora/internal/provider"
+	"tempora/internal/readcoord"
+	"tempora/internal/tool"
+	"tempora/internal/tool/builtin"
 )
 
 // Opt-in paid matrix. Only fixture-confined file tools are exposed; no shell,
 // network tools, host configuration, or user project content enters a request.
 func TestLiveReadEvidenceMatrix(t *testing.T) {
-	if os.Getenv("REASONIX_LIVE_READ_EVIDENCE") != "1" {
-		t.Skip("set REASONIX_LIVE_READ_EVIDENCE=1 to authorize this paid matrix")
+	if os.Getenv("TEMPORA_LIVE_READ_EVIDENCE") != "1" {
+		t.Skip("set TEMPORA_LIVE_READ_EVIDENCE=1 to authorize this paid matrix")
 	}
 	key := os.Getenv("DEEPSEEK_API_KEY")
 	if key == "" {
@@ -43,7 +43,7 @@ func TestLiveReadEvidenceMatrix(t *testing.T) {
 	totalTokens, totalRequests := 0, 0
 	names := []string{"inspect_large", "full_pages", "range_tail", "range_edit", "overwrite", "multi_edit", "invalid_recovery", "unicode_crlf", "new_write", "full_budget", "independent_edit", "stale_version", "full_many_pages", "transport_cut", "disjoint_edit", "same_batch_recovery"}
 	names = append(names, "completed_reread", "partial_reread", "projected_finish", "projected_reread", "same_content_files", "changed_after_complete", "repeat_budget", "pause_resume", "overwrite_exact", "overwrite_exact", "overwrite_exact")
-	if selected := os.Getenv("REASONIX_LIVE_READ_SCENARIOS"); selected != "" {
+	if selected := os.Getenv("TEMPORA_LIVE_READ_SCENARIOS"); selected != "" {
 		names = strings.Split(selected, ",")
 	}
 	for _, model := range []string{"deepseek-v4-flash", "deepseek-v4-pro"} {

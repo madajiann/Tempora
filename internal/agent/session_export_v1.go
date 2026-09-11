@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/store"
+	"tempora/internal/store"
 )
 
 // ExportSessionSchemaOne writes the selected head of a schema-2 session as a

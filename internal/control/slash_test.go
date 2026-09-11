@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/instruction"
-	"reasonix/internal/memory"
-	"reasonix/internal/skill"
+	"tempora/internal/event"
+	"tempora/internal/instruction"
+	"tempora/internal/memory"
+	"tempora/internal/skill"
 )
 
 func labelsOf(items []SlashItem) []string {
@@ -416,7 +416,7 @@ func TestManagementMemoryRevisionRestore(t *testing.T) {
 }
 
 func TestManagementMemoryArchiveRecoveryAcceptsQuotedPathWithSpaces(t *testing.T) {
-	userDir := filepath.Join(t.TempDir(), "reasonix home with spaces")
+	userDir := filepath.Join(t.TempDir(), "tempora home with spaces")
 	cwd := filepath.Join(t.TempDir(), "project")
 	store := memory.StoreFor(userDir, cwd)
 	saved, err := store.SaveWithOptions(memory.Memory{
@@ -504,7 +504,7 @@ func TestManagementMigrateEmitsProgress(t *testing.T) {
 
 func TestManagementMigrateFromImportsExplicitSessions(t *testing.T) {
 	home := isolateControlConfigHome(t)
-	legacySessions := filepath.Join(home, "Old Reasonix", "sessions")
+	legacySessions := filepath.Join(home, "Old Tempora", "sessions")
 	if err := os.MkdirAll(legacySessions, 0o755); err != nil {
 		t.Fatal(err)
 	}

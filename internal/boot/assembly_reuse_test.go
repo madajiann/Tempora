@@ -3,7 +3,7 @@ package boot
 import (
 	"testing"
 
-	"reasonix/internal/extension"
+	"tempora/internal/extension"
 )
 
 func TestShouldReuseDiscoveryKinds(t *testing.T) {

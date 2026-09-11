@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/capdiag"
+	"tempora/internal/capdiag"
 )
 
 func TestDoctorCapabilitiesStaticJSON(t *testing.T) {

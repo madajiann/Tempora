@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/event"
-	"reasonix/internal/i18n"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/i18n"
+	"tempora/internal/provider"
 )
 
 // stormBreakThreshold is how many times in a row the same tool may fail the same

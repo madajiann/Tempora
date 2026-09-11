@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 // parseToolResultWithSchema keeps output-schema validation advisory. Third-party
-// servers sometimes publish a stale or incompatible output schema; Reasonix
+// servers sometimes publish a stale or incompatible output schema; Tempora
 // records that mismatch without discarding an otherwise usable tool result.
 func parseToolResultWithSchema(res, outputSchema json.RawMessage) (string, []string, error) {
 	var envelope struct {

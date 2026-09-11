@@ -10,13 +10,13 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/hook"
-	"reasonix/internal/provider"
-	"reasonix/internal/skill"
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/hook"
+	"tempora/internal/provider"
+	"tempora/internal/skill"
+	"tempora/internal/tool"
 )
 
 type plannerMetadataRunner struct {
@@ -389,7 +389,7 @@ func (r *recoveryPauseRunner) Run(ctx context.Context, _ string) error {
 		r.scopes = append(r.scopes, scope)
 	}
 	return &agent.RecoveryPauseError{
-		Message:    "Automatic retries paused. Reasonix stopped repeated attempts and kept completed work. Send \"continue\" to start a fresh attempt, or add instructions to change direction.",
+		Message:    "Automatic retries paused. Tempora stopped repeated attempts and kept completed work. Send \"continue\" to start a fresh attempt, or add instructions to change direction.",
 		StopReason: "episode_failures",
 	}
 }

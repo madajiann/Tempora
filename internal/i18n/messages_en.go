@@ -6,16 +6,16 @@ var English = Messages{
 	WelcomeTitleFmt: "Welcome to %s",
 	NoConfigYet:     "No configuration found yet — let's set it up.",
 
-	InitHint: "Project memory (AGENTS.md) is generated in-session: run `reasonix`, then `/init` — the model analyzes the codebase and writes it. For configuration, use `reasonix setup`.",
+	InitHint: "Project memory (AGENTS.md) is generated in-session: run `tempora`, then `/init` — the model analyzes the codebase and writes it. For configuration, use `tempora setup`.",
 
 	ChatTip:                          "Context is kept across turns. Type 'exit' or Ctrl-D to quit.",
 	TurnCancelled:                    "cancelled — back to prompt",
 	InterruptedRecovery:              "This turn was interrupted. Partial output is kept for reference; only completed tool pairs and a bounded recovery summary enter the next model turn. Inspect the workspace before continuing or reverting changes.",
 	FinalReadinessRecovery:           "Task work or completion checks are paused. Run /continue-checks to preserve completed evidence and finish the remaining work.",
-	ReadinessContinuing:              "Reasonix is finishing the remaining task work or checks automatically.",
-	RecoveryPaused:                   "Automatic retries paused. Reasonix stopped repeated attempts and kept completed work. Send “Continue” to start a fresh attempt, or add instructions to change direction.",
+	ReadinessContinuing:              "Tempora is finishing the remaining task work or checks automatically.",
+	RecoveryPaused:                   "Automatic retries paused. Tempora stopped repeated attempts and kept completed work. Send “Continue” to start a fresh attempt, or add instructions to change direction.",
 	CompletionUncertain:              "Completion could not be confirmed. The current result and completed work are kept. Send \"continue\" to resume, or restate what should change.",
-	ReasoningReplayRepair:            "The model provider rejected this conversation's stored thinking blocks. Reasonix removed them from the provider-visible history and retried once.",
+	ReasoningReplayRepair:            "The model provider rejected this conversation's stored thinking blocks. Tempora removed them from the provider-visible history and retried once.",
 	EmptyFinal:                       "No visible answer was produced; asking the assistant to respond again.",
 	ExecutorHandoff:                  "The assistant answered before taking action; asking it to use the required tools.",
 	ToolBudget:                       "Tool round limit reached; asking the assistant to summarize progress.",
@@ -35,14 +35,14 @@ var English = Messages{
 	StreamInterruptedPrematureEOF:    "model stream ended before completion; the provider gateway or network proxy dropped the connection",
 	StreamInterruptedConnectionReset: "model connection was reset; check the provider gateway or network proxy",
 	ToolOutputTruncatedFmt:           "tool output truncated: %d of %d bytes elided",
-	IncompleteReadFinishBlocked:      "Reasonix refused to finish because a file read still has unread content.",
-	ReadContinuationRequired:         "Reasonix is continuing or narrowing an incomplete file read before allowing changes or completion.",
-	IncompleteReadDetected:           "Reasonix detected an incomplete file read and armed a host continuation.",
-	ReadStrategyRequired:             "The complete file did not fit the dynamic context budget; Reasonix entered restricted search/read mode.",
-	ReadStrategyProgress:             "Reasonix recorded valid progress in a restricted read strategy.",
-	ReadStrategyResolved:             "Reasonix validated a narrowed read strategy receipt.",
-	ReadLocalSafetyPaged:             "Reasonix safely paged a large local read_file result.",
-	ReadCompleted:                    "Reasonix finished recovering the complete file read.",
+	IncompleteReadFinishBlocked:      "Tempora refused to finish because a file read still has unread content.",
+	ReadContinuationRequired:         "Tempora is continuing or narrowing an incomplete file read before allowing changes or completion.",
+	IncompleteReadDetected:           "Tempora detected an incomplete file read and armed a host continuation.",
+	ReadStrategyRequired:             "The complete file did not fit the dynamic context budget; Tempora entered restricted search/read mode.",
+	ReadStrategyProgress:             "Tempora recorded valid progress in a restricted read strategy.",
+	ReadStrategyResolved:             "Tempora validated a narrowed read strategy receipt.",
+	ReadLocalSafetyPaged:             "Tempora safely paged a large local read_file result.",
+	ReadCompleted:                    "Tempora finished recovering the complete file read.",
 	ReadRestrictedStrategyFmt:        "read_file switched to restricted strategy: estimated_tokens=%d budget_tokens=%d",
 	ContextRecoveryAdjustBudget:      "Adjusted the output budget to fit the shared context window.",
 	ContextRecoveryCompacted:         "Compacted context after a shared-window overflow and retried.",
@@ -66,7 +66,7 @@ var English = Messages{
 		"unreviewed_change":   "changed, never looked at again",
 		"declared_unverified": "declared unverified",
 	},
-	NoSessionToResume: "no saved session to resume — start a new one with `reasonix`",
+	NoSessionToResume: "no saved session to resume — start a new one with `tempora`",
 	ResumeRequiresTTY: "--resume needs an interactive terminal; pass --continue for the most recent session",
 	PickSessionLabel:  "Resume which session?",
 
@@ -179,22 +179,22 @@ var English = Messages{
 	MemoryApprovalBodyLabel:                "body",
 	MemoryApprovalArchiveFmt:               "Archive memory %q",
 	PlanModeBashTrustSubjectFmt:            "Trust %q as a read-only command prefix while planning\nCommand: %s",
-	PlanModeBashTrustReason:                "This bash command is not in Reasonix's built-in read-only set. Confirm only if this exact prefix is read-only for planning and research. Auto/YOLO approval cannot answer this trust prompt.",
+	PlanModeBashTrustReason:                "This bash command is not in Tempora's built-in read-only set. Confirm only if this exact prefix is read-only for planning and research. Auto/YOLO approval cannot answer this trust prompt.",
 	PlanModeBashTrustDeclined:              "the user declined to trust this bash command as read-only for plan mode - do not retry it; continue with other trusted read-only tools or ask how to proceed.",
 	SandboxEscapeSubjectFallback:           "run shell command unconfined once",
 	SandboxEscapeSubjectPrefix:             "run unconfined once: ",
 	SandboxEscapeWrapReason:                "Windows does not provide an OS-level Bash sandbox for this command. Run it unconfined one time? This bypasses OS isolation for this command only.",
 	SandboxEscapeRuntimeReason:             "The OS sandbox could not start this command. Run it unconfined one time? This bypasses OS isolation for this command only.",
 	SandboxEscapeDeclined:                  "the user declined to run this command without the OS sandbox - do not retry it unconfined; ask how they would like to proceed.",
-	ApprovalToolLabelConfigWrite:           "Reasonix config write",
-	ConfigWriteSubjectPrefix:               "write Reasonix config: ",
-	ConfigWriteReason:                      "This write targets a Reasonix-managed configuration file outside the workspace. It can change providers, sandbox rules, permissions, and MCP servers for future sessions, so it needs your explicit approval.",
-	ConfigWriteDeclined:                    "the user declined this Reasonix config write - do not retry it; ask how they would like to proceed.",
+	ApprovalToolLabelConfigWrite:           "Tempora config write",
+	ConfigWriteSubjectPrefix:               "write Tempora config: ",
+	ConfigWriteReason:                      "This write targets a Tempora-managed configuration file outside the workspace. It can change providers, sandbox rules, permissions, and MCP servers for future sessions, so it needs your explicit approval.",
+	ConfigWriteDeclined:                    "the user declined this Tempora config write - do not retry it; ask how they would like to proceed.",
 	ConfigWriteApprovalChoices:             "1. Allow once\n2. Allow for this session\n3. Deny\nChoose [1/2/3] (y/a/n also work)",
-	WriteAccessApprovalChoices:             "1. Allow once\n2. Allow these directories for this session\n3. Add to project allow_write (save to reasonix.toml)\n4. Deny\nChoose [1/2/3/4] (y/a/p/n also work)",
-	WriteAccessHomeWarning:                 "This grants write access to your entire home directory. Reasonix session and runtime-state files stay protected.",
+	WriteAccessApprovalChoices:             "1. Allow once\n2. Allow these directories for this session\n3. Add to project allow_write (save to tempora.toml)\n4. Deny\nChoose [1/2/3/4] (y/a/p/n also work)",
+	WriteAccessHomeWarning:                 "This grants write access to your entire home directory. Tempora session and runtime-state files stay protected.",
 	WriteAccessMergedPermissionHint:        "This choice also authorizes the current matching tool operation.",
-	WriteAccessProjectHint:                 "Adding to the project writes [sandbox].allow_write (and the matching permission rule if needed) in this workspace's reasonix.toml.",
+	WriteAccessProjectHint:                 "Adding to the project writes [sandbox].allow_write (and the matching permission rule if needed) in this workspace's tempora.toml.",
 	PermissionSavedFmt:                     "permission saved to %s: %s",
 	PermissionAlreadyAllowedFmt:            "permission already covered in %s: %s",
 	PermissionSaveFailedFmt:                "permission save failed for %s: %v",
@@ -281,7 +281,7 @@ var English = Messages{
 	SkillPickerStatusNotDir:      "not-directory",
 	SkillPickerStatusUnreadable:  "unreadable",
 	SlashPromptEmpty:             "the MCP prompt returned no content to send",
-	SlashMCPNone:                 "no MCP servers configured — add a [[plugins]] entry in reasonix.toml",
+	SlashMCPNone:                 "no MCP servers configured — add a [[plugins]] entry in tempora.toml",
 	CtrlCQuitHint:                "press Ctrl+C again to quit",
 	CompHintSlash:                "↑/↓ move · Tab/Enter select · Esc close",
 	CompHintFile:                 "↑/↓ move · Tab/Enter open folder or pick file · Esc close",
@@ -369,7 +369,7 @@ var English = Messages{
 	ArgPresetStandard:   "adaptive default posture",
 	ArgPresetDelivery:   "delivery completion gates",
 	ArgThemeCurrent:     "current",
-	ArgLanguageAuto:     "auto-detect from REASONIX_LANG / locale",
+	ArgLanguageAuto:     "auto-detect from TEMPORA_LANG / locale",
 	ArgLanguageEn:       "English",
 	ArgLanguageZh:       "中文",
 
@@ -381,9 +381,9 @@ var English = Messages{
 	ListSkillsHeaderFmt: "skills (%d)",
 	ListSkillsNone:      "skills: none defined — invoke a built-in like /init, or author one with install_skill",
 	ListHooksHeaderFmt:  "hooks (%d active)",
-	ListHooksNone:       "hooks: none active — configure in .reasonix/settings.json (project) or <Reasonix home>/settings.json (global)",
+	ListHooksNone:       "hooks: none active — configure in .tempora/settings.json (project) or <Tempora home>/settings.json (global)",
 	ListMcpHeader:       "mcp servers",
-	ListMcpNone:         "mcp: no servers connected — add one in reasonix.toml ([[plugins]]) or a project .mcp.json",
+	ListMcpNone:         "mcp: no servers connected — add one in tempora.toml ([[plugins]]) or a project .mcp.json",
 
 	MemoryEditHint:               "edit doc files or use “/remember <note>”; doc edits apply next session",
 	ForgetUsage:                  "usage: /forget <name> — the slug shown under “saved memories” in /memory",
@@ -436,7 +436,7 @@ var English = Messages{
 	SetupComplete:            "Setup complete.",
 	SetupCancelled:           "setup cancelled.",
 	TryHintFmt:               "Try: %s",
-	NextHint:                 "Next: set your API key (run `reasonix setup` or export DEEPSEEK_API_KEY=...), then run `reasonix run \"your task\"`.",
+	NextHint:                 "Next: set your API key (run `tempora setup` or export DEEPSEEK_API_KEY=...), then run `tempora run \"your task\"`.",
 	ConfirmReconfigureFmt:    "%s already exists. Reconfigure and overwrite?",
 	NotOverwritingFmt:        "%s already exists; not overwriting",
 	SetupManagerTitle:        "Provider configuration",
@@ -523,10 +523,10 @@ var English = Messages{
 	RemotePassphrasePromptFmt: "passphrase for %s:",
 	RemotePasswordPromptFmt:   "password for %s:",
 	RemoteBootstrapStepFmt:    "remote serve: %s %s",
-	RemoteNoHostsHint:         "no remote hosts configured; add one with `reasonix remote add <name> [user@]host`",
+	RemoteNoHostsHint:         "no remote hosts configured; add one with `tempora remote add <name> [user@]host`",
 
 	UnknownCommandFmt:         "unknown command %q",
-	UsageRunHint:              "usage: reasonix -p [--model NAME] <task>",
+	UsageRunHint:              "usage: tempora -p [--model NAME] <task>",
 	ErrorPrefix:               "error:",
 	ReconfigureOnUnknownModel: "Configured model is no longer available — re-running setup.",
 	WriteConfigErr:            "write config:",
@@ -534,8 +534,8 @@ var English = Messages{
 
 	ProviderErrBadRequest:          "Malformed request (HTTP 400): the request body was rejected. This is likely a bug — please report it if it persists.",
 	ProviderErrContextOverflowFmt:  "This request exceeds the shared context window: prompt %d + completion %d = %d tokens, but the window is %d. Compact, retry with a smaller output cap, fork, or rewind, then send again.",
-	ProviderErrAuth:                "Authentication failed (HTTP 401): your API key is missing or unset. Add it to .env or run `reasonix setup`.",
-	ProviderErrAuthRejected:        "Authentication failed (HTTP 401): the server rejected your API key. It may be wrong or expired, or the provider hit a transient auth/quota issue — retried with backoff and still failed. Try again shortly, or check the key in .env / run `reasonix setup`.",
+	ProviderErrAuth:                "Authentication failed (HTTP 401): your API key is missing or unset. Add it to .env or run `tempora setup`.",
+	ProviderErrAuthRejected:        "Authentication failed (HTTP 401): the server rejected your API key. It may be wrong or expired, or the provider hit a transient auth/quota issue — retried with backoff and still failed. Try again shortly, or check the key in .env / run `tempora setup`.",
 	ProviderErrModelFormatMismatch: "Model/API format mismatch: the server does not support this model on the selected provider route. This is not an invalid API key; choose a provider route that supports the model.",
 	ProviderErrOpenCodeGoGrokRoute: "For OpenCode Go, use the OpenCode Go Responses preset with `grok-4.5`.",
 	ProviderErrQuotaExhaustedFmt:   "%s: provider credits or subscription quota exhausted (HTTP %d). Check your account allowance before continuing.",
@@ -551,7 +551,7 @@ var English = Messages{
 	ProviderErrRateLimited:         "Rate limit reached (HTTP 429): too many requests (TPM/RPM). Retried with backoff — slow down or try again shortly.",
 	ProviderErrServer:              "Server error (HTTP 500): the provider hit an internal fault. Retried with backoff; if it keeps failing, try again later.",
 	ProviderErrServerBusy:          "Server busy (HTTP 503): the provider is overloaded. Retried with backoff; please try again shortly.",
-	ProviderErrWaitExhaustedFmt:    "Reasonix stopped waiting after %s: the provider stayed unreachable through every retry. Check your network, proxy, or the provider's status page, then send the message again.",
+	ProviderErrWaitExhaustedFmt:    "Tempora stopped waiting after %s: the provider stayed unreachable through every retry. Check your network, proxy, or the provider's status page, then send the message again.",
 
 	SelectOneHint:  "(↑/↓ · Enter · q to cancel; / to search)",
 	SelectManyHint: "(↑/↓ · Space · Enter · q; / to search)",
@@ -591,8 +591,8 @@ var English = Messages{
 	ReportNoPending:           "No pending CLI crash reports.",
 	ReportHeaderFmt:           "CLI crash report %s",
 	ReportCapturedFmt:         "Captured: %s",
-	ReportPreviewOnlyFmt:      "Preview only. Run `reasonix report send %s` to send this report.",
-	ReportSendPrompt:          "Send this sanitized report to crash.reasonix.io?",
+	ReportPreviewOnlyFmt:      "Preview only. Run `tempora report send %s` to send this report.",
+	ReportSendPrompt:          "Send this sanitized report to crash.tempora.io?",
 	ReportKept:                "Report kept locally.",
 	ReportDeletedFmt:          "Deleted CLI crash report %s.",
 	ReportSentFmt:             "Sent CLI crash report %s.",
@@ -600,66 +600,66 @@ var English = Messages{
 	ReportUploadFailedFmt:     "report upload failed; the local report was kept: %v",
 	ReportSentDeleteFailedFmt: "report was sent but the local copy could not be deleted: %v",
 	ReportUsageBody: `Usage:
-  reasonix report                 preview the newest local report and confirm sending
-  reasonix report list            list local CLI crash reports
-  reasonix report show [ID]       preview a report (newest when ID is omitted)
-  reasonix report send [ID]       send a reviewed report and delete it after success
-  reasonix report delete [ID]     delete a local report without sending`,
+  tempora report                 preview the newest local report and confirm sending
+  tempora report list            list local CLI crash reports
+  tempora report show [ID]       preview a report (newest when ID is omitted)
+  tempora report send [ID]       send a reviewed report and delete it after success
+  tempora report delete [ID]     delete a local report without sending`,
 
-	CLITelemetryConsentNotice:           "Reasonix can send anonymous, content-free CLI usage statistics to crash.reasonix.io: a random install ID, version, OS, and fixed quality buckets. It never sends prompts, answers, code, paths, model or tool content, or environment variables. You can disable this later with `reasonix config telemetry off`.",
+	CLITelemetryConsentNotice:           "Tempora can send anonymous, content-free CLI usage statistics to crash.tempora.io: a random install ID, version, OS, and fixed quality buckets. It never sends prompts, answers, code, paths, model or tool content, or environment variables. You can disable this later with `tempora config telemetry off`.",
 	CLITelemetryConsentPrompt:           "Allow anonymous CLI usage statistics?",
 	CLITelemetryConsentInvalid:          "Please answer y or n.",
 	CLITelemetryConsentSaveFailedFmt:    "CLI telemetry remains disabled because the preference could not be saved: %v",
 	CLITelemetryConsentCleanupFailedFmt: "CLI telemetry is disabled, but pending statistics could not be deleted: %v",
 
-	UsageBody: `reasonix — a config- and plugin-driven coding agent (multi-model)
+	UsageBody: `tempora — a config- and plugin-driven coding agent (multi-model)
 
 Usage:
-  reasonix [--model NAME] [-c|--continue] [-r|--resume [QUERY]] [--permission-mode MODE] [--effort LEVEL] [--add-dir PATH]   interactive session
-  reasonix -p|--print [--model NAME] [--output-format text|json|stream-json] [--allowed-tools RULES] [--add-dir PATH] <task>
-  reasonix run [--model NAME] [--max-steps N] [-c|--continue] [--resume PATH] [--copy] [--output-format FORMAT] <task>
-  reasonix run --events-jsonl [--model NAME] <task>      emit redacted structured events as JSONL
-  reasonix review [--base BRANCH] [--commit SHA] [--model NAME]  AI-powered code review on local diffs
-  reasonix web [--model NAME] [--addr HOST:PORT] [--no-open]  start the local Web UI and open it in the default browser
-  reasonix serve [--model NAME] [--addr HOST:PORT] [--auth none|token|password] [--token STR] [--password STR] [--hash-password]  serve over HTTP+SSE (with optional auth)
-  reasonix acp [--model NAME]                           serve Agent Client Protocol over stdio (also: reasonix --acp)
-  reasonix setup [path]                                 interactive config wizard; writes reasonix.toml (+ .env)
-  reasonix config reasoning-language [auto|zh|en]        configure visible reasoning language
-  reasonix config compact-ratio [--local] [30..85]       configure automatic compaction threshold
-  reasonix config telemetry [auto|on|off]                configure content-free CLI usage metrics
-  reasonix report [list|show|send|delete] [ID]           review and explicitly send local CLI crash reports
-  reasonix mcp <add|remove|list|import>                 manage MCP servers in reasonix.toml
-  reasonix subagent <list|create|edit|delete|try|run>   manage and run isolated subagent profiles
-  reasonix init                                         show how to generate project memory (AGENTS.md)
-  reasonix doctor [--json]                              print redacted local diagnostics
-  reasonix doctor session <branch-id> [--zip] [--out PATH]  export a session conflict diagnostic zip
-  reasonix session list --json [--dir PATH]             list redacted sessions for machine clients
-  reasonix session show|status <machine-session-id> --json [--dir PATH]  query one redacted session
-  reasonix session recovery [<machine-session-id>] --json [--dir PATH]  query redacted recovery state
-  reasonix hook list|status --json [--dir PATH]         inspect redacted hook state
-  reasonix task list|show|status|events|stop|cancel|monitor|tmux --json [--dir PATH]
+  tempora [--model NAME] [-c|--continue] [-r|--resume [QUERY]] [--permission-mode MODE] [--effort LEVEL] [--add-dir PATH]   interactive session
+  tempora -p|--print [--model NAME] [--output-format text|json|stream-json] [--allowed-tools RULES] [--add-dir PATH] <task>
+  tempora run [--model NAME] [--max-steps N] [-c|--continue] [--resume PATH] [--copy] [--output-format FORMAT] <task>
+  tempora run --events-jsonl [--model NAME] <task>      emit redacted structured events as JSONL
+  tempora review [--base BRANCH] [--commit SHA] [--model NAME]  AI-powered code review on local diffs
+  tempora web [--model NAME] [--addr HOST:PORT] [--no-open]  start the local Web UI and open it in the default browser
+  tempora serve [--model NAME] [--addr HOST:PORT] [--auth none|token|password] [--token STR] [--password STR] [--hash-password]  serve over HTTP+SSE (with optional auth)
+  tempora acp [--model NAME]                           serve Agent Client Protocol over stdio (also: tempora --acp)
+  tempora setup [path]                                 interactive config wizard; writes tempora.toml (+ .env)
+  tempora config reasoning-language [auto|zh|en]        configure visible reasoning language
+  tempora config compact-ratio [--local] [30..85]       configure automatic compaction threshold
+  tempora config telemetry [auto|on|off]                configure content-free CLI usage metrics
+  tempora report [list|show|send|delete] [ID]           review and explicitly send local CLI crash reports
+  tempora mcp <add|remove|list|import>                 manage MCP servers in tempora.toml
+  tempora subagent <list|create|edit|delete|try|run>   manage and run isolated subagent profiles
+  tempora init                                         show how to generate project memory (AGENTS.md)
+  tempora doctor [--json]                              print redacted local diagnostics
+  tempora doctor session <branch-id> [--zip] [--out PATH]  export a session conflict diagnostic zip
+  tempora session list --json [--dir PATH]             list redacted sessions for machine clients
+  tempora session show|status <machine-session-id> --json [--dir PATH]  query one redacted session
+  tempora session recovery [<machine-session-id>] --json [--dir PATH]  query redacted recovery state
+  tempora hook list|status --json [--dir PATH]         inspect redacted hook state
+  tempora task list|show|status|events|stop|cancel|monitor|tmux --json [--dir PATH]
                                                          inspect or control redacted tasks
-  reasonix bot start|doctor|weixin-login                multi-channel IM bot gateway
-  reasonix upgrade [--check] [--force]                   update to the latest official release (also: reasonix update)
-  reasonix completion bash|zsh|fish                     print a shell completion script to stdout
-  reasonix version [--verbose|--json]                   print version (single line) or build metadata
-  reasonix --version | -v                               single-line version (script-safe)
-  reasonix help
+  tempora bot start|doctor|weixin-login                multi-channel IM bot gateway
+  tempora upgrade [--check] [--force]                   update to the latest official release (also: tempora update)
+  tempora completion bash|zsh|fish                     print a shell completion script to stdout
+  tempora version [--verbose|--json]                   print version (single line) or build metadata
+  tempora --version | -v                               single-line version (script-safe)
+  tempora help
 
 Examples:
-  reasonix
-  reasonix --continue
-  reasonix --resume provider-config
-  reasonix web
-  reasonix run "implement the TODOs in main.go"
-  reasonix run --model mimo-pro "add unit tests for this function"
-  reasonix -p "summarize this repository" --output-format json
-  reasonix subagent run review "review the current changes"
-  echo "explain this code" | reasonix run
+  tempora
+  tempora --continue
+  tempora --resume provider-config
+  tempora web
+  tempora run "implement the TODOs in main.go"
+  tempora run --model mimo-pro "add unit tests for this function"
+  tempora -p "summarize this repository" --output-format json
+  tempora subagent run review "review the current changes"
+  echo "explain this code" | tempora run
 
 Configuration:
-  Resolution: flag > ./reasonix.toml > <Reasonix home>/config.toml > built-in defaults
+  Resolution: flag > ./tempora.toml > <Tempora home>/config.toml > built-in defaults
   Secrets come from the environment via api_key_env (e.g. DEEPSEEK_API_KEY).
-  Run 'reasonix setup' to scaffold a config; see docs/SPEC.md.
+  Run 'tempora setup' to scaffold a config; see docs/SPEC.md.
 `,
 }

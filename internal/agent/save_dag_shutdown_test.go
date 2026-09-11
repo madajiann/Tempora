@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/fileutil"
-	"reasonix/internal/provider"
-	"reasonix/internal/store"
+	"tempora/internal/fileutil"
+	"tempora/internal/provider"
+	"tempora/internal/store"
 )
 
 // holdLockAndShortenWait makes the next save time out on the file lock the

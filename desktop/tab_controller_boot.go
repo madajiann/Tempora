@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"reasonix/internal/boot"
-	"reasonix/internal/control"
+	"tempora/internal/boot"
+	"tempora/internal/control"
 )
 
 var errTabControllerExtensionsChanged = errors.New("desktop: controller extensions changed during build")

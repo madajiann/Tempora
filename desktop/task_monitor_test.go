@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/taskcatalog"
-	"reasonix/internal/taskmonitor"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/taskcatalog"
+	"tempora/internal/taskmonitor"
 )
 
 type taskKillController struct {

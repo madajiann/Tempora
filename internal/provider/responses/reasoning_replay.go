@@ -1,7 +1,7 @@
 package responses
 
 import (
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 	"slices"
 	"strings"
 )

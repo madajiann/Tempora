@@ -3,9 +3,9 @@ package skill
 import (
 	"testing"
 
-	"reasonix/internal/config"
-	"reasonix/internal/tool"
-	_ "reasonix/internal/tool/builtin"
+	"tempora/internal/config"
+	"tempora/internal/tool"
+	_ "tempora/internal/tool/builtin"
 )
 
 func TestToolReferenceDiagnostics(t *testing.T) {

@@ -3,9 +3,9 @@ package serve
 import (
 	"net/http"
 
-	"reasonix/internal/control"
-	"reasonix/internal/i18n"
-	"reasonix/internal/skill"
+	"tempora/internal/control"
+	"tempora/internal/i18n"
+	"tempora/internal/skill"
 )
 
 type commandCatalogEntry struct {

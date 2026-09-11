@@ -1,8 +1,8 @@
 package cli
 
 import (
-	"reasonix/internal/acp"
-	"reasonix/internal/plugin"
+	"tempora/internal/acp"
+	"tempora/internal/plugin"
 	"testing"
 )
 

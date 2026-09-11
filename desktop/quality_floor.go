@@ -3,10 +3,10 @@ package main
 import (
 	"strings"
 
-	"reasonix/internal/boot"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/worktree"
+	"tempora/internal/boot"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/worktree"
 )
 
 // Session-scoped quality floor: SetQualityFloorForTab is the single write

@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
+	"tempora/internal/event"
 )
 
 const runtimeRemoteTestPath = "/sessions/current.jsonl"

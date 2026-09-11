@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/provider"
+	"tempora/internal/evidence"
+	"tempora/internal/provider"
 )
 
 func (a *Agent) staleAnchorEditBlock(ctx context.Context, call provider.ToolCall) (string, bool) {

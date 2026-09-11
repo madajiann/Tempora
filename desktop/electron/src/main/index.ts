@@ -20,7 +20,7 @@ import { emptyContract, loadContract, type LoadedContract } from "./contract.js"
 import { DialogHost } from "./dialogs.js";
 import { renderFailurePage, type ShellAction } from "./failurePage.js";
 import { buildHelloParams, describeHandshakeFailure, validateHelloResult, type HelloResult, type HandshakeFailure } from "./handshake.js";
-import { reasonixHome } from "./home.js";
+import { temporaHome } from "./home.js";
 import { buildHostCallTable, dispatchHostCall, type ScreenInfo } from "./hostCalls.js";
 import { firstExisting, iconCandidates } from "./icons.js";
 import { registerRendererIpc } from "./ipc.js";
@@ -49,14 +49,14 @@ function safeDirName(value: string): string {
   return name === "" ? "user" : name;
 }
 
-app.setName("Reasonix");
+app.setName("Tempora");
 // Must precede the first BrowserWindow: the taskbar reads the identity once.
 applyAppUserModelId(app, process.platform);
 registerTaskbarRelaunch(app, process.platform, process.execPath, app.isPackaged);
-const dev = (process.env.REASONIX_DEV ?? "").trim() !== "";
-const home = reasonixHome({ env: process.env, platform: process.platform, homedir, cwd: () => process.cwd() });
+const dev = (process.env.TEMPORA_DEV ?? "").trim() !== "";
+const home = temporaHome({ env: process.env, platform: process.platform, homedir, cwd: () => process.cwd() });
 if (home === "") {
-  console.error("reasonix-desktop-shell: cannot resolve the Reasonix data home (set REASONIX_HOME)");
+  console.error("tempora-desktop-shell: cannot resolve the Tempora data home (set TEMPORA_HOME)");
   app.exit(1);
 } else if (!claimShellInstance(app, home, dev)) {
   app.quit();
@@ -82,7 +82,7 @@ function bootstrap(dataHome: string): void {
   try { buildVersion = loadBuildIdentity(app.isPackaged, process.resourcesPath, process.env).version; } catch { /* Handshake owns the visible metadata error. */ }
   const status = initialShellStatus(app.getPath("userData"), buildVersion);
   let firstHeartbeat = 0;
-  const startingPage = { code: null, name: "starting", title: "Reasonix is starting / 正在启动", detail: "Please wait. / 请稍候。" };
+  const startingPage = { code: null, name: "starting", title: "Tempora is starting / 正在启动", detail: "Please wait. / 请稍候。" };
   let lastFailure: HandshakeFailure = startingPage;
   let startupTimer: ReturnType<typeof setTimeout> | undefined;
   log.info(`startup ${status.generation}: shell pid=${process.pid} version=${buildVersion}`);
@@ -102,13 +102,13 @@ function bootstrap(dataHome: string): void {
     contract = emptyContract();
   }
   const distRoot = resolveDistRoot({ env: process.env, appPath: app.getAppPath(), resourcesPath: process.resourcesPath, packaged: app.isPackaged });
-  const devURL = (process.env.REASONIX_ELECTRON_DEV_URL ?? "").trim();
+  const devURL = (process.env.TEMPORA_ELECTRON_DEV_URL ?? "").trim();
   const appURL = devURL !== "" ? devURL : APP_INDEX_URL;
   const zoomStore = new AppZoomStore(join(dataHome, "electron-app-zoom.json"), join(dataHome, "desktop-zoom.json"));
   const icons = iconCandidates({ platform: process.platform, appPath: app.getAppPath(), resourcesPath: process.resourcesPath, packaged: app.isPackaged });
   const windowIcon = process.platform === "darwin" ? undefined : (firstExisting(icons.window) ?? undefined);
-  const serviceBinary = (process.env.REASONIX_DESKTOP_SERVICE ?? "").trim()
-    || join(process.resourcesPath, "service", process.platform === "win32" ? "reasonix-desktop.exe" : "reasonix-desktop");
+  const serviceBinary = (process.env.TEMPORA_DESKTOP_SERVICE ?? "").trim()
+    || join(process.resourcesPath, "service", process.platform === "win32" ? "tempora-desktop.exe" : "tempora-desktop");
 
   let domReadyGeneration = "";
 
@@ -237,7 +237,7 @@ function bootstrap(dataHome: string): void {
       quit: () => app.quit(),
       exit: (code) => app.exit(code),
       relaunch: (args: string[], execPath?: string) => {
-        if (execPath) delete process.env.REASONIX_DESKTOP_SERVICE;
+        if (execPath) delete process.env.TEMPORA_DESKTOP_SERVICE;
         app.relaunch({ args, ...(execPath ? { execPath } : {}) });
       },
     },
@@ -305,7 +305,7 @@ function bootstrap(dataHome: string): void {
         dev,
       }), 10_000)),
       onRequest: (method, params) => {
-        if (lifecycle.isQuitting) return Promise.reject(new Error("Reasonix is shutting down"));
+        if (lifecycle.isQuitting) return Promise.reject(new Error("Tempora is shutting down"));
         return dispatchHostCall(hostCalls, method, params);
       },
       onEvent: (frame) => mainWindow.send(IPC.event, frame),
@@ -320,7 +320,7 @@ function bootstrap(dataHome: string): void {
           clearTimeout(startupTimer);
           startupTimer = setTimeout(() => {
             if (lifecycle.isQuitting || status.healthy || status.lifecycle === "failed") return;
-            lastFailure = { code: null, name: "startup_timeout", title: "Startup incomplete / 启动未完成", detail: "Reasonix did not become ready within 30 seconds. Open logs or retry. / 30 秒内未完成启动，请打开日志或重试。" };
+            lastFailure = { code: null, name: "startup_timeout", title: "Startup incomplete / 启动未完成", detail: "Tempora did not become ready within 30 seconds. Open logs or retry. / 30 秒内未完成启动，请打开日志或重试。" };
             status.lifecycle = "failed";
             log.error(`startup ${status.generation}: readiness timeout`);
             if (!mainWindow.browserWindow) mainWindow.create(DEFAULT_GEOMETRY);
@@ -442,7 +442,7 @@ function bootstrap(dataHome: string): void {
             status.healthy = true;
             clearTimeout(startupTimer);
           }
-          if (status.rendererVersion === "") void mainWindow.browserWindow?.webContents.executeJavaScript('window.reasonixDesktop.invoke("Version", [])').catch(() => undefined);
+          if (status.rendererVersion === "") void mainWindow.browserWindow?.webContents.executeJavaScript('window.temporaDesktop.invoke("Version", [])').catch(() => undefined);
         }
         return result;
       },

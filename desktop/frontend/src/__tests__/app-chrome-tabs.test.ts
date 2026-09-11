@@ -247,7 +247,7 @@ ok(
   /const WORKSPACE_PANEL_DEFAULT_OPEN = true;/.test(layoutStoreSource) &&
     /workspacePanelOpen:\s*loadWorkspacePanelOpen\(""\)/.test(layoutStoreSource) &&
     /export function saveWorkspacePanelOpen\(open: boolean, workspaceRoot = ""\)/.test(layoutStoreSource) &&
-    /reasonix\.workspacePanel\.open/.test(layoutStoreSource),
+    /tempora\.workspacePanel\.open/.test(layoutStoreSource),
   "right dock open state is restored from per-project localStorage with expanded first-launch default",
 );
 
@@ -375,9 +375,9 @@ ok(
 
 
 ok(
-  finalDeclaration(".sidebar", "--reasonix-draggable") === "drag" &&
-    finalDeclaration(".app--windows .sidebar", "--reasonix-draggable") === "no-drag" &&
-    finalDeclaration(".sidebar-resizer", "--reasonix-draggable") === "no-drag",
+  finalDeclaration(".sidebar", "--tempora-draggable") === "drag" &&
+    finalDeclaration(".app--windows .sidebar", "--tempora-draggable") === "no-drag" &&
+    finalDeclaration(".sidebar-resizer", "--tempora-draggable") === "no-drag",
   "Windows sidebar avoids native window drag without changing other platforms",
 );
 
@@ -416,10 +416,10 @@ ok(
 // strip was also draggable, any control that did not opt out individually —
 // the leading overview chevron did not — never received a click.
 ok(
-  finalDeclaration(".workbench-dock__tools", "--reasonix-draggable") === "no-drag" &&
-    finalDeclaration(".workbench-dock__tabs", "--reasonix-draggable") === "no-drag" &&
-    finalDeclaration(".workbench-dock__tab", "--reasonix-draggable") === "no-drag" &&
-    finalDeclaration(".workbench-dock__tab-overview", "--reasonix-draggable") !== "drag",
+  finalDeclaration(".workbench-dock__tools", "--tempora-draggable") === "no-drag" &&
+    finalDeclaration(".workbench-dock__tabs", "--tempora-draggable") === "no-drag" &&
+    finalDeclaration(".workbench-dock__tab", "--tempora-draggable") === "no-drag" &&
+    finalDeclaration(".workbench-dock__tab-overview", "--tempora-draggable") !== "drag",
   "the dock's control strip is not a window drag region, so every control stays clickable",
 );
 

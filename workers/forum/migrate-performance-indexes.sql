@@ -1,6 +1,6 @@
 -- Additive indexes for the public forum read and anti-abuse paths.
 -- Apply before deploying the matching Worker:
---   wrangler d1 execute reasonix-forum --remote --file=migrate-performance-indexes.sql
+--   wrangler d1 execute tempora-forum --remote --file=migrate-performance-indexes.sql
 
 CREATE INDEX IF NOT EXISTS posts_author_created_at
   ON posts (author, created_at);

@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/tool"
+	"tempora/internal/evidence"
+	"tempora/internal/tool"
 )
 
 func (a *Agent) dispatchResolvedTool(ctx context.Context, plan *toolCallPlan) (result string, images []string, execution *tool.ShellExecution, err error) {

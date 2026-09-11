@@ -8,8 +8,8 @@ import (
 	"sync"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 // readThenMutateProvider reads a large file, then runs git commit, then lists
@@ -99,7 +99,7 @@ func TestEffectTruncatedReadDoesNotBlockCommitOrFinalThroughRealBuild(t *testing
 	provider.Register("boot-read-then-mutate", func(provider.Config) (provider.Provider, error) {
 		return rec, nil
 	})
-	writeFile(t, dir, "reasonix.toml", `
+	writeFile(t, dir, "tempora.toml", `
 default_model = "test-model"
 
 [agent]

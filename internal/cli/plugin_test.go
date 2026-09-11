@@ -5,12 +5,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/pluginpkg"
+	"tempora/internal/pluginpkg"
 )
 
 func TestPluginInstallReturnsFailureExitForFailedJSON(t *testing.T) {
 	home := t.TempDir()
-	t.Setenv("REASONIX_HOME", home)
+	t.Setenv("TEMPORA_HOME", home)
 
 	source := filepath.Join(t.TempDir(), "superpowers")
 	writePluginTestFile(t, filepath.Join(source, pluginpkg.CodexManifest), `{

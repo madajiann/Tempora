@@ -1,6 +1,6 @@
 package taskcontract
 
-import "reasonix/internal/evidence"
+import "tempora/internal/evidence"
 
 // Enforcement is how strictly an obligation binds the host stop decision.
 type Enforcement uint8

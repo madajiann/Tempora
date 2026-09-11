@@ -1,4 +1,4 @@
-// Package checkpoint is reasonix's snapshot-based edit safety net. Before a writer
+// Package checkpoint is tempora's snapshot-based edit safety net. Before a writer
 // tool changes a file, the agent records the file's pre-edit content here, keyed
 // to the current user turn; a frontend can then rewind the workspace (and, via the
 // controller, the conversation) to an earlier turn.
@@ -25,9 +25,9 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/diff"
-	"reasonix/internal/fileutil"
-	fileenc "reasonix/internal/fileutil/encoding"
+	"tempora/internal/diff"
+	"tempora/internal/fileutil"
+	fileenc "tempora/internal/fileutil/encoding"
 )
 
 // FileSnap is one file's state at the moment it was first touched in a turn.
@@ -527,7 +527,7 @@ func (s *Store) persist(c *Checkpoint) error {
 	if c.SchemaVersion >= SchemaV3 {
 		return s.persistV3(c)
 	}
-	// Keep inline Content even when BlobRef is present. Previous Reasonix builds
+	// Keep inline Content even when BlobRef is present. Previous Tempora builds
 	// ignore BlobRef and interpret nil Content as "the file did not exist";
 	// omitting it would make an older concurrently running binary delete files.
 	wire := *c

@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/imageinput"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/imageinput"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 func TestImageCancellationPreservesRecoveryEvidence(t *testing.T) {

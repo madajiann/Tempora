@@ -3,7 +3,7 @@ package control
 import (
 	"strings"
 
-	"reasonix/internal/evidence"
+	"tempora/internal/evidence"
 )
 
 type legacyGoalRestore struct {

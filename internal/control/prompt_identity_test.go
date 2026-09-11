@@ -2,7 +2,7 @@ package control
 
 import (
 	"errors"
-	"reasonix/internal/event"
+	"tempora/internal/event"
 	"sync"
 	"testing"
 )

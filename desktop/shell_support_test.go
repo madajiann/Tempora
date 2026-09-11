@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/config"
-	"reasonix/internal/sandbox"
+	"tempora/internal/config"
+	"tempora/internal/sandbox"
 )
 
 // assertConfigUntouched proves the repair API contract on every branch: the

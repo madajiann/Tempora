@@ -1,0 +1,39 @@
+{
+  "name": "tempora",
+  "version": "0.0.0",
+  "description": "Cache-first DeepSeek coding agent for the terminal.",
+  "bin": {
+    "tempora": "bin/tempora.js"
+  },
+  "files": [
+    "bin/tempora.js"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/tempora-dev/Tempora#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tempora-dev/Tempora.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tempora-dev/Tempora/issues"
+  },
+  "keywords": [
+    "deepseek",
+    "ai",
+    "agent",
+    "cli",
+    "coding-assistant",
+    "tui"
+  ],
+  "optionalDependencies": {
+    "@tempora/cli-darwin-arm64": "0.0.0",
+    "@tempora/cli-darwin-x64": "0.0.0",
+    "@tempora/cli-linux-arm64": "0.0.0",
+    "@tempora/cli-linux-x64": "0.0.0",
+    "@tempora/cli-win32-arm64": "0.0.0",
+    "@tempora/cli-win32-x64": "0.0.0"
+  }
+}

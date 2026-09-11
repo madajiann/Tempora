@@ -1,7 +1,7 @@
 package config
 
 import (
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 	"testing"
 )
 

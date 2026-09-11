@@ -9,9 +9,9 @@ import (
 	"sync"
 	"testing"
 
-	"reasonix/internal/boot"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
+	"tempora/internal/boot"
+	"tempora/internal/config"
+	"tempora/internal/control"
 )
 
 // The injected build is the deterministic interleaving boundary: a second save

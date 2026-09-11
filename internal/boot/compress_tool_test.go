@@ -4,15 +4,15 @@ import (
 	"context"
 	"testing"
 
-	"reasonix/internal/agent/testutil"
-	"reasonix/internal/event"
+	"tempora/internal/agent/testutil"
+	"tempora/internal/event"
 )
 
 func TestCompressOnUnifiedSurfaceForAllRoleSettings(t *testing.T) {
 	isolateConfigHome(t)
 	dir := robustTempDir(t)
 	t.Chdir(dir)
-	writeFile(t, dir, "reasonix.toml", `
+	writeFile(t, dir, "tempora.toml", `
 default_model = "test-model"
 
 [agent]

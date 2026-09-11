@@ -15,10 +15,10 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/event"
-	"reasonix/internal/eventwire"
-	"reasonix/internal/fileutil"
-	"reasonix/internal/store"
+	"tempora/internal/event"
+	"tempora/internal/eventwire"
+	"tempora/internal/fileutil"
+	"tempora/internal/store"
 )
 
 const (
@@ -38,7 +38,7 @@ var ErrTurnLedgerUnavailable = errors.New("turn event ledger unavailable")
 var atomicWriteLedgerFile = fileutil.AtomicWriteFileStrict
 
 // UnsupportedSchemaError is deliberately distinct from corruption. A newer
-// Reasonix may own the file, so the current process must leave it untouched.
+// Tempora may own the file, so the current process must leave it untouched.
 type UnsupportedSchemaError struct{ Version int }
 
 func (e *UnsupportedSchemaError) Error() string {

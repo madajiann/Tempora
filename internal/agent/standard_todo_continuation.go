@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/taskcontract"
+	"tempora/internal/evidence"
+	"tempora/internal/taskcontract"
 )
 
 const maxStandardTodoContinuations = 2

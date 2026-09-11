@@ -7,35 +7,35 @@ import (
 	"path/filepath"
 	"strings"
 
-	"reasonix/internal/topicstate"
+	"tempora/internal/topicstate"
 )
 
 func topicTitlesPath(workspaceRoot string) string {
 	if workspaceRoot == "" {
 		return filepath.Join(desktopConfigDir(), "global", topicTitlesFile)
 	}
-	return filepath.Join(workspaceRoot, ".reasonix", topicTitlesFile)
+	return filepath.Join(workspaceRoot, ".tempora", topicTitlesFile)
 }
 
 func topicTitleSourcesPath(workspaceRoot string) string {
 	if workspaceRoot == "" {
 		return filepath.Join(desktopConfigDir(), "global", topicTitleSourcesFile)
 	}
-	return filepath.Join(workspaceRoot, ".reasonix", topicTitleSourcesFile)
+	return filepath.Join(workspaceRoot, ".tempora", topicTitleSourcesFile)
 }
 
 func topicCreatedAtsPath(workspaceRoot string) string {
 	if workspaceRoot == "" {
 		return filepath.Join(desktopConfigDir(), "global", topicCreatedAtsFile)
 	}
-	return filepath.Join(workspaceRoot, ".reasonix", topicCreatedAtsFile)
+	return filepath.Join(workspaceRoot, ".tempora", topicCreatedAtsFile)
 }
 
 func topicAutoTitleMetaPath(workspaceRoot string) string {
 	if workspaceRoot == "" {
 		return filepath.Join(desktopConfigDir(), "global", topicAutoTitlesFile)
 	}
-	return filepath.Join(workspaceRoot, ".reasonix", topicAutoTitlesFile)
+	return filepath.Join(workspaceRoot, ".tempora", topicAutoTitlesFile)
 }
 
 func legacyTopicPaths(workspaceRoot string) [4]string {

@@ -7,11 +7,11 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/checkpoint"
-	"reasonix/internal/control"
-	"reasonix/internal/i18n"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/checkpoint"
+	"tempora/internal/control"
+	"tempora/internal/i18n"
+	"tempora/internal/provider"
 )
 
 type rewindConfirmationController struct {

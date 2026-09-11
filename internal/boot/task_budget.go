@@ -3,8 +3,8 @@ package boot
 import (
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
+	"tempora/internal/agent"
+	"tempora/internal/config"
 )
 
 // taskBudgetFromConfig maps the configured spend gate onto the agent budget.

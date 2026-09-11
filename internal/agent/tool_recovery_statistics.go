@@ -1,7 +1,7 @@
 package agent
 
 import (
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 	"strings"
 )
 

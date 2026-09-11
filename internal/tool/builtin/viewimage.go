@@ -15,7 +15,7 @@ import (
 	"strings"
 
 	_ "golang.org/x/image/webp"
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 // Bound encoded payload size consistently with MCP image results.

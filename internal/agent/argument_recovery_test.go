@@ -11,13 +11,13 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	"reasonix/internal/agent/testutil"
-	"reasonix/internal/capability"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/skill"
-	"reasonix/internal/tool"
-	_ "reasonix/internal/tool/builtin"
+	"tempora/internal/agent/testutil"
+	"tempora/internal/capability"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/skill"
+	"tempora/internal/tool"
+	_ "tempora/internal/tool/builtin"
 )
 
 // recoveryArgumentTool uses the production contract without running a shell or

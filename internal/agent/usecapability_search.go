@@ -6,9 +6,9 @@ import (
 	"strings"
 	"unicode"
 
-	"reasonix/internal/capability"
-	"reasonix/internal/plugin"
-	"reasonix/internal/tool"
+	"tempora/internal/capability"
+	"tempora/internal/plugin"
+	"tempora/internal/tool"
 )
 
 type capabilitySearchResult struct {

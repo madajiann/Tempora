@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"reasonix/internal/sessioninbox"
+	"tempora/internal/sessioninbox"
 )
 
 func (c *Controller) freezeInboxReferences(ctx context.Context, submit string, explicit []string) (string, []string, []string) {

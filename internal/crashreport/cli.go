@@ -23,8 +23,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"reasonix/internal/fileutil"
-	"reasonix/internal/netclient"
+	"tempora/internal/fileutil"
+	"tempora/internal/netclient"
 )
 
 const (
@@ -36,7 +36,7 @@ const (
 	maxFieldBytes        = 4 << 10
 )
 
-var reportEndpoint = "https://crash.reasonix.io/v1/report"
+var reportEndpoint = "https://crash.tempora.io/v1/report"
 
 var queueMu sync.Mutex
 
@@ -88,7 +88,7 @@ var ErrNoReports = errors.New("no pending CLI crash reports")
 // paths, or provider response content.
 func CapturePanic(home, version string, recovered any, stack []byte) error {
 	if strings.TrimSpace(home) == "" {
-		return errors.New("crash report: empty Reasonix home")
+		return errors.New("crash report: empty Tempora home")
 	}
 	cleanStack := sanitizeStack(string(stack))
 	report := Report{
@@ -257,7 +257,7 @@ func write(home string, report Report) error {
 
 func ensureReportIdentity(report *Report, stableID string) {
 	if report.EventID == "" {
-		sum := sha256.Sum256([]byte("reasonix-cli-event\n" + stableID))
+		sum := sha256.Sum256([]byte("tempora-cli-event\n" + stableID))
 		report.EventID = hex.EncodeToString(sum[:16])
 	}
 	if report.DedupKey == "" {

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 // seedPreviewSessions writes synthetic sessions with fresh BranchMeta

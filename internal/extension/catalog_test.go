@@ -3,7 +3,7 @@ package extension
 import (
 	"testing"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func src(scope Scope, pluginID, origin string) ContributionSource {

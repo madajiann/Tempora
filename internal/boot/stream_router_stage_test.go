@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	"reasonix/internal/extension/protocol"
-	"reasonix/internal/extension/providerext"
-	"reasonix/internal/extension/sidecar"
-	"reasonix/internal/provider"
+	"tempora/internal/extension/protocol"
+	"tempora/internal/extension/providerext"
+	"tempora/internal/extension/sidecar"
+	"tempora/internal/provider"
 )
 
 type baseResolver struct{}

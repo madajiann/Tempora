@@ -16,14 +16,14 @@ import (
 //
 // Run with:
 //
-//	REASONIX_MACOS_APPLICATIONS_SMOKE=1 go test ./internal/repair \
+//	TEMPORA_MACOS_APPLICATIONS_SMOKE=1 go test ./internal/repair \
 //	  -run TestDarwinApplicationsOrphanBackupLifecycleSmoke -count=1
 func TestDarwinApplicationsOrphanBackupLifecycleSmoke(t *testing.T) {
-	if os.Getenv("REASONIX_MACOS_APPLICATIONS_SMOKE") != "1" {
-		t.Skip("set REASONIX_MACOS_APPLICATIONS_SMOKE=1 to probe /Applications")
+	if os.Getenv("TEMPORA_MACOS_APPLICATIONS_SMOKE") != "1" {
+		t.Skip("set TEMPORA_MACOS_APPLICATIONS_SMOKE=1 to probe /Applications")
 	}
 
-	smokeRoot, err := os.MkdirTemp("/Applications", ".reasonix-updater-smoke-")
+	smokeRoot, err := os.MkdirTemp("/Applications", ".tempora-updater-smoke-")
 	if err != nil {
 		t.Fatalf("create isolated /Applications smoke root (allow the terminal in App Management): %v", err)
 	}
@@ -45,16 +45,16 @@ func TestDarwinApplicationsOrphanBackupLifecycleSmoke(t *testing.T) {
 		}
 	})
 
-	t.Setenv("REASONIX_HOME", t.TempDir())
-	app := filepath.Join(smokeRoot, "Reasonix.app")
-	executable := filepath.Join(app, "Contents", "MacOS", "Reasonix")
-	backup := app + ".reasonix-update-backup"
-	staging, err := os.MkdirTemp("", "reasonix-mac-update-*")
+	t.Setenv("TEMPORA_HOME", t.TempDir())
+	app := filepath.Join(smokeRoot, "Tempora.app")
+	executable := filepath.Join(app, "Contents", "MacOS", "Tempora")
+	backup := app + ".tempora-update-backup"
+	staging, err := os.MkdirTemp("", "tempora-mac-update-*")
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = os.RemoveAll(staging) })
-	stagedApp := filepath.Join(staging, "Reasonix.app")
+	stagedApp := filepath.Join(staging, "Tempora.app")
 	for _, dir := range []string{filepath.Dir(executable), backup, stagedApp} {
 		if err := os.MkdirAll(dir, 0o700); err != nil {
 			t.Fatal(err)

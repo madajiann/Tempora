@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func TestStreamUsesConfiguredRequestURLExactly(t *testing.T) {

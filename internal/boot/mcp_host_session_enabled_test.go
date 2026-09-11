@@ -10,11 +10,11 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"reasonix/internal/agent/testutil"
-	"reasonix/internal/config"
-	"reasonix/internal/event"
-	"reasonix/internal/plugin"
-	"reasonix/internal/provider"
+	"tempora/internal/agent/testutil"
+	"tempora/internal/config"
+	"tempora/internal/event"
+	"tempora/internal/plugin"
+	"tempora/internal/provider"
 )
 
 // mcpHostSessionStub is a minimal Streamable-HTTP MCP server: enough to complete
@@ -134,7 +134,7 @@ func TestBuildEnablesHostSessionMCPForCapabilityDispatch(t *testing.T) {
 	isolateConfigHome(t)
 	dir := robustTempDir(t)
 	t.Chdir(dir)
-	writeFile(t, dir, "reasonix.toml", mcpCapabilityTestProviderConfig)
+	writeFile(t, dir, "tempora.toml", mcpCapabilityTestProviderConfig)
 
 	var calls atomic.Int32
 	srv := mcpHostSessionStub(t, "acp-extra", &calls)
@@ -171,7 +171,7 @@ func TestBuildLeavesDisabledConfigMCPUndispatchableAlongsideHostSession(t *testi
 	extraSrv := mcpHostSessionStub(t, "acp-extra", &extraCalls)
 	defer extraSrv.Close()
 
-	writeFile(t, dir, "reasonix.toml", mcpCapabilityTestProviderConfig+`
+	writeFile(t, dir, "tempora.toml", mcpCapabilityTestProviderConfig+`
 [[plugins]]
 name = "config-off"
 type = "http"
@@ -271,7 +271,7 @@ func TestBuildLeavesUnknownMCPServerUndispatchable(t *testing.T) {
 	isolateConfigHome(t)
 	dir := robustTempDir(t)
 	t.Chdir(dir)
-	writeFile(t, dir, "reasonix.toml", mcpCapabilityTestProviderConfig)
+	writeFile(t, dir, "tempora.toml", mcpCapabilityTestProviderConfig)
 
 	out := runUseCapabilityCalls(t, Options{Sink: event.Discard}, "mcp-tool:never-configured/ping")
 	if !strings.Contains(out, `MCP server "never-configured" is not registered in this session`) {

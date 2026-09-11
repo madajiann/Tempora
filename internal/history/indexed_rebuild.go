@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"reasonix/internal/historycatalog"
+	"tempora/internal/historycatalog"
 )
 
 // RebuildSharedCatalog closes the process-local reader, atomically replaces the

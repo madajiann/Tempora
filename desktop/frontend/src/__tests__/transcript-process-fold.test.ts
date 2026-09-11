@@ -433,7 +433,7 @@ const warningTurn: Item[] = [
 // ── Phase 5: summaries disabled ─────────────────────────────────────────────
 {
   const harness = await createTranscriptHarness({
-    storage: { "reasonix-process-fold": "expanded", "reasonix-reasoning-summary": "0" },
+    storage: { "tempora-process-fold": "expanded", "tempora-reasoning-summary": "0" },
   });
   try {
     await render(harness, [

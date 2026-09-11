@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"reasonix/internal/extension"
-	"reasonix/internal/extension/sidecar"
-	"reasonix/internal/extensioncontract"
+	"tempora/internal/extension"
+	"tempora/internal/extension/sidecar"
+	"tempora/internal/extensioncontract"
 )
 
 func TestIntegrationNoOpDoesNotBuildNewController(t *testing.T) {

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"strings"
 
-	"reasonix/internal/plugin"
-	"reasonix/internal/tool"
+	"tempora/internal/plugin"
+	"tempora/internal/tool"
 )
 
 func (r *MCPCapabilityRuntime) syncRegistryInventory(previous, next map[string]mcpRuntimeServer) {

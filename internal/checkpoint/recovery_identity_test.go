@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func TestRecoveryIdentityPersistsOnlyFirstWriter(t *testing.T) {

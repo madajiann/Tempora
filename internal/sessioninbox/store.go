@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/filelock"
-	"reasonix/internal/store"
+	"tempora/internal/filelock"
+	"tempora/internal/store"
 )
 
 const (

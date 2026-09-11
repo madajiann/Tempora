@@ -9,7 +9,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"reasonix/internal/extension/rpcwire"
+	"tempora/internal/extension/rpcwire"
 )
 
 // Hooks are the lifecycle owners behind the desktop/* requests. A nil hook

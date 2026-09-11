@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"reasonix/internal/i18n"
+	"tempora/internal/i18n"
 )
 
 func (c *Controller) startGoalCommandTurn(cmd GoalCommand, display string) {

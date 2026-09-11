@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/sandbox"
+	"tempora/internal/sandbox"
 )
 
 func TestBashCancelKillsWindowsChildProcessTree(t *testing.T) {

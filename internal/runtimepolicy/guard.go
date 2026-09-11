@@ -3,8 +3,8 @@ package runtimepolicy
 import (
 	"encoding/json"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/taskcontract"
+	"tempora/internal/evidence"
+	"tempora/internal/taskcontract"
 )
 
 // GuardAction is one monotonic preflight verdict.

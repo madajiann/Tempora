@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 const screenshotMaxBytes = 8 << 20

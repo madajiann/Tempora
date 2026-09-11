@@ -2,8 +2,8 @@ package cli
 
 import (
 	"fmt"
-	"reasonix/internal/event"
-	"reasonix/internal/i18n"
+	"tempora/internal/event"
+	"tempora/internal/i18n"
 	"strings"
 	"time"
 )

@@ -3,8 +3,8 @@ package serve
 import (
 	"net/http"
 
-	"reasonix/internal/event"
-	"reasonix/internal/eventwire"
+	"tempora/internal/event"
+	"tempora/internal/eventwire"
 )
 
 // pendingPrompts returns the controller's current approval/ask frames directly.

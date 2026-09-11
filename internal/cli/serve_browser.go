@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/remote/bootstrap"
-	"reasonix/internal/serve"
+	"tempora/internal/remote/bootstrap"
+	"tempora/internal/serve"
 )
 
 // serveBrowserBrokerFromEnv builds the desktop browser broker client from the
-// environment a desktop bootstrap injected (REASONIX_BROWSER_BROKER /
-// REASONIX_BROWSER_TOKEN). Both empty means no broker; exactly one set is a
+// environment a desktop bootstrap injected (TEMPORA_BROWSER_BROKER /
+// TEMPORA_BROWSER_TOKEN). Both empty means no broker; exactly one set is a
 // broken injection and fails startup loudly instead of half-configuring.
 func serveBrowserBrokerFromEnv(getenv func(string) string) (*serve.BrowserBroker, error) {
 	if getenv == nil {

@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"testing"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 func TestPinnedContextSnapshotPreservesSpecialPathAndContent(t *testing.T) {

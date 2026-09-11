@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/event"
+	"tempora/internal/event"
 )
 
 func TestSubagentProgressPartialIsTerminal(t *testing.T) {

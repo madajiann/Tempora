@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"reasonix/internal/control"
-	"reasonix/internal/extension"
+	"tempora/internal/control"
+	"tempora/internal/extension"
 )
 
 func TestIndependentBuildRuntimeOwnersRemainActive(t *testing.T) {

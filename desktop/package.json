@@ -1,12 +1,12 @@
 {
-  "name": "reasonix-desktop-workspace",
+  "name": "tempora-desktop-workspace",
   "private": true,
   "version": "0.0.0",
   "packageManager": "pnpm@10.34.5",
   "scripts": {
-    "build": "pnpm --filter reasonix-desktop-frontend build:electron && pnpm --filter reasonix-desktop-shell build",
-    "typecheck": "pnpm --filter reasonix-desktop-frontend typecheck && pnpm --filter reasonix-desktop-shell typecheck",
-    "test": "pnpm --filter reasonix-desktop-frontend test && pnpm --filter reasonix-desktop-shell test"
+    "build": "pnpm --filter tempora-desktop-frontend build:electron && pnpm --filter tempora-desktop-shell build",
+    "typecheck": "pnpm --filter tempora-desktop-frontend typecheck && pnpm --filter tempora-desktop-shell typecheck",
+    "test": "pnpm --filter tempora-desktop-frontend test && pnpm --filter tempora-desktop-shell test"
   },
   "engines": {
     "node": ">=24",

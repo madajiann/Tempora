@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"reasonix/desktop/internal/instanceidentity"
-	"reasonix/internal/desktopinstance"
-	"reasonix/internal/installlayout"
+	"tempora/desktop/internal/instanceidentity"
+	"tempora/internal/desktopinstance"
+	"tempora/internal/installlayout"
 )
 
 var (
@@ -26,7 +26,7 @@ const desktopHandoffTimeout = 30 * time.Second
 // verifyDesktopHandoff checks the single-instance owner, never all installed processes.
 func verifyDesktopHandoff(installDir string, started bool) error {
 	id := instanceidentity.UpdateID()
-	home := os.Getenv("REASONIX_HOME")
+	home := os.Getenv("TEMPORA_HOME")
 	if !instanceidentity.Valid(id) || !filepath.IsAbs(home) || id != instanceidentity.ForHome(home) {
 		return fmt.Errorf("update instance identity is unavailable; automatic restart cannot be verified")
 	}

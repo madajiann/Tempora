@@ -3,8 +3,8 @@ package main
 import (
 	"testing"
 
-	"reasonix/internal/config"
-	"reasonix/internal/control"
+	"tempora/internal/config"
+	"tempora/internal/control"
 )
 
 func TestSlashArgsEffortUsesActiveTabCapability(t *testing.T) {

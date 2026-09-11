@@ -4,9 +4,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"reasonix/internal/i18n"
-	"reasonix/internal/provider"
-	"reasonix/internal/secrets"
+	"tempora/internal/i18n"
+	"tempora/internal/provider"
+	"tempora/internal/secrets"
 )
 
 func clipStatusText(value string, limit int) string {

@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/provider/responses"
+	"tempora/internal/provider/responses"
 )
 
 // TestLiveDeepSeekResponsesAgentToolLoops verifies the official stateless

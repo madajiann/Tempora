@@ -1,8 +1,8 @@
 package main
 
 import (
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
+	"tempora/internal/agent"
+	"tempora/internal/control"
 )
 
 // stubSessionAPI supplies port defaults for the test controllers that only

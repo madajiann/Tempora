@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
+	"tempora/internal/agent"
+	"tempora/internal/control"
 )
 
 // bindACPWriteAuthority issues a generation-bound write authority when ctrl is

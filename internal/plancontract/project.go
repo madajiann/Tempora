@@ -1,6 +1,6 @@
 package plancontract
 
-import "reasonix/internal/evidence"
+import "tempora/internal/evidence"
 
 // ProjectTodos renders the plan as the serial task list a host seeds on
 // approval: phases at level 0, sub-steps at level 1, first unfinished item made

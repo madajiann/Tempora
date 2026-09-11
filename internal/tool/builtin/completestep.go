@@ -8,11 +8,11 @@ import (
 	"strconv"
 	"strings"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/instruction"
-	"reasonix/internal/planmode"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/evidence"
+	"tempora/internal/instruction"
+	"tempora/internal/planmode"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 )
 
 func init() { tool.RegisterBuiltin(completeStep{}) }

@@ -3,7 +3,7 @@ package runtimepolicy
 import (
 	"testing"
 
-	"reasonix/internal/evidence"
+	"tempora/internal/evidence"
 )
 
 func TestParseConstraintsScopesMutationBans(t *testing.T) {

@@ -1,7 +1,7 @@
 package responses
 
 import (
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 func messagesToInput(messages []provider.Message, vision, replayWebSearchItems, summary bool) []map[string]any {

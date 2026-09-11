@@ -1,6 +1,6 @@
 -- Additive Registry indexes and the install rollup used by trending.
 -- Apply before deploying the matching folded crash/registry Worker:
---   wrangler d1 execute reasonix-registry --remote --file=registry-migrate-performance-indexes.sql
+--   wrangler d1 execute tempora-registry --remote --file=registry-migrate-performance-indexes.sql
 
 CREATE INDEX IF NOT EXISTS packages_active_created
   ON packages (created_at DESC)

@@ -6,11 +6,11 @@ import (
 	"os"
 	"strings"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/event"
-	"reasonix/internal/permission"
-	"reasonix/internal/sandbox"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/event"
+	"tempora/internal/permission"
+	"tempora/internal/sandbox"
 )
 
 const writeAccessKind = event.ApprovalKindWriteAccess
@@ -93,9 +93,9 @@ func (c *Controller) CheckWriteAccess(ctx context.Context, req agent.WriteAccess
 func agentHeadlessWriteHint(display []string) string {
 	needed := strings.Join(display, ", ")
 	if needed == "" {
-		return "this directory is outside the writable roots. Restart with --add-dir /abs/path, add it to [sandbox].allow_write in reasonix.toml, or use an interactive session to approve the directory."
+		return "this directory is outside the writable roots. Restart with --add-dir /abs/path, add it to [sandbox].allow_write in tempora.toml, or use an interactive session to approve the directory."
 	}
-	return "this directory is outside the writable roots (" + needed + "). Restart with --add-dir " + needed + ", add it to [sandbox].allow_write in reasonix.toml, or use an interactive session to approve the directory."
+	return "this directory is outside the writable roots (" + needed + "). Restart with --add-dir " + needed + ", add it to [sandbox].allow_write in tempora.toml, or use an interactive session to approve the directory."
 }
 
 func displayForAbs(abs, display, missing []string) []string {
@@ -300,7 +300,7 @@ func (c *Controller) resolveWriteAccess(pending pendingApproval, allow bool, sco
 			c.sink.Emit(event.Event{
 				Kind:  event.Notice,
 				Level: event.LevelWarn,
-				Text:  fmt.Sprintf("could not save write access to the project reasonix.toml: %v", err),
+				Text:  fmt.Sprintf("could not save write access to the project tempora.toml: %v", err),
 			})
 			return err
 		}

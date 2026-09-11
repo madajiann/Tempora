@@ -9,14 +9,14 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/store"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/store"
 )
 
 var (
 	errTopicHasActiveWork = errors.New("wait for the session to finish, answer pending prompts, and stop background jobs before archiving this topic")
-	errTopicArchiveBusy   = errors.New("Reasonix is finishing another session change — wait a moment and retry archiving")
+	errTopicArchiveBusy   = errors.New("Tempora is finishing another session change — wait a moment and retry archiving")
 )
 
 var topicArchiveCleanupHookForTest func() error

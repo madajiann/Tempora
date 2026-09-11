@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/capability"
-	"reasonix/internal/event"
-	"reasonix/internal/evidence"
-	"reasonix/internal/skill"
-	"reasonix/internal/tool"
+	"tempora/internal/capability"
+	"tempora/internal/event"
+	"tempora/internal/evidence"
+	"tempora/internal/skill"
+	"tempora/internal/tool"
 )
 
 // capabilityGateState is one user turn's gate memory, scoped to the same turn

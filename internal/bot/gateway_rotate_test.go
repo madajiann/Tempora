@@ -6,10 +6,10 @@ import (
 	"log/slog"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/tool"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/tool"
 )
 
 // TestGatewayNewSessionPinsRotatedPathAgainstFallback: /new 旋转出新会话后，

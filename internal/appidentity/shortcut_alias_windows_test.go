@@ -13,9 +13,9 @@ import (
 
 func TestShortcutMigrationAcceptsShortAndLongPathsForTheSameFile(t *testing.T) {
 	migrationTestCOM(t)
-	root := filepath.Join(t.TempDir(), "Reasonix identity validation")
-	launcher := filepath.Join(root, "reasonix-launcher.exe")
-	target := filepath.Join(root, "versions", "v1.38.6", "app", "Reasonix.exe")
+	root := filepath.Join(t.TempDir(), "Tempora identity validation")
+	launcher := filepath.Join(root, "tempora-launcher.exe")
+	target := filepath.Join(root, "versions", "v1.38.6", "app", "Tempora.exe")
 	migrationTestFile(t, launcher)
 	migrationTestFile(t, target)
 	rootPtr, err := windows.UTF16PtrFromString(root)
@@ -31,10 +31,10 @@ func TestShortcutMigrationAcceptsShortAndLongPathsForTheSameFile(t *testing.T) {
 	if strings.EqualFold(shortRoot, root) {
 		t.Skip("the test volume does not create DOS short names")
 	}
-	path := filepath.Join(root, "Reasonix.lnk")
+	path := filepath.Join(root, "Tempora.lnk")
 	migrationTestShortcut(t, path, migrationShortcutState{
-		target: filepath.Join(shortRoot, "versions", "v1.38.6", "app", "Reasonix.exe"),
-		id:     "Reasonix", workingDirectory: shortRoot, showCmd: 1,
+		target: filepath.Join(shortRoot, "versions", "v1.38.6", "app", "Tempora.exe"),
+		id:     "Tempora", workingDirectory: shortRoot, showCmd: 1,
 	})
 	changed, err := repairOwnedShortcut(path, shortRoot)
 	if err != nil || !changed {
@@ -44,7 +44,7 @@ func TestShortcutMigrationAcceptsShortAndLongPathsForTheSameFile(t *testing.T) {
 	if !migrationSamePath(got.target, launcher) || got.id != AppUserModelID {
 		t.Fatalf("short-root repair returned %+v", got)
 	}
-	other := filepath.Join(t.TempDir(), "reasonix-launcher.exe")
+	other := filepath.Join(t.TempDir(), "tempora-launcher.exe")
 	if err := os.WriteFile(other, []byte("another installation"), 0o600); err != nil {
 		t.Fatal(err)
 	}

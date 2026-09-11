@@ -3,7 +3,7 @@ package control
 import (
 	"testing"
 
-	"reasonix/internal/command"
+	"tempora/internal/command"
 )
 
 func TestClassifySubmitRouteSeparatesManagementFromTurns(t *testing.T) {

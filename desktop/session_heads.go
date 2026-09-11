@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
-	"reasonix/internal/sessioncatalog"
+	"tempora/internal/agent"
+	"tempora/internal/control"
+	"tempora/internal/sessioncatalog"
 )
 
 // sessionHeadLineageState is the lineage view state for a schema-2 session:

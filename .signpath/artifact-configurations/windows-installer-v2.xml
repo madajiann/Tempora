@@ -9,22 +9,22 @@
     <pe-file path="*installer*.exe">
       <authenticode-sign />
     </pe-file>
-    <pe-file path="reasonix-desktop.exe">
+    <pe-file path="tempora-desktop.exe">
       <authenticode-verify />
     </pe-file>
-    <pe-file path="reasonix-guard.exe">
+    <pe-file path="tempora-guard.exe">
       <authenticode-verify />
     </pe-file>
-    <pe-file path="reasonix-launcher.exe">
+    <pe-file path="tempora-launcher.exe">
       <authenticode-verify />
     </pe-file>
-    <pe-file path="reasonix-update-helper.exe">
+    <pe-file path="tempora-update-helper.exe">
       <authenticode-verify />
     </pe-file>
-    <pe-file path="reasonix-cli.exe">
+    <pe-file path="tempora-cli.exe">
       <authenticode-verify />
     </pe-file>
-    <pe-file path="reasonix-uninstall.exe">
+    <pe-file path="tempora-uninstall.exe">
       <authenticode-verify />
     </pe-file>
     <pe-file-set>

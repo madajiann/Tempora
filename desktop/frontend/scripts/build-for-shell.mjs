@@ -4,10 +4,10 @@
 import { spawnSync } from "node:child_process";
 import { shellFromEnv } from "./shell-css.mjs";
 
-const shell = shellFromEnv({ REASONIX_SHELL: process.argv[2] ?? "" });
+const shell = shellFromEnv({ TEMPORA_SHELL: process.argv[2] ?? "" });
 const result = spawnSync("pnpm", ["build"], {
   stdio: "inherit",
-  env: { ...process.env, REASONIX_SHELL: shell },
+  env: { ...process.env, TEMPORA_SHELL: shell },
   shell: process.platform === "win32",
 });
 process.exit(result.status ?? 1);

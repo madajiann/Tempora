@@ -1,6 +1,6 @@
 package taskcontract
 
-import "reasonix/internal/evidence"
+import "tempora/internal/evidence"
 
 // Mapping is the fixed action-to-obligation table for one successful writer.
 type Mapping struct {

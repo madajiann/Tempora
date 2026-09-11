@@ -8,11 +8,11 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/billing"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/billing"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 type statusFactory struct {
@@ -130,13 +130,13 @@ func openStatusSession(t *testing.T, client *rpcClient, cwd string) string {
 	return opened.SessionID
 }
 
-func getStatus(t *testing.T, client *rpcClient, sessionID string) ReasonixSessionStatus {
+func getStatus(t *testing.T, client *rpcClient, sessionID string) TemporaSessionStatus {
 	t.Helper()
 	resp := client.call(t, sessionStatusMethod, SessionStatusParams{SessionID: sessionID})
 	if resp.Error != nil {
 		t.Fatalf("session/status: %+v", resp.Error)
 	}
-	var status ReasonixSessionStatus
+	var status TemporaSessionStatus
 	if err := json.Unmarshal(resp.Result, &status); err != nil {
 		t.Fatalf("session/status result: %v", err)
 	}
@@ -198,7 +198,7 @@ func TestStatusExtensionTracksMultipleSessionsAndUsage(t *testing.T) {
 		if notification.Method != sessionStatusUpdateMethod {
 			continue
 		}
-		var update ReasonixStatusUpdate
+		var update TemporaStatusUpdate
 		if err := json.Unmarshal(notification.Params, &update); err != nil {
 			t.Fatalf("status update: %v", err)
 		}
@@ -260,7 +260,7 @@ func TestStatusNormalizesPhaseAndRedactsPublicText(t *testing.T) {
 func TestRestoreStatusNormalizesLegacyPresentationPhase(t *testing.T) {
 	restored := restoreStatusTelemetry(&persistedStatusTelemetry{
 		Phase:          "executor · implementing local patch",
-		FinalReadiness: ReasonixFinalReadiness{},
+		FinalReadiness: TemporaFinalReadiness{},
 	})
 	if got := restored.snapshot().phase; got != "implementing" {
 		t.Fatalf("restored phase = %q, want implementing", got)
@@ -271,7 +271,7 @@ func TestRestoreStatusStronglyRedactsLegacyTurnOutcome(t *testing.T) {
 	const opaqueSecret = "readinessSecretAbc123"
 	const bearerSecret = "bearerSecretAbc123"
 	restored := restoreStatusTelemetry(&persistedStatusTelemetry{
-		TurnOutcome: ReasonixTurnOutcome{
+		TurnOutcome: TemporaTurnOutcome{
 			Kind:   "error",
 			Reason: "credential " + opaqueSecret + " Authorization: Bearer " + bearerSecret,
 		},
@@ -294,8 +294,8 @@ func TestRestoreStatusMarksInterruptedTurnPaused(t *testing.T) {
 		Sequence:    7,
 		State:       "running",
 		Phase:       "implementing",
-		TurnOutcome: ReasonixTurnOutcome{Kind: "none"},
-		FinalReadiness: ReasonixFinalReadiness{
+		TurnOutcome: TemporaTurnOutcome{Kind: "none"},
+		FinalReadiness: TemporaFinalReadiness{
 			ReadyForReview: true,
 			Risks:          []string{},
 		},

@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/provider"
-	"reasonix/internal/store"
+	"tempora/internal/provider"
+	"tempora/internal/store"
 )
 
 // displayIndexTestMessages builds a multi-turn transcript exercising every

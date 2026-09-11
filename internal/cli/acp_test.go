@@ -7,14 +7,14 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/acp"
-	"reasonix/internal/config"
-	"reasonix/internal/event"
-	"reasonix/internal/netclient"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/acp"
+	"tempora/internal/config"
+	"tempora/internal/event"
+	"tempora/internal/netclient"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 
-	_ "reasonix/internal/tool/builtin"
+	_ "tempora/internal/tool/builtin"
 )
 
 const acpTestProviderKind = "acp-test-provider"
@@ -67,7 +67,7 @@ func TestACPInitializesWithoutAPIKey(t *testing.T) {
 			t.Fatalf("Run --acp initialize rc = %d, want 0", rc)
 		}
 	})
-	if !strings.Contains(out, `"protocolVersion":1`) || !strings.Contains(out, `"name":"reasonix"`) {
+	if !strings.Contains(out, `"protocolVersion":1`) || !strings.Contains(out, `"name":"tempora"`) {
 		t.Fatalf("initialize output = %s", out)
 	}
 }
@@ -87,7 +87,7 @@ func TestACPRejectsInvalidSupervisorFlags(t *testing.T) {
 func TestACPSupervisorRuntimeStateUsesHardOverrides(t *testing.T) {
 	isolateCLIConfigHome(t)
 	project := t.TempDir()
-	if err := os.WriteFile(filepath.Join(project, "reasonix.toml"), []byte(`
+	if err := os.WriteFile(filepath.Join(project, "tempora.toml"), []byte(`
 [agent]
 planner_model = "configured-planner"
 
@@ -120,7 +120,7 @@ allow_write = ["../outside"]
 func TestACPSupervisorRuntimeStateDegradesWhenSandboxIsUnavailable(t *testing.T) {
 	isolateCLIConfigHome(t)
 	project := t.TempDir()
-	if err := os.WriteFile(filepath.Join(project, "reasonix.toml"), []byte("[sandbox]\nbash = \"enforce\"\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(project, "tempora.toml"), []byte("[sandbox]\nbash = \"enforce\"\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	unavailable := func() bool { return false }
@@ -168,11 +168,11 @@ func TestEffectiveACPPlannerModeIsIndependentOfExecutionMode(t *testing.T) {
 
 func TestACPFactoryLoadsSessionCwdProjectConfig(t *testing.T) {
 	home := isolateCLIConfigHome(t)
-	if _, err := config.SetCredential("REASONIX_TEST_KEY", "test-key"); err != nil {
+	if _, err := config.SetCredential("TEMPORA_TEST_KEY", "test-key"); err != nil {
 		t.Fatalf("SetCredential: %v", err)
 	}
 	project := t.TempDir()
-	if err := os.WriteFile(filepath.Join(project, "reasonix.toml"), []byte(`
+	if err := os.WriteFile(filepath.Join(project, "tempora.toml"), []byte(`
 default_model = "local"
 
 [[providers]]
@@ -180,11 +180,11 @@ name = "local"
 kind = "acp-test-provider"
 base_url = "http://example.invalid"
 model = "fake-model"
-api_key_env = "REASONIX_TEST_KEY"
+api_key_env = "TEMPORA_TEST_KEY"
 `), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	cmdDir := filepath.Join(project, ".reasonix", "commands")
+	cmdDir := filepath.Join(project, ".tempora", "commands")
 	if err := os.MkdirAll(cmdDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -211,11 +211,11 @@ api_key_env = "REASONIX_TEST_KEY"
 
 func TestACPFactoryClearsEffortOverrideForUnsupportedModel(t *testing.T) {
 	isolateCLIConfigHome(t)
-	if _, err := config.SetCredential("REASONIX_TEST_KEY", "test-key"); err != nil {
+	if _, err := config.SetCredential("TEMPORA_TEST_KEY", "test-key"); err != nil {
 		t.Fatalf("SetCredential: %v", err)
 	}
 	project := t.TempDir()
-	if err := os.WriteFile(filepath.Join(project, "reasonix.toml"), []byte(`
+	if err := os.WriteFile(filepath.Join(project, "tempora.toml"), []byte(`
 default_model = "reasoner/reasoning-model"
 
 [[providers]]
@@ -223,7 +223,7 @@ name = "reasoner"
 kind = "acp-test-provider"
 base_url = "http://example.invalid"
 model = "reasoning-model"
-api_key_env = "REASONIX_TEST_KEY"
+api_key_env = "TEMPORA_TEST_KEY"
 supported_efforts = ["low", "high"]
 
 [[providers]]
@@ -231,7 +231,7 @@ name = "plain"
 kind = "acp-test-provider"
 base_url = "http://example.invalid"
 model = "plain-model"
-api_key_env = "REASONIX_TEST_KEY"
+api_key_env = "TEMPORA_TEST_KEY"
 effort = "high"
 `), 0o644); err != nil {
 		t.Fatal(err)
@@ -268,11 +268,11 @@ effort = "high"
 
 func TestACPFactoryPinsRuntimeProfileAndOmitsWorkMode(t *testing.T) {
 	isolateCLIConfigHome(t)
-	if _, err := config.SetCredential("REASONIX_TEST_KEY", "test-key"); err != nil {
+	if _, err := config.SetCredential("TEMPORA_TEST_KEY", "test-key"); err != nil {
 		t.Fatalf("SetCredential: %v", err)
 	}
 	project := t.TempDir()
-	if err := os.WriteFile(filepath.Join(project, "reasonix.toml"), []byte(`
+	if err := os.WriteFile(filepath.Join(project, "tempora.toml"), []byte(`
 default_model = "local"
 
 [[providers]]
@@ -280,7 +280,7 @@ name = "local"
 kind = "acp-test-provider"
 base_url = "http://example.invalid"
 model = "fake-model"
-api_key_env = "REASONIX_TEST_KEY"
+api_key_env = "TEMPORA_TEST_KEY"
 `), 0o644); err != nil {
 		t.Fatal(err)
 	}

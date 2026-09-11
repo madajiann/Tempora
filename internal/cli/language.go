@@ -8,8 +8,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"reasonix/internal/config"
-	"reasonix/internal/i18n"
+	"tempora/internal/config"
+	"tempora/internal/i18n"
 )
 
 func (m *chatTUI) runLanguageSubcommand(input string) tea.Cmd {

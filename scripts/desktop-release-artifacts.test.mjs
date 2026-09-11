@@ -13,7 +13,7 @@ const env = {
 };
 const identity = releaseIdentity(env);
 function fixture(t) {
-  const root = mkdtempSync(path.join(tmpdir(), "reasonix-signed-handoff-"));
+  const root = mkdtempSync(path.join(tmpdir(), "tempora-signed-handoff-"));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const bundles = path.join(root, "bundles");
   mkdirSync(bundles);

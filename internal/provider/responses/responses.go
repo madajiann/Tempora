@@ -20,9 +20,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"reasonix/internal/netclient"
-	"reasonix/internal/provider"
-	"reasonix/internal/provider/openai"
+	"tempora/internal/netclient"
+	"tempora/internal/provider"
+	"tempora/internal/provider/openai"
 )
 
 const (

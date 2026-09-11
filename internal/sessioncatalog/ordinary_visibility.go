@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 // PreferredOrdinarySessionPaths returns the session paths that may appear in

@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/provider"
 )
 
 func writeVisionTestConfig(t *testing.T, root string) {
@@ -24,7 +24,7 @@ func writeVisionTestConfig(t *testing.T, root string) {
 		Models:       []string{"text-only", "vision-pro"},
 		VisionModels: []string{"vision-pro"},
 	}}
-	if err := cfg.SaveTo(filepath.Join(root, "reasonix.toml")); err != nil {
+	if err := cfg.SaveTo(filepath.Join(root, "tempora.toml")); err != nil {
 		t.Fatalf("save config: %v", err)
 	}
 }
@@ -114,7 +114,7 @@ func TestControllerInputImagesSkipsModelImagesWhenSelectedModelIsTextOnly(t *tes
 		Models:       []string{"text-only", "vision-pro"},
 		VisionModels: []string{"vision-pro"},
 	}}
-	if err := cfg.SaveTo(filepath.Join(workspace, "reasonix.toml")); err != nil {
+	if err := cfg.SaveTo(filepath.Join(workspace, "tempora.toml")); err != nil {
 		t.Fatalf("save workspace config: %v", err)
 	}
 	path := filepath.Join(workspace, "diagram.png")
@@ -143,7 +143,7 @@ func TestControllerResolvesSubagentImageCandidatesForTextParent(t *testing.T) {
 		Models:       []string{"text-only", "vision-pro"},
 		VisionModels: []string{"vision-pro"},
 	}}
-	if err := cfg.SaveTo(filepath.Join(workspace, "reasonix.toml")); err != nil {
+	if err := cfg.SaveTo(filepath.Join(workspace, "tempora.toml")); err != nil {
 		t.Fatalf("save workspace config: %v", err)
 	}
 	path := filepath.Join(workspace, "diagram.png")
@@ -230,7 +230,7 @@ func TestResolveRefsVisionCapableImageDoesNotAskForOCR(t *testing.T) {
 	dir := t.TempDir()
 	t.Chdir(dir)
 	writeVisionTestConfig(t, dir)
-	const slashPath = ".reasonix/attachments/shot.png"
+	const slashPath = ".tempora/attachments/shot.png"
 	if err := os.MkdirAll(filepath.Dir(slashPath), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -281,7 +281,7 @@ func TestControllerUploadsLargeOfficialDeepSeekImageViaFilesAPI(t *testing.T) {
 		VisionModels: []string{"deepseek-v4-flash-vision-exp"},
 		APIKeyEnv:    "DEEPSEEK_API_KEY",
 	}}
-	if err := cfg.SaveTo(filepath.Join(workspace, "reasonix.toml")); err != nil {
+	if err := cfg.SaveTo(filepath.Join(workspace, "tempora.toml")); err != nil {
 		t.Fatal(err)
 	}
 	prevLimit := inlineImageLimit
@@ -296,7 +296,7 @@ func TestControllerUploadsLargeOfficialDeepSeekImageViaFilesAPI(t *testing.T) {
 	}
 	t.Cleanup(func() { uploadVisionFile = prevUpload })
 
-	path := filepath.Join(workspace, ".reasonix", "attachments", "big.png")
+	path := filepath.Join(workspace, ".tempora", "attachments", "big.png")
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -305,7 +305,7 @@ func TestControllerUploadsLargeOfficialDeepSeekImageViaFilesAPI(t *testing.T) {
 		t.Fatal(err)
 	}
 	c := &Controller{workspaceRoot: workspace, selection: modelSelection{ref: "deepseek/deepseek-v4-flash-vision-exp"}}
-	got := c.inputImages("look at @.reasonix/attachments/big.png")
+	got := c.inputImages("look at @.tempora/attachments/big.png")
 	if len(got) != 1 || got[0] != "file-api-uploaded0001" {
 		t.Fatalf("inputImages = %v, want uploaded file_id", got)
 	}

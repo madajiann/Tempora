@@ -10,8 +10,8 @@ import (
 	"sync"
 	"testing"
 
-	"reasonix/internal/bot"
-	"reasonix/internal/config"
+	"tempora/internal/bot"
+	"tempora/internal/config"
 
 	"github.com/larksuite/oapi-sdk-go/v3/event/dispatcher/callback"
 )
@@ -482,7 +482,7 @@ func TestReplaceMentionPlaceholdersStripsBotAndNamesOthers(t *testing.T) {
 	a := newTestAdapter(nil)
 	a.botID = "ou-bot"
 	got := a.replaceMentionPlaceholders("@_user_1 帮 @_user_2 看看这个", []mentionRef{
-		{Key: "@_user_1", OpenID: "ou-bot", Name: "Reasonix"},
+		{Key: "@_user_1", OpenID: "ou-bot", Name: "Tempora"},
 		{Key: "@_user_2", OpenID: "ou-zhang", Name: "张三"},
 	})
 	if got != "帮 @张三 看看这个" {

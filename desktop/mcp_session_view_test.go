@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/plugin"
+	"tempora/internal/plugin"
 )
 
 func TestMCPServerViewSessionDiagnosticsRemainOptional(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"flag"
 	"testing"
 
-	"reasonix/internal/remote/bootstrap"
+	"tempora/internal/remote/bootstrap"
 )
 
 func TestServeBrowserBrokerFromEnv(t *testing.T) {

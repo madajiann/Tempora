@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"reasonix/internal/skill"
-	"reasonix/internal/tool"
+	"tempora/internal/skill"
+	"tempora/internal/tool"
 )
 
 // ProfileDefinition is the delegation-facing narrowing of a stored Skill: what

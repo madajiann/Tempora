@@ -8,11 +8,11 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/sandbox"
-	"reasonix/internal/tool"
-	"reasonix/internal/tool/builtin"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/sandbox"
+	"tempora/internal/tool"
+	"tempora/internal/tool/builtin"
 )
 
 func TestBindWritePathsRebindsBashWriteRoots(t *testing.T) {

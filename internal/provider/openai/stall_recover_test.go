@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/provider"
+	"tempora/internal/provider"
 )
 
 // TestStreamStallSurfacesAsInterrupt exercises the watchdog's primary target:

@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 func TestLegacySSETransportSupportsRootsToolsAndProgress(t *testing.T) {

@@ -113,13 +113,13 @@ export {
 export type ToolStatus = "running" | "done" | "error" | "stopped";
 // Reserved ToolProgress channel names for sub-agent progress previews (the Go
 // tracker emits these; ordinary tool progress must never use them).
-export const SUBAGENT_PROGRESS_STATUS = "reasonix.subagent.status";
-export const SUBAGENT_PROGRESS_REASONING = "reasonix.subagent.reasoning";
-export const SUBAGENT_PROGRESS_TEXT = "reasonix.subagent.text";
-export const SUBAGENT_PROGRESS_NOTICE = "reasonix.subagent.notice";
+export const SUBAGENT_PROGRESS_STATUS = "tempora.subagent.status";
+export const SUBAGENT_PROGRESS_REASONING = "tempora.subagent.reasoning";
+export const SUBAGENT_PROGRESS_TEXT = "tempora.subagent.text";
+export const SUBAGENT_PROGRESS_NOTICE = "tempora.subagent.notice";
 // Reserved names are matched by prefix so a future channel never falls back
 // to ordinary tool output on older frontends.
-const SUBAGENT_PROGRESS_PREFIX = "reasonix.subagent.";
+const SUBAGENT_PROGRESS_PREFIX = "tempora.subagent.";
 const TURN_ACTIVITY_KINDS = new Set(["turn_started", "text", "reasoning", "message", "tool_dispatch", "tool_progress", "tool_result_preview", "tool_result"]);
 const SUBAGENT_PROGRESS_PHASES = new Set(["queued", "running", "reasoning", "responding", "tool", "retrying", "completed", "partial", "failed", "cancelled"]);
 // Tool names that initialize a sub-agent progress card. parallel_tasks/fleet

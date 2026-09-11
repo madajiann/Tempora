@@ -37,7 +37,7 @@ export function loadGraphicsBootstrap(dataHome: string, env: NodeJS.ProcessEnv, 
   const configPath = join(dataHome, "graphics.json");
   const parsed = parseStored(configPath);
   const hardwareAcceleration = parsed.value?.hardwareAcceleration ?? true;
-  const environmentOverride = env.REASONIX_DISABLE_GPU === "1";
+  const environmentOverride = env.TEMPORA_DISABLE_GPU === "1";
   const commandLineOverride = argv.includes("--disable-gpu");
   const override: GraphicsOverride = environmentOverride ? "environment" : commandLineOverride ? "command-line" : "none";
   const startupEnabled = override === "none" ? hardwareAcceleration : false;

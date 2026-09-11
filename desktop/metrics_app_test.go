@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/config"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/recovery"
+	"tempora/internal/config"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/recovery"
 )
 
 type recoveryMetricsDeltaStub struct {

@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"errors"
-	"reasonix/internal/agent"
-	"reasonix/internal/boot"
-	"reasonix/internal/control"
+	"tempora/internal/agent"
+	"tempora/internal/boot"
+	"tempora/internal/control"
 	"strings"
 )
 

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"reasonix/internal/checkpoint"
-	"reasonix/internal/provider"
+	"tempora/internal/checkpoint"
+	"tempora/internal/provider"
 	"unicode/utf8"
 )
 

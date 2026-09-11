@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/sessioninbox"
-	"reasonix/internal/store"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/sessioninbox"
+	"tempora/internal/store"
 )
 
 func TestRestoreTrashedSessionFileRejectsActiveInboxConflict(t *testing.T) {

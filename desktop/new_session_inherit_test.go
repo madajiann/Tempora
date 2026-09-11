@@ -9,17 +9,17 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
-	"reasonix/internal/control"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
+	"tempora/internal/agent"
+	"tempora/internal/config"
+	"tempora/internal/control"
+	"tempora/internal/event"
+	"tempora/internal/provider"
 )
 
 func TestEnsureBlankTabInheritsActiveTabLocalSettings(t *testing.T) {
 	isolateDesktopUserDirs(t)
 	workspace := robustTempDir(t)
-	if err := os.WriteFile(filepath.Join(workspace, "reasonix.toml"),
+	if err := os.WriteFile(filepath.Join(workspace, "tempora.toml"),
 		[]byte(""), 0o644); err != nil {
 		t.Fatalf("write workspace config: %v", err)
 	}
@@ -78,12 +78,12 @@ func TestEnsureBlankTabInheritsActiveTabLocalSettings(t *testing.T) {
 
 func TestEnsureBlankTabUsesGlobalSessionDefaultsForModelAndToolApproval(t *testing.T) {
 	isolateDesktopUserDirs(t)
-	// Seed the key into Reasonix's user credentials store (the only source
+	// Seed the key into Tempora's user credentials store (the only source
 	// Configured() consults) so the default resolves as configured and is
 	// inherited verbatim regardless of the developer machine's environment.
 	seedUserCredentials(t, "DEEPSEEK_API_KEY=test-key\n")
 	workspace := robustTempDir(t)
-	if err := os.WriteFile(filepath.Join(workspace, "reasonix.toml"),
+	if err := os.WriteFile(filepath.Join(workspace, "tempora.toml"),
 		[]byte(""), 0o644); err != nil {
 		t.Fatalf("write workspace config: %v", err)
 	}
@@ -410,7 +410,7 @@ func TestDesktopNewSessionDefaultsHonorExplicitAsk(t *testing.T) {
 	}
 }
 
-// seedUserCredentials writes key=value lines into Reasonix's user credentials
+// seedUserCredentials writes key=value lines into Tempora's user credentials
 // store. ProviderEntry.Configured() resolves keys only from that store, not
 // from process env, so tests must seed it explicitly.
 func seedUserCredentials(t *testing.T, data string) {
@@ -425,7 +425,7 @@ func seedUserCredentials(t *testing.T, data string) {
 
 func TestDesktopNewSessionDefaultsSkipsKeylessDefaultModel(t *testing.T) {
 	isolateDesktopUserDirs(t)
-	seedUserCredentials(t, "REASONIX_TEST_SESSION_KEY=test-key\n")
+	seedUserCredentials(t, "TEMPORA_TEST_SESSION_KEY=test-key\n")
 
 	cfg := config.LoadForEdit(config.UserConfigPath())
 	cfg.Providers = append(cfg.Providers, config.ProviderEntry{
@@ -433,7 +433,7 @@ func TestDesktopNewSessionDefaultsSkipsKeylessDefaultModel(t *testing.T) {
 		Kind:      "openai",
 		BaseURL:   "https://example.com",
 		Model:     "test-model",
-		APIKeyEnv: "REASONIX_TEST_SESSION_KEY",
+		APIKeyEnv: "TEMPORA_TEST_SESSION_KEY",
 	})
 	if err := cfg.SetDefaultModel("deepseek-pro/deepseek-v4-pro"); err != nil {
 		t.Fatalf("SetDefaultModel: %v", err)
@@ -488,7 +488,7 @@ func TestDesktopNewSessionDefaultsKeepsKeylessDefaultWhenNothingConfigured(t *te
 
 func TestDesktopNewSessionDefaultsRejectsNonChatDefaultWithoutFallback(t *testing.T) {
 	isolateDesktopUserDirs(t)
-	seedUserCredentials(t, "REASONIX_TEST_AUDIO_KEY=test-key\n")
+	seedUserCredentials(t, "TEMPORA_TEST_AUDIO_KEY=test-key\n")
 
 	cfg := config.LoadForEdit(config.UserConfigPath())
 	cfg.Providers = []config.ProviderEntry{{
@@ -496,7 +496,7 @@ func TestDesktopNewSessionDefaultsRejectsNonChatDefaultWithoutFallback(t *testin
 		Kind:      "openai",
 		BaseURL:   "https://audio.example.com",
 		Model:     "tts-1",
-		APIKeyEnv: "REASONIX_TEST_AUDIO_KEY",
+		APIKeyEnv: "TEMPORA_TEST_AUDIO_KEY",
 	}}
 	cfg.Desktop.ProviderAccess = []string{"audio"}
 	if err := cfg.SetDefaultModel("audio/tts-1"); err != nil {
@@ -525,7 +525,7 @@ func TestDesktopNewSessionDefaultsRejectsNonChatDefaultWithoutFallback(t *testin
 
 func TestDesktopNewSessionDefaultsHonorExplicitEmptyProviderAccess(t *testing.T) {
 	isolateDesktopUserDirs(t)
-	seedUserCredentials(t, "REASONIX_TEST_SESSION_KEY=test-key\n")
+	seedUserCredentials(t, "TEMPORA_TEST_SESSION_KEY=test-key\n")
 
 	cfg := config.LoadForEdit(config.UserConfigPath())
 	cfg.Providers = []config.ProviderEntry{{
@@ -533,7 +533,7 @@ func TestDesktopNewSessionDefaultsHonorExplicitEmptyProviderAccess(t *testing.T)
 		Kind:      "openai",
 		BaseURL:   "https://example.com",
 		Model:     "test-model",
-		APIKeyEnv: "REASONIX_TEST_SESSION_KEY",
+		APIKeyEnv: "TEMPORA_TEST_SESSION_KEY",
 	}}
 	cfg.Desktop.ProviderAccess = []string{}
 	if err := cfg.SetDefaultModel("test-prov/test-model"); err != nil {
@@ -565,7 +565,7 @@ func TestDesktopNewSessionDefaultsHonorExplicitEmptyProviderAccess(t *testing.T)
 
 func TestDesktopNewSessionDefaultsUsesProjectDefaultAndSkipsItsKeylessProvider(t *testing.T) {
 	isolateDesktopUserDirs(t)
-	seedUserCredentials(t, "REASONIX_TEST_SESSION_KEY=test-key\n")
+	seedUserCredentials(t, "TEMPORA_TEST_SESSION_KEY=test-key\n")
 
 	userCfg := config.LoadForEdit(config.UserConfigPath())
 	userCfg.Providers = append(userCfg.Providers, config.ProviderEntry{
@@ -573,7 +573,7 @@ func TestDesktopNewSessionDefaultsUsesProjectDefaultAndSkipsItsKeylessProvider(t
 		Kind:      "openai",
 		BaseURL:   "https://example.com",
 		Model:     "test-model",
-		APIKeyEnv: "REASONIX_TEST_SESSION_KEY",
+		APIKeyEnv: "TEMPORA_TEST_SESSION_KEY",
 	})
 	if err := userCfg.SetDefaultModel("test-prov/test-model"); err != nil {
 		t.Fatalf("SetDefaultModel: %v", err)
@@ -583,7 +583,7 @@ func TestDesktopNewSessionDefaultsUsesProjectDefaultAndSkipsItsKeylessProvider(t
 	}
 
 	workspace := robustTempDir(t)
-	if err := os.WriteFile(filepath.Join(workspace, "reasonix.toml"), []byte(`default_model = "deepseek-pro/deepseek-v4-pro"
+	if err := os.WriteFile(filepath.Join(workspace, "tempora.toml"), []byte(`default_model = "deepseek-pro/deepseek-v4-pro"
 `), 0o644); err != nil {
 		t.Fatalf("write project config: %v", err)
 	}

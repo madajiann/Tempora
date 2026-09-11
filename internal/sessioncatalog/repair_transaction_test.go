@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"reasonix/internal/agent"
+	"tempora/internal/agent"
 )
 
 func newRepairPublicationTestCatalog(t *testing.T, now *time.Time) (*Catalog, string) {

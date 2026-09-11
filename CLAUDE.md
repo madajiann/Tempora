@@ -1,6 +1,6 @@
-# Reasonix
+# Tempora
 
-The project's standing instructions live in `REASONIX.md` — one file, read by
-both Reasonix and Claude Code. Add rules there, never here.
+The project's standing instructions live in `TEMPORA.md` — one file, read by
+both Tempora and Claude Code. Add rules there, never here.
 
-@REASONIX.md
+@TEMPORA.md

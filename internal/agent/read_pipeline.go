@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/provider"
-	"reasonix/internal/readcoord"
-	"reasonix/internal/tool"
+	"tempora/internal/provider"
+	"tempora/internal/readcoord"
+	"tempora/internal/tool"
 )
 
 func (a *Agent) readPipelineActive() bool {

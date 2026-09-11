@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/instruction"
+	"tempora/internal/evidence"
+	"tempora/internal/instruction"
 )
 
 // Ordinary work is settled by the tool results the host already recorded, so a

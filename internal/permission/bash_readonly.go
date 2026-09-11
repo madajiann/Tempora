@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	"reasonix/internal/shellsafe"
+	"tempora/internal/shellsafe"
 )
 
 // BashCommandIsReadOnly reports whether a bash tool call is a known foreground

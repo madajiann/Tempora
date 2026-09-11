@@ -4,7 +4,7 @@ import (
 	"sort"
 	"sync"
 
-	"reasonix/internal/tool"
+	"tempora/internal/tool"
 )
 
 // turnLoopState groups per-turn loop-guard maps so parallel tool goroutines

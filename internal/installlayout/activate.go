@@ -15,10 +15,10 @@ import (
 	"strings"
 	"time"
 
-	"reasonix/internal/filelock"
+	"tempora/internal/filelock"
 )
 
-const activationLockName = ".reasonix-activate.lock"
+const activationLockName = ".tempora-activate.lock"
 
 // Member is one file to publish into a version directory.
 type Member struct {

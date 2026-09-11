@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"reasonix/internal/hook"
+	"tempora/internal/hook"
 )
 
 // TestCloseIsIdempotent guards the desktop tab-lifecycle contract: rebind,

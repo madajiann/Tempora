@@ -5,7 +5,7 @@ import (
 	"slices"
 	"strings"
 
-	"reasonix/internal/provider/openai"
+	"tempora/internal/provider/openai"
 )
 
 var mimoVisionModels = map[string]bool{

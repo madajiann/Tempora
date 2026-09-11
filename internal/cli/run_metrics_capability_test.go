@@ -3,7 +3,7 @@ package cli
 import (
 	"testing"
 
-	"reasonix/internal/capability"
+	"tempora/internal/capability"
 )
 
 func TestMergeCapabilityAuditCopiesNestedCounters(t *testing.T) {

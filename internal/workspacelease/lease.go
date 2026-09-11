@@ -18,7 +18,7 @@ import (
 	"sync"
 	"time"
 
-	"reasonix/internal/filelock"
+	"tempora/internal/filelock"
 )
 
 const backgroundGrace = 30 * time.Second
@@ -140,7 +140,7 @@ func (o *Owner) holdScopeLocked() (string, string) {
 }
 
 // New returns a Delivery-session lease owner for workspaceRoot. lockDir is
-// shared by Reasonix processes and remains outside the user's workspace.
+// shared by Tempora processes and remains outside the user's workspace.
 func New(workspaceRoot, lockDir string, onWait WaitNotice) (*Owner, error) {
 	canonical, compatibility, err := workspaceIdentities(workspaceRoot)
 	if err != nil {
@@ -542,7 +542,7 @@ func (o *Owner) acquireWorkspace(ctx context.Context, mode filelock.Mode, notifi
 }
 
 // acquireCompatibilityRoots keeps the original per-workspace lock protocol in
-// the hierarchy. Previous Reasonix versions only know these exact lock files,
+// the hierarchy. Previous Tempora versions only know these exact lock files,
 // so descendants take their ancestor locks shared while a whole-workspace
 // writer takes its own root exclusively.
 func (o *Owner) acquireCompatibilityRoots(

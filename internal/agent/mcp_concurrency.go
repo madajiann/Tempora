@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	"reasonix/internal/config"
+	"tempora/internal/config"
 )
 
 // MCP concurrency policies. A server is parallel unless something says

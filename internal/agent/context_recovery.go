@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"reasonix/internal/event"
-	"reasonix/internal/i18n"
-	"reasonix/internal/provider"
+	"tempora/internal/event"
+	"tempora/internal/i18n"
+	"tempora/internal/provider"
 )
 
 type contextRecoveryBudget struct {

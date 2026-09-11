@@ -3,8 +3,8 @@ package control
 import (
 	"errors"
 	"fmt"
-	"reasonix/internal/agent"
-	"reasonix/internal/event"
+	"tempora/internal/agent"
+	"tempora/internal/event"
 	"sort"
 	"sync"
 )

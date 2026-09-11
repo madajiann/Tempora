@@ -4,10 +4,10 @@ import (
 	"errors"
 	"testing"
 
-	"reasonix/internal/event"
-	"reasonix/internal/eventwire"
-	"reasonix/internal/provider"
-	"reasonix/internal/turnevent"
+	"tempora/internal/event"
+	"tempora/internal/eventwire"
+	"tempora/internal/provider"
+	"tempora/internal/turnevent"
 )
 
 func TestSnapshotRetainsTerminalRecoveryAndFailure(t *testing.T) {

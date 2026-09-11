@@ -244,7 +244,7 @@ describe("diagnostics v2 storage consistency", () => {
       installId: "a".repeat(32), kind: "crash", version: "v1.23.0",
       os: "windows", arch: "amd64", message: "browser process exited",
     });
-    const response = await worker.fetch(new Request("https://crash.reasonix.io/v1/report", {
+    const response = await worker.fetch(new Request("https://crash.tempora.io/v1/report", {
       method: "POST",
       headers: {
         "content-type": "application/json",

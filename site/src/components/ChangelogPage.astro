@@ -16,7 +16,7 @@ const prHref = (ref: number) => `${repo}/pull/${ref}`;
 
 const isPreview = release.channel === 'prerelease';
 const latestForChannel = releases[0];
-const downloadHref = isPreview ? 'https://reasonix.io/?download=desktop#start' : release.links.download;
+const downloadHref = isPreview ? 'https://tempora.io/?download=desktop#start' : release.links.download;
 
 const kindLabel = (kind: string) => ({
   new: { en: 'New', zh: '新增' },
@@ -90,8 +90,8 @@ for (const item of releases) {
 }
 const RAIL_VISIBLE = 3;
 
-const titleEn = `Reasonix v${release.version} release notes`;
-const titleZh = `Reasonix v${release.version} 更新日志`;
+const titleEn = `Tempora v${release.version} release notes`;
+const titleZh = `Tempora v${release.version} 更新日志`;
 const description = release.summary.en;
 ---
 
@@ -151,7 +151,7 @@ const description = release.summary.en;
             {isPreview && <span class="release-channel release-channel--preview"><span class="release-channel__dot"></span><span class="l-en">Historical archive</span><span class="l-zh">历史归档</span></span>}
             <time datetime={release.date}>{release.date}</time>
           </div>
-          <h1>Reasonix v{release.version}</h1>
+          <h1>Tempora v{release.version}</h1>
           <div class="release-surfaces">
             {release.surfaces.map((surface) => {
               const label = surfaceLabel(surface);
@@ -383,7 +383,7 @@ const description = release.summary.en;
         <section id="download" class="release-section release-download">
           <div>
             <p class="release-download__kicker"><span class="l-en">Ready when you are</span><span class="l-zh">准备好即可升级</span></p>
-            <h2><span class="l-en">Ship with a safer Reasonix.</span><span class="l-zh">升级到更可靠的 Reasonix。</span></h2>
+            <h2><span class="l-en">Ship with a safer Tempora.</span><span class="l-zh">升级到更可靠的 Tempora。</span></h2>
           </div>
           <div class="release-download__actions">
           <a class="btn btn-dark" href={downloadHref}><span class="l-en">Download</span><span class="l-zh">下载</span></a>
@@ -400,8 +400,8 @@ const description = release.summary.en;
   </main>
 
   <footer class="release-footer">
-    <a class="brand" href={`${base}/`}><img src={`${base}/logo.svg`} alt="" /><span>Reasonix</span></a>
-    <span>© 2026 Reasonix · MIT</span>
+    <a class="brand" href={`${base}/`}><img src={`${base}/logo.svg`} alt="" /><span>Tempora</span></a>
+    <span>© 2026 Tempora · MIT</span>
     <a href={repo}>GitHub ↗</a>
   </footer>
 

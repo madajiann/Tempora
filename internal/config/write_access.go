@@ -9,9 +9,9 @@ import (
 
 	"github.com/BurntSushi/toml"
 
-	fileencoding "reasonix/internal/fileutil/encoding"
-	"reasonix/internal/permission"
-	"reasonix/internal/sandbox"
+	fileencoding "tempora/internal/fileutil/encoding"
+	"tempora/internal/permission"
+	"tempora/internal/sandbox"
 )
 
 // PersistProjectWriteAccess updates [permissions].allow and [sandbox].allow_write

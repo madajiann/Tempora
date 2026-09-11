@@ -12,9 +12,9 @@ import (
 	"image/png"
 	"net/http/httptest"
 	"os"
-	"reasonix/internal/event"
-	"reasonix/internal/provider"
-	"reasonix/internal/tool"
+	"tempora/internal/event"
+	"tempora/internal/provider"
+	"tempora/internal/tool"
 	"reflect"
 	"strings"
 	"sync/atomic"
@@ -23,7 +23,7 @@ import (
 )
 
 func TestLiveMultiProviderNativeSearch(t *testing.T) {
-	if os.Getenv("REASONIX_LIVE_WEB_SEARCH") != "1" {
+	if os.Getenv("TEMPORA_LIVE_WEB_SEARCH") != "1" {
 		t.Skip("live search not enabled")
 	}
 	for _, tc := range multiProviderCases() {

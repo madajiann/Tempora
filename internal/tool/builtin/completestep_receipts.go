@@ -7,8 +7,8 @@ import (
 	"slices"
 	"strings"
 
-	"reasonix/internal/evidence"
-	"reasonix/internal/tool"
+	"tempora/internal/evidence"
+	"tempora/internal/tool"
 )
 
 // maxAvailableReceiptIDs bounds the recovery list in a rejection. It exists so

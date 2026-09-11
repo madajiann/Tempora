@@ -4,8 +4,8 @@ import (
 	"log/slog"
 	"strings"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/control"
+	"tempora/internal/agent"
+	"tempora/internal/control"
 )
 
 // kickHistoryIndexRebuild single-flight schedules a background display-index

@@ -5,8 +5,8 @@ package main
 import (
 	"os"
 
-	"reasonix/internal/appidentity"
-	"reasonix/internal/installlayout"
+	"tempora/internal/appidentity"
+	"tempora/internal/installlayout"
 )
 
 func repairDesktopIconIntegration() error {

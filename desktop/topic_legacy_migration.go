@@ -5,8 +5,8 @@ import (
 	"strings"
 	"sync"
 
-	"reasonix/internal/agent"
-	"reasonix/internal/config"
+	"tempora/internal/agent"
+	"tempora/internal/config"
 )
 
 // legacyMigrationMu serializes the lockless load-modify-save of the projects /
