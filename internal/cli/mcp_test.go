@@ -784,7 +784,7 @@ func TestRenderMCPManagerDetailCompactsConfigPath(t *testing.T) {
 		stage: mcpStageDetail,
 		name:  "github",
 		snapshot: mcpSnapshot{
-			configPath: "/Users/example/Library/Application Support/tempora/config.toml",
+			configPath: "/Users/example/Library/Application Support/tempora-dev/config.toml",
 			servers: []mcpServerView{{
 				Name: "github", Transport: "stdio", Status: "deferred", Configured: true,
 				Tier: "background", Command: "npx", Args: []string{"-y", "@modelcontextprotocol/server-github"},

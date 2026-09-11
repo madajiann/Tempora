@@ -58,6 +58,19 @@
 - git：本仓库代理配置、upstream remote（push 禁用）、全量提交
 - 最终构建：`-ldflags "-X main.version=v0.1.0 ..."` → `bin/tempora.exe`，`--version`/`doctor` 冒烟通过
 
+## 02:1x 交付后复核修复
+
+- 后台全量套件（改名后、GLM 前）结论：可见范围内仅 `sessioncatalog/TestReconcileBatchBoundaryIsOneAtomicSnapshot`
+  失败，**隔离复跑 PASS**（系统负载下的时序波动，非产品缺陷）；注意全量日志被 tail 截断，internal/cli 结果不可考。
+- 复核 internal/cli 发现 3 个失败，全部定位并修复：
+  1. `TestGroupByFamily`：GLM 出厂后家族分组断言过时 → 顺带改进产品：`familyOf` 新增 GLM 家族规则，
+     向导中 glm-flash/glm-pro 归组为 "GLM"（与 DeepSeek 家族对称），测试断言更新为 [deepseek glm]。
+  2. `TestRenderMCPManagerDetailCompactsConfigPath`：改名把夹具路径缩短 1 字符（63→62），
+     恰好不再触发 62 宽压缩阈值 → 夹具目录改为 `tempora-dev` 恢复超长路径语义。
+  3. `TestStatusFooterStacksGitAndTelemetry...`：同因，夹具仓库名改短后单行放得下不再折行 →
+     改用与上游等长的 `Tempora-Workspace`（17 字符 = DeepSeek-Reasonix 长度）。
+- 三个测试复跑 PASS；完整 internal/cli 包复跑确认中。
+
 ## 测试记录
 
 - `go build ./...` PASS（改名后一次通过；GLM 改动后复验 PASS）

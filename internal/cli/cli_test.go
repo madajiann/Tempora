@@ -1547,19 +1547,26 @@ func TestAppendEnvUpsertHandlesExportPrefix(t *testing.T) {
 	}
 }
 
-// TestGroupByFamily verifies the wizard groups the default preset into
-// "deepseek" (flash + pro), preserving the order each family first appears in.
+// TestGroupByFamily verifies the wizard groups the default presets into
+// "deepseek" (flash + pro) and "glm" (flash + pro), preserving the order each
+// family first appears in.
 func TestGroupByFamily(t *testing.T) {
 	order, members, info := groupByFamily(config.Default().Providers)
 
-	if got := order; !reflect.DeepEqual(got, []string{"deepseek"}) {
-		t.Fatalf("family order = %v, want [deepseek]", got)
+	if got := order; !reflect.DeepEqual(got, []string{"deepseek", "glm"}) {
+		t.Fatalf("family order = %v, want [deepseek glm]", got)
 	}
 	if got := members["deepseek"]; !reflect.DeepEqual(got, []int{0, 1}) {
 		t.Errorf("deepseek members = %v, want [0 1]", got)
 	}
+	if got := members["glm"]; !reflect.DeepEqual(got, []int{2, 3}) {
+		t.Errorf("glm members = %v, want [2 3]", got)
+	}
 	if info["deepseek"].name != "DeepSeek" {
 		t.Errorf("display name = %q", info["deepseek"].name)
+	}
+	if info["glm"].name != "GLM" {
+		t.Errorf("glm display name = %q", info["glm"].name)
 	}
 }
 

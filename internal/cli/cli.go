@@ -1883,6 +1883,8 @@ func familyOf(name string) providerFamily {
 	switch {
 	case strings.HasPrefix(name, "deepseek"):
 		return providerFamily{key: "deepseek", name: "DeepSeek", desc: "fast & cheap, plus a stronger Pro SKU"}
+	case strings.HasPrefix(name, "glm"):
+		return providerFamily{key: "glm", name: "GLM", desc: "Zhipu GLM: a fast Flash SKU plus the flagship model"}
 	default:
 		return providerFamily{key: name, name: name}
 	}

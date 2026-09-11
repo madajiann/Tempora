@@ -508,7 +508,7 @@ func TestStatusFooterStacksGitAndTelemetryWithoutFloatingContinuation(t *testing
 
 	m := newTestChatTUI()
 	m.gitStatus = gitStatus{
-		Repo: "Tempora", Branch: "feature/responsive-footer", Added: 20, Removed: 4,
+		Repo: "Tempora-Workspace", Branch: "feature/responsive-footer", Added: 20, Removed: 4,
 	}
 	m.balance = "¥123.45"
 
@@ -516,7 +516,7 @@ func TestStatusFooterStacksGitAndTelemetryWithoutFloatingContinuation(t *testing
 	if len(lines) != 2 {
 		t.Fatalf("stacked Git/telemetry rows = %d, want 2:\n%s", len(lines), strings.Join(lines, "\n"))
 	}
-	if !strings.HasPrefix(lines[0], statusFooterIndent+"Tempora@") || !strings.Contains(lines[0], "+20 -4") {
+	if !strings.HasPrefix(lines[0], statusFooterIndent+"Tempora-Workspace@") || !strings.Contains(lines[0], "+20 -4") {
 		t.Fatalf("Git should own the complete first row:\n%s", strings.Join(lines, "\n"))
 	}
 	if !strings.HasPrefix(lines[1], statusFooterIndent+"BAL ¥123.45") {
