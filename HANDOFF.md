@@ -80,8 +80,12 @@ go build -o bin/tempora.exe ./cmd/tempora
 
 ## 8. 验证记录（交付时的状态）
 
-- `go build ./...`：PASS（全模块，一次通过）
-- `go test ./internal/config/`：PASS（98s，含 GLM 改动后的修复）
+- `go build ./...`：PASS（全模块，改名后一次通过；GLM 接入后复验通过）
+- `go test ./internal/config/`：PASS（98s，含 GLM 出厂与预设改动）
+- `go test ./internal/cli/`：PASS（98.9s 全包，修复 3 个改名/GLM 回声测试后）
+- `go test ./internal/boot/`：PASS（154s，golden prefix_shape 基线已按新出厂模型重生成）
+- `go test ./internal/agent/ ./internal/tool/... ./internal/skill/ ./internal/billing/ ./internal/agentpreset/ ./internal/doctor/`：PASS
 - `go test ./desktop/ -run 'TestAppIcon|TestWindowsICO|TestDarwinICNS'`：PASS
-- `go test ./...`（改名后、GLM 接入前的全量）：见 WORKLOG 结尾结论
-- `tempora --version` → `tempora v0.1.0 (commit ...)`；`tempora doctor` → 4 provider 就绪
+- `go test ./...`（改名后全量快照）：除 sessioncatalog 一个时序敏感用例在系统高负载下偶发外全部通过（隔离复跑 PASS）；该快照不含后续 GLM/cli 修复，受影响包均已单独复验
+- `bin/tempora.exe --version` → `tempora v0.1.0 (279165…→e2b270c 最终构建)`；`tempora doctor` → 4 provider 就绪
+- 未跑：prod_test、benchmarks/e2e（需真实 API key）；sessioncatalog 全包复跑建议拿到 key 后补一次
