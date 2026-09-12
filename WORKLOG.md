@@ -71,6 +71,36 @@
      改用与上游等长的 `Tempora-Workspace`（17 字符 = DeepSeek-Reasonix 长度）。
 - 三个测试复跑 PASS；完整 internal/cli 包复跑确认中。
 
+## 12:0x–12:5x 安装器 exe + 体积优化 + GitHub 指南（用户晨间反馈的三件事）
+
+- 用户问"安装方式不是 exe 吗"：原交付只有绿色 exe + cmd 脚本。方案：自研 **tools/windowsinstaller**
+  （嵌套 Go 模块，go:embed 内嵌 payload/tempora.exe），写 HKCU\Environment 用户 PATH +
+  SendMessageTimeoutW(WM_SETTINGCHANGE) 广播，免管理员、无 NSIS/Inno 依赖。真机安装验证通过
+  （文件落位 + 注册表 + PowerShell 按 PATH 解析到 v0.1.0）。
+- 用户要求体积对齐上游（记忆 50-60MB）：实测上游 v1.38.6 windows zip = 21MB；我们裸二进制
+  69.5MB（-trimpath 后）。下载 UPX 4.2.4 → 压缩至 19.2MB（27.6%），`--version` 功能验证通过。
+  最终安装器 **20.3MB**。注意点写入 HANDOFF：UPX 壳可能触发杀软误报，可出未压缩版。
+- Makefile 加 `windows-installer` 目标（UPX 可选）；.gitignore 忽略 payload exe；README×2 改为
+  exe 安装器为主路径。
+- **GITHUB-SETUP.md**：零基础建仓指南（注册→建空仓三不勾→PAT→替换 tempora-dev 占位符→推送→
+  常见问题表）。用户问到建仓页 Description/.gitignore/license 三项是否要填——答复：全保持默认
+  （None），勾选会生成初始提交导致首推冲突。
+- 桌面 6 个 `_*.txt` 排查（用户问是不是垃圾）：内容为 WebView2/VS BuildTools/rustup/磁盘探测，
+  时间戳 00:31–00:47；`_vsproc.txt` 显示当时有 vs_buildtools 安装进程、操作用户为 Ly 而非
+  Administrator。结论：另一并行工具所留，与 Tempora 工程无关（已记入 HANDOFF 风险节）。
+- 提交：03e2ba2（安装器+指南）、151f14c（HANDOFF 刷新）。
+
+## 提交历史（截至本日志更新）
+
+```
+151f14c Docs: refresh HANDOFF with installer, size pipeline, multi-account notes
+03e2ba2 Add Windows setup exe installer + GitHub onboarding guide
+7669b0c Docs: record final verification results in HANDOFF/WORKLOG
+e2b270c Fix rebrand-length test fixtures, add GLM family grouping, refresh golden baseline
+279165a Tempora v0.1.0: fork DeepSeek-Reasonix, full rebrand + Zhipu GLM
+036c7c5 (上游基线)
+```
+
 ## 测试记录
 
 - `go build ./...` PASS（改名后一次通过；GLM 改动后复验 PASS）
