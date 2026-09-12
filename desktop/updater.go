@@ -89,7 +89,7 @@ var (
 // own the repo-wide latest badge and publish latest.json directly, while
 // The unified official Release carries the desktop manifest as a final fallback
 // when both first-party endpoints are unavailable.
-const githubManifestFallback = "https://github.com/tempora-dev/Tempora/releases/latest/download/latest.json"
+const githubManifestFallback = "https://github.com/madajiann/Tempora/releases/latest/download/latest.json"
 
 func normalizeUpdateChannel(ch string) string {
 	return config.NormalizeDesktopUpdateChannel(ch)
@@ -308,8 +308,8 @@ func desktopAssetBases(selected, version string, allowLegacyPreview bool) []stri
 	tag := desktopReleaseTag(selected, version)
 	return []string{
 		fmt.Sprintf("%s/%s/", r2Base, tag),
-		fmt.Sprintf("https://github.com/tempora-dev/Tempora/releases/download/%s/", tag),
-		fmt.Sprintf("https://github.com/tempora-dev/Tempora/releases/download/%s/", version),
+		fmt.Sprintf("https://github.com/madajiann/Tempora/releases/download/%s/", tag),
+		fmt.Sprintf("https://github.com/madajiann/Tempora/releases/download/%s/", version),
 	}
 }
 

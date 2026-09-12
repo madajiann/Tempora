@@ -76,7 +76,7 @@ for (const t of TARGETS) {
         license: "MIT",
         repository: {
           type: "git",
-          url: "git+https://github.com/tempora-dev/Tempora.git",
+          url: "git+https://github.com/madajiann/Tempora.git",
         },
         temporaCandidateSha: candidateSha,
       },

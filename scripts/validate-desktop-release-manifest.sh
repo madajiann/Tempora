@@ -52,7 +52,7 @@ if [[ ! "$notes_version" =~ $release_version_pattern ]]; then
 fi
 
 expected_tag="desktop-${version}"
-github_base="https://github.com/tempora-dev/Tempora/releases/download/${expected_tag}/"
+github_base="https://github.com/madajiann/Tempora/releases/download/${expected_tag}/"
 r2_base="https://dl.tempora.io/${expected_tag}/"
 legacy_preview_base="https://dl.tempora.io/desktop-preview/"
 if [ "$channel" = "legacy-preview" ] && [ "$asset_base" = "$legacy_preview_base" ]; then

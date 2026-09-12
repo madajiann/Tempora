@@ -1,7 +1,7 @@
 version: 1
 project_slug: Tempora
 signing_policy_slug: release-signing
-repository_url: https://github.com/tempora-dev/Tempora.git
+repository_url: https://github.com/madajiann/Tempora.git
 allowed_branch_names:
   - main-v2
 allowed_build_definitions:

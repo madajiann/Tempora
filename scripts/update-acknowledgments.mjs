@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { readFile, writeFile } from 'node:fs/promises';
 
-const repo = 'tempora-dev/Tempora';
+const repo = 'madajiann/Tempora';
 const api = `https://api.github.com/repos/${repo}/contributors?per_page=20&anon=1`;
 const startMarker = '<!-- tempora-top-contributors:start -->';
 const endMarker = '<!-- tempora-top-contributors:end -->';

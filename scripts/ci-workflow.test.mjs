@@ -25,7 +25,7 @@ const release = workflow("release-desktop");
 test("macOS signing diagnostics require protected main and cannot publish", () => {
   const source = workflow("macos-signing-check");
   const verify = job(source, "verify");
-  const github = { repository: "tempora-dev/Tempora", ref: "refs/heads/main-v2", ref_protected: true };
+  const github = { repository: "madajiann/Tempora", ref: "refs/heads/main-v2", ref_protected: true };
   assert.equal(condition(verify, { github }), true);
   for (const changed of [{ repository: "fork/Tempora" }, { ref: "refs/tags/v1.0.0" }, { ref_protected: false }]) {
     assert.equal(condition(verify, { github: { ...github, ...changed } }), false);

@@ -37,7 +37,7 @@ concurrency:
 
 jobs:
   sweep:
-    if: github.repository == 'tempora-dev/Tempora'
+    if: github.repository == 'madajiann/Tempora'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

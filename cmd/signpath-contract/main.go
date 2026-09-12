@@ -18,7 +18,7 @@ const (
 	contractPath = ".signpath/contracts/release-signing.yml"
 	projectSlug  = "Tempora"
 	policySlug   = "release-signing"
-	repository   = "https://github.com/tempora-dev/Tempora.git"
+	repository   = "https://github.com/madajiann/Tempora.git"
 )
 
 var expectedBranches = []string{"main-v2"}

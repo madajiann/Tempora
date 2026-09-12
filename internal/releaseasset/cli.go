@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	cliReleaseBase       = "https://github.com/tempora-dev/Tempora/releases/download"
+	cliReleaseBase       = "https://github.com/madajiann/Tempora/releases/download"
 	maxCLIArchiveBytes   = int64(256 << 20)
 	maxCLIChecksumBytes  = int64(1 << 20)
 	maxExtractedCLIBytes = int64(128 << 20)

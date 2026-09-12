@@ -47,7 +47,7 @@ homebrew_casks:
       name: homebrew-tempora
       branch: main
       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
-    homepage: "https://github.com/tempora-dev/Tempora"
+    homepage: "https://github.com/madajiann/Tempora"
     description: "Cache-first DeepSeek coding agent for the terminal."
     commit_author:
       name: tempora

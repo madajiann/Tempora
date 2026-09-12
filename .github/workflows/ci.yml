@@ -417,7 +417,7 @@ jobs:
         shell: bash
         run: |
           # The SDK is a public module with a hard stdlib-only contract.
-          if go list -m all | grep -v '^github.com/tempora-dev/Tempora/sdk/go$'; then
+          if go list -m all | grep -v '^github.com/madajiann/Tempora/sdk/go$'; then
             echo "sdk/go must not depend on anything outside the standard library"
             exit 1
           fi

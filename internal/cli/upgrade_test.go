@@ -216,7 +216,7 @@ func completeCLIRelease(tag string, prerelease bool) ghRelease {
 	for _, name := range requiredCLIAssets {
 		assets = append(assets, ghAsset{
 			Name:               name,
-			BrowserDownloadURL: fmt.Sprintf("https://github.com/tempora-dev/Tempora/releases/download/%s/%s", tag, name),
+			BrowserDownloadURL: fmt.Sprintf("https://github.com/madajiann/Tempora/releases/download/%s/%s", tag, name),
 			Size:               42,
 		})
 	}
@@ -265,13 +265,13 @@ func TestPickCLIRelease(t *testing.T) {
 	}
 
 	spoofed := completeCLIRelease("v1.7.0", false)
-	spoofed.Assets[0].BrowserDownloadURL = "https://github.com@evil.invalid/tempora-dev/Tempora/releases/download/v1.7.0/tempora-darwin-amd64.tar.gz"
+	spoofed.Assets[0].BrowserDownloadURL = "https://github.com@evil.invalid/madajiann/Tempora/releases/download/v1.7.0/tempora-darwin-amd64.tar.gz"
 	if got := pick([]ghRelease{spoofed, completeCLIRelease("v1.6.0", false)}, cliReleaseStable); got != "v1.6.0" {
 		t.Errorf("release with spoofed asset host: got %q, want v1.6.0", got)
 	}
 
 	wrongTag := completeCLIRelease("v1.7.0", false)
-	wrongTag.Assets[0].BrowserDownloadURL = "https://github.com/tempora-dev/Tempora/releases/download/v1.6.0/tempora-darwin-amd64.tar.gz"
+	wrongTag.Assets[0].BrowserDownloadURL = "https://github.com/madajiann/Tempora/releases/download/v1.6.0/tempora-darwin-amd64.tar.gz"
 	if got := pick([]ghRelease{wrongTag, completeCLIRelease("v1.6.0", false)}, cliReleaseStable); got != "v1.6.0" {
 		t.Errorf("release with cross-tag asset URL: got %q, want v1.6.0", got)
 	}

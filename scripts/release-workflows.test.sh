@@ -435,7 +435,7 @@ for asset in \
 done
 publication_decider="$repo_root/scripts/decide-cli-release-publication.sh"
 test -x "$publication_decider"
-[ "$(bash "$publication_decider" stable v1.2.3 tempora-dev/Tempora - -)" = "publish" ]
+[ "$(bash "$publication_decider" stable v1.2.3 madajiann/Tempora - -)" = "publish" ]
 publication_checksums="$test_root/cli-publication-SHA256SUMS"
 publication_release="$test_root/cli-publication-release.json"
 publication_hash="0000000000000000000000000000000000000000000000000000000000000000"
@@ -459,7 +459,7 @@ for asset in \
 done >"$publication_checksums"
 publication_checksum_hash="$(shasum -a 256 "$publication_checksums" | awk '{print $1}')"
 jq -n \
-	--arg repo "tempora-dev/Tempora" \
+	--arg repo "madajiann/Tempora" \
 	--arg tag "v1.2.3" \
 	--arg archive_hash "$publication_hash" \
 	--arg checksum_hash "$publication_checksum_hash" \
@@ -482,33 +482,33 @@ jq -n \
 		]
 	}
 ' >"$publication_release"
-[ "$(bash "$publication_decider" stable v1.2.3 tempora-dev/Tempora \
+[ "$(bash "$publication_decider" stable v1.2.3 madajiann/Tempora \
 	"$publication_release" "$publication_checksums")" = "reuse" ]
 publication_preview="$test_root/cli-publication-preview-release.json"
 jq '.tag_name = "v1.2.3-preview.4" | .prerelease = true |
-	.html_url = "https://github.com/tempora-dev/Tempora/releases/tag/v1.2.3-preview.4" |
+	.html_url = "https://github.com/madajiann/Tempora/releases/tag/v1.2.3-preview.4" |
 	.assets |= map(.browser_download_url |= sub("/v1.2.3/"; "/v1.2.3-preview.4/"))' \
 	"$publication_release" >"$publication_preview"
-[ "$(bash "$publication_decider" preview v1.2.3-preview.4 tempora-dev/Tempora \
+[ "$(bash "$publication_decider" preview v1.2.3-preview.4 madajiann/Tempora \
 	"$publication_preview" "$publication_checksums")" = "reuse" ]
 publication_rc="$test_root/cli-publication-rc-release.json"
 jq '.tag_name = "v1.2.3-rc.1" | .prerelease = true |
-	.html_url = "https://github.com/tempora-dev/Tempora/releases/tag/v1.2.3-rc.1" |
+	.html_url = "https://github.com/madajiann/Tempora/releases/tag/v1.2.3-rc.1" |
 	.assets |= map(.browser_download_url |= sub("/v1.2.3/"; "/v1.2.3-rc.1/"))' \
 	"$publication_release" >"$publication_rc"
-[ "$(bash "$publication_decider" any v1.2.3-rc.1 tempora-dev/Tempora \
+[ "$(bash "$publication_decider" any v1.2.3-rc.1 madajiann/Tempora \
 	"$publication_rc" "$publication_checksums")" = "reuse" ]
 publication_partial="$test_root/cli-publication-partial-release.json"
 jq '.assets |= map(select(.name != "tempora-linux-arm64.tar.gz"))' \
 	"$publication_release" >"$publication_partial"
-if bash "$publication_decider" stable v1.2.3 tempora-dev/Tempora \
+if bash "$publication_decider" stable v1.2.3 madajiann/Tempora \
 	"$publication_partial" "$publication_checksums" >/dev/null 2>&1; then
 	echo "CLI publication decider accepted a partial existing release" >&2
 	exit 1
 fi
 publication_bad_checksums="$test_root/cli-publication-bad-SHA256SUMS"
 sed '1s/^0/1/' "$publication_checksums" >"$publication_bad_checksums"
-if bash "$publication_decider" stable v1.2.3 tempora-dev/Tempora \
+if bash "$publication_decider" stable v1.2.3 madajiann/Tempora \
 	"$publication_release" "$publication_bad_checksums" >/dev/null 2>&1; then
 	echo "CLI publication decider accepted mismatched checksums" >&2
 	exit 1
@@ -526,7 +526,7 @@ manifest_assets='[
 	"tempora-windows-arm64.zip",
 	"SHA256SUMS"
 ]'
-manifest_repo="tempora-dev/Tempora"
+manifest_repo="madajiann/Tempora"
 manifest_tag="v1.2.3"
 manifest_file="$test_root/cli-release-manifest.json"
 jq -n \
@@ -603,7 +603,7 @@ expect_invalid_cli_manifest() {
 jq '.assets[0].browser_download_url = "https://github.com/attacker/project/releases/download/v1.2.3/tempora-darwin-amd64.tar.gz"' \
 	"$manifest_file" >"$test_root/wrong-repository.json"
 expect_invalid_cli_manifest "an asset from another repository" "$test_root/wrong-repository.json"
-jq '.assets[0].browser_download_url = "https://github.com/tempora-dev/Tempora/releases/download/v9.9.9/tempora-darwin-amd64.tar.gz"' \
+jq '.assets[0].browser_download_url = "https://github.com/madajiann/Tempora/releases/download/v9.9.9/tempora-darwin-amd64.tar.gz"' \
 	"$manifest_file" >"$test_root/wrong-tag.json"
 expect_invalid_cli_manifest "an asset from another tag" "$test_root/wrong-tag.json"
 jq '.assets = .assets[:-1]' "$manifest_file" >"$test_root/missing-asset.json"
@@ -994,21 +994,21 @@ printf 'asset-a\n' >"$github_candidate/a"
 printf 'asset-b\n' >"$github_candidate/b"
 printf 'Release notes.\n' >"$github_notes"
 PATH="$fake_gh_bin:$PATH" FAKE_GH_STATE="$fake_gh_state" \
-	GITHUB_REPOSITORY=tempora-dev/Tempora \
+	GITHUB_REPOSITORY=madajiann/Tempora \
 	bash "$desktop_github_publisher" desktop-v1.2.3 v1.2.3 false \
 	"$github_notes" "$github_candidate"
 bash "$desktop_directory_verifier" "$github_candidate" "$fake_gh_state/assets"
 
 rm -f "$fake_gh_state/assets/b"
 PATH="$fake_gh_bin:$PATH" FAKE_GH_STATE="$fake_gh_state" \
-	GITHUB_REPOSITORY=tempora-dev/Tempora \
+	GITHUB_REPOSITORY=madajiann/Tempora \
 	bash "$desktop_github_publisher" desktop-v1.2.3 v1.2.3 false \
 	"$github_notes" "$github_candidate"
 bash "$desktop_directory_verifier" "$github_candidate" "$fake_gh_state/assets"
 
 printf 'conflict\n' >"$fake_gh_state/assets/a"
 if PATH="$fake_gh_bin:$PATH" FAKE_GH_STATE="$fake_gh_state" \
-	GITHUB_REPOSITORY=tempora-dev/Tempora \
+	GITHUB_REPOSITORY=madajiann/Tempora \
 	bash "$desktop_github_publisher" desktop-v1.2.3 v1.2.3 false \
 	"$github_notes" "$github_candidate" >/dev/null 2>&1; then
 	echo "Desktop GitHub recovery accepted conflicting immutable content" >&2
@@ -1017,7 +1017,7 @@ fi
 cp "$github_candidate/a" "$fake_gh_state/assets/a"
 printf 'unexpected\n' >"$fake_gh_state/assets/unexpected"
 if PATH="$fake_gh_bin:$PATH" FAKE_GH_STATE="$fake_gh_state" \
-	GITHUB_REPOSITORY=tempora-dev/Tempora \
+	GITHUB_REPOSITORY=madajiann/Tempora \
 	bash "$desktop_github_publisher" desktop-v1.2.3 v1.2.3 false \
 	"$github_notes" "$github_candidate" >/dev/null 2>&1; then
 	echo "Desktop GitHub recovery accepted an unexpected immutable asset" >&2
@@ -1027,7 +1027,7 @@ rm -f "$fake_gh_state/assets/unexpected"
 jq '.name = "Wrong title"' "$fake_gh_state/release.json" >"$fake_gh_state/release.json.new"
 mv "$fake_gh_state/release.json.new" "$fake_gh_state/release.json"
 if PATH="$fake_gh_bin:$PATH" FAKE_GH_STATE="$fake_gh_state" \
-	GITHUB_REPOSITORY=tempora-dev/Tempora \
+	GITHUB_REPOSITORY=madajiann/Tempora \
 	bash "$desktop_github_publisher" desktop-v1.2.3 v1.2.3 false \
 	"$github_notes" "$github_candidate" >/dev/null 2>&1; then
 	echo "Desktop GitHub recovery accepted conflicting release metadata" >&2
@@ -1079,7 +1079,7 @@ desktop_stable_manifest="$test_root/desktop-stable.json"
 write_desktop_manifest "$desktop_stable_version" "$desktop_stable_base" "$desktop_stable_manifest"
 bash "$desktop_validator" stable "$desktop_stable_version" "$desktop_stable_base" "$desktop_stable_manifest"
 
-desktop_github_base="https://github.com/tempora-dev/Tempora/releases/download/desktop-${desktop_stable_version}/"
+desktop_github_base="https://github.com/madajiann/Tempora/releases/download/desktop-${desktop_stable_version}/"
 desktop_github_manifest="$test_root/desktop-stable-github.json"
 write_desktop_manifest "$desktop_stable_version" "$desktop_github_base" "$desktop_github_manifest"
 bash "$desktop_validator" stable "$desktop_stable_version" "$desktop_github_base" "$desktop_github_manifest"

@@ -14,11 +14,11 @@ platform: "linux"
 version: "${DEB_VERSION}"
 section: "utils"
 priority: "optional"
-maintainer: "tempora-dev <tempora-dev@users.noreply.github.com>"
+maintainer: "madajiann <madajiann@users.noreply.github.com>"
 description: |
   Tempora desktop — an Electron shell around the Go kernel.
 vendor: "Tempora Contributors"
-homepage: "https://github.com/tempora-dev/Tempora"
+homepage: "https://github.com/madajiann/Tempora"
 license: "MIT"
 scripts:
   postinstall: ./build/linux/postinstall.sh

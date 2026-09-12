@@ -259,8 +259,8 @@ func signFiles(files []string) error {
 // tarball under platforms["linux-amd64"].
 func genManifest(dir, version, tag string, notesVersions ...string) error {
 	repo := os.Getenv("GITHUB_REPOSITORY")
-	if repo == "" || repo == "tempora-dev/tempora" {
-		repo = "tempora-dev/Tempora"
+	if repo == "" || repo == "madajiann/tempora" {
+		repo = "madajiann/Tempora"
 	}
 	notesVersion := version
 	if len(notesVersions) > 1 {

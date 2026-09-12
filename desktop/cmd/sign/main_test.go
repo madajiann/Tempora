@@ -70,7 +70,7 @@ func TestGenManifest(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	t.Setenv("GITHUB_REPOSITORY", "tempora-dev/tempora")
+	t.Setenv("GITHUB_REPOSITORY", "madajiann/tempora")
 
 	if err := genManifest(dir, "v1.2.0", "desktop-v1.2.0"); err != nil {
 		t.Fatalf("genManifest: %v", err)
@@ -111,7 +111,7 @@ func TestGenManifest(t *testing.T) {
 	if !ok {
 		t.Fatal("windows-amd64 missing")
 	}
-	wantURL := "https://github.com/tempora-dev/Tempora/releases/download/desktop-v1.2.0/Tempora-windows-amd64-installer.exe"
+	wantURL := "https://github.com/madajiann/Tempora/releases/download/desktop-v1.2.0/Tempora-windows-amd64-installer.exe"
 	if win.URL != wantURL {
 		t.Fatalf("windows url = %q, want %q", win.URL, wantURL)
 	}
@@ -202,7 +202,7 @@ func TestGenManifestIgnoresUnknownNativePackages(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	t.Setenv("GITHUB_REPOSITORY", "tempora-dev/Tempora")
+	t.Setenv("GITHUB_REPOSITORY", "madajiann/Tempora")
 	if err := genManifest(dir, "v1.2.0", "desktop-v1.2.0"); err != nil {
 		t.Fatalf("genManifest: %v", err)
 	}

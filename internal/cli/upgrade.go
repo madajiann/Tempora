@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	ghOwner                = "tempora-dev"
+	ghOwner                = "madajiann"
 	ghRepo                 = "Tempora"
 	ghAPIReleases          = "https://api.github.com/repos/" + ghOwner + "/" + ghRepo + "/releases?per_page=100"
 	ghDownloadBase         = "https://github.com/" + ghOwner + "/" + ghRepo + "/releases/download"
