@@ -1,11 +1,11 @@
 # HANDOFF — Tempora 交接文档
 
-> 最后更新：2026-09-12 中午（v0.1.0 交付 + exe 安装器 + GitHub 上线物料全部就绪）
+> 最后更新：2026-09-12 下午（GitHub 仓库已建好并完成首次推送）
 > 配套文档：[WORKLOG.md](WORKLOG.md)（过程日志）、[NOTICE.md](NOTICE.md)（fork 署名与差异）、[UPSTREAM-SYNC.md](UPSTREAM-SYNC.md)（上游同步手册）、[GITHUB-SETUP.md](GITHUB-SETUP.md)（建仓推送，零基础向）
 
 ## 1. 一句话现状
 
-**Tempora v0.1.0 完整可用**：DeepSeek-Reasonix 全量 fork + 品牌更名 + 智谱 GLM 出厂接入 + 双击即装的 exe 安装器（20.3MB）。全部代码已提交 git；GitHub 远程仓库还没建（照 GITHUB-SETUP.md 十分钟搞定）。
+**Tempora v0.1.0 完整可用**：DeepSeek-Reasonix 全量 fork + 品牌更名 + 智谱 GLM 出厂接入 + 双击即装的 exe 安装器（20.3MB）。**已推送 GitHub：https://github.com/madajiann/Tempora（Private，分支 main，完整历史 6,958+ 提交）**。
 
 ## 2. 当前产物与安装状态
 
@@ -87,7 +87,7 @@ go test ./internal/...                            # 测试（desktop、sdk/go �
 
 ## 7. 接下来要做（按优先级）
 
-1. **建 GitHub 仓库并推送**：照 [GITHUB-SETUP.md](GITHUB-SETUP.md)（注册→建空仓→PAT→替换 `tempora-dev` 占位符→推送）
+1. ~~建 GitHub 仓库并推送~~ ✅ **已完成（2026-09-12）**：`origin` = https://github.com/madajiann/Tempora（Private）。占位符 `tempora-dev`→`madajiann` 已替换并提交（9b3250e，32 文件/76 处；测试长度夹具与历史文档有意保留）。推送要点：① PAT 需 `repo`+`workflow` 两个 scope；② 本 PortableGit 的 credential-helper-selector 在无界面环境会静默崩溃，非交互推送须 `-c credential.helper=` 绕过；③ 仓库原为 shallow clone，首次推送需 `git fetch upstream --unshallow` 补全历史，已完成。PAT 明文存于 `.git/config` 的 origin URL，注意保密
 2. **填 key 实测**：`tempora setup` 向导或环境变量，验证 GLM/DeepSeek 真实对话与工具调用
 3. GLM 定价录入（`internal/config/pricing.go` 体系）
 4. 遥测去留决策（`internal/telemetry`、`internal/crashreport`、desktop/updater）

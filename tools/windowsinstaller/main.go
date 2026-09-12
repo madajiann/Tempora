@@ -9,7 +9,9 @@
 package main
 
 import (
+	"bufio"
 	"embed"
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -22,6 +24,11 @@ import (
 
 //go:embed payload/tempora.exe
 var payload embed.FS
+
+var (
+	flagDir    string
+	flagSilent bool
+)
 
 const (
 	payloadName    = "tempora.exe"
@@ -38,7 +45,7 @@ func main() {
 		waitEnter()
 		os.Exit(1)
 	}
-	if len(os.Args) < 2 || os.Args[1] != "--silent" {
+	if !flagSilent {
 		fmt.Println("\n按回车键退出...")
 		waitEnter()
 	}
@@ -47,11 +54,39 @@ func main() {
 func run() error {
 	setConsoleUTF8()
 
+	flag.StringVar(&flagDir, "dir", "", `自定义安装目录，例如 -dir D:\Tools\Tempora`)
+	flag.BoolVar(&flagSilent, "silent", false, "静默模式：不询问、完成后不等待按键")
+	flag.Usage = func() {
+		fmt.Println("Tempora Windows 安装器")
+		fmt.Println("用法: TemporaSetup.exe [-dir 安装目录] [--silent]")
+		fmt.Println("  -dir D:\\Tools\\Tempora   安装到指定目录（默认 %LOCALAPPDATA%\\Programs\\tempora）")
+		fmt.Println("  --silent                静默安装，不询问、完成后不等待按键")
+	}
+	flag.Parse()
+
 	localAppData := os.Getenv("LOCALAPPDATA")
 	if localAppData == "" {
 		return fmt.Errorf("未找到 LOCALAPPDATA 环境变量")
 	}
 	destDir := filepath.Join(localAppData, "Programs", appDirName)
+	if flagDir != "" {
+		abs, err := filepath.Abs(flagDir)
+		if err != nil {
+			return fmt.Errorf("解析目录 %s: %w", flagDir, err)
+		}
+		destDir = abs
+	} else if !flagSilent {
+		fmt.Println("Tempora v0.1.0 安装器")
+		fmt.Printf("默认安装目录: %s\n", destDir)
+		fmt.Print("直接回车使用默认目录，或输入其他目录（如 D:\\Tools\\Tempora）后回车: ")
+		if line := readLine(); strings.TrimSpace(line) != "" {
+			abs, err := filepath.Abs(strings.TrimSpace(line))
+			if err != nil {
+				return fmt.Errorf("解析目录 %s: %w", line, err)
+			}
+			destDir = abs
+		}
+	}
 	destExe := filepath.Join(destDir, payloadName)
 
 	bin, err := payload.ReadFile("payload/" + payloadName)
@@ -149,4 +184,13 @@ func setConsoleUTF8() {
 func waitEnter() {
 	var buf [1]byte
 	_, _ = os.Stdin.Read(buf[:])
+}
+
+// readLine reads one line from stdin; on EOF or error returns "" (use default).
+func readLine() string {
+	sc := bufio.NewScanner(os.Stdin)
+	if !sc.Scan() {
+		return ""
+	}
+	return sc.Text()
 }
