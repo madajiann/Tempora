@@ -79,5 +79,17 @@ cross:
 		CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch go build -ldflags "$(LDFLAGS)" -o dist/tempora-$$os-$$arch$$ext ./cmd/tempora; \
 	done
 
+# Windows setup exe: embeds the CLI binary into dist/TemporaSetup-$(VERSION).exe.
+# Pass UPX=<path to upx.exe> to shrink the payload (~3.5x smaller); without it
+# the installer still builds, just at the raw binary size.
+.PHONY: windows-installer
+windows-installer:
+	CGO_ENABLED=0 go build -trimpath -ldflags "$(LDFLAGS)" -o bin/tempora$(GOEXE) ./cmd/tempora
+	cp bin/tempora$(GOEXE) tools/windowsinstaller/payload/tempora$(GOEXE)
+ifdef UPX
+	$(UPX) -q --best tools/windowsinstaller/payload/tempora$(GOEXE)
+endif
+	cd tools/windowsinstaller && CGO_ENABLED=0 go build -ldflags "-s -w" -o ../../dist/TemporaSetup-$(VERSION)$(GOEXE) .
+
 clean:
 	rm -rf bin dist

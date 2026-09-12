@@ -57,12 +57,14 @@ go build -o bin/tempora.exe ./cmd/tempora
 | GLM 不填价格 | 无权威价格数据，不编造；billing 对缺价模型优雅降级。**待办：补 `internal/config/pricing.go` 体系下的 GLM 定价** |
 | `tempora upgrade` 指向占位仓库 `tempora-dev/Tempora` | 不能让它把用户机器上的 Tempora 回装成上游 reasonix；等你建了 GitHub 仓库后一键替换占位符 |
 | 遥测/崩溃上报域名 `*.tempora.io` 为死域名 | 网络层静默失败 = 零数据外泄；将来若不要遥测可直接删，或换自己的后端 |
+| Windows 安装器 = 自包含 Go exe（`tools/windowsinstaller/`，嵌套模块） | 无需 NSIS/Inno；`make windows-installer UPX=...` 一条命令产出 `dist/TemporaSetup-<版本>.exe`（约 20MB，UPX 压缩 payload 后），双击即装：写 `%LOCALAPPDATA%\Programs\tempora` + 用户 PATH + WM_SETTINGCHANGE 广播 |
+| payload 用 UPX 压缩（69.5MB→19.2MB） | 对齐上游发布体积（上游 windows zip 21MB）；注意 UPX 壳可能提高杀软误报率，若遇误报可出未压缩版 |
 | 上游 CHANGELOG/release-notes/logo 保留原名 | 历史记录与出处，不属于品牌残留（见 NOTICE.md 第 5 条） |
 | 图标沿用 #0153e5 品牌蓝 | `desktop/appicon_asset_test.go` 逐像素断言品牌蓝 + 安全区；改色需同步改该测试 |
 
 ## 6. 马上要做的事（接手清单）
 
-- [ ] **建 GitHub 仓库**（如 `tempora-dev/Tempora`），全局替换占位符 `tempora-dev` / `tempora-dev/Tempora`（约 30 个文件，`grep -rl "tempora-dev" .`）
+- [ ] **建 GitHub 仓库**：零基础照着 [GITHUB-SETUP.md](GITHUB-SETUP.md) 走（注册→建仓→PAT→替换占位符→推送，含常见问题表）
 - [ ] 设置 `DEEPSEEK_API_KEY` / `GLM_API_KEY` 真实 key，实测 `tempora --model glm-flash` 对话与工具调用
 - [ ] GLM 定价录入（billing 目录）
 - [ ] 决定遥测：删掉 or 自建后端（`internal/telemetry`、`internal/crashreport`、desktop/updater）

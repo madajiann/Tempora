@@ -78,3 +78,6 @@ site/.generated/
 
 # Committed pointer at TEMPORA.md; overrides a global CLAUDE.md ignore rule.
 !/CLAUDE.md
+
+# Windows installer payload (embedded at build time)
+/tools/windowsinstaller/payload/*.exe

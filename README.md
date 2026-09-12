@@ -50,11 +50,20 @@ go build -o bin/tempora ./cmd/tempora         # Linux / macOS
 
 ### Install (Windows)
 
-Run `install.cmd`, or:
+Double-click the setup executable (per-user install, no admin, PATH handled):
 
-```powershell
-powershell -ExecutionPolicy Bypass -File install.ps1
 ```
+dist\TemporaSetup-v0.1.0.exe
+```
+
+To build the installer yourself (~20MB with a UPX-packed payload):
+
+```bash
+make windows-installer UPX=/path/to/upx.exe   # builds without UPX too, at ~70MB
+```
+
+Alternatively install `bin\tempora.exe` via script: run `install.cmd`, or
+`powershell -ExecutionPolicy Bypass -File install.ps1`.
 
 ### Run
 

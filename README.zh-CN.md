@@ -46,11 +46,19 @@ go build -o bin/tempora ./cmd/tempora          # Linux / macOS
 
 ### 安装（Windows）
 
-双击 `install.cmd`，或：
+双击安装器（免管理员，自动写入用户 PATH）：
 
-```powershell
-powershell -ExecutionPolicy Bypass -File install.ps1
 ```
+dist\TemporaSetup-v0.1.0.exe
+```
+
+没有现成安装包时，先构建再安装（安装器约 20MB，内含 UPX 压缩的完整 CLI）：
+
+```bash
+make windows-installer UPX=/path/to/upx.exe   # 无 UPX 也可构建，体积约 70MB
+```
+
+也可以用脚本方式直接安装 `bin\tempora.exe`：双击 `install.cmd`，或 `powershell -ExecutionPolicy Bypass -File install.ps1`。
 
 ### 运行
 
