@@ -183,6 +183,14 @@ LangString temporaUpdateSubtitle ${LANG_ENGLISH} "Installing the verified update
 LangString temporaUpdateSubtitle ${LANG_SIMPCHINESE} "正在安装已验证的更新，完成后 Tempora 将自动重启。"
 LangString temporaUpdateSubtitle ${LANG_TRADCHINESE} "正在安裝已驗證的更新，完成後 Tempora 將自動重新啟動。"
 
+LangString temporaActivating ${LANG_ENGLISH} "Verifying and publishing files (the progress bar pauses for 1-2 minutes; this is normal, please wait)..."
+LangString temporaActivating ${LANG_SIMPCHINESE} "正在校验并提交安装文件（进度条会暂停 1-2 分钟，属正常现象，请勿关闭窗口）..."
+LangString temporaActivating ${LANG_TRADCHINESE} "正在校驗並提交安裝文件（進度條會暫停 1-2 分鐘，屬正常現象，請勿關閉窗口）..."
+
+LangString temporaActivateFailed ${LANG_ENGLISH} "Tempora could not activate the verified release. The previous version was left unchanged. Reason:"
+LangString temporaActivateFailed ${LANG_SIMPCHINESE} "Tempora 激活安装内容失败，已保留原有版本不受影响。详细原因："
+LangString temporaActivateFailed ${LANG_TRADCHINESE} "Tempora 激活安裝內容失敗，已保留原有版本不受影響。詳細原因："
+
 ## Preserve the first-pass generated uninstaller so the release workflow can
 ## Authenticode-sign it together with the other installed payload files.
 ## The second pass provides ARG_TEMPORA_SIGNED_UNINSTALLER and embeds that
@@ -543,14 +551,28 @@ tempora_normal_install:
     !else
     !error "${TEMPORA_GUARD} was not found; normal installs require the signed layout activator."
     !endif
-    DetailPrint "Tempora layout activator output:"
+    DetailPrint "$(temporaActivating)"
     StrCpy $R7 ""
     IfSilent +2 0
     StrCpy $R7 "--interactive-recovery"
-    nsExec::ExecToLog /OEM '"$PLUGINSDIR\${TEMPORA_LAYOUT_INSTALLER}" --install-root "$INSTDIR" --version "v${INFO_PRODUCTVERSION}" --activate-staging "$R9" --no-relaunch $R7'
+    nsExec::ExecToStack /OEM '"$PLUGINSDIR\${TEMPORA_LAYOUT_INSTALLER}" --install-root "$INSTDIR" --version "v${INFO_PRODUCTVERSION}" --activate-staging "$R9" --no-relaunch $R7'
     Pop $0
+    Pop $R6
     StrCmp $0 "0" tempora_layout_activated
+    ; Surface the real reason instead of a bare "aborted": details view,
+    ; a persistent log file, and (interactive) a MessageBox with the text.
     DetailPrint "Tempora layout activation failed with exit code $0; the previous version remains active."
+    StrCmp $R6 "" +2 0
+    DetailPrint $R6
+    ClearErrors
+    FileOpen $R5 "$INSTDIR\tempora-install-error.log" w
+    IfErrors tempora_errorlog_done
+    FileWrite $R5 "exit code: $0$\r$\n"
+    StrCmp $R6 "" tempora_errorlog_done
+    FileWrite $R5 $R6
+    FileWrite $R5 "$\r$\n"
+    FileClose $R5
+tempora_errorlog_done:
     RMDir /r "$R9"
     StrCmp $0 "1618" 0 +3
     SetErrorLevel 1618
@@ -560,6 +582,11 @@ tempora_normal_install:
     Goto tempora_activation_abort
     SetErrorLevel 1
 tempora_activation_abort:
+    IfSilent tempora_activation_abort_quiet
+    MessageBox MB_ICONEXCLAMATION "$(temporaActivateFailed)$\n$\n$R6"
+    IfFileExists "$INSTDIR\tempora-install-error.log" 0 +2
+    Exec '"notepad.exe" "$INSTDIR\tempora-install-error.log"'
+tempora_activation_abort_quiet:
     Abort "Tempora could not activate the verified release. The previous version was left unchanged."
 
 tempora_layout_activated:

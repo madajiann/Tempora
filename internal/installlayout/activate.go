@@ -171,14 +171,14 @@ func ActivateVersion(req ActivationRequest) error {
 		// staging after validation. Never swap current.json first.
 		versionBackup = finalPath + ".replaced-" + nonce
 		_ = os.RemoveAll(versionBackup)
-		if err := os.Rename(finalPath, versionBackup); err != nil {
+		if err := renameDirWithRetry(finalPath, versionBackup); err != nil {
 			return fmt.Errorf("installlayout: displace existing version dir: %w", err)
 		}
 	} else if !os.IsNotExist(err) {
 		return fmt.Errorf("installlayout: inspect version dir: %w", err)
 	}
 
-	if err := os.Rename(stagingPath, finalPath); err != nil {
+	if err := renameDirWithRetry(stagingPath, finalPath); err != nil {
 		if versionBackup != "" {
 			_ = os.Rename(versionBackup, finalPath)
 		}
@@ -230,6 +230,28 @@ func ActivateVersion(req ActivationRequest) error {
 		_ = os.RemoveAll(versionBackup)
 	}
 	return nil
+}
+
+// renameDirWithRetry retries a directory rename to absorb transient locks on
+// freshly written files: Windows returns ERROR_ACCESS_DENIED when renaming a
+// directory tree while antivirus scanners (Defender real-time protection,
+// search indexing) still hold open handles inside it. The window is short but
+// deterministic after copying a multi-GB payload, so bounded retries are
+// strictly better than failing the whole activation.
+func renameDirWithRetry(oldpath, newpath string) error {
+	const attempts = 36      // ~3 minutes total at 5s intervals
+	const retryDelay = 5 * time.Second
+	var err error
+	for i := 0; i < attempts; i++ {
+		if err = os.Rename(oldpath, newpath); err == nil {
+			return nil
+		}
+		if !os.IsPermission(err) {
+			break // non-retryable (missing source, cross-device, ...)
+		}
+		time.Sleep(retryDelay)
+	}
+	return err
 }
 
 func publishRootEntries(installRoot, stagingRoot string, members []Member) (rollback func() error, commit func(), err error) {
