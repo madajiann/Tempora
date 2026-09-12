@@ -42,16 +42,35 @@ LAUNCHERNAME="tempora-launcher"
 windows_resource_tool_dir=""
 windows_host_include=""
 
+# On MSYS/Git Bash, native tools (go, makensis, cmd.exe) must receive Windows
+# style paths; MSYS path conversion can be disabled by the host environment,
+# so hand them native paths explicitly.
+unset MSYS2_ARG_CONV_EXCL
+case "$(uname -s 2>/dev/null || printf '%s' unknown)" in
+	MINGW* | MSYS* | CYGWIN*)
+		ROOT="$(cd "$ROOT" && pwd -W)"
+		mktempd() {
+			local t="${LOCALAPPDATA:-C:/Windows/Temp}"
+			t="${t//\\//}"
+			mktemp -d "$t/mktemp.XXXXXXXX"
+		}
+		;;
+	*)
+		mktempd() { mktemp -d; }
+		;;
+esac
+
 # desktop/ is a nested Go module, so the Go toolchain cannot discover the
 # repository VCS revision for the service binary. Link the same source identity
 # into both Desktop and its CLI sidecar.
-SOURCE_REVISION="$(git -C "$ROOT" rev-parse --verify HEAD)"
-if ! git -C "$ROOT" diff-index --quiet HEAD --; then
+SOURCE_REVISION="$(cd "$ROOT" && git rev-parse --verify HEAD)"
+git_in_root() { (cd "$ROOT" && git "$@"); }
+if ! git_in_root diff-index --quiet HEAD --; then
 	SOURCE_REVISION="$SOURCE_REVISION+dirty"
 fi
 # Short commit + real UTC build clock for CLI `version --verbose/--json`.
-GIT_COMMIT="$(git -C "$ROOT" rev-parse --short=12 HEAD 2>/dev/null || echo unknown)"
-BUILD_TIME_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+GIT_COMMIT="$(cd "$ROOT" && git rev-parse --short=12 HEAD 2>/dev/null || echo unknown)"
+BUILD_TIME_UTC="${TEMPORA_BUILD_TIME_UTC:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
 product_docs_ldflags="-X tempora/internal/productdocs.linkedVersion=$VERSION -X tempora/internal/productdocs.linkedRevision=$SOURCE_REVISION"
 cli_identity_ldflags="-X main.version=$VERSION -X main.gitCommit=$GIT_COMMIT -X main.buildTimeUTC=$BUILD_TIME_UTC $product_docs_ldflags"
 
@@ -74,7 +93,7 @@ build_guard() {
 	echo "==> go build Tempora legacy migrator (compat name tempora-guard)"
 	mkdir -p "$(dirname "$guard_out")"
 	if [ "$arch" = universal ]; then
-		guard_tmp=$(mktemp -d)
+		guard_tmp=$(mktempd)
 		(cd "$ROOT" && GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o "$guard_tmp/amd64" ./cmd/tempora-legacy-migrator)
 		(cd "$ROOT" && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" -o "$guard_tmp/arm64" ./cmd/tempora-legacy-migrator)
 		lipo -create "$guard_tmp/amd64" "$guard_tmp/arm64" -output "$guard_out"
@@ -88,7 +107,7 @@ build_cli() {
 	echo "==> go build Tempora CLI sidecar"
 	mkdir -p "$(dirname "$cli_out")"
 	if [ "$arch" = universal ]; then
-		cli_tmp=$(mktemp -d)
+		cli_tmp=$(mktempd)
 		(cd "$ROOT" && GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w $cli_identity_ldflags" -o "$cli_tmp/amd64" ./cmd/tempora)
 		(cd "$ROOT" && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w $cli_identity_ldflags" -o "$cli_tmp/arm64" ./cmd/tempora)
 		lipo -create "$cli_tmp/amd64" "$cli_tmp/arm64" -output "$cli_out"
@@ -123,9 +142,9 @@ numver="${VERSION#v}"; numver="${numver%%-*}"
 # shell/service protocol mismatch. CI's desktop-prepare job runs the same check.
 echo "==> desktop host contract drift check"
 go run . -emit-contract frontend/src/generated
-if ! git -C "$ROOT" diff --exit-code -- desktop/frontend/src/generated >/dev/null; then
+if ! git_in_root diff --exit-code -- desktop/frontend/src/generated >/dev/null; then
 	echo "desktop contract is stale - run 'cd desktop && go run . -emit-contract frontend/src/generated' and commit" >&2
-	git -C "$ROOT" diff --stat -- desktop/frontend/src/generated >&2
+	git_in_root diff --stat -- desktop/frontend/src/generated >&2
 	exit 1
 fi
 
@@ -151,7 +170,7 @@ build_service() {
 	echo "==> go build Tempora desktop service"
 	mkdir -p "$(dirname "$service_out")"
 	if [ "$arch" = universal ]; then
-		service_tmp=$(mktemp -d)
+		service_tmp=$(mktempd)
 		GOOS=darwin GOARCH=amd64 go build -trimpath -ldflags="-s -w $service_ldflags" -o "$service_tmp/amd64" .
 		GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags="-s -w $service_ldflags" -o "$service_tmp/arm64" .
 		lipo -create "$service_tmp/amd64" "$service_tmp/arm64" -output "$service_out"
@@ -181,7 +200,7 @@ darwin)
 	build_cli
 	package_shell
 
-	staging=$(mktemp -d)
+	staging=$(mktempd)
 	app="$staging/${APPNAME}.app"
 	cp -R "build/electron/${os}-${arch}/${APPNAME}.app" "$app"
 	# The bundle's main executable is Electron; the Go service lives next to it
@@ -248,7 +267,7 @@ darwin)
 		# cmd/sign's substring match (darwin-arm64/darwin-amd64) skips it: the .zip stays
 		# the updater channel, the .dmg is release-page only. create-dmg can exit nonzero
 		# while still writing the image, so gate on the file existing, not the exit code.
-		dmgsrc=$(mktemp -d)
+		dmgsrc=$(mktempd)
 		cp -R "$app" "$dmgsrc/${APPNAME}.app"
 		dmg="$ROOT/dist/${APPNAME}-darwin-universal.dmg"
 		create-dmg \
@@ -271,7 +290,7 @@ darwin)
 	rm -rf "$staging"
 	;;
 windows)
-	windows_resource_tool_dir=$(mktemp -d)
+	windows_resource_tool_dir=$(mktempd)
 	windows_host_include="$ROOT/desktop/build/windows/installer/tempora_host.nsh"
 	case "$(uname -s 2>/dev/null || printf '%s' unknown)" in
 		Darwin* | Linux* | FreeBSD*)

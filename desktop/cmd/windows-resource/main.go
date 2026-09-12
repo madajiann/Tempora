@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/tc-hib/winres"
 	"github.com/tc-hib/winres/version"
@@ -228,5 +229,14 @@ func replaceFile(path string, data []byte, mode os.FileMode) error {
 	if err := temp.Close(); err != nil {
 		return err
 	}
-	return os.Rename(tempName, path)
+	// Windows: Defender keeps a scan handle open on freshly written executables,
+	// making the final rename fail with ACCESS_DENIED for a while. Retry to let
+	// the scan finish instead of failing the whole build.
+	for attempt := 0; attempt < 40; attempt++ {
+		if err = os.Rename(tempName, path); err == nil {
+			return nil
+		}
+		time.Sleep(3 * time.Second)
+	}
+	return err
 }

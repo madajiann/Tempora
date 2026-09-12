@@ -85,6 +85,12 @@ go test ./internal/...                            # 测试（desktop、sdk/go �
 | 上游 CHANGELOG/release-notes/logo 保留原名 | 历史记录与出处署名，非品牌残留（NOTICE.md 第 5 条） |
 | 图标沿用 #0153e5 品牌蓝 | `desktop/appicon_asset_test.go` 逐像素断言；改色需同步改该测试 |
 
+## 6.5 Tempora 独有补丁（上游同步时需人工确认）
+
+- `internal/installlayout/activate.go`：renameDirWithRetry —— 目录重命名对杀软（Defender）文件锁做限次重试（36×5s），修复「拷贝完 1.1GB 后 rename Access is denied → 整个安装回滚」。
+- `desktop/build/windows/installer/project.nsi`：激活失败时弹窗+落盘 `tempora-install-error.log` 显示真实报错；激活前有双语进度提示。
+- 上游若改这两处，同步时需人工合并。
+
 ## 7. 接下来要做（按优先级）
 
 1. ~~建 GitHub 仓库并推送~~ ✅ **已完成（2026-09-12）**：`origin` = https://github.com/madajiann/Tempora（Private）。占位符 `tempora-dev`→`madajiann` 已替换并提交（9b3250e，32 文件/76 处；测试长度夹具与历史文档有意保留）。推送要点：① PAT 需 `repo`+`workflow` 两个 scope；② 本 PortableGit 的 credential-helper-selector 在无界面环境会静默崩溃，非交互推送须 `-c credential.helper=` 绕过；③ 仓库原为 shallow clone，首次推送需 `git fetch upstream --unshallow` 补全历史，已完成。PAT 明文存于 `.git/config` 的 origin URL，注意保密

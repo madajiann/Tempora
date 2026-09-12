@@ -20,6 +20,14 @@ amd64 | arm64) ;;
 esac
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# On MSYS/Git Bash, native tools (node, makensis, go) must receive Windows
+# style paths; MSYS path conversion can be disabled by the host environment.
+unset MSYS2_ARG_CONV_EXCL
+case "$(uname -s 2>/dev/null || printf '%s' unknown)" in
+	MINGW* | MSYS* | CYGWIN*)
+		ROOT="$(cd "$ROOT" && pwd -W)"
+		;;
+esac
 DESKTOP="$ROOT/desktop"
 INSTALLER_DIR="$DESKTOP/build/windows/installer"
 BIN_DIR="$DESKTOP/build/bin"
@@ -36,6 +44,11 @@ PAYLOAD_SIGNATURE="$PAYLOAD_MANIFEST.minisig"
 
 [ -d "$payload_input" ] || { echo "Windows payload directory is missing: $payload_input" >&2; exit 1; }
 PAYLOAD="$(cd "$payload_input" && pwd)"
+case "$(uname -s 2>/dev/null || printf '%s' unknown)" in
+	MINGW* | MSYS* | CYGWIN*)
+		PAYLOAD="$(cd "$PAYLOAD" && pwd -W)"
+		;;
+esac
 
 required_payload=(
 	"$BINNAME.exe"
