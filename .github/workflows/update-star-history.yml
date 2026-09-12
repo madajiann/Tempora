@@ -9,8 +9,9 @@ on:
       - '.github/workflows/update-star-history.yml'
       - 'scripts/update-star-history.mjs'
       - 'scripts/update-star-history.test.mjs'
-  schedule:
-    - cron: '23 */3 * * *'
+  # schedule disabled: 私有 fork 无 star 数据且缺 STAR_HISTORY_GITHUB_TOKEN，每 3 小时失败骚扰
+  # schedule:
+  #   - cron: '23 */3 * * *'
 
 permissions:
   contents: write

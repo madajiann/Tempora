@@ -17,8 +17,9 @@ on:
         required: false
         default: '40'
         type: string
-  schedule:
-    - cron: '17 3 * * 1'
+  # schedule disabled: 私有 fork 无 issue 治理需求
+  # schedule:
+  #   - cron: '17 3 * * 1'
   push:
     branches:
       - main-v2

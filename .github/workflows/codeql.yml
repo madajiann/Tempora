@@ -1,22 +1,22 @@
 name: CodeQL
 
 on:
-  # Docs/release-notes/root-Markdown changes carry no analyzable code; the
-  # weekly cron keeps the full scan cadence regardless.
-  push:
-    branches: ["main-v2"]
-    paths-ignore:
-      - 'docs/**'
-      - 'release-notes/**'
-      - '*.md'
-  pull_request:
-    branches: ["main-v2"]
-    paths-ignore:
-      - 'docs/**'
-      - 'release-notes/**'
-      - '*.md'
-  schedule:
-    - cron: "27 3 * * 1"
+  workflow_dispatch:
+  # schedule/push/pull_request disabled: CodeQL 对私有仓库需付费 Advanced Security，会失败骚扰
+  # push:
+  #   branches: ["main-v2"]
+  #   paths-ignore:
+  #     - 'docs/**'
+  #     - 'release-notes/**'
+  #     - '*.md'
+  # pull_request:
+  #   branches: ["main-v2"]
+  #   paths-ignore:
+  #     - 'docs/**'
+  #     - 'release-notes/**'
+  #     - '*.md'
+  # schedule:
+  #   - cron: "27 3 * * 1"
 
 jobs:
   analyze:

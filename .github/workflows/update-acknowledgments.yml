@@ -2,8 +2,9 @@ name: Update acknowledgments
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '17 3 * * 1'
+  # schedule disabled: 私有 fork 无社区贡献者数据，定时跑无意义
+  # schedule:
+  #   - cron: '17 3 * * 1'
 
 permissions:
   contents: write
