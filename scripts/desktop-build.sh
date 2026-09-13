@@ -140,8 +140,13 @@ numver="${VERSION#v}"; numver="${numver%%-*}"
 # Regenerate the desktop host contract and fail on drift: the packaged shell
 # embeds desktopContract.json, so a stale frontend/src/generated would ship a
 # shell/service protocol mismatch. CI's desktop-prepare job runs the same check.
+# Build to a stable path instead of `go run`: MSYS/Defender hosts intermittently
+# deny the unlink of go run's temp binary and abort the whole build.
 echo "==> desktop host contract drift check"
-go run . -emit-contract frontend/src/generated
+contract_tool="$ROOT/desktop/build/bin/tempora-contract-tool.exe"
+mkdir -p "$(dirname "$contract_tool")"
+go build -trimpath -o "$contract_tool" .
+"$contract_tool" -emit-contract frontend/src/generated
 if ! git_in_root diff --exit-code -- desktop/frontend/src/generated >/dev/null; then
 	echo "desktop contract is stale - run 'cd desktop && go run . -emit-contract frontend/src/generated' and commit" >&2
 	git_in_root diff --stat -- desktop/frontend/src/generated >&2

@@ -152,8 +152,9 @@ Tempora control variables.
 
 ### CLI telemetry
 
-The CLI can send a once-per-day anonymous active-install ping and bounded,
-content-free event counters to `https://crash.tempora.io`. Configure the
+The CLI can queue a once-per-day anonymous active-install ping and bounded,
+content-free event counters locally. This fork's builds leave the telemetry
+endpoint unconfigured, so nothing is uploaded. Configure the
 user-global policy with:
 
 ```bash

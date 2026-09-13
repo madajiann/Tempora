@@ -142,8 +142,9 @@ bash allowlist 或信任提示。Plan 与常规模式使用相同的 Permissions
 
 ### CLI 上报统计
 
-CLI 可以向 `https://crash.tempora.io` 发送每日最多一次的匿名活跃安装 ping，
-以及有界、完全不含内容的事件计数。使用以下用户全局命令配置：
+CLI 可以在本地暂存每日最多一次的匿名活跃安装 ping，以及有界、完全不含内容
+的事件计数。本 fork 的构建不配置遥测端点，因此不会上传任何数据。
+使用以下用户全局命令配置：
 
 ```bash
 tempora config telemetry          # 查看当前生效模式
