@@ -46,6 +46,12 @@ const (
 	githubRepoBase             = "https://github.com/madajiann/Tempora"
 	downloadPageURL            = "https://github.com/madajiann/Tempora/releases/latest"
 	manifestDownloadPageURL    = "https://github.com/madajiann/Tempora/releases/latest"
+	// mirrorBase is the fork operator's first-party mirror (China-reachable,
+	// plain static hosting). It is tried before GitHub because GitHub release
+	// assets are unreachable for many CN users without a proxy; GitHub stays
+	// as the last-resort fallback. The mirror mirrors the GitHub URL layout so
+	// one manifest generator can produce both.
+	mirrorBase                 = "https://yomm.cc/tempora"
 	httpTimeout                = 15 * time.Second
 	manifestEndpointTimeout    = 5 * time.Second
 	maxDesktopReleaseAssetSize = int64(1 << 30)
@@ -119,6 +125,7 @@ func runningUpdateChannel() string {
 func manifestEndpoints(selected string) []string {
 	_ = selected
 	return []string{
+		mirrorBase + "/latest/latest.json",
 		githubManifestFallback,
 	}
 }
@@ -238,7 +245,9 @@ func validateUpdateRedirect(req *http.Request, via []*http.Request) error {
 func isTrustedUpdateRedirectHost(host string) bool {
 	host = strings.ToLower(strings.TrimSuffix(strings.TrimSpace(host), "."))
 	return host == "github.com" ||
-		strings.HasSuffix(host, ".githubusercontent.com")
+		strings.HasSuffix(host, ".githubusercontent.com") ||
+		host == "yomm.cc" ||
+		strings.HasSuffix(host, ".yomm.cc")
 }
 
 // canSelfUpdate reports whether in-place update is possible. Windows and Linux
@@ -291,6 +300,12 @@ func desktopAssetBases(selected, version string, allowLegacyPreview bool) []stri
 	_ = allowLegacyPreview
 	tag := desktopReleaseTag(selected, version)
 	return []string{
+		// First-party mirror first: the mirror manifest points its assets at
+		// the mirror so CN users without a proxy can download. GitHub bases
+		// accept the GitHub-hosted manifest. All assets of one manifest must
+		// still share a single base (mixed bases are rejected below).
+		fmt.Sprintf("%s/releases/download/%s/", mirrorBase, tag),
+		fmt.Sprintf("%s/releases/download/%s/", mirrorBase, version),
 		fmt.Sprintf("https://github.com/madajiann/Tempora/releases/download/%s/", tag),
 		fmt.Sprintf("https://github.com/madajiann/Tempora/releases/download/%s/", version),
 	}

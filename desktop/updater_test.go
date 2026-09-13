@@ -384,6 +384,7 @@ func TestLegacyChannelsSelectSelfHostedPointers(t *testing.T) {
 	stable := manifestEndpoints("stable")
 	preview := manifestEndpoints("preview")
 	want := []string{
+		mirrorBase + "/latest/latest.json",
 		githubManifestFallback,
 	}
 	if !reflect.DeepEqual(stable, want) || !reflect.DeepEqual(preview, want) {
@@ -726,8 +727,8 @@ func TestFetchManifestUsesSelfHostedEndpoint(t *testing.T) {
 	if manifest.Version != "v1.18.0" {
 		t.Fatalf("version = %q, want self-hosted manifest", manifest.Version)
 	}
-	if len(calls) != 1 || !strings.Contains(calls[0], "github.com/madajiann/Tempora/releases/latest/download/latest.json") {
-		t.Fatalf("endpoint calls = %q, want exactly the self-hosted manifest endpoint", calls)
+	if len(calls) != 1 || !strings.Contains(calls[0], "yomm.cc/tempora/latest/latest.json") {
+		t.Fatalf("endpoint calls = %q, want exactly the first-party mirror endpoint", calls)
 	}
 }
 
@@ -753,8 +754,8 @@ func TestFetchManifestRejectsMalformedSuccessfulResponse(t *testing.T) {
 	if err == nil {
 		t.Fatal("fetchManifest accepted a manifest missing the current platform")
 	}
-	if len(calls) != 1 {
-		t.Fatalf("endpoint calls = %q, want exactly one self-hosted attempt", calls)
+	if len(calls) != 2 || !strings.Contains(calls[0], "yomm.cc") || !strings.Contains(calls[1], "github.com/madajiann") {
+		t.Fatalf("endpoint calls = %q, want mirror attempt to fall through to GitHub", calls)
 	}
 }
 
@@ -767,6 +768,9 @@ func TestValidateUpdateRedirect(t *testing.T) {
 		{name: "upstream first-party redirect", target: "https://dl.tempora.io/file", wantError: true},
 		{name: "GitHub redirect", target: "https://github.com/file"},
 		{name: "GitHub HTTPS asset redirect", target: "https://release-assets.githubusercontent.com/file"},
+		{name: "first-party mirror redirect", target: "https://yomm.cc/tempora/file"},
+		{name: "mirror subdomain redirect", target: "https://dl.yomm.cc/file"},
+		{name: "mirror suffix spoof", target: "https://yomm.cc.evil.invalid/file", wantError: true},
 		{name: "HTTPS downgrade", target: "http://release-assets.githubusercontent.com/file", wantError: true},
 		{name: "userinfo", target: "https://user@release-assets.githubusercontent.com/file", wantError: true},
 		{name: "missing hostname", target: "https:///file", wantError: true},
