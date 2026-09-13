@@ -5001,7 +5001,7 @@ function makeMockApp(): AppBindings {
     async AbandonPendingUpdate() {},
     async OpenDownloadPage() {
       if (typeof window !== "undefined") {
-        window.open("https://tempora.io/?download=desktop#start", "_blank", "noopener");
+        window.open("https://github.com/madajiann/Tempora/releases/latest", "_blank", "noopener");
       }
     },
     async OpenUserConfigPath() {},

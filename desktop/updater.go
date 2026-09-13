@@ -43,10 +43,9 @@ import (
 // gateway still avoids GitHub's repository-wide /releases/latest shortcut so the
 // app is not coupled to GitHub's homepage badge semantics.
 const (
-	r2Base                     = "https://dl.tempora.io"
-	releaseGatewayBase         = "https://crash.tempora.io/v1/desktop/releases"
-	downloadPageURL            = "https://tempora.io/#start"
-	manifestDownloadPageURL    = "https://tempora.io/?download=desktop#start"
+	githubRepoBase             = "https://github.com/madajiann/Tempora"
+	downloadPageURL            = "https://github.com/madajiann/Tempora/releases/latest"
+	manifestDownloadPageURL    = "https://github.com/madajiann/Tempora/releases/latest"
 	httpTimeout                = 15 * time.Second
 	manifestEndpointTimeout    = 5 * time.Second
 	maxDesktopReleaseAssetSize = int64(1 << 30)
@@ -136,12 +135,7 @@ func updaterUserAgent(selected string) string {
 // unavailable (macOS) or the manifest omits its own link.
 func downloadPage(selected string) string {
 	_ = selected
-	u, _ := url.Parse(downloadPageURL)
-	query := u.Query()
-	query.Set("download", "desktop")
-	query.Del("channel")
-	u.RawQuery = query.Encode()
-	return u.String()
+	return downloadPageURL
 }
 
 func manifestDownloadPage(selected, manifestPage string) string {
@@ -156,15 +150,6 @@ func manifestDownloadPage(selected, manifestPage string) string {
 		u.User != nil {
 		return downloadPage(selected)
 	}
-	host := strings.ToLower(u.Hostname())
-	if host != "tempora.io" && !strings.HasSuffix(host, ".tempora.io") {
-		return u.String()
-	}
-	query := u.Query()
-	query.Set("download", "desktop")
-	query.Del("channel")
-	u.RawQuery = query.Encode()
-	u.Fragment = "start"
 	return u.String()
 }
 
@@ -354,7 +339,7 @@ func validateDesktopManifest(selected string, m *update.Manifest) error {
 	if err := validateManifestChannel(selected, m); err != nil {
 		return err
 	}
-	if m.DownloadPage != manifestDownloadPageURL {
+	if !strings.HasPrefix(m.DownloadPage, githubRepoBase+"/releases") {
 		return fmt.Errorf("%s manifest has invalid download page %q", selected, m.DownloadPage)
 	}
 	// Older public manifests predate the two website-only download assets. Keep

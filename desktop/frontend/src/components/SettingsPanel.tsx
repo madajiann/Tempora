@@ -7239,7 +7239,7 @@ function UpdatesSection({
         label={t("changelog.title")}
         hint={t("changelog.subtitle")}
       >
-        <button className="btn btn--small" onClick={() => void openExternal("https://tempora.io/changelog/")}>
+        <button className="btn btn--small" onClick={() => void openExternal("https://github.com/madajiann/Tempora/releases")}>
           {t("changelog.openWeb")}
           <ExternalLink size={14} aria-hidden="true" />
         </button>

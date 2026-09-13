@@ -98,10 +98,10 @@ func TestGenManifest(t *testing.T) {
 			}
 		}
 	}
-	if m.DownloadPage != "https://tempora.io/?download=desktop#start" {
+	if m.DownloadPage != "https://github.com/madajiann/Tempora/releases/latest" {
 		t.Fatalf("download_page = %q, want official install page", m.DownloadPage)
 	}
-	if m.ReleaseNotesURL != "https://tempora.io/changelog/v1.2.0/" {
+	if m.ReleaseNotesURL != "https://github.com/madajiann/Tempora/releases/tag/desktop-v1.2.0" {
 		t.Fatalf("release_notes_url = %q, want exact version history", m.ReleaseNotesURL)
 	}
 	if len(m.Platforms) != 5 {
@@ -185,7 +185,7 @@ func TestGenManifestCanReuseStableNotesForStandaloneRC(t *testing.T) {
 	if err := json.Unmarshal(raw, &m); err != nil {
 		t.Fatal(err)
 	}
-	if m.ReleaseNotesURL != "https://tempora.io/changelog/v1.3.0/" {
+	if m.ReleaseNotesURL != "https://github.com/madajiann/Tempora/releases/tag/desktop-v1.3.0" {
 		t.Fatalf("release_notes_url = %q, want stable base history", m.ReleaseNotesURL)
 	}
 }

@@ -27,7 +27,7 @@ import (
 // or base URLs; custom provider/model identifiers are normalized into bounded
 // buckets. Gated on config desktop.metrics (default on), dev-skipped.
 
-var metricsEndpoint = "https://crash.tempora.io/v1/metrics"
+var metricsEndpoint = ""
 
 const metricsPendingFile = "metrics-pending.json"
 const metricsPostTimeout = 8 * time.Second
@@ -671,6 +671,9 @@ func (a *App) flushMetrics() {
 }
 
 func (a *App) postMetrics(p metricsPayload) bool {
+	if metricsEndpoint == "" {
+		return false
+	}
 	body, err := json.Marshal(p)
 	if err != nil {
 		return false

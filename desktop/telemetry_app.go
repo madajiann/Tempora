@@ -22,7 +22,7 @@ import (
 // random install id, version, and OS facts — never conversation, key, or file data.
 // Gated on config desktop.telemetry (default on) and skipped entirely in dev builds.
 
-var pingEndpoint = "https://crash.tempora.io/v1/ping"
+var pingEndpoint = ""
 
 // desktopRendererEngine is the one renderer the desktop ships now: the
 // Electron shell's Chromium. Kept as a telemetry dimension so dashboards do
@@ -107,6 +107,9 @@ func (a *App) sendStartupPing() {
 }
 
 func postStartupPing(ctx context.Context, c *http.Client, endpoint string, p startupPing) error {
+	if endpoint == "" {
+		return nil
+	}
 	body, err := json.Marshal(p)
 	if err != nil {
 		return err

@@ -271,8 +271,8 @@ func genManifest(dir, version, tag string, notesVersions ...string) error {
 	}
 	m := update.Manifest{
 		Version:         version,
-		DownloadPage:    "https://tempora.io/?download=desktop#start",
-		ReleaseNotesURL: "https://tempora.io/changelog/" + notesVersion + "/",
+		DownloadPage:    "https://github.com/madajiann/Tempora/releases/latest",
+		ReleaseNotesURL: "https://github.com/madajiann/Tempora/releases/tag/desktop-" + notesVersion,
 		Platforms:       map[string]update.Asset{},
 		NativePackages:  map[string]update.Asset{},
 		Downloads:       map[string]update.Asset{},

@@ -27,6 +27,11 @@ import (
 	"tempora/internal/repair"
 )
 
+// testReleaseBase mirrors the self-hosted release asset base the updater
+// accepts: every signed artifact lives under the desktop-<version> tag of
+// madajiann/Tempora's unified GitHub releases.
+const testReleaseBase = "https://github.com/madajiann/Tempora/releases/download"
+
 func TestNormalizeVersion(t *testing.T) {
 	cases := []struct {
 		in   string
@@ -375,22 +380,20 @@ func TestManualUpdateRequiredErrorPreservesReason(t *testing.T) {
 	}
 }
 
-func TestLegacyChannelsSelectOfficialPointers(t *testing.T) {
+func TestLegacyChannelsSelectSelfHostedPointers(t *testing.T) {
 	stable := manifestEndpoints("stable")
 	preview := manifestEndpoints("preview")
 	want := []string{
-		r2Base + "/latest/latest.json",
-		releaseGatewayBase + "/stable/latest.json",
 		githubManifestFallback,
 	}
 	if !reflect.DeepEqual(stable, want) || !reflect.DeepEqual(preview, want) {
 		t.Fatalf("manifest endpoints: stable=%q preview=%q want=%q", stable, preview, want)
 	}
-	if got := downloadPage("preview"); got != "https://tempora.io/?download=desktop#start" {
+	if got := downloadPage("preview"); got != "https://github.com/madajiann/Tempora/releases/latest" {
 		t.Errorf("legacy preview download page = %q", got)
 	}
-	if got := manifestDownloadPage("preview", "https://tempora.io/?channel=preview&download=desktop#start"); got != "https://tempora.io/?download=desktop#start" {
-		t.Errorf("manifest official page = %q", got)
+	if got := manifestDownloadPage("preview", "https://github.com/madajiann/Tempora/releases/tag/desktop-v1.18.0"); got != "https://github.com/madajiann/Tempora/releases/tag/desktop-v1.18.0" {
+		t.Errorf("manifest official page = %q, want unchanged", got)
 	}
 	if got := manifestDownloadPage("preview", "https://example.com/releases"); got != "https://example.com/releases" {
 		t.Errorf("external manifest download page = %q, want unchanged", got)
@@ -447,7 +450,7 @@ func validDesktopManifest(t *testing.T, selected, manifestVersion string) update
 	requiredAssets := append([]requiredDesktopAsset(nil), requiredDesktopUpdaterAssets...)
 	requiredAssets = append(requiredAssets, requiredDesktopDownloadAssets...)
 	for _, required := range requiredAssets {
-		assetURL := fmt.Sprintf("%s/%s/%s", r2Base, tag, required.filename)
+		assetURL := fmt.Sprintf("%s/%s/%s", testReleaseBase, tag, required.filename)
 		asset := update.Asset{
 			URL:    assetURL,
 			Sig:    assetURL + ".minisig",
@@ -508,7 +511,7 @@ func TestDesktopManifestValidation(t *testing.T) {
 			name: "wrong asset host",
 			mutate: func(m *update.Manifest) {
 				asset := m.Platforms["darwin-arm64"]
-				asset.URL = strings.Replace(asset.URL, "dl.tempora.io", "example.com", 1)
+				asset.URL = strings.Replace(asset.URL, "github.com", "example.com", 1)
 				asset.Sig = asset.URL + ".minisig"
 				m.Platforms["darwin-arm64"] = asset
 			},
@@ -614,8 +617,8 @@ func TestDesktopManifestValidation(t *testing.T) {
 	})
 	t.Run("official manifest rejects legacy rolling asset base", func(t *testing.T) {
 		manifest := validDesktopManifest(t, "stable", "v1.19.0")
-		immutableBase := r2Base + "/desktop-v1.19.0/"
-		rollingBase := r2Base + "/desktop-preview/"
+		immutableBase := testReleaseBase + "/desktop-v1.19.0/"
+		rollingBase := testReleaseBase + "/desktop-preview/"
 		for key, asset := range manifest.Platforms {
 			asset.URL = strings.Replace(asset.URL, immutableBase, rollingBase, 1)
 			asset.Sig = asset.URL + ".minisig"
@@ -637,7 +640,7 @@ func TestDesktopManifestValidation(t *testing.T) {
 	})
 	t.Run("unified GitHub release base", func(t *testing.T) {
 		manifest := validDesktopManifest(t, "stable", "v1.19.0")
-		oldBase := r2Base + "/desktop-v1.19.0/"
+		oldBase := testReleaseBase + "/desktop-v1.19.0/"
 		newBase := "https://github.com/madajiann/Tempora/releases/download/v1.19.0/"
 		for key, asset := range manifest.Platforms {
 			asset.URL = strings.Replace(asset.URL, oldBase, newBase, 1)
@@ -683,14 +686,14 @@ func TestDesktopManifestValidation(t *testing.T) {
 		asset := manifest.Platforms["darwin-arm64"]
 		asset.URL = strings.Replace(
 			asset.URL,
-			r2Base+"/desktop-v1.18.0/",
-			"https://github.com/madajiann/Tempora/releases/download/desktop-v1.18.0/",
+			testReleaseBase+"/desktop-v1.18.0/",
+			testReleaseBase+"/v1.18.0/",
 			1,
 		)
 		asset.Sig = asset.URL + ".minisig"
 		manifest.Platforms["darwin-arm64"] = asset
 		if err := validateDesktopManifest("stable", &manifest); err == nil {
-			t.Fatal("validateDesktopManifest accepted mixed R2 and GitHub asset bases")
+			t.Fatal("validateDesktopManifest accepted mixed desktop-vN and vN asset bases")
 		}
 	})
 }
@@ -699,47 +702,11 @@ func ptr[T any](value T) *T {
 	return &value
 }
 
-func TestFetchManifestSkipsPrereleaseForLegacyPreviewSelection(t *testing.T) {
-	var calls []string
-	client := &http.Client{Transport: rtFunc(func(req *http.Request) (*http.Response, error) {
-		calls = append(calls, req.URL.String())
-		version := "v1.18.0-preview.7"
-		if strings.Contains(req.URL.Path, "/stable/") {
-			version = "v1.18.0"
-		}
-		manifest := validDesktopManifest(t, "stable", version)
-		body, err := json.Marshal(manifest)
-		if err != nil {
-			t.Fatal(err)
-		}
-		return &http.Response{
-			StatusCode: http.StatusOK,
-			Status:     "200 OK",
-			Body:       io.NopCloser(bytes.NewReader(body)),
-			Header:     make(http.Header),
-		}, nil
-	})}
-
-	manifest, err := fetchManifest(context.Background(), client, nil, "preview")
-	if err != nil {
-		t.Fatalf("fetchManifest: %v", err)
-	}
-	if manifest.Version != "v1.18.0" {
-		t.Fatalf("version = %q, want official fallback manifest", manifest.Version)
-	}
-	if len(calls) != 2 || !strings.Contains(calls[0], "/latest/") || !strings.Contains(calls[1], "/stable/") {
-		t.Fatalf("endpoint calls = %q, want official latest then gateway fallback", calls)
-	}
-}
-
-func TestFetchManifestSkipsMalformedSuccessfulResponse(t *testing.T) {
+func TestFetchManifestUsesSelfHostedEndpoint(t *testing.T) {
 	var calls []string
 	client := &http.Client{Transport: rtFunc(func(req *http.Request) (*http.Response, error) {
 		calls = append(calls, req.URL.String())
 		manifest := validDesktopManifest(t, "stable", "v1.18.0")
-		if strings.Contains(req.URL.Path, "/latest/") {
-			delete(manifest.Platforms, update.CurrentPlatform())
-		}
 		body, err := json.Marshal(manifest)
 		if err != nil {
 			t.Fatal(err)
@@ -757,10 +724,37 @@ func TestFetchManifestSkipsMalformedSuccessfulResponse(t *testing.T) {
 		t.Fatalf("fetchManifest: %v", err)
 	}
 	if manifest.Version != "v1.18.0" {
-		t.Fatalf("version = %q, want valid fallback manifest", manifest.Version)
+		t.Fatalf("version = %q, want self-hosted manifest", manifest.Version)
 	}
-	if len(calls) != 2 || !strings.Contains(calls[0], "/latest/") || !strings.Contains(calls[1], "/stable/") {
-		t.Fatalf("endpoint calls = %q, want malformed 200 to fall through", calls)
+	if len(calls) != 1 || !strings.Contains(calls[0], "github.com/madajiann/Tempora/releases/latest/download/latest.json") {
+		t.Fatalf("endpoint calls = %q, want exactly the self-hosted manifest endpoint", calls)
+	}
+}
+
+func TestFetchManifestRejectsMalformedSuccessfulResponse(t *testing.T) {
+	var calls []string
+	client := &http.Client{Transport: rtFunc(func(req *http.Request) (*http.Response, error) {
+		calls = append(calls, req.URL.String())
+		manifest := validDesktopManifest(t, "stable", "v1.18.0")
+		delete(manifest.Platforms, update.CurrentPlatform())
+		body, err := json.Marshal(manifest)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Status:     "200 OK",
+			Body:       io.NopCloser(bytes.NewReader(body)),
+			Header:     make(http.Header),
+		}, nil
+	})}
+
+	_, err := fetchManifest(context.Background(), client, nil, "preview")
+	if err == nil {
+		t.Fatal("fetchManifest accepted a manifest missing the current platform")
+	}
+	if len(calls) != 1 {
+		t.Fatalf("endpoint calls = %q, want exactly one self-hosted attempt", calls)
 	}
 }
 
@@ -770,16 +764,16 @@ func TestValidateUpdateRedirect(t *testing.T) {
 		target    string
 		wantError bool
 	}{
-		{name: "Tempora first-party redirect", target: "https://dl.tempora.io/file"},
+		{name: "upstream first-party redirect", target: "https://dl.tempora.io/file", wantError: true},
 		{name: "GitHub redirect", target: "https://github.com/file"},
 		{name: "GitHub HTTPS asset redirect", target: "https://release-assets.githubusercontent.com/file"},
 		{name: "HTTPS downgrade", target: "http://release-assets.githubusercontent.com/file", wantError: true},
 		{name: "userinfo", target: "https://user@release-assets.githubusercontent.com/file", wantError: true},
 		{name: "missing hostname", target: "https:///file", wantError: true},
 		{name: "arbitrary HTTPS host", target: "https://example.com/file", wantError: true},
-		{name: "Tempora suffix spoof", target: "https://dl.tempora.io.evil.invalid/file", wantError: true},
+		{name: "upstream suffix spoof", target: "https://dl.tempora.io.evil.invalid/file", wantError: true},
 		{name: "GitHub suffix spoof", target: "https://release-assets.githubusercontent.com.evil.invalid/file", wantError: true},
-		{name: "explicit port", target: "https://dl.tempora.io:443/file", wantError: true},
+		{name: "explicit port", target: "https://github.com:443/file", wantError: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

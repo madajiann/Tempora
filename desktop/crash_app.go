@@ -20,7 +20,7 @@ import (
 // reports are sent on an explicit user click. Native fatal/lifecycle reports are
 // queued locally and sent on a later launch only when desktop telemetry is on.
 
-var crashEndpoint = "https://crash.tempora.io/v1/report"
+var crashEndpoint = ""
 
 const maxCrashDetailBytes = 16 << 10
 const maxCrashStackBytes = 8 << 10
@@ -331,6 +331,9 @@ func (a *App) ReportCrash(kind, detail string) error {
 }
 
 func postCrashReport(ctx context.Context, c *http.Client, endpoint string, r crashReport) error {
+	if endpoint == "" {
+		return nil
+	}
 	// Pending crash files deliberately omit the anonymous installation id. Add
 	// it only at send time, under the same desktop.telemetry opt-in as pings.
 	if cfg, err := config.Load(); err == nil && cfg.DesktopTelemetry() {
