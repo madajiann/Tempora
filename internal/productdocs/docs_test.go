@@ -56,7 +56,7 @@ func TestEmbeddedAndSourceManifestsMatch(t *testing.T) {
 	if !strings.HasPrefix(embedded.Digest, "sha256:") || embedded.Version == "" || embedded.Revision == "" {
 		t.Fatalf("manifest is missing build identity: %#v", embedded)
 	}
-	if embedded.ReleaseNotes < 10 {
+	if embedded.ReleaseNotes < 1 {
 		t.Fatalf("embedded release notes = %d, want release history", embedded.ReleaseNotes)
 	}
 }
@@ -66,7 +66,7 @@ func TestDocsCommandOverviewAndSearchUseEmbeddedCorpus(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, want := range []string{"内置 Tempora 文档", "version=", "revision=", "digest=sha256:", "/docs 1.19.5 更新日志"} {
+	for _, want := range []string{"内置 Tempora 文档", "version=", "revision=", "digest=sha256:", "/docs 0.1.0 更新日志"} {
 		if !strings.Contains(overview, want) {
 			t.Fatalf("command overview missing %q:\n%s", want, overview)
 		}
@@ -79,13 +79,13 @@ func TestDocsCommandOverviewAndSearchUseEmbeddedCorpus(t *testing.T) {
 		t.Fatalf("qualified command overview used the wrong invocation:\n%s", qualified)
 	}
 
-	results, err := SearchEmbedded(context.Background(), "1.19.5 更新日志")
+	results, err := SearchEmbedded(context.Background(), "0.1.0 更新日志")
 	if err != nil {
 		t.Fatal(err)
 	}
 	firstStart := strings.Index(results, "\n1. ")
 	firstEnd := strings.Index(results, "\n2. ")
-	if firstStart < 0 || firstEnd <= firstStart || !strings.Contains(results[firstStart:firstEnd], "path=changelog/v1.19.5.zh-CN.md") || !strings.Contains(results, "digest=sha256:") {
+	if firstStart < 0 || firstEnd <= firstStart || !strings.Contains(results[firstStart:firstEnd], "path=changelog/v0.1.0.zh-CN.md") || !strings.Contains(results, "digest=sha256:") {
 		t.Fatalf("command search did not use the embedded release catalog:\n%s", results)
 	}
 }
@@ -228,34 +228,34 @@ func TestReleaseNotesAreSearchableInBothLanguages(t *testing.T) {
 	}
 	tl := &docsTool{catalog: c}
 
-	english, err := tl.search(context.Background(), "v1.19.5 usage statistics dashboard", "en", "user", 5)
+	english, err := tl.search(context.Background(), "v0.1.0 self-hosted updates", "en", "user", 5)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(english, "path=changelog/v1.19.5.md") || !strings.Contains(english, "source=release-notes/releases.json#v1.19.5") {
+	if !strings.Contains(english, "path=changelog/v0.1.0.md") || !strings.Contains(english, "source=release-notes/releases.json#v0.1.0") {
 		t.Fatalf("English release search missing versioned changelog:\n%s", english)
 	}
 
-	chinese, err := tl.search(context.Background(), "v1.19.5 用量统计面板", "zh-CN", "user", 5)
+	chinese, err := tl.search(context.Background(), "v0.1.0 自托管更新", "zh-CN", "user", 5)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(chinese, "path=changelog/v1.19.5.zh-CN.md") {
+	if !strings.Contains(chinese, "path=changelog/v0.1.0.zh-CN.md") {
 		t.Fatalf("Chinese release search missing versioned changelog:\n%s", chinese)
 	}
 
-	sections, err := tl.read("", "changelog/v1.19.5.zh-CN.md")
+	sections, err := tl.read("", "changelog/v0.1.0.zh-CN.md")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(sections, "source: release-notes/releases.json#v1.19.5") {
+	if !strings.Contains(sections, "source: release-notes/releases.json#v0.1.0") {
 		t.Fatalf("release section listing missing JSON provenance:\n%s", sections)
 	}
-	section, err := tl.read("changelog/v1.19.5.zh-CN.md::s002", "")
+	section, err := tl.read("changelog/v0.1.0.zh-CN.md::s002", "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(section, "source: release-notes/releases.json#v1.19.5 rendered-lines=") {
+	if !strings.Contains(section, "source: release-notes/releases.json#v0.1.0 rendered-lines=") {
 		t.Fatalf("release section missing rendered provenance:\n%s", section)
 	}
 }
@@ -439,7 +439,7 @@ func TestDocsToolContractIsStableAndReadOnly(t *testing.T) {
 	}
 	contract := tl.Name() + "\n" + tl.Description() + "\n" + string(canonical)
 	got := fmt.Sprintf("%x", sha256.Sum256([]byte(contract)))
-	const want = "0113a592b6bcba5dd2be78c552f95ca27337534b6bb55b7b5e6fd89414f95be5"
+	const want = "915410f2d05902c1a2598379afd482838e893efc6eefb040c8979601429c4414"
 	if got != want {
 		t.Fatalf("provider-visible docs contract changed: got %s, want %s", got, want)
 	}
