@@ -113,12 +113,13 @@ func runningUpdateChannel() string {
 }
 
 // manifestEndpoints returns the manifest URLs for the selected update channel,
-// in the order fetchManifest tries them.
+// in the order fetchManifest tries them. This fork self-hosts updates on its
+// own GitHub releases; the upstream first-party endpoints (dl.tempora.io /
+// crash.tempora.io) were removed so the branded build can never pull an
+// upstream manifest or binary.
 func manifestEndpoints(selected string) []string {
 	_ = selected
 	return []string{
-		r2Base + "/latest/latest.json",
-		releaseGatewayBase + "/stable/latest.json",
 		githubManifestFallback,
 	}
 }
@@ -251,9 +252,7 @@ func validateUpdateRedirect(req *http.Request, via []*http.Request) error {
 
 func isTrustedUpdateRedirectHost(host string) bool {
 	host = strings.ToLower(strings.TrimSuffix(strings.TrimSpace(host), "."))
-	return host == "tempora.io" ||
-		strings.HasSuffix(host, ".tempora.io") ||
-		host == "github.com" ||
+	return host == "github.com" ||
 		strings.HasSuffix(host, ".githubusercontent.com")
 }
 
@@ -307,7 +306,6 @@ func desktopAssetBases(selected, version string, allowLegacyPreview bool) []stri
 	_ = allowLegacyPreview
 	tag := desktopReleaseTag(selected, version)
 	return []string{
-		fmt.Sprintf("%s/%s/", r2Base, tag),
 		fmt.Sprintf("https://github.com/madajiann/Tempora/releases/download/%s/", tag),
 		fmt.Sprintf("https://github.com/madajiann/Tempora/releases/download/%s/", version),
 	}
