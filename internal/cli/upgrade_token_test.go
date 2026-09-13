@@ -12,14 +12,10 @@ import (
 func TestFetchLatestReleaseAuthenticatesWithGitHubToken(t *testing.T) {
 	t.Setenv("GITHUB_TOKEN", "ghp_example")
 	t.Setenv("GH_TOKEN", "")
-	var gatewayAuth, apiAuth string
+	var apiAuth string
 
 	client := &http.Client{Transport: upgradeRoundTripFunc(func(request *http.Request) (*http.Response, error) {
 		switch request.URL.String() {
-		case cliGatewayBase + "/stable/latest.json":
-			gatewayAuth = request.Header.Get("Authorization")
-			return &http.Response{StatusCode: http.StatusNotFound, Status: "404 Not Found", Header: make(http.Header),
-				Body: io.NopCloser(strings.NewReader("")), Request: request}, nil
 		case ghAPIReleases:
 			apiAuth = request.Header.Get("Authorization")
 			body, err := json.Marshal([]ghRelease{completeCLIRelease("v1.9.0", false)})
@@ -39,9 +35,6 @@ func TestFetchLatestReleaseAuthenticatesWithGitHubToken(t *testing.T) {
 	}
 	if apiAuth != "Bearer ghp_example" {
 		t.Errorf("GitHub API Authorization = %q, want the configured token", apiAuth)
-	}
-	if gatewayAuth != "" {
-		t.Errorf("release gateway received Authorization %q; the token must not leave api.github.com", gatewayAuth)
 	}
 }
 

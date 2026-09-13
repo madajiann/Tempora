@@ -36,7 +36,7 @@ const (
 	maxFieldBytes        = 4 << 10
 )
 
-var reportEndpoint = "https://crash.tempora.io/v1/report"
+var reportEndpoint = ""
 
 var queueMu sync.Mutex
 
@@ -188,6 +188,9 @@ func Preview(report Report) ([]byte, error) {
 // Send uploads a single user-reviewed report. It does not remove local state;
 // callers remove the report only after a successful response.
 func Send(ctx context.Context, report Report, proxy netclient.ProxySpec) error {
+	if reportEndpoint == "" {
+		return nil
+	}
 	client, err := netclient.NewHTTPClient(proxy, netclient.TransportOptions{
 		DialTimeout:           3 * time.Second,
 		TLSHandshakeTimeout:   3 * time.Second,

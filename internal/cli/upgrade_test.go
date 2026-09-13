@@ -544,9 +544,7 @@ func (fn upgradeRoundTripFunc) RoundTrip(request *http.Request) (*http.Response,
 	return fn(request)
 }
 
-func TestFetchLatestReleaseFallsThroughIncompletePointerAndGitHubRelease(t *testing.T) {
-	incompletePointer := completeCLIRelease("v1.8.0", false)
-	incompletePointer.Assets = incompletePointer.Assets[:len(incompletePointer.Assets)-1]
+func TestFetchLatestReleaseSkipsIncompleteGitHubRelease(t *testing.T) {
 	incompleteGitHub := completeCLIRelease("v1.7.0", false)
 	incompleteGitHub.Assets = incompleteGitHub.Assets[:len(incompleteGitHub.Assets)-1]
 	completeGitHub := completeCLIRelease("v1.6.0", false)
@@ -554,8 +552,6 @@ func TestFetchLatestReleaseFallsThroughIncompletePointerAndGitHubRelease(t *test
 	client := &http.Client{Transport: upgradeRoundTripFunc(func(request *http.Request) (*http.Response, error) {
 		var payload any
 		switch request.URL.String() {
-		case cliGatewayBase + "/stable/latest.json":
-			payload = incompletePointer
 		case ghAPIReleases:
 			payload = []ghRelease{incompleteGitHub, completeGitHub}
 		default:

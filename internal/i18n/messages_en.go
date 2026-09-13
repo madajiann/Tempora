@@ -592,7 +592,7 @@ var English = Messages{
 	ReportHeaderFmt:           "CLI crash report %s",
 	ReportCapturedFmt:         "Captured: %s",
 	ReportPreviewOnlyFmt:      "Preview only. Run `tempora report send %s` to send this report.",
-	ReportSendPrompt:          "Send this sanitized report to crash.tempora.io?",
+	ReportSendPrompt:          "Send this sanitized report to the Tempora maintainers?",
 	ReportKept:                "Report kept locally.",
 	ReportDeletedFmt:          "Deleted CLI crash report %s.",
 	ReportSentFmt:             "Sent CLI crash report %s.",
@@ -606,7 +606,7 @@ var English = Messages{
   tempora report send [ID]       send a reviewed report and delete it after success
   tempora report delete [ID]     delete a local report without sending`,
 
-	CLITelemetryConsentNotice:           "Tempora can send anonymous, content-free CLI usage statistics to crash.tempora.io: a random install ID, version, OS, and fixed quality buckets. It never sends prompts, answers, code, paths, model or tool content, or environment variables. You can disable this later with `tempora config telemetry off`.",
+	CLITelemetryConsentNotice:           "Tempora can send anonymous, content-free CLI usage statistics to the Tempora maintainers: a random install ID, version, OS, and fixed quality buckets. It never sends prompts, answers, code, paths, model or tool content, or environment variables. You can disable this later with `tempora config telemetry off`.",
 	CLITelemetryConsentPrompt:           "Allow anonymous CLI usage statistics?",
 	CLITelemetryConsentInvalid:          "Please answer y or n.",
 	CLITelemetryConsentSaveFailedFmt:    "CLI telemetry remains disabled because the preference could not be saved: %v",

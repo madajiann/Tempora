@@ -533,7 +533,7 @@ var ChineseTraditional = Messages{
 	ReportHeaderFmt:           "CLI 當機報告 %s",
 	ReportCapturedFmt:         "擷取時間：%s",
 	ReportPreviewOnlyFmt:      "目前僅預覽。執行 `tempora report send %s` 可傳送這份報告。",
-	ReportSendPrompt:          "將這份已脫敏報告傳送到 crash.tempora.io？",
+	ReportSendPrompt:          "將這份已脫敏報告傳送給 Tempora 維護者？",
 	ReportKept:                "報告已保留在本機。",
 	ReportDeletedFmt:          "已刪除 CLI 當機報告 %s。",
 	ReportSentFmt:             "已傳送 CLI 當機報告 %s。",
@@ -547,7 +547,7 @@ var ChineseTraditional = Messages{
   tempora report send [ID]       傳送已審閱報告，成功後刪除本機副本
   tempora report delete [ID]     不傳送，直接刪除本機報告`,
 
-	CLITelemetryConsentNotice:           "Tempora 可以向 crash.tempora.io 傳送匿名、完全不含內容的 CLI 使用統計：隨機安裝 ID、版本、作業系統和固定品質分桶。絕不會傳送 prompt、回答、程式碼、路徑、模型或工具內容、環境變數。之後可執行 `tempora config telemetry off` 關閉。",
+	CLITelemetryConsentNotice:           "Tempora 可以向 Tempora 維護者傳送匿名、完全不含內容的 CLI 使用統計：隨機安裝 ID、版本、作業系統和固定品質分桶。絕不會傳送 prompt、回答、程式碼、路徑、模型或工具內容、環境變數。之後可執行 `tempora config telemetry off` 關閉。",
 	CLITelemetryConsentPrompt:           "允許傳送匿名 CLI 使用統計嗎？",
 	CLITelemetryConsentInvalid:          "請輸入 y 或 n。",
 	CLITelemetryConsentSaveFailedFmt:    "由於無法儲存偏好設定，CLI 使用統計仍維持關閉：%v",

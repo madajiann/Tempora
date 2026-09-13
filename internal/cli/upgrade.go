@@ -33,7 +33,6 @@ const (
 	ghRepo                 = "Tempora"
 	ghAPIReleases          = "https://api.github.com/repos/" + ghOwner + "/" + ghRepo + "/releases?per_page=100"
 	ghDownloadBase         = "https://github.com/" + ghOwner + "/" + ghRepo + "/releases/download"
-	cliGatewayBase         = "https://crash.tempora.io/v1/cli/releases"
 	upgradeTimeout         = 60 * time.Second
 	maxCLIReleaseAssetSize = int64(1 << 30)
 )
@@ -521,14 +520,9 @@ func githubRateLimitHint(resp *http.Response) string {
 }
 
 // fetchLatestRelease queries the GitHub Releases API and returns the newest
-// strict CLI release in the selected public channel.
+// strict CLI release in the selected public channel. This fork no longer
+// consults any upstream release gateway; GitHub is the single source.
 func fetchLatestRelease(c *http.Client, channel cliReleaseChannel) (*ghRelease, error) {
-	pointerURL := fmt.Sprintf("%s/%s/latest.json", cliGatewayBase, channel)
-	pointerRelease, pointerErr := fetchCLIReleasePointer(c, pointerURL, channel)
-	if pointerErr == nil {
-		return pointerRelease, nil
-	}
-
 	req, err := http.NewRequest(http.MethodGet, ghAPIReleases, nil)
 	if err != nil {
 		return nil, err
@@ -545,7 +539,7 @@ func fetchLatestRelease(c *http.Client, channel cliReleaseChannel) (*ghRelease, 
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("release gateway: %w; GitHub API: %s%s", pointerErr, resp.Status, githubRateLimitHint(resp))
+		return nil, fmt.Errorf("GitHub API: %s%s", resp.Status, githubRateLimitHint(resp))
 	}
 
 	var rels []ghRelease
@@ -556,7 +550,7 @@ func fetchLatestRelease(c *http.Client, channel cliReleaseChannel) (*ghRelease, 
 	if rel := pickCLIRelease(rels, channel); rel != nil {
 		return rel, nil
 	}
-	return nil, fmt.Errorf("release gateway: %w; no %s CLI release found in recent GitHub releases", pointerErr, channel)
+	return nil, fmt.Errorf("no %s CLI release found in recent GitHub releases", channel)
 }
 
 func fetchCLIReleasePointer(c *http.Client, pointerURL string, channel cliReleaseChannel) (*ghRelease, error) {

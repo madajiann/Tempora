@@ -19,7 +19,7 @@ import (
 	"tempora/internal/netclient"
 )
 
-var endpoint = "https://crash.tempora.io/v1"
+var endpoint = ""
 
 var uploadSignals = map[string]bool{
 	"finish_reason": true, "empty_final": true, "provider_error": true,
@@ -312,6 +312,9 @@ func validCounter(c Counter) bool {
 }
 
 func (c *Client) post(ctx context.Context, path string, payload any) error {
+	if endpoint == "" {
+		return nil
+	}
 	b, err := json.Marshal(payload)
 	if err != nil {
 		return err
