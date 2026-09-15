@@ -317,7 +317,7 @@ windows)
 			printf '%s\n' '!define TEMPORA_UNINST_FINALIZE '\''/bin/cp -f "%1" "tempora-uninstall.exe"'\''' >"$windows_host_include"
 			;;
 		*)
-			printf '%s\n' '!define TEMPORA_UNINST_FINALIZE '\''cmd.exe /C copy /Y "%1" "tempora-uninstall.exe" >NUL'\''' >"$windows_host_include"
+			printf '%s\n' '!define TEMPORA_UNINST_FINALIZE '\''cmd.exe /C for /l %i in (1,1,10) do @((if not exist "tempora-uninstall.exe" ((ping -n 2 127.0.0.1 >NUL) & (copy /Y "%1" "tempora-uninstall.exe" >NUL))))'\''' >"$windows_host_include"
 			;;
 	esac
 	windows_resource_tool="$windows_resource_tool_dir/tempora-windows-resource.exe"
@@ -373,7 +373,16 @@ windows)
 		cd "$installer_dir"
 		makensis "-D${arch_binary_define}=$installer_dir/$BINNAME.exe" project.nsi
 	)
-	[ -s "$installer_dir/tempora-uninstall.exe" ] || { echo "first NSIS pass did not produce tempora-uninstall.exe" >&2; exit 1; }
+	[ -s "$installer_dir/tempora-uninstall.exe" ] || {
+		# Defender/MSYS intermittently deny process spawn; one makensis retry
+		# is cheaper than aborting the whole build.
+		echo "first NSIS pass did not produce tempora-uninstall.exe - retrying makensis" >&2
+		(
+			cd "$installer_dir"
+			makensis "-D${arch_binary_define}=$installer_dir/$BINNAME.exe" project.nsi
+		)
+	}
+	[ -s "$installer_dir/tempora-uninstall.exe" ] || { echo "first NSIS pass did not produce tempora-uninstall.exe after retry" >&2; exit 1; }
 
 	# Keep one canonical payload for SignPath: the flat Go executables plus the
 	# Electron app/ tree. The release workflow signs these files, then calls
