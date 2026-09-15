@@ -150,7 +150,16 @@ echo "==> desktop host contract drift check"
 contract_tool="$ROOT/desktop/build/bin/tempora-contract-tool.exe"
 mkdir -p "$(dirname "$contract_tool")"
 go build -trimpath -o "$contract_tool" .
-"$contract_tool" -emit-contract frontend/src/generated
+"$contract_tool" -emit-contract frontend/src/generated || {
+	# Defender/MSYS intermittently deny exec of a freshly written exe; retry.
+	emit_ok=false
+	for _retry in 1 2 3 4 5; do
+		echo "contract tool exec denied (attempt $_retry), retrying in 3s" >&2
+		sleep 3
+		if "$contract_tool" -emit-contract frontend/src/generated; then emit_ok=true; break; fi
+	done
+	$emit_ok || exit 1
+}
 if ! git_in_root diff --exit-code -- desktop/frontend/src/generated >/dev/null; then
 	echo "desktop contract is stale - run 'cd desktop && go run . -emit-contract frontend/src/generated' and commit" >&2
 	git_in_root diff --stat -- desktop/frontend/src/generated >&2
