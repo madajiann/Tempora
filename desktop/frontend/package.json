@@ -81,7 +81,7 @@
     "@types/hast": "3.0.5",
     "@types/jsdom": "^30.0.0",
     "@types/mdast": "^4.0.4",
-    "@types/node": "^26.4.1",
+    "@types/node": "^26.5.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@typescript-eslint/parser": "^8.69.0",
