@@ -126,13 +126,22 @@ stamp_windows_executable() {
 	local description="$2"
 	local internal_name="$3"
 	local original_filename="$4"
-	"$windows_resource_tool" \
-		-exe "$target" \
-		-icon "$ROOT/desktop/build/windows/icon.ico" \
-		-version "$numver" \
-		-description "$description" \
-		-internal-name "$internal_name" \
-		-original-filename "$original_filename"
+	local _stamp_ok=false
+	for _retry in 1 2 3 4 5; do
+		if "$windows_resource_tool" \
+			-exe "$target" \
+			-icon "$ROOT/desktop/build/windows/icon.ico" \
+			-version "$numver" \
+			-description "$description" \
+			-internal-name "$internal_name" \
+			-original-filename "$original_filename"; then
+			_stamp_ok=true
+			break
+		fi
+		echo "resource stamp denied (attempt $_retry), retrying in 3s" >&2
+		sleep 3
+	done
+	$_stamp_ok || return 1
 }
 
 # Stamp the Windows version resource from the tag. goversioninfo demands a
