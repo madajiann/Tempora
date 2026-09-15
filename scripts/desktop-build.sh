@@ -66,6 +66,7 @@ esac
 # desktop/ is a nested Go module, so the Go toolchain cannot discover the
 # repository VCS revision for the service binary. Link the same source identity
 # into both Desktop and its CLI sidecar.
+git_in_root() { (cd "$ROOT" && git "$@"); }
 SOURCE_REVISION="$(git -C "$ROOT" rev-parse --verify HEAD)"
 SOURCE_SHA="$SOURCE_REVISION"
 if ! git -C "$ROOT" diff-index --quiet HEAD --; then
