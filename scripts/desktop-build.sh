@@ -326,7 +326,7 @@ windows)
 			printf '%s\n' '!define TEMPORA_UNINST_FINALIZE '\''/bin/cp -f "%1" "tempora-uninstall.exe"'\''' >"$windows_host_include"
 			;;
 		*)
-			printf '%s\n' '!define TEMPORA_UNINST_FINALIZE '\''cmd.exe /C for /l %i in (1,1,10) do @((if not exist "tempora-uninstall.exe" ((ping -n 2 127.0.0.1 >NUL) & (copy /Y "%1" "tempora-uninstall.exe" >NUL))))'\''' >"$windows_host_include"
+			printf '%s\n' '!define TEMPORA_UNINST_FINALIZE '\''cmd.exe /C ping -n 2 127.0.0.1 >NUL & copy /Y "%1" "tempora-uninstall.exe" >NUL & ping -n 3 127.0.0.1 >NUL & copy /Y "%1" "tempora-uninstall.exe" >NUL & ping -n 4 127.0.0.1 >NUL & copy /Y "%1" "tempora-uninstall.exe" >NUL'\''' >"$windows_host_include"
 			;;
 	esac
 	windows_resource_tool="$windows_resource_tool_dir/tempora-windows-resource.exe"
