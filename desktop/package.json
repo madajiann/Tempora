@@ -4,6 +4,8 @@
   "version": "0.0.0",
   "packageManager": "pnpm@10.34.5",
   "scripts": {
+    "dev": "pnpm --filter tempora-desktop-frontend dev",
+    "dev:desktop": "node scripts/dev-desktop.mjs",
     "build": "pnpm --filter tempora-desktop-frontend build:electron && pnpm --filter tempora-desktop-shell build",
     "typecheck": "pnpm --filter tempora-desktop-frontend typecheck && pnpm --filter tempora-desktop-shell typecheck",
     "test": "pnpm --filter tempora-desktop-frontend test && pnpm --filter tempora-desktop-shell test"

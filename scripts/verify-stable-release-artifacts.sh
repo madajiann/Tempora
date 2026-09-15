@@ -42,9 +42,11 @@ jq -e '
   .isDraft == false and .isPrerelease == false and
   ([.assets[].name] as $names |
     ($names | index("latest.json")) and
-    (["Tempora-darwin-universal.dmg", "Tempora-linux-amd64.deb",
+    (["Tempora-darwin-arm64.dmg", "Tempora-darwin-amd64.dmg",
+      "Tempora-darwin-universal.dmg", "Tempora-darwin-arm64.zip",
+      "Tempora-darwin-amd64.zip", "Tempora-linux-amd64.deb",
       "Tempora-linux-amd64.tar.gz", "Tempora-windows-amd64-installer.exe",
-      "Tempora-windows-arm64-installer.exe"] |
+      "Tempora-windows-amd64.zip", "Tempora-windows-arm64-installer.exe"] |
      all(. as $required | ($names | index($required)) and ($names | index($required + ".minisig")))))
 ' "$tmp_dir/desktop.json" >/dev/null
 

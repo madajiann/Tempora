@@ -45,7 +45,6 @@ import (
 	"tempora/internal/hook"
 	"tempora/internal/imageinput"
 	"tempora/internal/installsource"
-	"tempora/internal/instruction"
 	"tempora/internal/jobs"
 	"tempora/internal/lsp"
 	"tempora/internal/mcplaunch"
@@ -57,9 +56,9 @@ import (
 	"tempora/internal/plugin"
 	"tempora/internal/productdocs"
 	"tempora/internal/provider"
-	"tempora/internal/recovery"
 	"tempora/internal/sandbox"
 	"tempora/internal/secrets"
+	"tempora/internal/session"
 	"tempora/internal/sessioncontext"
 	"tempora/internal/sessiontemp"
 	"tempora/internal/skill"
@@ -143,14 +142,20 @@ type Options struct {
 	// (for example ACP session/new). They are connected eagerly for this
 	// controller but are not persisted to tempora.toml.
 	ExtraPlugins []plugin.Spec
-	// AgentPreset and TokenMode seed the session quality floor. Delivery (or
-	// its aliases) raises it to delivery; light and its aliases fold to
-	// standard; unknown values keep the standard default.
+	// AgentPreset and TokenMode are retired compatibility inputs. Recognized
+	// values use standard execution; unknown values keep the standard default.
 	AgentPreset string
 	TokenMode   string
 	// SessionDir overrides where persisted chat transcripts are written. When
 	// empty, the shared CLI/global session directory is used.
 	SessionDir string
+	// SessionService is shared by all controllers on one host. Rebuild injects
+	// the previous service and runtime so changing model/settings replaces only
+	// the Agent while the immutable session identity and writer remain owned by
+	// the same SessionRuntime.
+	SessionService *session.Service
+	SessionRuntime *session.Runtime
+	SessionHostID  string
 	// SharedHost is an optional plugin.Host shared across controllers for the
 	// same workspace root. When set, boot.Build reuses its running clients
 	// instead of creating new subprocesses, and the caller manages the host's
@@ -571,6 +576,14 @@ func build(ctx context.Context, opts Options) (*BuildResult, error) {
 	if sessionDir == "" {
 		sessionDir = config.SessionDir()
 	}
+	// The host owns the final-format SessionService. Boot only attaches an
+	// Agent to the exact service/runtime it receives; constructing a service
+	// here would create competing registries over the same writer files during
+	// model switches or multi-tab startup.
+	sessionService := opts.SessionService
+	if opts.SessionRuntime != nil && sessionService == nil {
+		return nil, errors.New("v3 session runtime requires a session service")
+	}
 	reconcileCleanupPending := opts.CleanupPendingReconciler
 	if reconcileCleanupPending == nil {
 		reconcileCleanupPending = control.ReconcileCleanupPending
@@ -641,22 +654,30 @@ func build(ctx context.Context, opts Options) (*BuildResult, error) {
 		sink.Emit(event.Event{Kind: event.Notice, Level: event.LevelWarn, Text: "Memory metadata migration did not complete.", Detail: err.Error()})
 	}
 	mem := memory.Load(memory.Options{CWD: root, UserDir: config.MemoryUserDir()})
-	projectChecks := instruction.ExtractHostChecks(mem.Docs)
 	sysPrompt = memory.Compose(sysPrompt, mem)
 
 	implicitSkillInvocation := cfg.ImplicitSkillInvocationEnabled()
+	// A controller owns its production skill watcher and closes it with the
+	// controller. Go package tests routinely construct short-lived controllers
+	// without exercising host teardown; starting one kqueue/inotify instance per
+	// fixture would exhaust process descriptors before the suite completes.
+	// Store-level watcher tests opt in directly and still cover invalidation.
+	watchSkills := !strings.HasSuffix(strings.TrimSuffix(os.Args[0], ".exe"), ".test")
 	// Skills: rediscovery skipped on no-op/interceptor/UI rebuilds when
 	// ReuseAssembly is retained from the previous BuildResult.
 	var skillStore *skill.Store
 	var skills []skill.Skill
 	var allSkillStore *skill.Store
 	var allSkills []skill.Skill
+	skillCleanup := func() { closeSkillStores(skillStore, allSkillStore) }
+	skillsOwned := false
+	defer closeUnownedSkills(&skillsOwned, skillCleanup)
 	canReuseSkills := opts.ReuseAssembly != nil && shouldReuseDiscovery(opts.PreviousPlan) &&
 		opts.ReuseAssembly.ImplicitSkillInvocation == implicitSkillInvocation
 	if canReuseSkills {
 		skills = opts.ReuseAssembly.Skills
 		allSkills = skills
-		skillStore = skill.New(skill.Options{ProjectRoot: root, Stderr: io.Discard})
+		skillStore = skill.New(skill.Options{ProjectRoot: root, Stderr: io.Discard, Watch: watchSkills})
 		allSkillStore = skillStore
 		if s := strings.TrimSpace(opts.ReuseAssembly.SystemPrompt); s != "" {
 			sysPrompt = s
@@ -665,11 +686,11 @@ func build(ctx context.Context, opts Options) (*BuildResult, error) {
 		skillStore = skill.New(skill.Options{
 			ProjectRoot: root, CustomPaths: cfg.SkillCustomPaths(), PluginPaths: cfg.PluginPackageSkillOwners(),
 			PluginAgentPaths: cfg.PluginPackageAgentOwners(), ExcludedPaths: cfg.SkillExcludedPaths(),
-			DisabledNames: cfg.DisabledSkillNames(), MaxDepth: cfg.SkillMaxDepth(), Stderr: opts.Stderr,
+			DisabledNames: cfg.DisabledSkillNames(), MaxDepth: cfg.SkillMaxDepth(), Stderr: opts.Stderr, Watch: watchSkills,
 		})
 		skillStore.ConfigureInvocationPolicy("", nil)
 		skills = skillStore.List()
-		allSkillStore = skill.New(skill.Options{ProjectRoot: root, CustomPaths: cfg.SkillCustomPaths(), PluginPaths: cfg.PluginPackageSkillOwners(), PluginAgentPaths: cfg.PluginPackageAgentOwners(), ExcludedPaths: cfg.SkillExcludedPaths(), MaxDepth: cfg.SkillMaxDepth(), Stderr: io.Discard})
+		allSkillStore = skill.New(skill.Options{ProjectRoot: root, CustomPaths: cfg.SkillCustomPaths(), PluginPaths: cfg.PluginPackageSkillOwners(), PluginAgentPaths: cfg.PluginPackageAgentOwners(), ExcludedPaths: cfg.SkillExcludedPaths(), MaxDepth: cfg.SkillMaxDepth(), Stderr: io.Discard, Watch: watchSkills})
 		allSkills = allSkillStore.List()
 		if implicitSkillInvocation {
 			sysPrompt += "\n\n" + skill.InvocationPolicyBlock()
@@ -915,12 +936,15 @@ func build(ctx context.Context, opts Options) (*BuildResult, error) {
 		sink.Emit(event.Event{Kind: event.Notice, Level: event.LevelInfo, Text: msg})
 	}
 
-	cleanup := pluginHost.Close
+	cleanup := func() {
+		skillCleanup()
+		pluginHost.Close()
+	}
 	if opts.SharedHost != nil {
 		// The caller owns the shared host's lifecycle; the controller must not
 		// close it. A no-op cleanup keeps Controller.Close happy without
 		// shutting down MCP processes that other controllers still use.
-		cleanup = func() {}
+		cleanup = skillCleanup
 	}
 
 	// addTools registers tools on reg and returns the names that were added.
@@ -975,7 +999,6 @@ func build(ctx context.Context, opts Options) (*BuildResult, error) {
 	// Sub-agents always run headless: they have no UI to answer a prompt, so they
 	// inherit this same gate.
 	policy := permission.New(cfg.Permissions.Mode, cfg.Permissions.Allow, cfg.Permissions.Ask, cfg.Permissions.Deny).
-		WithAllowDynamicBashFallback(cfg.Permissions.AllowDynamicBash).
 		WithSessionAllow(opts.PermissionAllow)
 	headlessGate := control.NewSharedHeadlessGate(policy, opts.HeadlessApprovalMode)
 
@@ -1281,10 +1304,6 @@ func build(ctx context.Context, opts Options) (*BuildResult, error) {
 		if subReg.Len() == 0 {
 			return "", fmt.Errorf("read_only_skill: skill %q has no read-only tools available", sk.Name)
 		}
-		switch sk.Name {
-		case "review", "security-review", "security_review":
-			agent.AttachReviewReportTool(subReg)
-		}
 		steps := maxSteps
 		if steps > 0 {
 			if steps /= 2; steps < 5 {
@@ -1303,7 +1322,7 @@ func build(ctx context.Context, opts Options) (*BuildResult, error) {
 		// Review gates consume typed, host-verifiable reports so a review
 		// cannot end in unverifiable prose. Review skills run only for
 		// mid/high-risk work under the standard policy.
-		runOptions.RequireReviewReportKind = agent.ReviewReportKindForSkill(sk.Name)
+		runOptions.RequireReviewReportKind = ""
 		// Provider serializers decide whether these images are wire-visible from
 		// the child model's own vision capability. Text-only children retain the
 		// attachment metadata locally but never receive image parts on the wire.
@@ -1357,12 +1376,6 @@ func build(ctx context.Context, opts Options) (*BuildResult, error) {
 		// registry stop matching on continue_from (schema-hash check reports
 		// the mismatch).
 		subReg, childWriteRoots := skillSubagentRegistry(sk, reg, childDepth, maxSubagentDepth, capRuntime, writeRootSet)
-		// Delivery risk gates require structured review_report from review
-		// subagents only — never expose it on the parent tool surface.
-		switch sk.Name {
-		case "review", "security-review", "security_review":
-			agent.AttachReviewReportTool(subReg)
-		}
 		continueFrom := strings.TrimSpace(runOpts.ContinueFrom)
 		legacyForkFrom := strings.TrimSpace(runOpts.ForkFrom)
 		if continueFrom != "" && legacyForkFrom != "" {
@@ -1423,7 +1436,7 @@ func build(ctx context.Context, opts Options) (*BuildResult, error) {
 		// Review gates consume typed, host-verifiable reports so a review
 		// cannot end in unverifiable prose. Review skills run only for
 		// mid/high-risk work under the standard policy.
-		runOptions.RequireReviewReportKind = agent.ReviewReportKindForSkill(sk.Name)
+		runOptions.RequireReviewReportKind = ""
 		var answer string
 		// The child provider owns the final vision decision, as in read-only runs.
 		childCtx := agent.WithUserImages(sctx, agent.SubagentImageCandidates(sctx))
@@ -1621,14 +1634,17 @@ func build(ctx context.Context, opts Options) (*BuildResult, error) {
 				failedNow[failure.Name] = failure.Error
 			}
 		}
+		skillSnapshot, skillSnapshotErr := skillStore.Snapshot(ctx)
 		catOpts := capability.CatalogOptions{
-			Tools:       reg.AllContractEntries(),
-			Skills:      skillStore.List(),
-			Plugins:     cfg.Plugins,
-			Connected:   conn,
-			Failed:      failedNow,
-			CachedTools: cachedTools,
-			CacheKeyOK:  cacheKeyOK,
+			Tools:             reg.AllContractEntries(),
+			Skills:            skillSnapshot.Candidates,
+			Plugins:           cfg.Plugins,
+			Connected:         conn,
+			Failed:            failedNow,
+			CachedTools:       cachedTools,
+			CacheKeyOK:        cacheKeyOK,
+			CatalogIncomplete: skillSnapshotErr != nil || !skillSnapshot.Complete,
+			CatalogStale:      skillSnapshot.Stale,
 		}
 		if capRuntime != nil {
 			catOpts.Plugins, catOpts.CachedTools, catOpts.CacheKeyOK, catOpts.Disabled, catOpts.ProxyTools = capRuntime.CapabilityCatalogState()
@@ -1692,7 +1708,6 @@ func build(ctx context.Context, opts Options) (*BuildResult, error) {
 		WriteRoots:                   writeRootSet,
 		HomeDir:                      userHomeDir(),
 		StateRoot:                    config.MemoryUserDir(),
-		ProjectChecks:                projectChecks,
 		Ablation:                     opts.Ablation,
 		WorkspaceLease:               workspaceLease,
 		CapabilityLedger:             capLedger,
@@ -1709,12 +1724,34 @@ func build(ctx context.Context, opts Options) (*BuildResult, error) {
 		KeepPolicy:                   keepPolicy,
 		ReasoningLanguage:            config.ReasoningLanguageForEntry(entry, cfg.ReasoningLanguage()),
 		PlanModeReadOnlyCommands:     cfg.Agent.PlanModeReadOnlyCommands,
-		LegacyAnchorSafetyGate:       cfg.Agent.LegacyAnchorSafetyGate,
 		SubagentDepth:                0,
 		MaxSubagentDepth:             maxSubagentDepth,
 		MissingReasoningWarnStateDir: config.MissingReasoningWarnStateDir(),
 	}, sink)
-	reg.Add(sessiontool.NewSetSessionTitleTool(sessionDir, executor.SessionPath, opts.OnSessionTitleChanged))
+	reg.Add(sessiontool.NewSetSessionTitleEventTool(
+		func() string {
+			if controller := ctrlRef.Load(); controller != nil {
+				if ref, ok := controller.SessionRef(); ok {
+					return ref.SessionID
+				}
+			}
+			return ""
+		},
+		func(ctx context.Context, title string) error {
+			controller := ctrlRef.Load()
+			if controller == nil {
+				return errors.New("current session is unavailable")
+			}
+			if err := controller.SetSessionTitle(ctx, title); err != nil {
+				return err
+			}
+			if opts.OnSessionTitleChanged != nil {
+				ref, _ := controller.SessionRef()
+				return opts.OnSessionTitleChanged(sessionDir, ref.SessionID, title)
+			}
+			return nil
+		},
+	))
 
 	var runner agent.Runner = executor
 	label := entry.Model
@@ -1805,6 +1842,9 @@ func build(ctx context.Context, opts Options) (*BuildResult, error) {
 		SystemPrompt:                   sysPrompt,
 		PinnedContextLoader:            opts.PinnedContextLoader,
 		SessionDir:                     sessionDir,
+		SessionService:                 sessionService,
+		SessionRuntime:                 opts.SessionRuntime,
+		ExclusiveSession:               sessionService != nil,
 		Host:                           pluginHost,
 		Commands:                       cmds,
 		Skills:                         skills,
@@ -1894,56 +1934,17 @@ func build(ctx context.Context, opts Options) (*BuildResult, error) {
 		ctrlOpts.Guardian = guardian.NewSession(pProv, guardianReg, guardian.PolicyPrompt(), modelRefFromEntry(ge), cfg.Agent.GuardianTemperature, ge.Price, sink)
 		sink.Emit(event.Event{Kind: event.Notice, Level: event.LevelInfo, Text: fmt.Sprintf("guardian enabled · model=%s", ge.Model)})
 	}
-	// Recovery reviewer is explicit: empty recovery_model leaves rule-only
-	// recovery. A configured but unusable model is a configuration error.
-	if recoveryModel := strings.TrimSpace(cfg.Agent.RecoveryModel); recoveryModel != "" {
-		if extensionResolver != nil && providerext.PluginRefOwner(recoveryModel) != "" {
-			re, ok := resolveOptionalEntry(extensionResolver, cfg, recoveryModel)
-			if !ok {
-				return nil, fmt.Errorf("recovery_model %q is not a configured provider", recoveryModel)
-			}
-			rProv, err := extensionResolver.Resolve(provider.Selection{Ref: modelRefFromEntry(re)})
-			if err != nil {
-				return nil, fmt.Errorf("recovery_model %q: %w", recoveryModel, err)
-			}
-			ctrlOpts.RecoveryReviewer = recovery.NewSessionWithSink(rProv, re.Price, modelRefFromEntry(re), sink)
-		} else {
-			re, ok := cfg.ResolveModel(recoveryModel)
-			if !ok {
-				return nil, fmt.Errorf("recovery_model %q is not a configured provider", recoveryModel)
-			}
-			rProv, err := NewProviderWithProxy(re, proxySpec)
-			if err != nil {
-				return nil, fmt.Errorf("recovery_model %q: %w", recoveryModel, err)
-			}
-			ctrlOpts.RecoveryReviewer = recovery.NewSessionWithSink(rProv, re.Price, modelRefFromEntry(re), sink)
-		}
-	}
-	// HeadlessApprovalMode is an explicit declaration that this frontend has
-	// no decision channel (`tempora run`). ApprovalTimeout is not a proxy for
-	// that capability: bots have a bounded timeout and can still answer cards.
-	ctrlOpts.RecoveryHeadless = recoveryHeadlessMode(opts)
 	// Goal evaluator is not implied by the main model, guardian, or recovery
 	// reviewer. Controllers that want one inject it explicitly; otherwise Goal
 	// uses the deterministic host policy.
 	ctrl := control.New(ctrlOpts)
-	// The role inputs set the session quality floor: delivery/deliver/quality
-	// raise it, light and its aliases fold to standard, unknown stays default.
-	if p, err := agentpreset.Normalize(firstNonEmpty(opts.AgentPreset, opts.TokenMode)); err == nil && p == agentpreset.Delivery {
-		_ = ctrl.SetQualityFloor(string(p))
-	}
+	// Validate and consume retired role inputs without changing runtime policy.
+	_, _ = agentpreset.Normalize(firstNonEmpty(opts.AgentPreset, opts.TokenMode))
 	// Publish the controller to the extension UI hub's indirection: from here
 	// on, host/ui/* publishes ride ctrl.EmitExtensionEvent and blocking prompts
 	// ride ctrl.Ask, exactly as if the hub had been built after control.New.
 	ctrlRef.Store(ctrl)
 	close(controllerReady)
-	// Share the recovery checkpoint with task/fleet sub-agents so background
-	// writers observe the same failure state as the root agent.
-	if taskTool != nil {
-		if g := ctrl.Executor(); g != nil {
-			taskTool.WithRecoveryGate(g.RecoveryGate())
-		}
-	}
 	if capRuntime != nil {
 		ctrl.SetCapabilityProxyTools(capRuntime.ConnectedProxyTools)
 	}
@@ -2035,6 +2036,9 @@ func build(ctx context.Context, opts Options) (*BuildResult, error) {
 	if extensionResolver != nil {
 		providerResolver = extensionResolver
 	}
+	if runtimeSet != nil && runtimeSet.Len() > 0 {
+		_ = extension.TrackWatcher(runtimeSet.Scope(), "skill-catalogs", func() error { skillCleanup(); return nil })
+	}
 	cleanup = wireRuntimeScopeCleanup(runtimeSet, cleanup, opts.SharedHost, pluginHost, lspMgr, opts.SessionTemp)
 	ctrl.SetExtensions(extensionDispatcher)
 	if extensionMgr == nil {
@@ -2063,6 +2067,7 @@ func build(ctx context.Context, opts Options) (*BuildResult, error) {
 		Registry:                reg,
 		ImplicitSkillInvocation: implicitSkillInvocation,
 	}
+	skillsOwned = true
 	return finalizeBuildResult(&BuildResult{Controller: ctrl, Snapshot: snap, Runtime: runtimeSet, Owner: owner, Extensions: extensionMgr, Dispatcher: extensionDispatcher, ExtensionUI: extUIHub, ProviderResolver: providerResolver, BaseProviderResolver: baseResolver, Assembly: assembly}, !opts.deferPublish), nil
 }
 

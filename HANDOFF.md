@@ -63,7 +63,7 @@ go test ./internal/...                            # 测试（desktop、sdk/go �
 ## 5. 已完成工作清单
 
 1. **调研**：上游 MIT、极活跃（日数十提交、v1.38.6 发版当日）、源码 ~70 万行 Go ✅
-2. **Fork 改名**：~19,600 处品牌串、26 个文件重命名、模块 `reasonix`→`tempora`、配置 `%APPDATA%\tempora`、环境变量 `TEMPORA_`、npm 元数据；`go build ./...` 一次通过 ✅
+2. **Fork 改名**：~19,600 处品牌串、26 个文件重命名、模块 `tempora`→`tempora`、配置 `%APPDATA%\tempora`、环境变量 `TEMPORA_`、npm 元数据；`go build ./...` 一次通过 ✅
 3. **智谱 GLM**：出厂 4 provider（deepseek-flash/pro + **glm-flash=glm-5.3-flash**、**glm-pro=glm-5.3**，open.bigmodel.cn + `GLM_API_KEY`）；6 个 GLM 预设加 5.3 系列并改默认 flash；向导家族分组（GLM 家族对称 DeepSeek）✅
 4. **图标**：品牌蓝 #0153e5 + 白沙漏 + 海蓝沙（SVG 母版 ×2 + 纯 Go 光栅化器 `G:\Tempora\icontool` → PNG/ICO/ICNS/Linux 全套），上游资产测试通过 ✅
 5. **exe 安装器**：`tools/windowsinstaller`（嵌套 Go 模块，go:embed payload），写用户 PATH + WM_SETTINGCHANGE 广播，免管理员；UPX 后 20.3MB ✅
@@ -80,7 +80,7 @@ go test ./internal/...                            # 测试（desktop、sdk/go �
 | GLM 暂不填价格 | 无权威价格不编造；billing 对缺价优雅降级。**待补录** |
 | 安装器 = 自包含 Go exe，不用 NSIS/Inno | 零外部工具链，`make windows-installer` 一条命令；嵌套模块不污染主模块构建/CI |
 | payload 用 UPX（69.5→19.2MB） | 对齐上游发布体量（上游 windows zip 21MB）；UPX 壳可能提高杀软误报率，遇误报出未压缩版 |
-| `tempora upgrade` 指向占位仓库 `tempora-dev/Tempora` | 防止把用户机器上的 Tempora 回装成上游 reasonix；建仓后全局替换 `tempora-dev` |
+| `tempora upgrade` 指向占位仓库 `tempora-dev/Tempora` | 防止把用户机器上的 Tempora 回装成上游 tempora；建仓后全局替换 `tempora-dev` |
 | 遥测/崩溃上报域名 `*.tempora.io` 为死域名 | 静默失败 = 零数据外泄；将来删掉或换自有后端 |
 | 上游 CHANGELOG/release-notes/logo 保留原名 | 历史记录与出处署名，非品牌残留（NOTICE.md 第 5 条） |
 | 图标沿用 #0153e5 品牌蓝 | `desktop/appicon_asset_test.go` 逐像素断言；改色需同步改该测试 |

@@ -1,7 +1,14 @@
 import { makeMockModelSettingsBindings, type ModelSettingsBindings } from "./modelSettingsBridge";
 import { mockProviderTemplate, mockPreset, mockBundlePreset, mockKimiAPIModels, mockLongCatModels, mockTokenRhythmModels, mockTokenRhythmModelOverrides, mockMiMoV25Models, mockMiniMaxModels, mockGLMAPIModels, mockGLMCodingModels, mockGLMAnthropicModels, mockQwenAPIModels, mockQwenPlanModels, mockQwenPlanVisionModels, mockStepFunModels, mockOpenCodeGoModels, mockNovitaModels, mockGMIModels, mockVercelModels, mockOllamaCloudModels } from "./mockProviderTemplates";
 // The Electron host and the browser mock share this React-to-Go contract.
-import type { DesktopCommandName } from "../generated/desktopContract.generated";
+import type {
+  CancelReceipt,
+  DesktopCommandName,
+  MessageHistoryPage,
+  Ref as SessionContentRef,
+  SearchHistoryPage,
+  SessionHistoryContentChunk,
+} from "../generated/desktopContract.generated";
 import type { InvocationRequest } from "./invocationDisplay";
 import type { FollowupBindings } from "./pendingFollowup";
 import { addBreadcrumb } from "./breadcrumbs";
@@ -111,6 +118,7 @@ import type {
   NetworkView,
   PluginInstallOptions,
   PluginView,
+  PermissionSnapshot,
   ProjectNode,
   ProjectTreeOrganizationBindings,
   RecoveryLineageView,
@@ -155,6 +163,7 @@ import type {
   WorkspaceView,
   SessionClearResult,
 } from "./types";
+import { editMockGoalTab } from "./mockGoalLifecycle";
 import { browserPreviewShellSupport } from "./shellSupportPreview";
 import { desktopHost } from "./desktopHost";
 export * from "./remoteTabEvents";
@@ -282,6 +291,7 @@ export interface AppBindings extends ToolRecoveryBindings, ModelSettingsBindings
   InboxHasItems(tabID: string): Promise<boolean>;
   Cancel(): Promise<void>;
   CancelTab(tabID: string): Promise<void>;
+  CancelSessionForTab?(tabID: string): Promise<CancelReceipt>;
   CancelTabWithInboxItems(tabID: string, itemIDs: string[]): Promise<void>;
   CancelTabWithInboxItemsResult?(tabID: string, itemIDs: string[]): Promise<{ discardedItemIds: string[]; warning?: string }>;
   InterruptTurnForTab?(tabID: string, turnID: string): Promise<void>;
@@ -313,6 +323,7 @@ export interface AppBindings extends ToolRecoveryBindings, ModelSettingsBindings
   ResolvePromptForTab?(tabID: string, promptID: string, turnID: string, runtimeEpoch: string, kind: string, answer: {
     questions?: QuestionAnswer[]; allow?: boolean; session?: boolean; persist?: boolean;
     action?: string; feedback?: string; content?: Record<string, unknown> | null;
+    generation?: number; permissionRevision?: number;
   }): Promise<void>;
   PendingPromptIdentitiesForTab?(tabID: string): Promise<Array<{ promptId: string; turnId: string; runtimeEpoch?: string; kind: string }>>;
   ReplayPendingPromptIdentitiesForTab?(tabID: string): Promise<Array<{ promptId: string; turnId: string; runtimeEpoch?: string; kind: string }>>;
@@ -327,11 +338,15 @@ export interface AppBindings extends ToolRecoveryBindings, ModelSettingsBindings
   SetToolApprovalMode(mode: string): Promise<void>;
   // Same drained-prompt-id contract as SetModeForTab.
   SetToolApprovalModeForTab(tabID: string, mode: string): Promise<string[] | void>;
+  PermissionSnapshotForTab(tabID: string): Promise<PermissionSnapshot>;
+  SetPermissionPresetForTab(tabID: string, preset: string, expectedRevision: number): Promise<PermissionSnapshot>;
+  RevokePermissionGrantForTab(tabID: string, scope: string, target: string, expectedRevision: number): Promise<PermissionSnapshot>;
   // Atomically applies the controller-facing composer profile and reports any
   // approval prompts drained by the resulting tool-approval posture.
   SetComposerProfileForTab(tabID: string, collaborationMode: string, toolApprovalMode: string, goal: string): Promise<string[] | void>;
   SetGoal(goal: string): Promise<void>;
   SetGoalForTab(tabID: string, goal: string): Promise<void>;
+  EditGoalForTab(tabID: string, objective: string, maxGoalRounds: number | null): Promise<void>;
   ResumeGoalForTab(tabID: string): Promise<boolean>;
   PauseGoalForTab(tabID: string): Promise<boolean>;
   ClearGoalForTab(tabID: string): Promise<void>;
@@ -348,6 +363,12 @@ export interface AppBindings extends ToolRecoveryBindings, ModelSettingsBindings
   // Windowed history paging (supersedes HistoryPageForTab for tab history).
   HistorySliceForTab(tabID: string, req: HistorySliceRequest): Promise<HistorySlice>;
   HistoryContentForTab(tabID: string, ref: HistoryContentRef, chunkIndex: number): Promise<HistoryContentChunk>;
+  SessionHistoryPageForTab(tabID: string, cursor: string, limit: number): Promise<MessageHistoryPage>;
+  SessionHistoryContentForTab(tabID: string, ref: SessionContentRef, offset: number): Promise<SessionHistoryContentChunk>;
+  RemoteSessionHistoryPageForTab(tabID: string, cursor: string, limit: number): Promise<MessageHistoryPage>;
+  RemoteSessionHistoryContentForTab(tabID: string, ref: SessionContentRef, offset: number): Promise<SessionHistoryContentChunk>;
+  SearchSessionHistoryForTab(tabID: string, textQuery: string, cursor: string, limit: number): Promise<SearchHistoryPage>;
+  RemoteSearchSessionHistoryForTab(tabID: string, textQuery: string, cursor: string, limit: number): Promise<SearchHistoryPage>;
   HistoryCheckpointTurnsForTab(tabID: string): Promise<number[]>;
   Checkpoints(): Promise<CheckpointMeta[]>;
   CheckpointsForTab(tabID: string): Promise<CheckpointMeta[]>;
@@ -423,9 +444,9 @@ export interface AppBindings extends ToolRecoveryBindings, ModelSettingsBindings
   WorkspaceConflictForTab(tabID: string): Promise<WorkspaceConflictView>;
   RevealWorkspaceWriterForTab(tabID: string): Promise<TabMeta>;
   CloseTabWithPolicy(tabID: string, policy: "keep_running" | "stop_and_close"): Promise<void>;
-  ToolResultForTab(tabID: string, toolID: string): Promise<{ args: string; output: string; execution?: import("./types").WireShellExecution; mcpApp?: import("./types").MCPAppPresentation } | null>;
+  ToolResultForTab(tabID: string, toolID: string): Promise<{ name?: string; args: string; output: string; execution?: import("./types").WireShellExecution; mcpApp?: import("./types").MCPAppPresentation; presentedFiles?: import("./types").PresentedFile[] } | null>;
   Meta(): Promise<Meta>;
-  MetaForTab(tabID: string): Promise<Meta>; DismissTodoBatchForTab(tabID: string, batchKey: string): Promise<void>;
+  MetaForTab(tabID: string): Promise<Meta>;
   Commands(): Promise<CommandInfo[]>;
   Capabilities(): Promise<CapabilitiesView>;
   MCPServers(): Promise<ServerView[]>;
@@ -485,6 +506,13 @@ export interface AppBindings extends ToolRecoveryBindings, ModelSettingsBindings
   SearchFileRefsForTab(tabID: string, query: string): Promise<DirEntry[]>;
   ReadFile(rel: string): Promise<FilePreview>;
   ReadFileForTab(tabID: string, rel: string): Promise<FilePreview>;
+  ReadPresentedFileForTab(tabID: string, toolCallID: string, path: string): Promise<FilePreview>;
+  ReadPresentedFileSourceForTab(tabID: string, toolCallID: string, path: string): Promise<FilePreview>;
+  ReadPresentedTextPageForTab(tabID: string, toolCallID: string, path: string, offset: number, expectedVersion: string): Promise<import("./types").PresentedTextPage>;
+  CreateWorkspaceBrowserPreviewForTab(tabID: string, rel: string): Promise<string>;
+  CreatePresentedBrowserPreviewForTab(tabID: string, toolCallID: string, path: string): Promise<string>;
+  RevokeWorkspaceBrowserPreview(url: string): Promise<void>;
+  RevokeWorkspaceMediaPreview(url: string): Promise<void>;
   ResolveMarkdownImageForTab(tabID: string, source: string): Promise<MarkdownImageView>;
   WorkspaceRevisionForTab(tabID: string): Promise<{ revisions: WorkspaceRevisions; watchState: "active" | "degraded" | "unavailable" }>;
   WorkspaceChanges(tabID: string): Promise<WorkspaceChangesView>;
@@ -502,17 +530,27 @@ export interface AppBindings extends ToolRecoveryBindings, ModelSettingsBindings
   WorkspaceGitHistory(tabID: string, path: string): Promise<GitCommitView[]>;
   WorkspaceGitCommitDetail(tabID: string, hash: string, path: string): Promise<GitCommitDetailView>;
   OpenWorkspacePathForTab(tabID: string, rel: string): Promise<void>;
+  OpenPresentedPathForTab(tabID: string, toolCallID: string, path: string): Promise<void>;
+  ResolvePresentedPathForTab(tabID: string, toolCallID: string, path: string): Promise<string>;
   ResolveWorkspacePathForTab(tabID: string, rel: string): Promise<string>;
   ExternalOpeners(): Promise<ExternalOpenersView>; ExternalOpenersForTab(tabID: string): Promise<ExternalOpenersView>;
   SetPreferredExternalOpener(id: string): Promise<void>;
   OpenWorkspaceInExternalOpenerForTab(tabID: string, id: string): Promise<void>; OpenLocalPathInExternalOpener(path: string, id: string): Promise<void>; SaveLocalPathAs(path: string): Promise<string>;
   RevealWorkspacePathForTab(tabID: string, rel: string): Promise<void>;
+  RevealPresentedPathForTab(tabID: string, toolCallID: string, path: string): Promise<void>;
+  SaveWorkspacePathAsForTab(tabID: string, rel: string): Promise<string>;
+  SavePresentedPathAsForTab(tabID: string, toolCallID: string, path: string): Promise<string>;
+  SaveRemoteFileAs(hostID: string, remotePath: string): Promise<string>;
+  SaveRemotePresentedFileAs(tabID: string, hostID: string, toolCallID: string, remotePath: string): Promise<string>;
+  ResolveRemotePresentedPathForTab(tabID: string, hostID: string, toolCallID: string, remotePath: string): Promise<string>;
+  ResolveRemoteWorkspacePathForTab(tabID: string, hostID: string, toolCallID: string, remotePath: string): Promise<string>;
   RevealPath(path: string): Promise<void>;
   OpenLocalPath(path: string): Promise<void>;
   SavePastedImage(dataUrl: string): Promise<string>;
   SaveClipboardImage(): Promise<string>;
   SavePastedFile(name: string, dataUrl: string): Promise<string>;
   PickExportFile(defaultFilename: string, mimeType: string): Promise<string>;
+  ExportGoalDiagnostics(): Promise<string>;
   SaveExportFile(path: string, payload: string, base64Encoded: boolean): Promise<void>;
   SaveExportImageFiles(path: string, payloads: string[]): Promise<void>;
   AttachDropped(path: string): Promise<DroppedItem>;
@@ -1043,9 +1081,8 @@ function emit(e: WireEvent) {
 }
 
 export function mockToolApprovalModeAfterModeChange(current: string | undefined, nextMode: Mode): ToolApprovalMode {
-  if (modeHasAutoApproveTools(nextMode)) return "yolo";
-  const currentMode = normalizeToolApprovalMode(current);
-  return currentMode === "yolo" ? "ask" : currentMode;
+  if (modeHasAutoApproveTools(nextMode)) return "workspace-write";
+  return normalizeToolApprovalMode(current);
 }
 
 async function withMockTabScope<T>(tabId: string, fn: () => Promise<T>): Promise<T> {
@@ -1723,7 +1760,7 @@ function makeMockApp(): AppBindings {
     displayMode: "standard", sessionExperience: "standard", reasoningDisplayMode: "auto", reasoningDisplayModeExplicit: false,
     statusBarStyle: "icon",
     statusBarItems: [...DEFAULT_STATUS_BAR_ITEMS],
-    defaultToolApprovalMode: "auto",
+    defaultToolApprovalMode: "workspace-write",
     checkUpdates: true,
     updateChannel: "stable",
     telemetry: true,
@@ -2128,7 +2165,8 @@ function makeMockApp(): AppBindings {
   // Mirrors the backend drain contract for the mode-switch bindings: returns
   // the prompt ids the new posture auto-allowed; fresh prompts stay pending.
   const drainMockApprovalPreviews = (toolApprovalMode: string): string[] => {
-    if (toolApprovalMode !== "auto" && toolApprovalMode !== "yolo") return [];
+    const preset = normalizeToolApprovalMode(toolApprovalMode);
+    if (preset !== "workspace-write" && preset !== "danger-full-access") return [];
     const prompt = pendingApprovalPreviewPrompt;
     if (!pendingApprovalPreview || !prompt || mockFreshApprovalTools.has(prompt.tool)) return [];
     pendingApprovalPreview = false;
@@ -2614,7 +2652,7 @@ function makeMockApp(): AppBindings {
             args: JSON.stringify({
               todos: [
                 { content: t("mock.todo1"), status: "completed" },
-                { content: t("mock.todo2"), activeForm: t("mock.todo2ActiveForm"), status: "in_progress" },
+                { content: t("mock.todo2"), status: "in_progress" },
                 { content: t("mock.todo3"), status: "pending" },
               ],
             }),
@@ -2630,7 +2668,7 @@ function makeMockApp(): AppBindings {
             args: JSON.stringify({
               todos: [
                 { content: t("mock.todo1"), status: "completed" },
-                { content: t("mock.todo2"), activeForm: t("mock.todo2ActiveForm"), status: "in_progress" },
+                { content: t("mock.todo2"), status: "in_progress" },
                 { content: t("mock.todo3"), status: "pending" },
               ],
             }),
@@ -2793,6 +2831,7 @@ function makeMockApp(): AppBindings {
             complete: true,
             displayStatus: "matched",
             aggregateMode: "single_currency",
+            modelRef: "deepseek-official/deepseek-v4-flash",
             rateBand: "off_peak",
             ratedAt: "2026-08-17T00:30:00Z",
           },
@@ -2898,6 +2937,10 @@ function makeMockApp(): AppBindings {
         },
         async CancelTab(_tabID) {
           await withMockTabScope(_tabID, () => this.Cancel());
+        },
+        async CancelSessionForTab(_tabID) {
+          await withMockTabScope(_tabID, () => this.Cancel());
+          return { sessionRef: "", headId: "", runtimeEpoch: "mock", accepted: true, alreadyIdle: false, recoveryRequired: false };
         },
         async CancelTabWithInboxItems(_tabID, _itemIDs) {
           await withMockTabScope(_tabID, () => this.Cancel());
@@ -3020,7 +3063,7 @@ function makeMockApp(): AppBindings {
               ...tab,
               collaborationMode: next,
               goal: next === "normal" || next === "plan" ? "" : tab.goal,
-              mode: modeWithPlan(modeWithAutoApproveTools(normalizeMode(tab.mode), toolMode === "yolo"), next === "plan"),
+              mode: modeWithPlan(modeWithAutoApproveTools(normalizeMode(tab.mode), toolMode === "danger-full-access"), next === "plan"),
             };
           });
         },
@@ -3030,25 +3073,54 @@ function makeMockApp(): AppBindings {
         },
         async SetToolApprovalModeForTab(tabID, mode) {
           const next = normalizeToolApprovalMode(mode);
-          settings.autoApproveTools = next === "yolo";
-          settings.bypass = next === "yolo";
+          settings.autoApproveTools = next === "danger-full-access";
+          settings.bypass = next === "danger-full-access";
           mockTabs = mockTabs.map((tab) =>
             tab.id === tabID
               ? {
                   ...tab,
                   toolApprovalMode: next,
-                  mode: modeWithAutoApproveTools(normalizeMode(tab.mode), next === "yolo"),
+                  mode: modeWithAutoApproveTools(normalizeMode(tab.mode), next === "danger-full-access"),
                 }
               : tab,
           );
           return drainMockApprovalPreviews(next);
         },
+        async PermissionSnapshotForTab(tabID) {
+          const tab = mockTabs.find((candidate) => candidate.id === tabID);
+          if (!tab) throw new Error("tab not found");
+          return {
+            sessionId: tab.sessionPath || tab.id,
+            generation: 1,
+            revision: Number((tab as TabMeta & { permissionRevision?: number }).permissionRevision ?? 1),
+            preset: normalizeToolApprovalMode(tab.toolApprovalMode),
+            workspaceRoot: tab.workspaceRoot || tab.cwd || "",
+            grants: [],
+            capabilities: {
+              backend: "mock",
+              enforcement: "full",
+              supportedPresets: ["read-only", "workspace-write", "danger-full-access"],
+            },
+          };
+        },
+        async SetPermissionPresetForTab(tabID, preset, expectedRevision) {
+          const current = await this.PermissionSnapshotForTab(tabID);
+          if (current.revision !== expectedRevision) throw new Error("permission revision changed");
+          await this.SetToolApprovalModeForTab(tabID, preset);
+          mockTabs = mockTabs.map((tab) => tab.id === tabID ? { ...tab, permissionRevision: current.revision + 1 } as TabMeta : tab);
+          return { ...current, revision: current.revision + 1, preset: normalizeToolApprovalMode(preset) };
+        },
+        async RevokePermissionGrantForTab(tabID, _scope, _target, expectedRevision) {
+          const current = await this.PermissionSnapshotForTab(tabID);
+          if (current.revision !== expectedRevision) throw new Error("permission revision changed");
+          return { ...current, revision: current.revision + 1, grants: [] };
+        },
         async SetComposerProfileForTab(tabID, collaborationMode, toolApprovalMode, goal) {
           const nextCollaboration = normalizeCollaborationMode(collaborationMode);
           const nextToolApproval = normalizeToolApprovalMode(toolApprovalMode);
           const nextGoal = goal.trim();
-          settings.autoApproveTools = nextToolApproval === "yolo";
-          settings.bypass = nextToolApproval === "yolo";
+          settings.autoApproveTools = nextToolApproval === "danger-full-access";
+          settings.bypass = nextToolApproval === "danger-full-access";
           mockTabs = mockTabs.map((tab) => {
             if (tab.id !== tabID) return tab;
             const plan = !nextGoal && nextCollaboration === "plan";
@@ -3058,15 +3130,12 @@ function makeMockApp(): AppBindings {
               toolApprovalMode: nextToolApproval,
               goal: nextGoal,
               goalStatus: nextGoal ? "running" : "stopped",
-              mode: modeWithAutoApproveTools(modeWithPlan(normalizeMode(tab.mode), plan), nextToolApproval === "yolo"),
+              mode: modeWithAutoApproveTools(modeWithPlan(normalizeMode(tab.mode), plan), nextToolApproval === "danger-full-access"),
             };
           });
           return drainMockApprovalPreviews(nextToolApproval);
         },
-        async SetGoal(goal) {
-          const active = mockTabs.find((tab) => tab.active);
-          if (active) await this.SetGoalForTab(active.id, goal);
-        },
+        async SetGoal(goal) { const active = mockTabs.find((tab) => tab.active); if (active) await this.SetGoalForTab(active.id, goal); },
         async SetGoalForTab(tabID, goal) {
           const nextGoal = goal.trim();
           mockTabs = mockTabs.map((tab) =>
@@ -3081,6 +3150,7 @@ function makeMockApp(): AppBindings {
               : tab,
           );
         },
+        async EditGoalForTab(tabID, objective, maxGoalRounds) { mockTabs = mockTabs.map((tab) => editMockGoalTab(tab, tabID, objective, maxGoalRounds)); },
         async ResumeGoalForTab(tabID) {
           let resumed = false;
           mockTabs = mockTabs.map((tab) => {
@@ -3099,9 +3169,7 @@ function makeMockApp(): AppBindings {
           });
           return paused;
         },
-        async ClearGoalForTab(tabID) {
-          await this.SetGoalForTab(tabID, "");
-        },
+        async ClearGoalForTab(tabID) { await this.SetGoalForTab(tabID, ""); },
         async Compact() {},
         async CompactForTab() {},
         async NewSession() {},
@@ -3190,6 +3258,24 @@ function makeMockApp(): AppBindings {
           out.data = mockHistoryContentField(message, ref);
           out.chunks = 1;
           return out;
+        },
+        async SessionHistoryPageForTab(): Promise<MessageHistoryPage> {
+          return { messages: [], snapshotSequence: 0, hasMore: false };
+        },
+        async SessionHistoryContentForTab(_tabID: string, ref: SessionContentRef, offset: number): Promise<SessionHistoryContentChunk> {
+          return { data: "", nextOffset: Math.min(offset, ref.bytes), done: offset >= ref.bytes };
+        },
+        async RemoteSessionHistoryPageForTab(): Promise<MessageHistoryPage> {
+          return { messages: [], snapshotSequence: 0, hasMore: false };
+        },
+        async RemoteSessionHistoryContentForTab(_tabID: string, ref: SessionContentRef, offset: number): Promise<SessionHistoryContentChunk> {
+          return { data: "", nextOffset: Math.min(offset, ref.bytes), done: offset >= ref.bytes };
+        },
+        async SearchSessionHistoryForTab(): Promise<SearchHistoryPage> {
+          return { hits: [], snapshotSequence: 0, hasMore: false };
+        },
+        async RemoteSearchSessionHistoryForTab(): Promise<SearchHistoryPage> {
+          return { hits: [], snapshotSequence: 0, hasMore: false };
         },
     async ListSessions() {
       return sessions.map((s) => ({ ...s }));
@@ -3417,7 +3503,7 @@ function makeMockApp(): AppBindings {
         async Meta() {
           const active = mockTabs.find((tab) => tab.active) ?? mockTabs[0];
           const toolApprovalMode = normalizeToolApprovalMode(active?.toolApprovalMode, active ? normalizeMode(active.mode) : "normal", settings.autoApproveTools);
-          const autoApproveTools = toolApprovalMode === "yolo";
+          const autoApproveTools = toolApprovalMode === "danger-full-access";
           const collaborationMode = normalizeCollaborationMode(active?.collaborationMode, active?.goal, active ? normalizeMode(active.mode) : "normal");
           const workspacePath = active?.workspacePath || active?.workspaceRoot || active?.cwd || cwd;
           return {
@@ -3438,11 +3524,11 @@ function makeMockApp(): AppBindings {
             goal: active?.goal ?? "",
             goalStatus: active?.goalStatus ?? (active?.goal ? "running" : "stopped"),
           };
-        }, async DismissTodoBatchForTab() {},
+        },
         async MetaForTab(tabID) {
           const tab = mockTabs.find((item) => item.id === tabID) ?? mockTabs.find((item) => item.active) ?? mockTabs[0];
           const toolApprovalMode = normalizeToolApprovalMode(tab?.toolApprovalMode, tab ? normalizeMode(tab.mode) : "normal", settings.autoApproveTools);
-          const autoApproveTools = toolApprovalMode === "yolo";
+          const autoApproveTools = toolApprovalMode === "danger-full-access";
           const collaborationMode = normalizeCollaborationMode(tab?.collaborationMode, tab?.goal, tab ? normalizeMode(tab.mode) : "normal");
           const workspacePath = tab?.workspacePath || tab?.workspaceRoot || tab?.cwd || cwd;
           return {
@@ -3975,6 +4061,35 @@ function makeMockApp(): AppBindings {
     async ReadFileForTab(_tabID: string, rel: string) {
       return this.ReadFile(rel);
     },
+    async CreateWorkspaceBrowserPreviewForTab(_tabID: string, rel: string) {
+      return `http://127.0.0.1:0/__tempora_workspace_media/mock/${encodeURIComponent(rel)}`;
+    },
+    async ReadPresentedFileForTab(tabID: string, _toolCallID: string, path: string) {
+      return this.ReadFileForTab(tabID, path);
+    },
+    async ReadPresentedFileSourceForTab(tabID: string, _toolCallID: string, path: string) {
+      return this.ReadFileForTab(tabID, path);
+    },
+    async ReadPresentedTextPageForTab(_tabID: string, _toolCallID: string, path: string, offset: number, expectedVersion: string) {
+      return { path, body: "", offset, nextOffset: offset, size: offset, hasMore: false, version: expectedVersion };
+    },
+    async CreatePresentedBrowserPreviewForTab(tabID: string, _toolCallID: string, path: string) {
+      return this.CreateWorkspaceBrowserPreviewForTab(tabID, path);
+    },
+    async RevokeWorkspaceBrowserPreview() {},
+    async RevokeWorkspaceMediaPreview() {},
+    async SaveRemoteFileAs(_hostID: string, remotePath: string) {
+      return remotePath;
+    },
+    async SaveRemotePresentedFileAs(_tabID: string, hostID: string, _toolCallID: string, remotePath: string) {
+      return this.SaveRemoteFileAs(hostID, remotePath);
+    },
+    async ResolveRemotePresentedPathForTab(_tabID: string, _hostID: string, _toolCallID: string, remotePath: string) {
+      return remotePath.startsWith("/") ? remotePath : `/remote/workspace/${remotePath}`;
+    },
+    async ResolveRemoteWorkspacePathForTab(_tabID: string, _hostID: string, _toolCallID: string, remotePath: string) {
+      return remotePath.startsWith("/") ? remotePath : `/remote/workspace/${remotePath}`;
+    },
     async ResolveMarkdownImageForTab(_tabID: string, source: string) {
       return { url: source, openHref: source };
     },
@@ -4042,6 +4157,12 @@ function makeMockApp(): AppBindings {
     async OpenWorkspacePathForTab(_tabID: string, rel: string) {
       console.info("mock OpenWorkspacePath", rel);
     },
+    async OpenPresentedPathForTab(tabID: string, _toolCallID: string, path: string) {
+      return this.OpenWorkspacePathForTab(tabID, path);
+    },
+    async ResolvePresentedPathForTab(tabID: string, _toolCallID: string, path: string) {
+      return this.ResolveWorkspacePathForTab(tabID, path);
+    },
     async ResolveWorkspacePathForTab(_tabID: string, rel: string) { return `${cwd.replace(/[\\/]+$/, "")}/${rel.replace(/^[/\\]+/, "").replace(/[\\/]+$/, "")}`; },
     async ExternalOpeners() {
       return {
@@ -4058,6 +4179,16 @@ function makeMockApp(): AppBindings {
     async OpenWorkspaceInExternalOpenerForTab(_tabID: string, _id: string) {}, async OpenLocalPathInExternalOpener(path: string, id: string) { console.info("mock OpenLocalPathInExternalOpener", path, id); }, async SaveLocalPathAs(path: string) { console.info("mock SaveLocalPathAs", path); return path; },
     async RevealWorkspacePathForTab(_tabID: string, rel: string) {
       console.info("mock RevealWorkspacePath", rel);
+    },
+    async RevealPresentedPathForTab(tabID: string, _toolCallID: string, path: string) {
+      return this.RevealWorkspacePathForTab(tabID, path);
+    },
+    async SaveWorkspacePathAsForTab(_tabID: string, rel: string) {
+      console.info("mock SaveWorkspacePathAsForTab", rel);
+      return rel;
+    },
+    async SavePresentedPathAsForTab(tabID: string, _toolCallID: string, path: string) {
+      return this.SaveWorkspacePathAsForTab(tabID, path);
     },
     async RevealPath(path: string) {
       console.info("mock RevealPath", path);
@@ -4079,6 +4210,9 @@ function makeMockApp(): AppBindings {
     },
     async PickExportFile(defaultFilename: string, _mimeType: string) {
       return defaultFilename;
+    },
+    async ExportGoalDiagnostics() {
+      return "goal-diagnostics.json";
     },
     async SaveExportFile(path: string, payload: string, base64Encoded: boolean) {
       const a = document.createElement("a");
@@ -4405,7 +4539,7 @@ function makeMockApp(): AppBindings {
       settings.defaultToolApprovalMode = normalizeToolApprovalMode(mode);
     },
     async SetDefaultAutoRecoveryCheckpoint(_enabled: boolean) {
-      // Legacy no-op; Auto Guard is always built into Auto.
+      // Legacy no-op; Auto Guard is retired.
     },
     async SetConnectionKey(name: string, value: string) {
       const p = settings.providers.find(p => p.name === name);
@@ -4956,8 +5090,8 @@ function makeMockApp(): AppBindings {
     async RequeueTaskForTab() { return { schema_version: 1, command: "requeue", task_id: "", accepted: false, idempotent: false, error: { code: "mock", message: "not available in browser mock" } }; },
     async OpenTaskSessionForTab() { return { schema_version: 1, command: "open_session", task_id: "", accepted: false, idempotent: false, error: { code: "mock", message: "not available in browser mock" } }; },
     async SetTrayLocale(_locale: "en" | "zh" | "zh-TW") {},
-    async SetAutoApproveTools(on: boolean) {
-      await this.SetToolApprovalMode(on ? "yolo" : "ask");
+    async SetAutoApproveTools(_on: boolean) {
+      await this.SetToolApprovalMode("workspace-write");
     },
     async SetBypass(on: boolean) {
       await this.SetAutoApproveTools(on);
@@ -5055,7 +5189,7 @@ function makeMockApp(): AppBindings {
         label: mockModelLabel(settings.defaultModel),
         ready: true,
         running: mockTopicRunsInScenario(_topicID),
-        mode: modeWithAutoApproveTools("normal", defaultToolApprovalMode === "yolo"),
+        mode: modeWithAutoApproveTools("normal", defaultToolApprovalMode === "danger-full-access"),
         collaborationMode: "normal",
         toolApprovalMode: defaultToolApprovalMode,
         tokenMode: "full",
@@ -5119,7 +5253,7 @@ function makeMockApp(): AppBindings {
         label: mockModelLabel(settings.defaultModel),
         ready: true,
         running: false,
-        mode: modeWithAutoApproveTools("normal", defaultToolApprovalMode === "yolo"),
+        mode: modeWithAutoApproveTools("normal", defaultToolApprovalMode === "danger-full-access"),
         collaborationMode: "normal",
         toolApprovalMode: defaultToolApprovalMode,
         tokenMode: "full",

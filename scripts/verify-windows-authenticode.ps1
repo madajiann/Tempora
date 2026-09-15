@@ -65,6 +65,9 @@ foreach ($name in $expectedPayload) {
 if ($signingFiles -notcontains "app/Tempora.exe") {
     throw "Payload signing list does not cover the Electron shell app/Tempora.exe"
 }
+if ($signingFiles -notcontains "app/resources/bin/tempora-cli-launcher.exe") {
+    throw "Payload signing list does not cover the CLI entry app/resources/bin/tempora-cli-launcher.exe"
+}
 
 $payloadFiles = @(Get-ChildItem -LiteralPath $PayloadDirectory -File -Filter "*.exe")
 if ($payloadFiles.Count -ne $expectedPayload.Count) {
@@ -112,7 +115,7 @@ try {
     $portableSources = @(
         [pscustomobject]@{ Portable = "tempora-launcher.exe"; Payload = "tempora-launcher.exe" },
         [pscustomobject]@{ Portable = "Tempora.exe"; Payload = "tempora-launcher.exe" },
-        [pscustomobject]@{ Portable = "tempora-cli.exe"; Payload = "tempora-cli.exe" },
+        [pscustomobject]@{ Portable = "tempora-cli.exe"; Payload = "app/resources/bin/tempora-cli-launcher.exe" },
         [pscustomobject]@{ Portable = (Join-Path $activeDir "tempora-desktop.exe"); Payload = "tempora-desktop.exe" },
         [pscustomobject]@{ Portable = (Join-Path $activeDir "tempora-update-helper.exe"); Payload = "tempora-update-helper.exe" },
         [pscustomobject]@{ Portable = (Join-Path $activeDir "tempora-cli.exe"); Payload = "tempora-cli.exe" }

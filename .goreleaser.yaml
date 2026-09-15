@@ -47,17 +47,20 @@ homebrew_casks:
       name: homebrew-tempora
       branch: main
       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
-    homepage: "https://github.com/madajiann/Tempora"
+    homepage: "https://github.com/esengine/DeepSeek-Reasonix"
     description: "Cache-first DeepSeek coding agent for the terminal."
     commit_author:
       name: tempora
       email: tempora@deepseek.com
-    hooks:
-      post:
-        install: |
-          if OS.mac?
-            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/tempora"]
-          end
+    # The CLI archive is not notarized, so the cask still strips quarantine.
+    # GoReleaser's hooks field renders the deprecated `postflight do` stanza;
+    # emit Homebrew's `postflight_steps` directly until upstream supports it.
+    custom_block: |
+      postflight_steps do
+        if OS.mac?
+          system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/tempora"]
+        end
+      end
 
 release:
   prerelease: auto

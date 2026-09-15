@@ -25,7 +25,7 @@ First Tempora release. Fork baseline: DeepSeek-Reasonix main @ 2026-09-11
 
 ### Changed
 
-- Full rebrand Reasonix → Tempora: Go module `tempora`, binary `tempora`,
+- Full rebrand Tempora → Tempora: Go module `tempora`, binary `tempora`,
   nested module `tempora/sdk/go`, config `tempora.toml`, config dirs
   (`%APPDATA%\tempora`, `~/.tempora`), env prefix `TEMPORA_`, UI strings,
   docs, site, npm wrapper metadata, release/signing configs (placeholder repo

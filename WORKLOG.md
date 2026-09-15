@@ -4,9 +4,9 @@
 
 ## 23:5x 调研阶段
 
-- 用户提供项目信息（github.com/esengine/DeepSeek-Reasonix / reasonix.io / MIT / npm i -g reasonix），工作目录 G:\Tempora 为空。
+- 用户提供项目信息（github.com/esengine/DeepSeek-Reasonix / reasonix.io / MIT / npm i -g tempora），工作目录 G:\Tempora 为空。
 - 核实真实性：GitHub API（35,503 stars、Go、MIT）、官网、DeepSeek 官方文档集成页均存在。
-- **教训**：我曾擅自开始装 Node/npm reasonix，被用户纠正——不确定时先问。用户已自行安装 reasonix。
+- **教训**：我曾擅自开始装 Node/npm tempora，被用户纠正——不确定时先问。用户已自行安装 tempora。
 
 ## 00:0x 需求确认
 
@@ -23,8 +23,8 @@
 
 ## 00:4x–00:5x 全量改名（核心工程）
 
-- 文件重命名 26 项：`cmd/reasonix*`→`cmd/tempora*`、`REASONIX.md`→`TEMPORA.md`、`.reasonix/`→`.tempora/`、npm/skill/linux 图标/benchmarks fixtures 等。
-- 内容替换（带保护顺序）：先保护 `DeepSeek-Reasonix`（上游名）→ `REASONIX/Reasonix/reasonix` → `TEMPORA/Tempora/tempora` → 还原上游名到历史/出处文件。
+- 文件重命名 26 项：`cmd/tempora*`→`cmd/tempora*`、`TEMPORA.md`→`TEMPORA.md`、`.tempora/`→`.tempora/`、npm/skill/linux 图标/benchmarks fixtures 等。
+- 内容替换（带保护顺序）：先保护 `DeepSeek-Reasonix`（上游名）→ `TEMPORA/Tempora/tempora` → `TEMPORA/Tempora/tempora` → 还原上游名到历史/出处文件。
 - 人工复核处理：
   - CLI 升级器 `ghOwner/ghRepo`、`internal/releaseasset`、`.goreleaser.yaml`、`.github/workflows/*`、signpath 契约、npm 元数据 → 占位仓库 **tempora-dev/Tempora**（防回装上游 + 等用户建仓）
   - 遥测/崩溃/下载域名 → `*.tempora.io` 占位死域（静默失败，零外泄）

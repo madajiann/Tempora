@@ -5,7 +5,7 @@
 - Protocol ID: `tempora.extension.v2`
 - Protocol major: `2`
 - Schema: `internal/extension/protocol/schema.generated.json`
-- Schema hash: `sha256:ac99dbabd4f6e354c89aced778d8a83646e7a06345cc67d08bcb3faf73bb56f5`
+- Schema hash: `sha256:1ffd87bf0f924d49bf8a8170676cc7b5ad4f135a498b75ee407ee7bda70ec028`
 
 Within major v2 only optional fields, new enum values, and new methods may
 be added; existing required fields, directions, limits, error reasons, and

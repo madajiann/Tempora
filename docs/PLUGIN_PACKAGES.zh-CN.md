@@ -238,7 +238,7 @@ Tempora 原生扩展使用精确的 v2 `apiVersion`：
 
 ```json
 {
-  "apiVersion": "tempora.io/plugin/v2",
+  "apiVersion": "reasonix.io/plugin/v2",
   "name": "example",
   "version": "1.0.0",
   "description": "Example extension",
@@ -275,7 +275,7 @@ Tempora 原生扩展使用精确的 v2 `apiVersion`：
 
 解析规则：
 
-- 原生 `tempora-plugin.json` 必须声明精确值 `tempora.io/plugin/v2`。
+- 原生 `tempora-plugin.json` 必须声明精确值 `reasonix.io/plugin/v2`。
   v1 与缺失版本都会被拒绝；不提供 v1 双读或自动迁移路径。
 - v2 是严格的：根对象或 `contributes`/`runtime` 下的任何未知字段都会
   报错并指明字段路径，避免拼写错误静默失效。
@@ -283,7 +283,7 @@ Tempora 原生扩展使用精确的 v2 `apiVersion`：
   agents、commands、prompts、hooks、MCP servers、themes 与 runtime；不会隐式
   导入根目录 `CLAUDE.md`、`hooks/hooks.json`、`.claude/settings.json` 或
   `.mcp.json` 等宿主专用 sidecar。
-- minor 别名（如 `tempora.io/plugin/v2.0`、`v2.1`）及未知 major version
+- minor 别名（如 `reasonix.io/plugin/v2.0`、`v2.1`）及未知 major version
   都会被拒绝。
 - `requires` 与 `provides` 声明依赖约束和能力上限；Sidecar handshake
   不能超出该上限。
@@ -397,7 +397,7 @@ Tempora 的对应实现，并不代表导入 Hook 的每一种运行时决策都
   Claude 当前词汇；`bash_output` 会补齐 `TaskOutput` 的非阻塞必填字段，`wait` 也会
   映射为 `TaskOutput`，单任务等待时包含 `task_id`，无限等待时省略可选的
   `timeout`，而不是谎报 0 毫秒预算。`AskUserQuestion` 会补省略的
-  `multiSelect:false` 和空选项描述，`TodoWrite` 会用任务内容补省略的 `activeForm`；
+  `multiSelect:false` 和空选项描述；`TodoWrite` 只接受扁平的 `content`、`status`，旧 `activeForm` 会被严格校验拒绝；
   `NotebookEdit` 则会从 Tempora 接受的别名补 `new_source`，删除或空单元格操作补空串。
   相对的 `file_path`/`notebook_path` 会按载荷 `cwd` 解析为绝对路径，
   与 Claude 文件工具契约一致，前缀匹配的防护 Hook 检查的就是工具实际访问的路径。

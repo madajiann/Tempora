@@ -72,7 +72,7 @@ for name in tempora-desktop.exe tempora-cli.exe tempora-update-helper.exe; do
 done
 
 # The Electron bundle is the app/ tree member of the active version.
-for name in "app/Tempora.exe" "app/resources/app.asar" "app/resources/build.json" "app/resources/app/index.html"; do
+for name in "app/Tempora.exe" "app/resources/app.asar" "app/resources/build.json" "app/resources/app/index.html" "app/resources/bin/tempora-cli-launcher.exe"; do
 	[ -f "$version_path/$name" ] || {
 		echo "Windows portable app tree member is missing: $active_dir/$name" >&2
 		exit 1
@@ -92,6 +92,14 @@ cmp -s "$staging/Tempora.exe" "$staging/tempora-launcher.exe" || {
 }
 if cmp -s "$staging/Tempora.exe" "$staging/tempora-cli.exe"; then
 	echo "Tempora.exe was overwritten by the CLI sidecar" >&2
+	exit 1
+fi
+cmp -s "$staging/tempora-cli.exe" "$version_path/app/resources/bin/tempora-cli-launcher.exe" || {
+	echo "tempora-cli.exe is not the packaged CLI forwarding entry" >&2
+	exit 1
+}
+if cmp -s "$staging/tempora-cli.exe" "$version_path/tempora-cli.exe"; then
+	echo "Windows portable duplicated the full CLI at InstallRoot" >&2
 	exit 1
 fi
 

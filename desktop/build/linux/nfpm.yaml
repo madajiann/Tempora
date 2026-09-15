@@ -20,6 +20,8 @@ description: |
 vendor: "Tempora Contributors"
 homepage: "https://github.com/madajiann/Tempora"
 license: "MIT"
+deb:
+  compression: xz
 scripts:
   postinstall: ./build/linux/postinstall.sh
 # Runtime libraries the bundled Chromium links against at runtime; apt pulls

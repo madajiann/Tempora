@@ -180,7 +180,7 @@ not depend on homepage badge semantics. Self-update behavior by platform:
 
 ### Verifying a download
 
-Artifacts are signed with minisign (public key ID `AF12CA46F4A9EBB0`). The `.minisig`
+Artifacts are signed with minisign (public key ID `10DABC2C9C841A91`). The `.minisig`
 signature sits next to each artifact in the release; verify with the
 [minisign](https://jedisct1.github.io/minisign/) CLI:
 

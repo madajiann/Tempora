@@ -1,11 +1,17 @@
 package main
 
+import (
+	"tempora/internal/boot"
+	"tempora/internal/control"
+)
+
 type desktopTabEntry struct {
 	ID                string  `json:"id"`
 	Scope             string  `json:"scope"`
 	WorkspaceRoot     string  `json:"workspaceRoot"`
 	TopicID           string  `json:"topicId"`
 	SessionPath       string  `json:"sessionPath,omitempty"`
+	SessionID         string  `json:"sessionId,omitempty"`
 	ReadOnly          bool    `json:"readOnly,omitempty"`
 	TakeoverSpectator bool    `json:"takeoverSpectator,omitempty"`
 	Model             string  `json:"model,omitempty"`
@@ -36,13 +42,14 @@ func persistedDesktopTabEntry(tab *WorkspaceTab) desktopTabEntry {
 		WorkspaceRoot:     tab.WorkspaceRoot,
 		TopicID:           tab.TopicID,
 		SessionPath:       tab.currentSessionPath(),
+		SessionID:         tab.SessionID,
 		ReadOnly:          tab.ReadOnly,
 		TakeoverSpectator: tab.Takeover.Spectator,
 		Model:             tab.model,
 		Effort:            cloneStringPtr(tab.effort),
-		AgentPreset:       currentTabAgentPreset(tab),
-		TokenMode:         currentTabTokenMode(tab),
-		QualityFloor:      tab.qualityFloor,
+		AgentPreset:       boot.AgentPresetStandard,
+		TokenMode:         boot.TokenModeFull,
+		QualityFloor:      control.QualityFloorStandard,
 		Mode:              persistedTabMode(currentTabMode(tab)),
 		Goal:              persistedTabGoal(tab),
 		ToolApprovalMode:  persistedToolApprovalMode(currentTabToolApprovalMode(tab)),

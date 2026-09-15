@@ -21,7 +21,7 @@ import (
 //	InstallRoot/
 //	  tempora-launcher.exe
 //	  Tempora.exe              (launcher alias when present or portable)
-//	  tempora-cli.exe          (CLI entry; full binary for now)
+//	  tempora-cli.exe          (small CLI entry)
 //	  current.json
 //	  versions/<version>/
 //	    tempora-desktop.exe
@@ -60,11 +60,20 @@ func activateVersionedWindowsFromStaging(claimed *repair.UpdateTransaction, stag
 	if err != nil {
 		return fmt.Errorf("versioned activate: %w", err)
 	}
-	rootFiles, err := stagedWindowsPayloadMembers(stagingDir, hashes, []string{"tempora-launcher.exe", "tempora-cli.exe"})
+	rootFiles, err := stagedWindowsPayloadMembers(stagingDir, hashes, []string{"tempora-launcher.exe"})
 	if err != nil {
 		return fmt.Errorf("versioned activate: %w", err)
 	}
-	launcherSrc, cliSrc := rootFiles[0].Path, rootFiles[1].Path
+	launcherSrc := rootFiles[0].Path
+	cliSrc := filepath.Join(stagingDir, "tempora-cli.exe")
+	const cliEntry = "app/resources/bin/tempora-cli-launcher.exe"
+	if _, ok := hashes[cliEntry]; ok {
+		entry, entryErr := stagedWindowsPayloadMembers(stagingDir, hashes, []string{cliEntry})
+		if entryErr != nil {
+			return fmt.Errorf("versioned activate: %w", entryErr)
+		}
+		cliSrc = entry[0].Path
+	}
 
 	requestID := repair.UpdateTransactionID(claimed)
 	if requestID == "" {

@@ -12,7 +12,6 @@ import { useComposerModeActions } from "../lib/useComposerModeActions";
 import { useRemoteComposerRuntimeActions, useRemoteComposerSend } from "../lib/useRemoteComposerIntegration";
 import type { RemoteNavigationCommand } from "../lib/remoteNavigationCommands";
 import type { CollaborationMode, TabMeta } from "../lib/types";
-import type { RestorableToolApprovalMode } from "../lib/toolApprovalMode";
 import type { ComposerProfile, UserPlanModeIntents } from "../lib/composerProfile";
 import type { State } from "../lib/useController";
 import type { Translator } from "../lib/i18n";
@@ -106,13 +105,11 @@ export type AppSessionCompositionInput = {
     setTabMetas: React.Dispatch<React.SetStateAction<TabMeta[]>>;
     tabOrderIds: string[];
     setTabOrderIds: React.Dispatch<React.SetStateAction<string[]>>;
-    yoloRestoreToolApprovalModesRef: { current: Record<string, RestorableToolApprovalMode> };
     userPlanModeByTabRef: { current: UserPlanModeIntents };
   };
   local: {
     setHistView: React.Dispatch<React.SetStateAction<import("./historyViewProjection").HistoryViewState | null>>;
     setTabRevealSignal: React.Dispatch<React.SetStateAction<number>>;
-    setTranscriptRevealSignal: React.Dispatch<React.SetStateAction<number>>;
     sidebarImDetailConnectionId: string;
     setSidebarImDetailConnectionId: React.Dispatch<React.SetStateAction<string>>;
     workspaceScopeActiveTabRef: { current: string | undefined };
@@ -154,8 +151,9 @@ export function useAppSessionComposition(input: AppSessionCompositionInput) {
     sendToTab, runShellForTab, steerForTab, cancel, cancelForTab,
     setControllerModeForTab, setCollaborationMode: setControllerCollaborationMode,
     setCollaborationModeForTab: setControllerCollaborationModeForTab,
-    setToolApprovalModeForTab, setQualityFloor: setControllerQualityFloor,
+    setToolApprovalModeForTab,
     setComposerProfileForTab: setControllerComposerProfileForTab, setGoalForTab: setControllerGoalForTab,
+    editGoalForTab: editControllerGoalForTab,
     resumeGoalForTab: resumeControllerGoalForTab, pauseGoalForTab: pauseControllerGoalForTab,
     clearGoalForTab: clearControllerGoalForTab,
     setModelForTab, setEffortForTab,
@@ -181,10 +179,10 @@ export function useAppSessionComposition(input: AppSessionCompositionInput) {
   const { sidebarImConnections, reloadConfigWarnings } = shell.preferences;
   const {
     composerProfilesByTab, setComposerProfilesByTab, tabMetas, setTabMetas, tabOrderIds, setTabOrderIds,
-    yoloRestoreToolApprovalModesRef, userPlanModeByTabRef,
+    userPlanModeByTabRef,
   } = input.stores;
   const {
-    setHistView, setTabRevealSignal, setTranscriptRevealSignal,
+    setHistView, setTabRevealSignal,
     sidebarImDetailConnectionId, setSidebarImDetailConnectionId,
     workspaceScopeActiveTabRef, workspaceControllerEpoch, setWorkspaceControllerEpoch,
     setDockRefreshKey, projectRevision, setProjectRevision,
@@ -296,8 +294,6 @@ export function useAppSessionComposition(input: AppSessionCompositionInput) {
     remote: remoteSurfaceActive,
     remoteSession,
     planIntentsRef: userPlanModeByTabRef,
-    setControllerQualityFloor,
-    showToast,
   });
   const {
     composerProfile, goal, collaborationMode, toolApprovalMode,
@@ -370,7 +366,7 @@ export function useAppSessionComposition(input: AppSessionCompositionInput) {
 
   useTabProjectionLifecycle({
     tabs: tabMetas, activeTabId, activeMeta: activeTab, meta: state.meta,
-    yoloRestoreRef: yoloRestoreToolApprovalModesRef, planIntentsRef: userPlanModeByTabRef,
+    planIntentsRef: userPlanModeByTabRef,
     setOrder: setTabOrderIds, setProfiles: setComposerProfilesByTab,
   });
 
@@ -435,7 +431,6 @@ export function useAppSessionComposition(input: AppSessionCompositionInput) {
     remote: remoteSurfaceActive, collaborationMode, toolApprovalMode, goal,
     operations: sessionOperations,
     planIntentsRef: userPlanModeByTabRef,
-    yoloRestoreRef: yoloRestoreToolApprovalModesRef,
     ports: {
       setMode: setControllerModeForTab, setCollaboration: setControllerCollaborationModeForTab,
       setApproval: setToolApprovalModeForTab, clearGoal: clearControllerGoalForTab,
@@ -486,8 +481,8 @@ export function useAppSessionComposition(input: AppSessionCompositionInput) {
     },
   });
   const { handleCancelActive } = controlCommands;
-  // Shift+Tab toggles only the collaboration axis; Ctrl/Cmd+Y toggles YOLO on the
-  // tool-permission axis while preserving the Ask/Auto base mode.
+  // Shift+Tab toggles only the collaboration axis. Permission presets are
+  // changed explicitly through the composer permission selector.
   const cycleMode = useCommittedCommand(() => {
     runGoalAction(() => applyCollaborationMode(collaborationMode === "plan" ? "normal" : "plan"));
   });
@@ -508,7 +503,6 @@ export function useAppSessionComposition(input: AppSessionCompositionInput) {
     ports: {
       remoteSend: (text) => remoteSend(text),
       sendToTab: (tabId, text) => sendToTab(tabId, text),
-      dismissTodoBatch: (tabId, batchKey) => desktopBridge.dismissTodoBatchForTab(tabId, batchKey),
     },
   });
   const { showTodos, scopedTodoBatch, todos, dismissTodos, handleTodoContinue } = todoPanelCommands;
@@ -552,7 +546,12 @@ export function useAppSessionComposition(input: AppSessionCompositionInput) {
     },
   });
 
-  const goalCommands = useComposerGoalCommands({ applyCollaborationMode, applyGoal });
+  const editGoal = async (objective: string, maxGoalRounds: number | null) => {
+    if (!activeTabId) return;
+    if (remoteSurfaceActive) await remoteSession.editGoal(objective, maxGoalRounds);
+    else await editControllerGoalForTab(activeTabId, objective, maxGoalRounds);
+  };
+  const goalCommands = useComposerGoalCommands({ applyCollaborationMode, applyGoal, editGoal });
   const remoteGoalActions = useRemoteComposerRuntimeActions({
     target: { tabId: activeTabId ?? "", sessionKey: activeSessionIdentity }, operations: sessionOperations,
     remote: remoteSurfaceActive, session: remoteSession, runGoalAction,
@@ -588,6 +587,7 @@ export function useAppSessionComposition(input: AppSessionCompositionInput) {
   });
 
   const workspacePanelCommands = useWorkspacePanelCommands({
+    sessionId: activeTabId ?? "",
     workspaceRoot: activeTab?.workspaceRoot ?? state.meta?.cwd ?? "",
     creation: desktopLayoutStyle === "creation", visible: surfaceWorkspacePanelRenderable,
     closeOverlays: closeTransientOverlays, clearLiveWidth: setLiveWorkspacePanelRenderWidth,
@@ -679,7 +679,7 @@ export function useAppSessionComposition(input: AppSessionCompositionInput) {
       ensureBlankSurface, createIsolatedWorktree, openChannelSession, resumeSession,
       registeredNavigationIntent, switchRemoteTab, openRemoteProject: desktopBridge.openRemoteProjectTab,
       listTabs: desktopBridge.listTabs, applyTabs: setTabMetas, seedTab: seedActiveTabMeta, listSessions, topicAccepted },
-    setTabRevealSignal, setTranscriptRevealSignal, setProjectRevision, setHistory: setHistView, t, showToast,
+    setTabRevealSignal, setProjectRevision, setHistory: setHistView, t, showToast,
     noteIntent: noteNavigationIntent, beginSurface: beginNavigationSurface, settleSurface: settleNavigationSurface,
     showChat: enterConversation,
   });

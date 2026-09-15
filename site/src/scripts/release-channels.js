@@ -1,6 +1,6 @@
 const STABLE_TAG = /^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
-const DESKTOP_DOWNLOAD_PAGE = "https://tempora.io/?download=desktop#start";
-const DESKTOP_ASSETS = [
+const DESKTOP_DOWNLOAD_PAGE = "https://reasonix.io/?download=desktop#start";
+const DESKTOP_REQUIRED_ASSETS = [
   ["platforms", "darwin-arm64", "Tempora-darwin-arm64.zip"],
   ["platforms", "darwin-amd64", "Tempora-darwin-amd64.zip"],
   ["platforms", "windows-amd64", "Tempora-windows-amd64-installer.exe"],
@@ -10,6 +10,11 @@ const DESKTOP_ASSETS = [
   ["downloads", "Tempora-darwin-universal.dmg", "Tempora-darwin-universal.dmg"],
   ["downloads", "Tempora-windows-amd64.zip", "Tempora-windows-amd64.zip"],
 ];
+const DESKTOP_ARCH_DMG_ASSETS = [
+  ["downloads", "Tempora-darwin-arm64.dmg", "Tempora-darwin-arm64.dmg"],
+  ["downloads", "Tempora-darwin-amd64.dmg", "Tempora-darwin-amd64.dmg"],
+];
+const DESKTOP_ASSETS = [...DESKTOP_REQUIRED_ASSETS, ...DESKTOP_ARCH_DMG_ASSETS];
 const DESKTOP_ASSET_NAMES = new Set(DESKTOP_ASSETS.map(([, , name]) => name));
 const OFFICIAL_DESKTOP_RELEASE_TAG = /^(?:desktop-)?(v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*))$/;
 const SHA256 = /^[0-9a-f]{64}$/;
@@ -149,10 +154,10 @@ export function cliReleaseModel(releases, requestedChannel) {
   const assets = releaseAssetMap(release);
   if (!assets) return null;
   const releaseURL = `https://github.com/esengine/DeepSeek-Reasonix/releases/tag/${parsed.tag}`;
-  const exactChangelogURL = `https://tempora.io/changelog/${parsed.tag}/`;
+  const exactChangelogURL = `https://reasonix.io/changelog/${parsed.tag}/`;
   const changelogURL = release.release_notes_url === exactChangelogURL
     ? exactChangelogURL
-    : "https://tempora.io/changelog/";
+    : "https://reasonix.io/changelog/";
   return {
     channel,
     version: parsed.tag,
@@ -166,7 +171,7 @@ export function cliReleaseModel(releases, requestedChannel) {
 function desktopAssetBases(parsed) {
   const tag = `desktop-${parsed.tag}`;
   return [
-    `https://dl.tempora.io/${tag}/`,
+    `https://dl.reasonix.io/${tag}/`,
     `https://github.com/esengine/DeepSeek-Reasonix/releases/download/${tag}/`,
     `https://github.com/esengine/DeepSeek-Reasonix/releases/download/${parsed.tag}/`,
   ];
@@ -185,7 +190,12 @@ function normalizeDesktopManifest(manifest, requestedChannel) {
 
   const allowedBases = desktopAssetBases(parsed);
   let selectedBase = "";
-  for (const [group, key, name] of DESKTOP_ASSETS) {
+  const archDMGCount = DESKTOP_ARCH_DMG_ASSETS.filter(([group, key]) => manifest?.[group]?.[key]).length;
+  if (archDMGCount !== 0 && archDMGCount !== DESKTOP_ARCH_DMG_ASSETS.length) return null;
+  const manifestAssets = archDMGCount === DESKTOP_ARCH_DMG_ASSETS.length
+    ? DESKTOP_ASSETS
+    : DESKTOP_REQUIRED_ASSETS;
+  for (const [group, key, name] of manifestAssets) {
     const asset = manifest?.[group]?.[key];
     if (
       !asset ||
@@ -214,14 +224,14 @@ function normalizeDesktopManifest(manifest, requestedChannel) {
     }
     selectedBase = base;
   }
-  return selectedBase ? { parsed } : null;
+  return selectedBase ? { parsed, manifestAssets } : null;
 }
 
 export function desktopReleaseModel(manifest, requestedChannel) {
   const normalized = normalizeDesktopManifest(manifest, requestedChannel);
   if (!normalized) return null;
-  const { parsed } = normalized;
-  const assets = Object.fromEntries(DESKTOP_ASSETS.map(([group, key, name]) => [
+  const { parsed, manifestAssets } = normalized;
+  const assets = Object.fromEntries(manifestAssets.map(([group, key, name]) => [
     name,
     manifest[group][key].url,
   ]));
@@ -230,9 +240,9 @@ export function desktopReleaseModel(manifest, requestedChannel) {
     version: parsed.tag,
     displayVersion: parsed.tag.slice(1),
     assets,
-    changelogURL: manifest.release_notes_url === `https://tempora.io/changelog/${parsed.tag}/`
+    changelogURL: manifest.release_notes_url === `https://reasonix.io/changelog/${parsed.tag}/`
       ? manifest.release_notes_url
-      : "https://tempora.io/changelog/",
+      : "https://reasonix.io/changelog/",
   };
 }
 
@@ -266,14 +276,19 @@ export function desktopGitHubReleaseModel(release) {
     }
     found[name] = rawURL;
   }
-  if (DESKTOP_ASSETS.some(([, , name]) => !found[name])) return null;
+  if (DESKTOP_REQUIRED_ASSETS.some(([, , name]) => !found[name])) return null;
+  const archDMGCount = DESKTOP_ARCH_DMG_ASSETS.filter(([, , name]) => found[name]).length;
+  if (archDMGCount !== 0 && archDMGCount !== DESKTOP_ARCH_DMG_ASSETS.length) return null;
+  const releaseAssets = archDMGCount === DESKTOP_ARCH_DMG_ASSETS.length
+    ? DESKTOP_ASSETS
+    : DESKTOP_REQUIRED_ASSETS;
 
   return {
     channel: "stable",
     version: match[1],
     displayVersion: match[1].slice(1),
-    assets: Object.fromEntries(DESKTOP_ASSETS.map(([, , name]) => [name, found[name]])),
-    changelogURL: "https://tempora.io/changelog/",
+    assets: Object.fromEntries(releaseAssets.map(([, , name]) => [name, found[name]])),
+    changelogURL: "https://reasonix.io/changelog/",
   };
 }
 

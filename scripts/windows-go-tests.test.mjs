@@ -6,7 +6,7 @@ import { isolatedGroups, selectPackages, testArgs } from "./windows-go-tests.mjs
 const packages = ["tempora/cmd/tempora", "tempora/internal/agent", "tempora/internal/agent/testutil",
   "tempora/internal/agentpreset", "tempora/internal/boot", "tempora/internal/control",
   "tempora/internal/control/child", "tempora/internal/extension/sidecar", "tempora/internal/proc",
-  "tempora/internal/newpackage", "tempora/tools/repolint"];
+  "tempora/internal/newpackage", "tempora/internal/winsandbox", "tempora/tools/repolint"];
 
 test("the full Windows groups cover every package exactly once, including new packages", () => {
   const grouped = ["full", ...isolatedGroups].flatMap(group => selectPackages(packages, group));
@@ -16,7 +16,7 @@ test("the full Windows groups cover every package exactly once, including new pa
 });
 
 test("PR smoke keeps platform coverage without duplicating isolated suites", () => {
-  assert.deepEqual(selectPackages(packages, "smoke"), ["tempora/cmd/tempora", "tempora/internal/extension/sidecar", "tempora/internal/proc"]);
+  assert.deepEqual(selectPackages(packages, "smoke"), ["tempora/cmd/tempora", "tempora/internal/extension/sidecar", "tempora/internal/proc", "tempora/internal/winsandbox"]);
   for (const group of isolatedGroups) {
     assert.deepEqual(testArgs(packages, group).slice(0, 4), ["test", "-p", "1", "-timeout=8m"]);
   }

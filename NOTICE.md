@@ -9,7 +9,7 @@ Tempora 是 [DeepSeek-Reasonix](https://github.com/esengine/DeepSeek-Reasonix)�
 
 ## 与上游的主要差异
 
-1. 品牌更名：Reasonix → Tempora（模块名 `tempora`、二进制 `tempora`、配置目录 `~/.tempora` / `%APPDATA%\tempora`、配置文件 `tempora.toml`、环境变量前缀 `TEMPORA_`）。
+1. 品牌更名：Tempora → Tempora（模块名 `tempora`、二进制 `tempora`、配置目录 `~/.tempora` / `%APPDATA%\tempora`、配置文件 `tempora.toml`、环境变量前缀 `TEMPORA_`）。
 2. 出厂默认模型新增智谱（Zhipu）GLM：`glm-flash`（glm-5.3-flash）与 `glm-pro`（glm-5.3），与 DeepSeek（`deepseek-flash` / `deepseek-pro`）并列开箱即用；上游预设目录（glm-cn / zai-global / 各 coding plan）中的 GLM 模型列表与默认模型同步更新。
 3. 图标更换为 Tempora 沙漏主题（保留上游的品牌蓝 #0153e5 方案与资产测试约束）。
 4. 自动更新 / 发布 / 遥测相关的上游基础设施（`crash.tempora.io`、`dl.tempora.io`、`tempora.io` 等域名为占位符，尚无真实后端）：CLI `tempora upgrade` 指向占位仓库 `tempora-dev/Tempora`（无发布时行为为“无可用更新”），不会回装上游产品。

@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRuntimeSession } from "./useRuntimeState";
+import { useT } from "./i18n";
+import { createLegacyRemotePolicyNoticeTracker } from "./legacyRemotePolicyNotice";
 import { app, onRemoteTabEvent, onRemoteTabState } from "./bridge";
 import type { CancelOutcome } from "./inboxCancel";
 import { historyMessagesToItems, initialState, reducer, type ControllerLiveStore, type State } from "./useController";
 import { TurnEventProjector } from "./turnEventProjection";
-import { resolveSnapshotItems, StaleCut, TranscriptSnapshotClient } from "./transcriptSnapshotClient";
+import { rebaseSnapshotContentPatches, resolveSnapshotItems, resolveSnapshotTool, StaleCut, TranscriptSnapshotClient } from "./transcriptSnapshotClient";
 import { getTranscriptStore } from "./transcriptStore";
-import { isAuthoritativeRemoteStatus, remoteCheckpoints, remoteComposerState, remoteGoalRuntime, remoteStatusToAction, type RemoteStatus } from "./remoteStatus";
-import type { CollaborationMode, CommandInfo, EffortInfo, GoalRuntime, GoalStatus, HistoryMessage, QualityFloor, RemoteTabStateValue, TabMeta, ToolApprovalMode, WireEvent } from "./types";
+import { isAuthoritativeRemoteStatus, remoteCheckpoints, remoteComposerState, remoteGoalRuntime, remoteGoalView, remoteStatusToAction, type RemoteStatus } from "./remoteStatus";
+import type { CollaborationMode, CommandInfo, EffortInfo, GoalLifecycleView, GoalRuntime, GoalStatus, HistoryMessage, QualityFloor, RemoteTabStateValue, TabMeta, ToolApprovalMode, WireEvent } from "./types";
 import type { RemoteAskAnswer } from "./remoteTypes";
 
 const loadRemoteSurface = () => import("../components/RemoteSessionSurface");
@@ -39,6 +41,7 @@ export interface RemoteSessionApi {
     qualityFloor: QualityFloor;
   };
   goalRuntime?: GoalRuntime;
+  goalView?: GoalLifecycleView;
   effort?: EffortInfo;
   /** Changes whenever the tab adopts a new/reconnected Serve session snapshot. */
   surfaceGeneration: number;
@@ -57,6 +60,7 @@ export interface RemoteSessionApi {
   setQualityFloor: (floor: QualityFloor) => Promise<void>;
   pauseGoal: () => Promise<void>;
   resumeGoal: () => Promise<void>;
+  editGoal: (objective: string, maxGoalRounds: number | null) => Promise<void>;
   steer: (input: string) => Promise<void>;
   cancelJob: (jobId: string) => Promise<boolean>;
   drainApprovals: (ids: string[]) => void;
@@ -65,7 +69,7 @@ export interface RemoteSessionApi {
 
 export function useRemoteComposer(
   session: RemoteSessionApi,
-  showToast: (message: string, level: "error") => void,
+  showToast: (message: string, level: "warn" | "error") => void,
 ) {
   const onSend = useCallback(async (displayText: string, submitText = displayText) => {
     const text = (submitText || displayText).trim();
@@ -87,13 +91,23 @@ export function useRemoteComposer(
 
 export function useActiveRemoteSession(
   activeTab: TabMeta | undefined,
-  showToast: (message: string, level: "error") => void,
+  showToast: (message: string, level: "warn" | "error") => void,
 ) {
-  const active = Boolean(activeTab?.remote);
-  const session = useRemoteSession(active && activeTab ? activeTab.id : undefined, activeTab?.remoteState, activeTab?.sessionPath);
-  const composer = useRemoteComposer(session, showToast);
-  return { active, session, ready: active && session.state === "ready" && session.hydrated && Boolean(session.composerProfile), ...composer };
+	const t = useT();
+	const active = Boolean(activeTab?.remote);
+	const session = useRemoteSession(active && activeTab ? activeTab.id : undefined, activeTab?.remoteState, activeTab?.sessionPath);
+	const composer = useRemoteComposer(session, showToast);
+	useEffect(() => {
+		if (!activeTab?.remote || !activeTab.id) return;
+    const legacyQuality = session.transcript.items.some(item => item.kind === "notice" && (item.code === "final_readiness" || item.variant === "delivery"));
+		const key = `${activeTab.id}\u0000${activeTab.sessionPath ?? ""}`;
+    const notice = legacyRemotePolicyNotice(key, session.composerProfile?.qualityFloor, session.goalRuntime?.stopCause, legacyQuality);
+    if (notice) showToast(t(notice), "warn");
+	}, [activeTab?.remote, activeTab?.id, activeTab?.sessionPath, session.composerProfile?.qualityFloor, session.transcript.items, session.goalRuntime?.stopCause, showToast, t]);
+	return { active, session, ready: active && session.state === "ready" && session.hydrated && Boolean(session.composerProfile), ...composer };
 }
+
+const legacyRemotePolicyNotice = createLegacyRemotePolicyNoticeTracker();
 
 export function useRemoteSession(tabId: string | undefined, initial?: RemoteTabStateValue, sessionPath?: string): RemoteSessionApi {
   const runtimeState = useRuntimeSession(tabId, sessionPath);
@@ -104,6 +118,7 @@ export function useRemoteSession(tabId: string | undefined, initial?: RemoteTabS
   const [commands, setCommands] = useState<CommandInfo[]>([]);
   const [composerProfile, setComposerProfile] = useState<RemoteSessionApi["composerProfile"]>();
   const [goalRuntime, setGoalRuntime] = useState<GoalRuntime>();
+  const [goalView, setGoalView] = useState<GoalLifecycleView>();
   const [effort, setEffortInfo] = useState<EffortInfo>();
   const [surfaceGeneration, setSurfaceGeneration] = useState(0);
   const [promptError, setPromptError] = useState("");
@@ -152,6 +167,7 @@ export function useRemoteSession(tabId: string | undefined, initial?: RemoteTabS
     setModelLabel(next.modelLabel);
     setComposerProfile(next.composerProfile);
     setGoalRuntime(remoteGoalRuntime(status));
+    setGoalView(remoteGoalView(status));
     setEffortInfo(next.effort);
   }, []);
 
@@ -173,6 +189,7 @@ export function useRemoteSession(tabId: string | undefined, initial?: RemoteTabS
     setCommands([]);
     setComposerProfile(undefined);
     setGoalRuntime(undefined);
+    setGoalView(undefined);
     setEffortInfo(undefined);
     hydratedRef.current = false;
     hydratingRef.current = false;
@@ -213,13 +230,14 @@ export function useRemoteSession(tabId: string | undefined, initial?: RemoteTabS
     projector.bindReset(async () => loadModern());
     const offContent = getTranscriptStore().registerContentResolver(tabId, async (entryId, field) => {
       try {
+      if (field === "tool") return await resolveSnapshotTool(snapshots, tabId, entryId, () => cancelled ? undefined : transcriptRef.current);
       const record = await resolveSnapshotItems(snapshots, tabId, entryId, () => cancelled ? undefined : transcriptRef.current, historyMessagesToItems,
-        (patches) => setTranscript((current) => reducer(current, { type: "history_items_patch", patches })));
+        (patches) => setTranscript((current) => reducer(current, { type: "history_items_patch", patches: rebaseSnapshotContentPatches(current, patches, field) })), field);
       return field === "reasoning" ? record?.message.reasoning : record?.message.content;
       } catch (error) {
         if (!(error instanceof StaleCut)) throw error;
         await loadModern();
-        return undefined;
+        throw error;
       }
     }, () => modern);
     olderRef.current = async () => {
@@ -707,9 +725,11 @@ export function useRemoteSession(tabId: string | undefined, initial?: RemoteTabS
 
   const setQualityFloor = useCallback(async (floor: QualityFloor) => {
     if (!tabId) return;
+    // Compatibility only. The new client never asks an old server to change
+    // policy behind the user's back; its next status remains authoritative.
+    if (floor !== "standard" && floor !== "delivery") throw new Error(`Unknown retired execution setting: ${floor}`);
     await app.SetRemoteTabQualityFloor(tabId, floor);
-    await refreshStatus();
-  }, [refreshStatus, tabId]);
+  }, [tabId]);
 
   const pauseGoal = useCallback(async () => {
     if (!tabId) return;
@@ -720,6 +740,12 @@ export function useRemoteSession(tabId: string | undefined, initial?: RemoteTabS
   const resumeGoal = useCallback(async () => {
     if (!tabId) return;
     await app.ResumeRemoteTabGoal(tabId);
+    await refreshStatus();
+  }, [refreshStatus, tabId]);
+
+  const editGoal = useCallback(async (objective: string, maxGoalRounds: number | null) => {
+    if (!tabId) return;
+    await app.EditRemoteTabGoal(tabId, objective, maxGoalRounds);
     await refreshStatus();
   }, [refreshStatus, tabId]);
 
@@ -734,8 +760,8 @@ export function useRemoteSession(tabId: string | undefined, initial?: RemoteTabS
 
   return {
     state, error, transcript, liveStore, hydrated, syncMode, loadOlderHistory: () => olderRef.current?.() ?? Promise.resolve(false), running: transcript.running, modelLabel, commands,
-    composerProfile, goalRuntime, effort, surfaceGeneration, promptError, submit, runManagementCommand, compact, cancelTurn,
-    approve, resolvePlanDecision, answer, clearExtensionForm, rewind, setModel, setEffort, setQualityFloor, pauseGoal, resumeGoal, steer, cancelJob,
+    composerProfile, goalRuntime, goalView, effort, surfaceGeneration, promptError, submit, runManagementCommand, compact, cancelTurn,
+    approve, resolvePlanDecision, answer, clearExtensionForm, rewind, setModel, setEffort, setQualityFloor, pauseGoal, resumeGoal, editGoal, steer, cancelJob,
     drainApprovals, retryHydration,
   };
 }

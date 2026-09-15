@@ -29,6 +29,8 @@ function desktopManifest(version: string, base?: string) {
       "linux-amd64": asset("Tempora-linux-amd64.deb"),
     },
     downloads: {
+      "Tempora-darwin-arm64.dmg": asset("Tempora-darwin-arm64.dmg"),
+      "Tempora-darwin-amd64.dmg": asset("Tempora-darwin-amd64.dmg"),
       "Tempora-darwin-universal.dmg": asset("Tempora-darwin-universal.dmg"),
       "Tempora-windows-amd64.zip": asset("Tempora-windows-amd64.zip"),
     },
@@ -249,6 +251,19 @@ describe("desktop Stable GitHub fallback", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("x-tempora-release-source")).toBe("r2-stable");
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps serving the historical two-download manifest", async () => {
+    const historical = desktopManifest("v1.17.21");
+    Reflect.deleteProperty(historical.downloads, "Tempora-darwin-arm64.dmg");
+    Reflect.deleteProperty(historical.downloads, "Tempora-darwin-amd64.dmg");
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify(historical), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await handleDesktopReleaseManifest("stable");
+    expect(response.status).toBe(200);
   });
 
   it("accepts null but rejects an empty downloads object as legacy", async () => {

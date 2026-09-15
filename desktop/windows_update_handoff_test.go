@@ -123,6 +123,14 @@ func TestWindowsInstallerScriptWaitsBeforeCopyingExecutable(t *testing.T) {
 		`nsExec::ExecToLog /OEM`,
 		`Tempora layout activator output:`,
 		`--activate-staging "$R9" --no-relaunch`,
+		`LangString temporaActivateBusy ${LANG_ENGLISH}`,
+		`LangString temporaActivateBusy ${LANG_SIMPCHINESE}`,
+		`LangString temporaActivateBusy ${LANG_TRADCHINESE}`,
+		`LangString temporaActivateLocked ${LANG_ENGLISH}`,
+		`LangString temporaActivateLocked ${LANG_SIMPCHINESE}`,
+		`LangString temporaActivateLocked ${LANG_TRADCHINESE}`,
+		`MessageBox MB_ICONEXCLAMATION|MB_RETRYCANCEL "$(temporaActivateBusy)" IDRETRY tempora_layout_activate`,
+		`MessageBox MB_ICONEXCLAMATION|MB_RETRYCANCEL "$(temporaActivateLocked)" IDRETRY tempora_layout_activate`,
 		`File "/oname=${TEMPORA_PAYLOAD_MANIFEST}" "${TEMPORA_PAYLOAD_MANIFEST}"`,
 		`File "/oname=${TEMPORA_PAYLOAD_SIGNATURE}" "${TEMPORA_PAYLOAD_SIGNATURE}"`,
 		`Delete "$INSTDIR\${TEMPORA_UPDATE_HELPER}"`,
@@ -138,6 +146,16 @@ func TestWindowsInstallerScriptWaitsBeforeCopyingExecutable(t *testing.T) {
 	finishPage := strings.Index(script, "!insertmacro MUI_PAGE_FINISH")
 	if finishPageHook < 0 || finishPage < 0 || finishPageHook > finishPage {
 		t.Fatalf("update-only finish page hook must be attached to MUI_PAGE_FINISH (hook=%d page=%d)", finishPageHook, finishPage)
+	}
+	activation := script[strings.Index(script, "Tempora layout activator output:"):]
+	retryPrompt := strings.Index(activation, `IDRETRY tempora_layout_activate`)
+	discardStaging := strings.Index(activation, `RMDir /r "$R9"`)
+	silentAbort := strings.Index(activation, "IfSilent tempora_activation_failed 0")
+	if retryPrompt < 0 || discardStaging < 0 || retryPrompt > discardStaging || silentAbort < 0 || silentAbort > retryPrompt {
+		t.Fatalf("activation failure must offer Retry before discarding the staged files, and silent installs must skip the prompt (retry=%d discard=%d silent=%d)", retryPrompt, discardStaging, silentAbort)
+	}
+	if levelBeforePrompt := strings.Index(activation, "SetErrorLevel"); levelBeforePrompt < retryPrompt {
+		t.Fatalf("SetErrorLevel must follow the Retry prompt so a successful retry exits 0 (level=%d retry=%d)", levelBeforePrompt, retryPrompt)
 	}
 	wait := strings.Index(script, "Call tempora.waitForExecutableUnlock")
 	copyFiles := strings.Index(script, "tempora_normal_install:")

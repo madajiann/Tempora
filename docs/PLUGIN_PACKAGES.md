@@ -262,7 +262,7 @@ Native Tempora extensions use the exact v2 `apiVersion`:
 
 ```json
 {
-  "apiVersion": "tempora.io/plugin/v2",
+  "apiVersion": "reasonix.io/plugin/v2",
   "name": "example",
   "version": "1.0.0",
   "description": "Example extension",
@@ -300,7 +300,7 @@ Native Tempora extensions use the exact v2 `apiVersion`:
 Parsing rules:
 
 - Native `tempora-plugin.json` manifests must declare the exact
-  `tempora.io/plugin/v2` value. v1 and missing versions are rejected; there
+  `reasonix.io/plugin/v2` value. v1 and missing versions are rejected; there
   is no v1 dual-read or automatic migration path.
 - v2 is strict: any unknown field — at the root or nested under
   `contributes`/`runtime` — is an error naming the field path, so typos fail
@@ -310,7 +310,7 @@ Parsing rules:
   native manifest. Host-specific sidecars such as a root `CLAUDE.md`,
   `hooks/hooks.json`, `.claude/settings.json`, or `.mcp.json` are not imported
   implicitly.
-- Minor aliases (`tempora.io/plugin/v2.0`, `v2.1`, …) and unknown major
+- Minor aliases (`reasonix.io/plugin/v2.0`, `v2.1`, …) and unknown major
   versions are rejected.
 - `requires` and `provides` declare dependency constraints and the capability
   ceiling enforced against the Sidecar handshake.
@@ -458,8 +458,8 @@ declarations and do not apply these fallbacks:
   omits `TaskOutput`'s optional `timeout` for an unbounded wait rather than
   claiming a `0`ms budget.
   `AskUserQuestion` supplies omitted `multiSelect:false` and empty option
-  descriptions, while `TodoWrite` derives an omitted `activeForm` from the
-  task content. `NotebookEdit` also supplies `new_source` from Tempora's
+  descriptions. `TodoWrite` accepts only flat `content` and `status` items; legacy `activeForm` is rejected by strict
+  validation. `NotebookEdit` also supplies `new_source` from Tempora's
   accepted aliases, or an empty string for delete/empty-cell operations.
   Relative `file_path`/`notebook_path` values are resolved
   absolute against the payload `cwd`, matching Claude's file-tool contract,

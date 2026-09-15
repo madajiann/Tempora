@@ -64,9 +64,9 @@ the following capability shape (irrelevant fields omitted):
       "sse": false
     },
     "_meta": {
-      "tempora.io": {
+      "reasonix.io": {
         "sessionSteer": {
-          "method": "_tempora.io/session/steer"
+          "method": "_reasonix.io/session/steer"
         }
       }
     }
@@ -89,12 +89,12 @@ tools run locally inside the Tempora process.
 Hosts supporting MCP elicitation advertise this in `initialize.clientCapabilities`:
 
 ```json
-{"_meta":{"tempora.io":{"mcpInteraction":{"supported":true,"schemaVersion":1}}}}
+{"_meta":{"reasonix.io":{"mcpInteraction":{"supported":true,"schemaVersion":1}}}}
 ```
 
 Tempora advertises the matching capability under
-`agentCapabilities._meta.tempora.io.mcpInteraction`, including the method
-`_tempora.io/mcp/request_interaction`. Negotiated sessions use the interactive
+`agentCapabilities._meta.reasonix.io.mcpInteraction`, including the method
+`_reasonix.io/mcp/request_interaction`. Negotiated sessions use the interactive
 MCP host profile. Clients without this exact opt-in keep the core profile and
 receive no new reverse requests. This applies to new, loaded and rebuilt sessions.
 
@@ -144,7 +144,7 @@ one mode selector:
 | Collaboration mode | `normal`, `plan`, `goal` | `modes` and `session/set_mode` |
 | Model | Configured `provider/model` entries | `configOptions` with id `model` |
 | Reasoning effort | Provider-supported levels or `auto` | `configOptions` with id `effort` |
-| Tool approval | `ask`, `auto`, `yolo` | `configOptions` with id `tool_approval` |
+| Permission preset | `read-only`, `workspace-write`, `danger-full-access` | `configOptions` with id `tool_approval` |
 
 Use `session/set_config_option` for model, effort, and tool approval.
 Its parameters are `sessionId`, `configId` and `value`, where `configId` is the
@@ -158,7 +158,7 @@ Its parameters are `sessionId`, `configId` and `value`, where `configId` is the
   "params": {
     "sessionId": "session-id",
     "configId": "tool_approval",
-    "value": "yolo"
+    "value": "danger-full-access"
   }
 }
 ```
@@ -175,11 +175,15 @@ send `session/set_config_option` with `configId` `agent_preset` or `work_mode`
 (including legacy aliases `profile`, `runtime_profile`, `token_mode`) receive a
 successful no-op: nothing switches, nothing rebuilds, and the result carries a
 `deprecatedNotice` explaining the adaptive standard execution.
+The returned `configOptions` list does not advertise these retired selectors or
+`quality_floor`. A known legacy `quality_floor` value is accepted as the same
+no-op, while unknown values still return `InvalidParams`.
 
 For older clients, `session/set_model` remains available. The legacy
-`session/set_mode` values `default` and `auto` are also accepted as Normal + Ask
-and Normal + Yolo respectively; new clients should use the independent
-selectors above.
+`session/set_mode` values `default` and `auto` are also accepted as Normal +
+Read only and Normal + Workspace access respectively; new clients should use
+the independent selectors above. Legacy permission values are accepted only as
+input migration aliases and are never advertised in `configOptions`.
 
 ## Prompts, updates, and approvals
 
@@ -198,10 +202,8 @@ Hosts should keep the `session/prompt` request open until Tempora returns its
 stop reason, while continuing to process requests and notifications in both
 directions.
 
-Tempora emits only ACP v1 stop reasons. A completed turn that still needs a
-final-readiness check sends a `[warning]` message chunk and returns `end_turn`;
-its vendor status remains `readiness_paused` so the host can offer recovery.
-An explicit model-round limit (`max_steps`) sends a `[warning]`, returns
+Tempora emits only ACP v1 stop reasons. Model completion ends the ordinary
+turn without a host readiness check or recovery action. An explicit model-round limit (`max_steps`) sends a `[warning]`, returns
 `max_turn_requests`, and records a paused vendor outcome. A host task-time,
 token, or cost budget also sends a `[warning]` and records a paused outcome,
 but returns `end_turn` because ACP v1 has no task-budget-specific stop reason.
@@ -237,7 +239,7 @@ proposal.
 Read the method name from:
 
 ```text
-agentCapabilities._meta["tempora.io"].sessionSteer.method
+agentCapabilities._meta["reasonix.io"].sessionSteer.method
 ```
 
 Do not assume the extension exists, and do not call the unnamespaced
@@ -252,7 +254,7 @@ Call the advertised method while `session/prompt` is active:
 {
   "jsonrpc": "2.0",
   "id": 2,
-  "method": "_tempora.io/session/steer",
+  "method": "_reasonix.io/session/steer",
   "params": {
     "sessionId": "session-id",
     "prompt": [
@@ -288,7 +290,7 @@ On `InvalidRequest`, the compatibility session did not queue the guidance.
 ## Durable session inbox extension
 
 Discover the versioned queue at
-`agentCapabilities._meta["tempora.io"].sessionInbox`. Schema version 1
+`agentCapabilities._meta["reasonix.io"].sessionInbox`. Schema version 1
 advertises method names in its `methods` map; clients must use those advertised
 names rather than constructing vendor method strings.
 
@@ -310,10 +312,10 @@ calling `setPaused` with `false`.
 ## Runtime reload and extension surface
 
 Tempora advertises two more extension points in
-`agentCapabilities._meta["tempora.io"]`:
+`agentCapabilities._meta["reasonix.io"]`:
 
 - `sessionReloadExtensions` — the vendor method
-  `_tempora.io/session/reloadExtensions`. Calling it reloads the session's
+  `_reasonix.io/session/reloadExtensions`. Calling it reloads the session's
   agent runtime (extensions, tools, skills, commands, hooks, providers) with
   the same fail-atomic semantics as the CLI `/reload` command: while a turn
   or rebuild is active exactly one reload is queued (`{"queued": true}`) and
@@ -321,7 +323,7 @@ Tempora advertises two more extension points in
   swapped atomically, and a failed rebuild keeps the previous runtime. After
   a successful reload Tempora pushes a fresh `available_commands_update`.
 - `extensionSurface` — structured extension UI support. Clients that also
-  advertise `tempora.io.extensionSurface` in their initialize `_meta`
+  advertise `reasonix.io.extensionSurface` in their initialize `_meta`
   receive structured extension surface payloads; clients without it receive
   equivalent text fallbacks (`agent_message_chunk` for cards and statuses,
   permission requests for extension forms), so no client-side handling is

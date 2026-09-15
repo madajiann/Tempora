@@ -38,7 +38,7 @@ assert.ok(
   "desktop/wails.json must be retired with the Wails shell",
 );
 
-for (const jobName of ["desktop-prepare", "desktop-go", "desktop-frontend", "desktop-browser", "desktop-macos", "desktop-windows"]) {
+for (const jobName of ["desktop-prepare", "desktop-go", "desktop-frontend", "desktop-browser-group", "desktop-macos", "desktop-windows"]) {
   assert.deepEqual(nodeVersions(jobBody(ciWorkflow, jobName)), ["24"]);
 }
 
@@ -99,6 +99,11 @@ assert.match(
   desktopBuildScript,
   /node "\$ROOT\/desktop\/packaging\/package\.mjs" "\$PLATFORM" "\$VERSION" "\$CHANNEL"/,
   "desktop builds must package the shell through desktop/packaging/package.mjs",
+);
+assert.match(
+  desktopBuildScript,
+  /darwin\) report_bundle="\$ROOT\/desktop\/build\/candidate\/darwin-\$\{arch\}\/\$\{APPNAME\}\.app"/,
+  "macOS size reports must inspect the retained candidate instead of the deleted staging app",
 );
 assert.doesNotMatch(desktopBuildScript, /wails build/);
 assert.doesNotMatch(

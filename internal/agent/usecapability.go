@@ -500,7 +500,6 @@ type UseCapabilityTool struct {
 	// leak into planner or child frontends before their Agent binds them.
 	toolResultMu      sync.RWMutex
 	toolResultSession func() *Session
-	readStrategyState func() *incompleteReadState
 	mcpListMu         sync.RWMutex
 	mcpListObserver   func(mcpListObservation)
 	// state is session-shared connection observation when built via
@@ -631,7 +630,8 @@ func (*UseCapabilityTool) Schema() json.RawMessage {
 			"action":{"type":"string","enum":["list","search","inspect","call","decline"],"description":"Use search for discovery, inspect one exact result, then call. list is diagnostic only."},
 			"capability_id":{"type":"string","description":"Capability id such as skill:review, mcp-server:github, or mcp-tool:github/search_issues. Not required for action=list."},
 			"query":{"type":"string","description":"Local catalog query required for action=search. No process or network is started."},
-			"limit":{"type":"integer","minimum":1,"maximum":8,"default":5,"description":"Maximum search results; defaults to 5."},
+			"limit":{"type":"integer","minimum":1,"maximum":100,"description":"Maximum results. Search defaults to 5 and allows at most 8; list defaults to 50 and allows at most 100."},
+			"cursor":{"type":"string","description":"Opaque cursor returned by action=list. It is valid only for the same catalog version."},
 			"arguments":{"type":"object","description":"Raw MCP tool arguments for action=call"},
 			"reason":{"type":"string","description":"Required non-empty reason when action=decline"}
 		},
@@ -690,8 +690,8 @@ func (t *UseCapabilityTool) ResolveCall(ctx context.Context, args json.RawMessag
 		if id == "" {
 			return tool.ResolvedCall{}, capabilityInputErrorf("capability_id is required for action=call")
 		}
-		if id == sessionToolResultCapabilityID || id == sessionReadStrategyReceiptCapabilityID {
-			return t.resolveSessionCapability(id, p.Arguments, base)
+		if id == sessionToolResultCapabilityID {
+			return t.resolveSessionToolResult(p.Arguments, base)
 		}
 		return t.resolveCall(ctx, id, p.Arguments, base)
 	default:

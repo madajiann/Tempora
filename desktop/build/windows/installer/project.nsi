@@ -1,5 +1,8 @@
 ﻿Unicode true
 
+SetCompressor /SOLID /FINAL lzma
+SetCompressorDictSize 32
+
 ####
 ## Tempora per-user NSIS installer (Electron shell).
 ##
@@ -182,14 +185,12 @@ LangString temporaUpdateTitle ${LANG_TRADCHINESE} "正在更新 Tempora"
 LangString temporaUpdateSubtitle ${LANG_ENGLISH} "Installing the verified update. Tempora will restart automatically."
 LangString temporaUpdateSubtitle ${LANG_SIMPCHINESE} "正在安装已验证的更新，完成后 Tempora 将自动重启。"
 LangString temporaUpdateSubtitle ${LANG_TRADCHINESE} "正在安裝已驗證的更新，完成後 Tempora 將自動重新啟動。"
-
-LangString temporaActivating ${LANG_ENGLISH} "Verifying and publishing files (the progress bar pauses for 1-2 minutes; this is normal, please wait)..."
-LangString temporaActivating ${LANG_SIMPCHINESE} "正在校验并提交安装文件（进度条会暂停 1-2 分钟，属正常现象，请勿关闭窗口）..."
-LangString temporaActivating ${LANG_TRADCHINESE} "正在校驗並提交安裝文件（進度條會暫停 1-2 分鐘，屬正常現象，請勿關閉窗口）..."
-
-LangString temporaActivateFailed ${LANG_ENGLISH} "Tempora could not activate the verified release. The previous version was left unchanged. Reason:"
-LangString temporaActivateFailed ${LANG_SIMPCHINESE} "Tempora 激活安装内容失败，已保留原有版本不受影响。详细原因："
-LangString temporaActivateFailed ${LANG_TRADCHINESE} "Tempora 激活安裝內容失敗，已保留原有版本不受影響。詳細原因："
+LangString temporaActivateBusy ${LANG_ENGLISH} "Tempora is still running or another installation is in progress. Close it and click Retry. Details: %APPDATA%\tempora\desktop-shell\logs\recovery.log"
+LangString temporaActivateBusy ${LANG_SIMPCHINESE} "Tempora 仍在运行，或另一个安装正在进行。请关闭后点击“重试”。详情见 %APPDATA%\tempora\desktop-shell\logs\recovery.log"
+LangString temporaActivateBusy ${LANG_TRADCHINESE} "Tempora 仍在執行，或另一個安裝正在進行。請關閉後點擊「重試」。詳情見 %APPDATA%\tempora\desktop-shell\logs\recovery.log"
+LangString temporaActivateLocked ${LANG_ENGLISH} "Tempora could not activate the release, often because a file was temporarily locked by antivirus or sync software. Wait a moment and click Retry. Details: %APPDATA%\tempora\desktop-shell\logs\recovery.log"
+LangString temporaActivateLocked ${LANG_SIMPCHINESE} "Tempora 无法启用新版本，通常是文件被杀毒或同步软件临时锁定。请稍候再点击“重试”。详情见 %APPDATA%\tempora\desktop-shell\logs\recovery.log"
+LangString temporaActivateLocked ${LANG_TRADCHINESE} "Tempora 無法啟用新版本，通常是檔案被防毒或同步軟體暫時鎖定。請稍候再點擊「重試」。詳情見 %APPDATA%\tempora\desktop-shell\logs\recovery.log"
 
 ## Preserve the first-pass generated uninstaller so the release workflow can
 ## Authenticode-sign it together with the other installed payload files.
@@ -551,42 +552,37 @@ tempora_normal_install:
     !else
     !error "${TEMPORA_GUARD} was not found; normal installs require the signed layout activator."
     !endif
-    DetailPrint "$(temporaActivating)"
+    DetailPrint "Tempora layout activator output:"
     StrCpy $R7 ""
     IfSilent +2 0
     StrCpy $R7 "--interactive-recovery"
-    nsExec::ExecToStack /OEM '"$PLUGINSDIR\${TEMPORA_LAYOUT_INSTALLER}" --install-root "$INSTDIR" --version "v${INFO_PRODUCTVERSION}" --activate-staging "$R9" --no-relaunch $R7'
+tempora_layout_activate:
+    nsExec::ExecToLog /OEM '"$PLUGINSDIR\${TEMPORA_LAYOUT_INSTALLER}" --install-root "$INSTDIR" --version "v${INFO_PRODUCTVERSION}" --activate-staging "$R9" --no-relaunch $R7'
     Pop $0
-    Pop $R6
     StrCmp $0 "0" tempora_layout_activated
-    ; Surface the real reason instead of a bare "aborted": details view,
-    ; a persistent log file, and (interactive) a MessageBox with the text.
     DetailPrint "Tempora layout activation failed with exit code $0; the previous version remains active."
-    StrCmp $R6 "" +2 0
-    DetailPrint $R6
-    ClearErrors
-    FileOpen $R5 "$INSTDIR\tempora-install-error.log" w
-    IfErrors tempora_errorlog_done
-    FileWrite $R5 "exit code: $0$\r$\n"
-    StrCmp $R6 "" tempora_errorlog_done
-    FileWrite $R5 $R6
-    FileWrite $R5 "$\r$\n"
-    FileClose $R5
-tempora_errorlog_done:
+    ; 1602 is the user's own cancel in the recovery dialog. Every other failure
+    ; keeps $R9 so Retry re-runs the activator against the same verified files;
+    ; the exit code is set only once the attempt is truly abandoned.
+    StrCmp $0 "1602" tempora_activation_cancelled
+    IfSilent tempora_activation_failed 0
+    StrCmp $0 "1618" tempora_activation_busy_prompt tempora_activation_locked_prompt
+tempora_activation_busy_prompt:
+    MessageBox MB_ICONEXCLAMATION|MB_RETRYCANCEL "$(temporaActivateBusy)" IDRETRY tempora_layout_activate
+    Goto tempora_activation_failed
+tempora_activation_locked_prompt:
+    MessageBox MB_ICONEXCLAMATION|MB_RETRYCANCEL "$(temporaActivateLocked)" IDRETRY tempora_layout_activate
+tempora_activation_failed:
     RMDir /r "$R9"
     StrCmp $0 "1618" 0 +3
     SetErrorLevel 1618
     Goto tempora_activation_abort
-    StrCmp $0 "1602" 0 +3
-    SetErrorLevel 1602
-    Goto tempora_activation_abort
     SetErrorLevel 1
+    Goto tempora_activation_abort
+tempora_activation_cancelled:
+    RMDir /r "$R9"
+    SetErrorLevel 1602
 tempora_activation_abort:
-    IfSilent tempora_activation_abort_quiet
-    MessageBox MB_ICONEXCLAMATION "$(temporaActivateFailed)$\n$\n$R6"
-    IfFileExists "$INSTDIR\tempora-install-error.log" 0 +2
-    Exec '"notepad.exe" "$INSTDIR\tempora-install-error.log"'
-tempora_activation_abort_quiet:
     Abort "Tempora could not activate the verified release. The previous version was left unchanged."
 
 tempora_layout_activated:

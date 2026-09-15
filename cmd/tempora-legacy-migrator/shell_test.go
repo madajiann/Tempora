@@ -54,11 +54,7 @@ func TestInstallerRejectsIncompleteShellBeforePointerCommit(t *testing.T) {
 
 func TestPortableFirstLaunchMigrationCarriesShellIntoActiveVersion(t *testing.T) {
 	root := t.TempDir()
-	for _, name := range installlayout.AllowedVersionMembers() {
-		if err := os.WriteFile(filepath.Join(root, name), []byte(name), 0755); err != nil {
-			t.Fatal(err)
-		}
-	}
+	writeFlatUnit(t, root, "portable")
 	if err := os.WriteFile(filepath.Join(root, installlayout.LauncherBinaryName()), []byte("launcher"), 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -84,5 +80,42 @@ func TestPortableFirstLaunchMigrationCarriesShellIntoActiveVersion(t *testing.T)
 	// Relaunch must resolve the active service, never the cleaned-up flat entry.
 	if _, err := installlayout.ActiveDesktopPath(root); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// The Linux tarball is exactly this member set (desktop/packaging/lib.mjs
+// linux-tar); its first launch must migrate without a versioned CLI name.
+func TestPortableUnixArchiveMigratesWithFlatCLIName(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Unix archive layout")
+	}
+	root := t.TempDir()
+	for _, name := range []string{"tempora-desktop", "tempora-launcher", "tempora-guard", "tempora"} {
+		if err := os.WriteFile(filepath.Join(root, name), []byte(name), 0755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, name := range installlayout.ShellRequiredNames(runtime.GOOS) {
+		p := filepath.Join(root, filepath.FromSlash(name))
+		if err := os.MkdirAll(filepath.Dir(p), 0755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, []byte(name), 0755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := migrateWithRelaunch(root, "v1.39.0", false); err != nil {
+		t.Fatal(err)
+	}
+	if data, err := os.ReadFile(filepath.Join(root, "versions", "v1.39.0", "tempora-cli")); err != nil || string(data) != "tempora" {
+		t.Fatalf("versioned CLI not published from the flat tempora binary: %v", err)
+	}
+	for _, name := range []string{"tempora", "tempora-desktop", "tempora-guard"} {
+		if _, err := os.Lstat(filepath.Join(root, name)); !os.IsNotExist(err) {
+			t.Errorf("flat %s left behind after migration", name)
+		}
+	}
+	if _, err := os.Lstat(filepath.Join(root, "tempora-launcher")); err != nil {
+		t.Fatalf("launcher entry must survive migration: %v", err)
 	}
 }

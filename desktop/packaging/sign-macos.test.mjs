@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, readlinkSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
@@ -30,7 +30,6 @@ test("signs both architectures of resource sidecars and framework binaries befor
     put("Contents/Frameworks/Squirrel.framework/Versions/A/Resources/Info.plist", plist("Squirrel", "FMWK"));
     const binaries = [
       "Contents/MacOS/Tempora",
-      "Contents/MacOS/tempora-desktop",
       "Contents/Resources/service/tempora",
       "Contents/Resources/service/tempora-desktop",
       "Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework",
@@ -49,6 +48,7 @@ test("signs both architectures of resource sidecars and framework binaries befor
       execFileSync("codesign", ["--remove-signature", file]);
       if (relative.endsWith(".dylib")) chmodSync(file, 0o644);
     }
+    symlinkSync("../Resources/service/tempora-desktop", join(app, "Contents/MacOS/tempora-desktop"));
     // Valid versioned framework symlinks are essential to exercise real seals.
     for (const name of ["Electron Framework", "Squirrel"]) {
       const framework = join(app, "Contents/Frameworks", `${name}.framework`);
@@ -69,6 +69,7 @@ test("signs both architectures of resource sidecars and framework binaries befor
     }
 
     await signMacOS(app, "-");
+    assert.equal(readlinkSync(join(app, "Contents/MacOS/tempora-desktop")), "../Resources/service/tempora-desktop");
     for (const relative of binaries) {
       for (const arch of ["arm64", "x86_64"]) {
         const result = spawnSync("codesign", ["--display", "--verbose=4", "--arch", arch, join(app, relative)], { encoding: "utf8" });

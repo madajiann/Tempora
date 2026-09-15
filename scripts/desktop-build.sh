@@ -6,8 +6,8 @@
 #
 # Output lands in <repo>/dist/ with stable, platform-keyed names that
 # desktop/cmd/sign's `manifest` subcommand maps back to update.PlatformKey:
-#   macOS:   Tempora-darwin-<arch>.zip                  (ditto archive; updater channel)
-#            Tempora-darwin-universal.dmg               (drag-to-install; human download)
+#   macOS:   Tempora-darwin-<arm64|amd64>.zip           (ditto archive; updater channel)
+#            Tempora-darwin-<arch>.dmg                  (drag-to-install; human download)
 #   Windows: Tempora-windows-<arch>-installer.exe       (NSIS per-user installer; updater channel)
 #            Tempora-windows-<arch>.zip                 (portable human download)
 #   Linux:   Tempora-linux-<arch>.tar.gz                (desktop + guard + CLI + app/ tree; portable updater)
@@ -25,6 +25,8 @@
 #     `pnpm --dir desktop install --frozen-lockfile` when node_modules is absent)
 set -euo pipefail
 
+build_started_seconds=$SECONDS
+
 PLATFORM="${1:?usage: desktop-build.sh <os/arch> <version> [channel]}"
 VERSION="${2:?usage: desktop-build.sh <os/arch> <version> [channel]}"
 CHANNEL="${3:-stable}"
@@ -37,6 +39,7 @@ APPNAME="Tempora"            # Electron productName -> Tempora.app / Tempora.exe
 BINNAME="tempora-desktop"    # Go desktop service (and the active version entry the launcher starts)
 CLINAME="tempora"            # bundled CLI sidecar used for remote serve upload
 WINDOWS_CLINAME="tempora-cli" # Windows cannot store Tempora.exe and tempora.exe separately
+WINDOWS_CLI_ENTRY="tempora-cli-launcher.exe"
 GUARDNAME="tempora-guard"
 LAUNCHERNAME="tempora-launcher"
 windows_resource_tool_dir=""
@@ -63,9 +66,9 @@ esac
 # desktop/ is a nested Go module, so the Go toolchain cannot discover the
 # repository VCS revision for the service binary. Link the same source identity
 # into both Desktop and its CLI sidecar.
-SOURCE_REVISION="$(cd "$ROOT" && git rev-parse --verify HEAD)"
-git_in_root() { (cd "$ROOT" && git "$@"); }
-if ! git_in_root diff-index --quiet HEAD --; then
+SOURCE_REVISION="$(git -C "$ROOT" rev-parse --verify HEAD)"
+SOURCE_SHA="$SOURCE_REVISION"
+if ! git -C "$ROOT" diff-index --quiet HEAD --; then
 	SOURCE_REVISION="$SOURCE_REVISION+dirty"
 fi
 # Short commit + real UTC build clock for CLI `version --verbose/--json`.
@@ -208,15 +211,16 @@ darwin)
 	staging=$(mktempd)
 	app="$staging/${APPNAME}.app"
 	cp -R "build/electron/${os}-${arch}/${APPNAME}.app" "$app"
-	# The bundle's main executable is Electron; the Go service lives next to it
-	# in Contents/MacOS and is also copied to Contents/Resources/service/ because
-	# the shell's default service lookup is process.resourcesPath/service/…
-	# (launchers that do not set TEMPORA_DESKTOP_SERVICE still find it there).
+	# The bundle's main executable is Electron. Keep one Go service payload under
+	# Resources and a relative compatibility symlink in MacOS for older launchers.
 	bundle_executable=$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" "$app/Contents/Info.plist")
 	[ "$bundle_executable" = "$APPNAME" ] || { echo "macOS bundle executable is $bundle_executable, want $APPNAME" >&2; exit 1; }
 	mkdir -p "$app/Contents/Resources/service"
-	cp "$service_out" "$app/Contents/MacOS/$BINNAME"
 	cp "$service_out" "$app/Contents/Resources/service/$BINNAME"
+	rm -f "$app/Contents/MacOS/$BINNAME"
+	ln -s "../Resources/service/$BINNAME" "$app/Contents/MacOS/$BINNAME"
+	[ "$(readlink "$app/Contents/MacOS/$BINNAME")" = "../Resources/service/$BINNAME" ] || { echo "macOS service compatibility link is invalid" >&2; exit 1; }
+	[ -x "$app/Contents/MacOS/$BINNAME" ] || { echo "macOS service compatibility link is broken" >&2; exit 1; }
 	# Contents/MacOS already holds the Electron executable "Tempora"; on
 	# case-insensitive APFS a "tempora" sibling would overwrite it, so the
 	# CLI sidecar ships next to the service copy the shell actually launches
@@ -256,25 +260,26 @@ darwin)
 		node "$ROOT/desktop/packaging/sign-macos.mjs" "$app" -
 	fi
 
-	if [ "$arch" = universal ]; then
-		# One universal .app covers Intel + Apple Silicon; publish it under both
-		# manifest keys so the updater's darwin-arm64/darwin-amd64 lookup finds it
-		# (avoids a scarce macos-13 Intel runner).
-		ditto -c -k --keepParent "$app" "$ROOT/dist/${APPNAME}-darwin-arm64.zip"
-		ditto -c -k --keepParent "$app" "$ROOT/dist/${APPNAME}-darwin-amd64.zip"
-	else
-		ditto -c -k --keepParent "$app" "$ROOT/dist/${APPNAME}-darwin-${arch}.zip"
+	# Updaters receive a native-architecture app. Universal remains a human
+	# download only, so a fat bundle is never copied under architecture names.
+	if [ "$arch" != universal ]; then
+		ditto -c -k --zlibCompressionLevel 9 --keepParent "$app" "$ROOT/dist/${APPNAME}-darwin-${arch}.zip"
 	fi
+	candidate_dir="$ROOT/desktop/build/candidate/darwin-${arch}"
+	rm -rf "$candidate_dir"
+	mkdir -p "$candidate_dir"
+	cp -R "$app" "$candidate_dir/${APPNAME}.app"
+	node "$ROOT/desktop/packaging/verify.mjs" "$candidate_dir/${APPNAME}.app" --kind darwin-app-dir
 	if [ "${DESKTOP_BUILD_SKIP_DMG:-0}" = "1" ]; then
 		echo "==> skip DMG packaging (DESKTOP_BUILD_SKIP_DMG=1)"
 	else
-		# A drag-to-Applications .dmg for first-time human download. Named -universal so
-		# cmd/sign's substring match (darwin-arm64/darwin-amd64) skips it: the .zip stays
-		# the updater channel, the .dmg is release-page only. create-dmg can exit nonzero
+		# A drag-to-Applications .dmg for first-time human download. cmd/sign uses an
+		# exact filename table, so the .zip stays the updater channel and the .dmg is
+		# release-page only. create-dmg can exit nonzero
 		# while still writing the image, so gate on the file existing, not the exit code.
 		dmgsrc=$(mktempd)
 		cp -R "$app" "$dmgsrc/${APPNAME}.app"
-		dmg="$ROOT/dist/${APPNAME}-darwin-universal.dmg"
+		dmg="$ROOT/dist/${APPNAME}-darwin-${arch}.dmg"
 		create-dmg \
 			--volname "$APPNAME" \
 			--window-size 540 380 \
@@ -326,6 +331,11 @@ windows)
 	cli_out="$installer_dir/$WINDOWS_CLINAME.exe"
 	build_cli
 	stamp_windows_executable "$cli_out" "Tempora CLI" "$WINDOWS_CLINAME" "$WINDOWS_CLINAME.exe"
+	cli_entry_out="$ROOT/desktop/build/bin/$WINDOWS_CLI_ENTRY"
+	echo "==> go build Windows CLI entry"
+	(cd "$ROOT" && GOOS=windows GOARCH="$arch" CGO_ENABLED=0 go build -trimpath \
+		-ldflags="-s -w" -o "$cli_entry_out" ./cmd/tempora-cli-launcher)
+	stamp_windows_executable "$cli_entry_out" "Tempora CLI Launcher" "tempora-cli-launcher" "$WINDOWS_CLI_ENTRY"
 
 	service_out="$ROOT/desktop/build/bin/$BINNAME.exe"
 	build_service
@@ -336,6 +346,8 @@ windows)
 	cp "$service_out" "$installer_dir/$BINNAME.exe"
 
 	package_shell
+	mkdir -p "build/electron/${os}-${arch}/app/resources/bin"
+	cp "$cli_entry_out" "build/electron/${os}-${arch}/app/resources/bin/$WINDOWS_CLI_ENTRY"
 	# The Electron bundle becomes versions/v<ver>/app/ at install time; NSIS
 	# consumes it as the "app" directory next to project.nsi.
 	rm -rf "$installer_dir/app"
@@ -368,6 +380,7 @@ windows)
 	# SignPath artifact configuration and the Authenticode verifier consume it.
 	node "$ROOT/desktop/packaging/signing-files.mjs" "$payload_dir"
 	VERSION="$VERSION" "$ROOT/scripts/package-windows-desktop.sh" "$arch" "$payload_dir"
+	node "$ROOT/desktop/packaging/verify.mjs" "$ROOT/dist/${APPNAME}-windows-${arch}.zip" --kind windows-portable-zip
 	;;
 linux)
 	service_out="$ROOT/desktop/build/bin/$BINNAME"
@@ -397,8 +410,8 @@ linux)
 	# Portable Linux tarball: service + thin launcher + one-shot migrator
 	# (compat name tempora-guard) + CLI + the Electron app/ tree. After the
 	# migrator runs, Guard self-deletes.
-	tar -czf "$ROOT/dist/${APPNAME}-linux-${arch}.tar.gz" -C build/bin \
-		"$BINNAME" "$LAUNCHERNAME" "$GUARDNAME" "$CLINAME" app
+	tar -cf - -C build/bin "$BINNAME" "$LAUNCHERNAME" "$GUARDNAME" "$CLINAME" app | \
+		gzip -9 >"$ROOT/dist/${APPNAME}-linux-${arch}.tar.gz"
 	# Build the privileged update helper shipped inside the .deb. Portable tarball
 	# installs do not need it; only the dpkg package installs helper + Polkit policy.
 	echo "==> go build tempora-update-helper"
@@ -429,12 +442,31 @@ linux)
 	dpkg-deb --contents "$deb_path" | grep -E 'usr/share/polkit-1/actions/io.tempora.desktop.update.policy' >/dev/null
 	dpkg-deb --contents "$deb_path" | grep -E "usr/lib/tempora/app/${APPNAME}" >/dev/null
 	dpkg-deb --contents "$deb_path" | grep -E 'usr/lib/tempora/app/chrome-sandbox' >/dev/null
+	node "$ROOT/desktop/packaging/verify.mjs" "$ROOT/dist/${APPNAME}-linux-${arch}.tar.gz" --kind linux-tar
+	node "$ROOT/desktop/packaging/verify.mjs" "$deb_path" --kind linux-deb
 	;;
 *)
 	echo "unsupported os: $os" >&2
 	exit 1
 	;;
 esac
+
+case "$os" in
+# The staging directory is intentionally removed after the signed app is
+# copied into build/candidate.  Reports must inspect that published candidate,
+# otherwise every successful macOS package build fails after artifact
+# verification with ENOENT.
+darwin) report_bundle="$ROOT/desktop/build/candidate/darwin-${arch}/${APPNAME}.app" ;;
+windows) report_bundle="$ROOT/desktop/build/windows/signing-payload" ;;
+linux) report_bundle="$ROOT/desktop/build/bin" ;;
+esac
+TEMPORA_COMMIT="$SOURCE_SHA" TEMPORA_BUILD_SECONDS="$((SECONDS - build_started_seconds))" \
+	node "$ROOT/desktop/packaging/size-report.mjs" \
+		--platform "$PLATFORM" \
+		--version "$VERSION" \
+		--bundle "$report_bundle" \
+		--dist "$ROOT/dist" \
+		--output "$ROOT/desktop/build/reports/${os}-${arch}"
 
 echo "==> packaged into dist/:"
 ls -la "$ROOT/dist"

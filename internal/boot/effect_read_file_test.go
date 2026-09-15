@@ -8,6 +8,7 @@ import (
 	"sync"
 	"testing"
 
+	"tempora/internal/control"
 	"tempora/internal/event"
 	"tempora/internal/provider"
 )
@@ -128,7 +129,7 @@ model = "x"
 		t.Fatalf("Build: %v", err)
 	}
 	defer ctrl.Close()
-	ctrl.SetToolApprovalMode("yolo")
+	ctrl.ApplyHeadlessApprovalMode(control.ToolApprovalDangerFullAccess)
 
 	if err := ctrl.Run(context.Background(), "read big.txt then commit"); err != nil {
 		t.Fatalf("Run: %v", err)

@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import {
+  checkEntryModes,
   checkMembers,
   inferArtifactKind,
   listZipEntries,
@@ -13,6 +14,7 @@ import {
   packagerOptions,
   parseSigningFileList,
   parseTarget,
+  parseVerboseListing,
   PRODUCT,
   readProductIdentity,
   requiredMembers,
@@ -21,12 +23,13 @@ import {
   shellIgnore,
   signingFileList,
   versionTag,
+  validateMacServiceLink,
   WINDOWS_FLAT_PAYLOAD,
 } from "./lib.mjs";
 
 const desktop = dirname(dirname(fileURLToPath(import.meta.url)));
 const read = (path) => readFileSync(join(desktop, path), "utf8");
-const identity = { projectName: "tempora-desktop", companyName: "Tempora", productName: "Tempora", copyright: "Copyright © 2026 Tempora Contributors" };
+const identity = { projectName: "tempora-desktop", companyName: "Tempora", productName: "Tempora", copyright: "Copyright © 2026 Reasonix Contributors" };
 
 test("build scripts preserve paths, arguments and environment without shell encoding", (t) => {
   const directory = mkdtempSync(join(tmpdir(), "tempora build & 中文 "));
@@ -71,7 +74,7 @@ test("the product identity is a frozen constant and keeps the Wails-era bundle i
   assert.equal(product.productName, "Tempora");
   assert.equal(product.projectName, "tempora-desktop");
   assert.equal(product.companyName, "Tempora");
-  assert.match(product.copyright, /Tempora Contributors/);
+  assert.match(product.copyright, /Reasonix Contributors/);
   assert.equal(PRODUCT.bundleId, "com.wails.tempora-desktop");
 });
 
@@ -130,7 +133,7 @@ test("NSIS project defines replace the Wails-generated INFO_* values", () => {
   assert.match(defines, /!define INFO_COMPANYNAME "Tempora"\r\n/);
   assert.match(defines, /!define INFO_PRODUCTNAME "Tempora"\r\n/);
   assert.match(defines, /!define INFO_PRODUCTVERSION "1\.2\.3"\r\n/);
-  assert.match(defines, /!define INFO_COPYRIGHT "Copyright © 2026 Tempora Contributors"\r\n/);
+  assert.match(defines, /!define INFO_COPYRIGHT "Copyright © 2026 Reasonix Contributors"\r\n/);
   assert.match(defines, /!define TEMPORA_VERSION_TAG "v1\.2\.3-rc\.1"\r\n/);
 });
 
@@ -157,6 +160,7 @@ test("required members cover every artifact and the checks report gaps", () => {
   assert.deepEqual(checkMembers([...macEntries, "Tempora.app/", "Tempora.app/Contents/"], "darwin-zip"), { missing: [], forbidden: [] });
   assert.deepEqual(checkMembers(macEntries.slice(1), "darwin-zip").missing, [macEntries[0]]);
   assert.deepEqual(checkMembers([...macEntries, "Tempora.app/Contents/MacOS/tempora-guard"], "darwin-zip").forbidden, ["Tempora.app/Contents/MacOS/tempora-guard"]);
+  assert.deepEqual(checkMembers([...macEntries, "Tempora.app/Contents/Resources/main.cjs.map"], "darwin-zip").forbidden, [String(/(^|\/)(?:[^/]+\.map|__tests__|testdata|\.cache|coverage|npm-debug\.log|pnpm-debug\.log|yarn-error\.log)(?:$|\/)/)]);
   assert.ok(macEntries.includes("Tempora.app/Contents/MacOS/tempora-desktop"));
   assert.ok(macEntries.includes("Tempora.app/Contents/Resources/service/tempora"));
   assert.ok(macEntries.includes("Tempora.app/Contents/Resources/service/tempora-desktop"));
@@ -165,7 +169,7 @@ test("required members cover every artifact and the checks report gaps", () => {
   const portable = [
     "Tempora.exe", "tempora-launcher.exe", "tempora-cli.exe", "current.json",
     "versions/v1.2.3-rc.1/tempora-desktop.exe", "versions/v1.2.3-rc.1/tempora-update-helper.exe", "versions/v1.2.3-rc.1/tempora-cli.exe",
-    "versions/v1.2.3-rc.1/app/Tempora.exe", "versions/v1.2.3-rc.1/app/resources/app.asar", "versions/v1.2.3-rc.1/app/resources/app/index.html", "versions/v1.2.3-rc.1/app/resources/build.json",
+    "versions/v1.2.3-rc.1/app/Tempora.exe", "versions/v1.2.3-rc.1/app/resources/bin/tempora-cli-launcher.exe", "versions/v1.2.3-rc.1/app/resources/app.asar", "versions/v1.2.3-rc.1/app/resources/app/index.html", "versions/v1.2.3-rc.1/app/resources/build.json",
   ];
   assert.deepEqual(checkMembers(portable, "windows-portable-zip"), { missing: [], forbidden: [] });
   assert.deepEqual(checkMembers(portable.filter((name) => !name.endsWith("app/Tempora.exe")), "windows-portable-zip").missing, [String(/^versions\/v[^/]+\/app\/Tempora\.exe$/)]);
@@ -182,6 +186,23 @@ test("required members cover every artifact and the checks report gaps", () => {
   assert.deepEqual(checkMembers([...deb, "./usr/bin/tempora-guard"], "linux-deb").forbidden, ["usr/bin/tempora-guard"]);
   assert.deepEqual(checkMembers(requiredMembers("linux-app-dir").map(String), "linux-app-dir").missing, []);
   assert.throws(() => checkMembers([], "nope"), /unknown artifact kind/);
+});
+
+test("macOS service compatibility link stays relative, internal and live", (t) => {
+  const root = mkdtempSync(join(tmpdir(), "tempora-link-"));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const app = join(root, "Tempora.app");
+  const macOS = join(app, "Contents", "MacOS");
+  const service = join(app, "Contents", "Resources", "service");
+  mkdirSync(macOS, { recursive: true });
+  mkdirSync(service, { recursive: true });
+  writeFileSync(join(service, "tempora-desktop"), "service");
+  symlinkSync("../Resources/service/tempora-desktop", join(macOS, "tempora-desktop"));
+  assert.deepEqual(validateMacServiceLink(app), []);
+
+  rmSync(join(macOS, "tempora-desktop"));
+  symlinkSync("../../../../outside", join(macOS, "tempora-desktop"));
+  assert.match(validateMacServiceLink(app).join("\n"), /does not resolve|dangling/);
 });
 
 test("artifact kinds are inferred from release names and bundle shapes", () => {
@@ -238,6 +259,37 @@ test("zip listing reads the central directory without extracting", () => {
   }
 });
 
+test("Linux listings reject a private app directory and unreadable files", () => {
+  const deb = parseVerboseListing([
+    "drwxr-xr-x root/root         0 2026-09-05 10:00 ./",
+    "drwxr-xr-x root/root         0 2026-09-05 10:00 ./usr/lib/tempora/app/",
+    "-rwxr-xr-x root/root 123456789 2026-09-05 10:00 ./usr/lib/tempora/app/Tempora",
+    "-rwsr-xr-x root/root    123456 2026-09-05 10:00 ./usr/lib/tempora/app/chrome-sandbox",
+    "lrwxrwxrwx root/root         0 2026-09-05 10:00 ./usr/lib/tempora/app/link -> Tempora",
+  ]);
+  assert.deepEqual(deb.map((row) => row.name), ["./", "./usr/lib/tempora/app/", "./usr/lib/tempora/app/Tempora", "./usr/lib/tempora/app/chrome-sandbox", "./usr/lib/tempora/app/link"]);
+  assert.deepEqual(checkEntryModes(deb, "linux-deb"), []);
+  assert.deepEqual(checkMembers(deb.map((row) => row.name), "linux-deb").forbidden, []);
+
+  const privateApp = parseVerboseListing(["drwx------ root/root 0 2026-09-05 10:00 ./usr/lib/tempora/app/"]);
+  assert.deepEqual(checkEntryModes(privateApp, "linux-deb"), ["./usr/lib/tempora/app/ has mode drwx------; directories must be drwxr-xr-x"]);
+  const privateFile = parseVerboseListing(["-rw-r----- root/root 10 2026-09-05 10:00 ./usr/lib/tempora/app/resources/app.asar"]);
+  assert.deepEqual(checkEntryModes(privateFile, "linux-deb"), ["./usr/lib/tempora/app/resources/app.asar has mode -rw-r-----; files must be world-readable"]);
+  const foreignOwner = parseVerboseListing(["-rwxr-xr-x runner/docker 10 2026-09-05 10:00 ./usr/bin/tempora-desktop"]);
+  assert.deepEqual(checkEntryModes(foreignOwner, "linux-deb"), ["./usr/bin/tempora-desktop is owned by runner/docker; package members must be root/root"]);
+
+  const tar = parseVerboseListing([
+    "drwxr-xr-x runner/docker 0 2026-09-05 10:00:00 app/",
+    "-rwxr-xr-x runner/docker 42 2026-09-05 10:00:00 tempora-desktop",
+  ]);
+  assert.deepEqual(checkEntryModes(tar, "linux-tar"), []);
+  assert.throws(() => parseVerboseListing(["drwxr-xr-x  0 runner docker 0 Sep  5 10:00 app/"]), /unrecognised listing line/);
+});
+
+test("the packaged app directory is made world-readable before Linux packaging", () => {
+  assert.match(read("packaging/package.mjs"), /chmodSync\(bundle, 0o755\)/);
+});
+
 test("the Linux package inputs install the Electron tree beside the update helper", () => {
   const nfpm = read("build/linux/nfpm.yaml");
   assert.match(nfpm, /src: \.\/build\/bin\/app\n\s+dst: \/usr\/lib\/tempora\/app\n\s+type: tree/);
@@ -270,6 +322,10 @@ test("the NSIS script installs the Electron tree with both payload modes and no 
   assert.match(nsi, /!define PRODUCT_EXECUTABLE "\$\{INFO_PROJECTNAME\}\.exe"/);
   assert.match(nsi, /RMDir \/r "\$INSTDIR\\versions"/);
   assert.match(nsi, /File "\/oname=uninstall\.exe" "\$\{ARG_TEMPORA_SIGNED_UNINSTALLER\}"/);
+  const activation = nsi.slice(nsi.indexOf("Tempora layout activator output:"));
+  const retry = activation.indexOf('MessageBox MB_ICONEXCLAMATION|MB_RETRYCANCEL "$(temporaActivateLocked)" IDRETRY tempora_layout_activate');
+  assert.ok(retry > 0, "activation failure offers Retry against the kept staging directory");
+  assert.ok(activation.indexOf('RMDir /r "$R9"') > retry, "staging is discarded only after the user gives up");
 });
 
 test("the installer stamps the shortcuts it created without launching the desktop", () => {

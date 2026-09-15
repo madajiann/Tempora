@@ -30,7 +30,7 @@ export function createMockRemoteProjects(tabs: MockRemoteTabCatalog): {
   const status = (tabId: string) => ({
     sessionPath: tabs.get(tabId)?.sessionPath,
     label: tabs.get(tabId)?.label ?? "", running: false, pendingPrompt: false,
-    backgroundJobs: 0, plan: false, toolApprovalMode: "ask", goal: "",
+    backgroundJobs: 0, plan: false, toolApprovalMode: "workspace-write", goal: "",
   });
 
   const bindings: RemoteProjectBindings = {
@@ -137,6 +137,7 @@ export function createMockRemoteProjects(tabs: MockRemoteTabCatalog): {
     },
     async RewindRemoteTab() {},
     async SetRemoteTabGoal() {},
+    async EditRemoteTabGoal() {},
     async RemoteTabSnapshot(tabId) {
       if (disconnectedTab === tabId) {
         __emitMockRemoteTab(tabId, "state", { state: "serve_down", error: "Mock remote tunnel closed" });
