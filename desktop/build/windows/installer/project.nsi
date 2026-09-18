@@ -389,10 +389,12 @@ Function tempora.showUpdateProgress
    StrCmp $TemporaUpdateMode "1" 0 tempora_update_progress_done
    !insertmacro MUI_HEADER_TEXT "$(temporaUpdateTitle)" "$(temporaUpdateSubtitle)"
    SetDetailsView hide
-   SetAutoClose true
    BringToFront
 
 tempora_update_progress_done:
+   ; Auto-close the INSTFILES page for every mode so the progress completes
+   ; straight into the finish page (update mode still skips that page below).
+   SetAutoClose true
 FunctionEnd
 
 Function tempora.skipFinishPageForUpdate

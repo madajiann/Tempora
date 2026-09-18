@@ -1,5 +1,7 @@
 package main
 
+import "strings"
+
 func (a *App) trayLocale() string {
 	cfg, _, err := a.loadDesktopUserConfigForView()
 	if err != nil {
@@ -24,7 +26,11 @@ type trayLabels struct {
 }
 
 func trayMenuLabels(locale string) trayLabels {
-	if locale == "zh" {
+	// Unset ("") and "auto" mean the user has not picked a language: default
+	// the tray menu to Chinese rather than English. An explicit non-zh choice
+	// (including unknown values) keeps the English fallback.
+	switch strings.ToLower(strings.TrimSpace(locale)) {
+	case "", "auto", "zh":
 		return trayLabels{
 			openTitle:   "打开",
 			openTooltip: "打开 Tempora 窗口",
