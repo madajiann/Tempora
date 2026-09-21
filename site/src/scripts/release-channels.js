@@ -86,7 +86,7 @@ function safeHTTPSURL(value) {
 function expectedCLIAssetURL(value, tag, name) {
   if (typeof value !== "string") return null;
   const url = safeHTTPSURL(value);
-  const path = `/esengine/DeepSeek-Reasonix/releases/download/${tag}/${name}`;
+  const path = `/madajiann/Tempora/releases/download/${tag}/${name}`;
   return url &&
     url.href === value &&
     url.hostname.toLowerCase() === "github.com" &&
@@ -334,7 +334,7 @@ export async function fetchDesktopDownloadModel(fetchImpl = fetch, pinnedVersion
     try {
       return await load(
         [`https://dl.tempora.io/${tag}/latest.json`],
-        `https://api.github.com/repos/esengine/DeepSeek-Reasonix/releases/tags/${tag}`,
+        `https://api.github.com/repos/madajiann/Tempora/releases/tags/${tag}`,
       );
     } catch {
       return null;
@@ -344,10 +344,10 @@ export async function fetchDesktopDownloadModel(fetchImpl = fetch, pinnedVersion
     load([
       "https://dl.tempora.io/latest/latest.json",
       "https://crash.tempora.io/v1/desktop/releases/stable/latest.json",
-    ], "https://api.github.com/repos/esengine/DeepSeek-Reasonix/releases/latest"),
+    ], "https://api.github.com/repos/madajiann/Tempora/releases/latest"),
     ...MANUAL_DESKTOP_TAGS.map((tag) => load(
       [`https://dl.tempora.io/${tag}/latest.json`],
-      `https://api.github.com/repos/esengine/DeepSeek-Reasonix/releases/tags/${tag}`,
+      `https://api.github.com/repos/madajiann/Tempora/releases/tags/${tag}`,
     )),
   ]);
   let selected = null;

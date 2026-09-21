@@ -307,7 +307,7 @@ import { initMobileNav } from "./mobile-nav.js";
   let githubCLIReleases;
   const fallbackCLIReleases = () => {
     githubCLIReleases ??= fetchFirstJSON([
-      "https://api.github.com/repos/esengine/DeepSeek-Reasonix/releases?per_page=100",
+      "https://api.github.com/repos/madajiann/Tempora/releases?per_page=100",
     ]).catch(() => null);
     return githubCLIReleases;
   };

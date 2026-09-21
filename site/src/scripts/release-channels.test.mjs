@@ -55,7 +55,7 @@ test("a website pin rejects mismatched manifests and falls back to the exact Git
   assert.equal(model.version, "v1.38.3");
   assert.deepEqual(requests, [
     "https://dl.tempora.io/desktop-v1.38.3/latest.json",
-    "https://api.github.com/repos/esengine/DeepSeek-Reasonix/releases/tags/desktop-v1.38.3",
+    "https://api.github.com/repos/madajiann/Tempora/releases/tags/desktop-v1.38.3",
   ]);
 });
 

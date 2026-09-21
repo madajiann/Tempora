@@ -33,7 +33,7 @@ async function publish(file) {
   const token = process.env.HOMEBREW_TAP_TOKEN;
   if (!token) throw new Error("HOMEBREW_TAP_TOKEN is required");
   const candidate = readFileSync(file, "utf8");
-  const api = "https://api.github.com/repos/esengine/homebrew-tempora/contents/Casks/tempora.rb";
+  const api = "https://api.github.com/repos/madajiann/homebrew-tempora/contents/Casks/tempora.rb";
   const current = await request(api, token);
   const existing = Buffer.from(current.content, "base64").toString("utf8");
   if (decideCaskUpdate(existing, candidate) === "reuse") return;
