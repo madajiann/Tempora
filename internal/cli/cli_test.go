@@ -1161,7 +1161,9 @@ func TestCLITelemetryConsentDefaultsYesAndPromptsOnlyOnce(t *testing.T) {
 	if got != want || starts != 1 {
 		t.Fatalf("first start = %p, calls=%d; want %p, 1", got, starts, want)
 	}
-	if !strings.Contains(out.String(), "crash.tempora.io") || !strings.Contains(out.String(), "[Y/n]:") || !strings.Contains(out.String(), "tempora config telemetry off") {
+	// Fork note: telemetry endpoint is disabled (internal/telemetry endpoint=""),
+	// so the prompt intentionally does not name any collection host.
+	if !strings.Contains(out.String(), "[Y/n]:") || !strings.Contains(out.String(), "tempora config telemetry off") {
 		t.Fatalf("consent prompt is incomplete: %q", out.String())
 	}
 	if errOut.Len() != 0 {
@@ -1382,7 +1384,8 @@ func TestCLITelemetryConsentPromptIsLocalized(t *testing.T) {
 		startCLITelemetryWithIO(config.Default(), telemetry.Options{
 			Version: "v1.20.0", Interactive: true, CLIMode: "tui",
 		}, strings.NewReader("\n"), &out, io.Discard)
-		for _, required := range []string{"crash.tempora.io", "tempora config telemetry off", "[Y/n]:"} {
+		// Fork note: no collection host is named (telemetry endpoint disabled).
+		for _, required := range []string{"tempora config telemetry off", "[Y/n]:"} {
 			if !strings.Contains(out.String(), required) {
 				t.Fatalf("%s consent prompt missing %q: %q", lang, required, out.String())
 			}
