@@ -32,7 +32,7 @@ console.log("\ngithub link rendering");
 eq(parseGitHubLink("https://github.com/esengine/DeepSeek-Reasonix/issues/6856"), {
   kind: "issue",
   owner: "esengine",
-  repo: "DeepSeek-Tempora",
+  repo: "DeepSeek-Reasonix",
   value: "6856",
   compactLabel: "#6856",
 }, "recognizes GitHub issue links");
@@ -40,7 +40,7 @@ eq(parseGitHubLink("https://github.com/esengine/DeepSeek-Reasonix/issues/6856"),
 eq(parseGitHubLink("https://github.com/esengine/DeepSeek-Reasonix/pull/123?diff=split"), {
   kind: "pull",
   owner: "esengine",
-  repo: "DeepSeek-Tempora",
+  repo: "DeepSeek-Reasonix",
   value: "123",
   compactLabel: "PR #123",
 }, "recognizes GitHub pull request links with query parameters");
@@ -48,7 +48,7 @@ eq(parseGitHubLink("https://github.com/esengine/DeepSeek-Reasonix/pull/123?diff=
 eq(parseGitHubLink("https://github.com/esengine/DeepSeek-Reasonix/commit/abcdef1234567890"), {
   kind: "commit",
   owner: "esengine",
-  repo: "DeepSeek-Tempora",
+  repo: "DeepSeek-Reasonix",
   value: "abcdef1234567890",
   compactLabel: "abcdef1",
 }, "recognizes GitHub commit links");

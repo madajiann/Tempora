@@ -7197,14 +7197,14 @@ function AboutSection({
         <div className="settings-inline-controls">
           <button
             className="btn btn--small"
-            onClick={() => void openExternal("https://github.com/esengine/DeepSeek-Reasonix/issues/new/choose")}
+            onClick={() => void openExternal("https://github.com/madajiann/Tempora/issues/new/choose")}
           >
             {t("feedback.submitIssue")}
             <ExternalLink size={14} aria-hidden="true" />
           </button>
           <button
             className="btn btn--small"
-            onClick={() => void openExternal("https://github.com/esengine/DeepSeek-Reasonix/issues")}
+            onClick={() => void openExternal("https://github.com/madajiann/Tempora/issues")}
           >
             {t("feedback.viewIssues")}
             <ExternalLink size={14} aria-hidden="true" />
