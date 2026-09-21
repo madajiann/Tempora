@@ -238,7 +238,7 @@ func TestDesktopPackagesPreserveNativePlatformLaunchers(t *testing.T) {
 		`!define TEMPORA_UNINST_FINALIZE 'cmd.exe /C copy /Y "%1" "tempora-uninstall.exe" >NUL'`,
 		`!uninstfinalize '${TEMPORA_UNINST_FINALIZE}'`,
 		`File "/oname=uninstall.exe" "${ARG_TEMPORA_SIGNED_UNINSTALLER}"`,
-		`StrCpy $R9 "$INSTDIR\versions\.installer-v${INFO_PRODUCTVERSION}-$R8"`,
+		`StrCpy $R9 "$INSTDIR\versions\.installer-${TEMPORA_VERSION_TAG}-$R8"`,
 		`File "/oname=${TEMPORA_LAYOUT_INSTALLER}" "${TEMPORA_GUARD}"`,
 		`nsExec::ExecToLog /OEM`,
 		`Tempora layout activator output:`,
