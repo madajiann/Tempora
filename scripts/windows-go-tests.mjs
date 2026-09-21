@@ -1,14 +1,19 @@
-import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { beneath, internalRoots, listPackages, runGoTest } from "./go-test-groups.mjs";
 
-export const isolatedGroups = ["agent", "boot", "control"];
-const smokeRoots = [
+// Start the long filesystem suites immediately on independent runners instead
+// of leaving them behind hundreds of short packages in the residual queue.
+export const isolatedGroups = ["acp", "agent", "boot", "bot", "control", "serve", "session", "worktree"];
+const smokeRoots = internalRoots(
   "appidentity", "checkpoint", "cli", "desktoplauncher", "extension/sidecar",
-  "filelock", "fileutil", "hook", "instruction", "mcplaunch", "notify", "proc",
-  "remote", "repair", "sandbox", "sessioncatalog", "sysproxy", "winsandbox", "workspacelease",
-].map(name => `tempora/internal/${name}`).concat("tempora/cmd");
-const beneath = (pkg, root) => pkg === root || pkg.startsWith(`${root}/`);
+  "filelock", "fileops", "fileutil", "hook", "instruction", "mcplaunch", "notify",
+  // persistentshell drives a real ConPTY and a PowerShell wrapper that no other
+  // platform exercises, so Windows is the only lane that can prove it.
+  "persistentshell", "proc",
+  "lsp", "pathidentity", "projectiondb", "remote", "repair", "sandbox", "sessioncatalog", "sqliteuri", "sysproxy",
+  "topicstate", "winaclresidue", "workspacelease",
+).concat("tempora/cmd");
 
 export function selectPackages(packages, group) {
   if (!["full", "smoke", ...isolatedGroups].includes(group)) {
@@ -24,22 +29,18 @@ export function selectPackages(packages, group) {
 export function testArgs(packages, group) {
   const selected = selectPackages(packages, group);
   if (selected.length === 0) throw new Error(`Empty Windows test group: ${group}`);
-  return ["test", "-p", isolatedGroups.includes(group) ? "1" : "4", "-timeout=8m", ...selected];
+  const args = ["test", "-p", isolatedGroups.includes(group) ? "1" : "4", "-timeout=8m"];
+  // Bot has produced process-level Windows exits without a Go stack or test
+  // name. JSON preserves the last start/output event and the subprocess exit
+  // status while keeping the whole package in one process (no retry or split).
+  if (group === "bot") args.push("-json");
+  return [...args, ...selected];
 }
 
 function main(group) {
-  const listed = spawnSync("go", ["list", "./..."], { encoding: "utf8" });
-  if (listed.error) throw listed.error;
-  if (listed.status !== 0) {
-    process.stderr.write(listed.stderr || "go list failed\n");
-    return listed.status ?? 1;
-  }
-  const packages = listed.stdout.trim().split(/\r?\n/).filter(Boolean);
-  const args = testArgs(packages, group);
-  console.log(`Windows ${group}: ${args.length - 4} packages; go ${args.join(" ")}`);
-  const result = spawnSync("go", args, { stdio: "inherit" });
-  if (result.error) throw result.error;
-  return result.status ?? 1;
+  const { packages, status } = listPackages();
+  if (!packages) return status;
+  return runGoTest(`Windows ${group}`, selectPackages(packages, group), testArgs(packages, group));
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

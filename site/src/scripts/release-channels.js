@@ -1,5 +1,5 @@
 const STABLE_TAG = /^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
-const DESKTOP_DOWNLOAD_PAGE = "https://reasonix.io/?download=desktop#start";
+const DESKTOP_DOWNLOAD_PAGE = "https://tempora.io/?download=desktop#start";
 const DESKTOP_REQUIRED_ASSETS = [
   ["platforms", "darwin-arm64", "Tempora-darwin-arm64.zip"],
   ["platforms", "darwin-amd64", "Tempora-darwin-amd64.zip"],
@@ -154,10 +154,10 @@ export function cliReleaseModel(releases, requestedChannel) {
   const assets = releaseAssetMap(release);
   if (!assets) return null;
   const releaseURL = `https://github.com/esengine/DeepSeek-Reasonix/releases/tag/${parsed.tag}`;
-  const exactChangelogURL = `https://reasonix.io/changelog/${parsed.tag}/`;
+  const exactChangelogURL = `https://tempora.io/changelog/${parsed.tag}/`;
   const changelogURL = release.release_notes_url === exactChangelogURL
     ? exactChangelogURL
-    : "https://reasonix.io/changelog/";
+    : "https://tempora.io/changelog/";
   return {
     channel,
     version: parsed.tag,
@@ -171,7 +171,7 @@ export function cliReleaseModel(releases, requestedChannel) {
 function desktopAssetBases(parsed) {
   const tag = `desktop-${parsed.tag}`;
   return [
-    `https://dl.reasonix.io/${tag}/`,
+    `https://dl.tempora.io/${tag}/`,
     `https://github.com/esengine/DeepSeek-Reasonix/releases/download/${tag}/`,
     `https://github.com/esengine/DeepSeek-Reasonix/releases/download/${parsed.tag}/`,
   ];
@@ -240,9 +240,9 @@ export function desktopReleaseModel(manifest, requestedChannel) {
     version: parsed.tag,
     displayVersion: parsed.tag.slice(1),
     assets,
-    changelogURL: manifest.release_notes_url === `https://reasonix.io/changelog/${parsed.tag}/`
+    changelogURL: manifest.release_notes_url === `https://tempora.io/changelog/${parsed.tag}/`
       ? manifest.release_notes_url
-      : "https://reasonix.io/changelog/",
+      : "https://tempora.io/changelog/",
   };
 }
 
@@ -288,7 +288,7 @@ export function desktopGitHubReleaseModel(release) {
     version: match[1],
     displayVersion: match[1].slice(1),
     assets: Object.fromEntries(releaseAssets.map(([, , name]) => [name, found[name]])),
-    changelogURL: "https://reasonix.io/changelog/",
+    changelogURL: "https://tempora.io/changelog/",
   };
 }
 
@@ -306,4 +306,57 @@ export async function fetchFirstJSON(urls, fetchImpl = fetch, accept = () => tru
     }
   }
   throw new Error(`release data unavailable (${failures.join("; ")})`);
+}
+
+// Desktop releases published for manual download while the updater stays on its
+// prior version; scripts/manual-desktop-exception.sh owns the same approval list
+// for publication. Every entry is probed and the newest one that actually
+// resolves wins, so adding the next tag before it is published cannot downgrade
+// the page, and a later signed stable release still supersedes all of them.
+const MANUAL_DESKTOP_TAGS = ["desktop-v1.38.8", "desktop-v1.38.9"];
+
+export async function fetchDesktopDownloadModel(fetchImpl = fetch, pinnedVersion = "") {
+  if (pinnedVersion && !parsePublicTag(pinnedVersion)) return null;
+  const acceptsVersion = (model) => Boolean(model && (!pinnedVersion || model.version === pinnedVersion));
+  const load = async (manifestURLs, releaseURL) => {
+    try {
+      return desktopReleaseModel(await fetchFirstJSON(
+        manifestURLs, fetchImpl, (manifest) => acceptsVersion(desktopReleaseModel(manifest)),
+      ));
+    } catch {
+      return desktopGitHubReleaseModel(await fetchFirstJSON(
+        [releaseURL], fetchImpl, (release) => acceptsVersion(desktopGitHubReleaseModel(release)),
+      ));
+    }
+  };
+  if (pinnedVersion) {
+    const tag = `desktop-${pinnedVersion}`;
+    try {
+      return await load(
+        [`https://dl.tempora.io/${tag}/latest.json`],
+        `https://api.github.com/repos/esengine/DeepSeek-Reasonix/releases/tags/${tag}`,
+      );
+    } catch {
+      return null;
+    }
+  }
+  const results = await Promise.allSettled([
+    load([
+      "https://dl.tempora.io/latest/latest.json",
+      "https://crash.tempora.io/v1/desktop/releases/stable/latest.json",
+    ], "https://api.github.com/repos/esengine/DeepSeek-Reasonix/releases/latest"),
+    ...MANUAL_DESKTOP_TAGS.map((tag) => load(
+      [`https://dl.tempora.io/${tag}/latest.json`],
+      `https://api.github.com/repos/esengine/DeepSeek-Reasonix/releases/tags/${tag}`,
+    )),
+  ]);
+  let selected = null;
+  for (const result of results) {
+    if (result.status !== "fulfilled" || !result.value) continue;
+    const model = result.value;
+    if (!selected || compareOrder(parsePublicTag(model.version).order, parsePublicTag(selected.version).order) > 0) {
+      selected = model;
+    }
+  }
+  return selected;
 }

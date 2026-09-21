@@ -24,19 +24,49 @@ type ImportResult struct {
 	Kind     string
 }
 
+// MigrationHistoryContains compares durable transcript meaning using the same
+// normalization as paired imports. Callers must establish provenance first;
+// matching text alone is not proof that two sessions share an identity.
+func MigrationHistoryContains(history, prefix []provider.Message) bool {
+	history, prefix = comparableImportMessages(history), comparableImportMessages(prefix)
+	if len(prefix) > len(history) {
+		return false
+	}
+	for index := range prefix {
+		if !reflect.DeepEqual(history[index], prefix[index]) {
+			return false
+		}
+	}
+	return true
+}
+
 func importSourceForLegacy(ctx context.Context, sourcePath, targetRoot, headID string) (ImportResult, error) {
+	return importSourceForLegacyWithHeader(ctx, sourcePath, targetRoot, headID, CreateOptions{})
+}
+
+func importSourceForLegacyWithHeader(ctx context.Context, sourcePath, targetRoot, headID string, options CreateOptions) (ImportResult, error) {
+	return importSourceForLegacyFrom(ctx, sourcePath, targetRoot, targetRoot, headID, options)
+}
+
+func importSourceForLegacyFrom(ctx context.Context, sourcePath, sourceRoot, targetRoot, headID string, options CreateOptions) (ImportResult, error) {
+	return importSourceForLegacyAt(ctx, sourcePath, filepath.Join(sourceRoot, agent.BranchID(sourcePath)), targetRoot, headID, options)
+}
+
+func importSourceForLegacyAt(ctx context.Context, sourcePath, previewDir, targetRoot, headID string, options CreateOptions) (ImportResult, error) {
 	// The identity cutover deliberately reuses BranchID(sourcePath) for the
 	// canonical runtime. Once a final v4 store exists at that identity it is
 	// authoritative: treating it as a retired "paired preview" both rejects a
 	// valid codec and can remigrate an older checkpoint over newer v4 work.
-	previewDir := filepath.Join(targetRoot, agent.BranchID(sourcePath))
 	if final, finalErr := readManifest(filepath.Join(previewDir, "manifest.json")); finalErr == nil {
-		if final.SessionID != agent.BranchID(sourcePath) {
-			return ImportResult{}, fmt.Errorf("session: canonical store identity %q does not match legacy identity %q", final.SessionID, agent.BranchID(sourcePath))
+		if final.SessionID != filepath.Base(previewDir) {
+			return ImportResult{}, fmt.Errorf("session: canonical store identity %q does not match directory identity %q", final.SessionID, filepath.Base(previewDir))
 		}
 		source := Source{Path: sourcePath, Version: Codec}
 		if final.Source != nil {
 			source = *final.Source
+		}
+		if err := validateSessionHeaderForCreate(previewDir, final.SessionID, options); err != nil {
+			return ImportResult{}, err
 		}
 		return ImportResult{TargetID: final.SessionID, Source: source, Reused: true, Kind: "final"}, nil
 	}
@@ -46,7 +76,7 @@ func importSourceForLegacy(ctx context.Context, sourcePath, targetRoot, headID s
 			return ImportResult{}, err
 		}
 		defer os.RemoveAll(frozenLegacy.freezeDir)
-		return publishLegacyImport(ctx, frozenLegacy, targetRoot)
+		return publishLegacyImportWithHeader(ctx, frozenLegacy, targetRoot, options)
 	}
 	// Freeze and parse every candidate before publication. Inspecting a paired
 	// sidecar after publishing legacy history can omit newer work and leave an
@@ -60,7 +90,7 @@ func importSourceForLegacy(ctx context.Context, sourcePath, targetRoot, headID s
 	if errors.Is(err, fs.ErrNotExist) {
 		// No paired sidecar (or no target root yet) means the transcript is the
 		// only candidate. Nothing has been published at this point.
-		return publishLegacyImport(ctx, frozenLegacy, targetRoot)
+		return publishLegacyImportWithHeader(ctx, frozenLegacy, targetRoot, options)
 	}
 	if err != nil {
 		return ImportResult{}, fmt.Errorf("inspect paired session events: %w", err)
@@ -71,7 +101,7 @@ func importSourceForLegacy(ctx context.Context, sourcePath, targetRoot, headID s
 		return ImportResult{}, fmt.Errorf("inspect paired session events: %w", err)
 	}
 	if !meaningful {
-		return publishLegacyImport(ctx, frozenLegacy, targetRoot)
+		return publishLegacyImportWithHeader(ctx, frozenLegacy, targetRoot, options)
 	}
 
 	relation, legacyMessages, firstDifference, err := compareLegacySpool(frozenLegacy.messageSpool, preview)
@@ -82,11 +112,11 @@ func importSourceForLegacy(ctx context.Context, sourcePath, targetRoot, headID s
 	case importMessagesEqual, importLegacyPrefix:
 		// The event sidecar carries the same history or a strictly longer one,
 		// so it is the only source that can be resumed without losing work.
-		imported, importErr := importFrozenPreview(ctx, frozenPreview, targetRoot)
+		imported, importErr := importFrozenPreview(ctx, frozenPreview, targetRoot, options)
 		return ImportResult{TargetID: imported.TargetID, Source: imported.Source, Reused: imported.Reused, Kind: "events"}, importErr
 	case importPreviewPrefix:
 		// The transcript is strictly newer; the sidecar is an earlier prefix.
-		return publishLegacyImport(ctx, frozenLegacy, targetRoot)
+		return publishLegacyImportWithHeader(ctx, frozenLegacy, targetRoot, options)
 	default:
 		// Neither source is a provable prefix of the other. Both originals stay
 		// read-only and no executable target is created.
@@ -128,7 +158,7 @@ func compareLegacySpool(path string, preview []provider.Message) (importMessageR
 		if len(comparable) == 0 {
 			continue
 		}
-		if firstDifference < 0 && (legacyCount >= len(preview) || !reflect.DeepEqual(comparable[0], preview[legacyCount])) {
+		if firstDifference < 0 && legacyCount < len(preview) && !reflect.DeepEqual(comparable[0], preview[legacyCount]) {
 			firstDifference = legacyCount
 		}
 		legacyCount++
@@ -146,11 +176,11 @@ func compareLegacySpool(path string, preview []provider.Message) (importMessageR
 	}
 }
 
-// publishLegacyImport materializes the transcript target. It runs only after
-// the source decision is final, so a refused or sidecar-winning import never
-// creates the legacy target as a side effect.
-func publishLegacyImport(ctx context.Context, frozen *frozenLegacyHead, targetRoot string) (ImportResult, error) {
-	migration, err := frozen.publish(ctx, targetRoot)
+// publishLegacyImportWithHeader materializes the transcript target. It runs
+// only after the source decision is final, so a refused or sidecar-winning
+// import never creates a target or immutable Header as a side effect.
+func publishLegacyImportWithHeader(ctx context.Context, frozen *frozenLegacyHead, targetRoot string, options CreateOptions) (ImportResult, error) {
+	migration, err := frozen.publish(ctx, targetRoot, options)
 	if err != nil {
 		return ImportResult{}, err
 	}

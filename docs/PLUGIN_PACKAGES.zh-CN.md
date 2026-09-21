@@ -238,7 +238,7 @@ Tempora 原生扩展使用精确的 v2 `apiVersion`：
 
 ```json
 {
-  "apiVersion": "reasonix.io/plugin/v2",
+  "apiVersion": "tempora.io/plugin/v2",
   "name": "example",
   "version": "1.0.0",
   "description": "Example extension",
@@ -275,7 +275,7 @@ Tempora 原生扩展使用精确的 v2 `apiVersion`：
 
 解析规则：
 
-- 原生 `tempora-plugin.json` 必须声明精确值 `reasonix.io/plugin/v2`。
+- 原生 `tempora-plugin.json` 必须声明精确值 `tempora.io/plugin/v2`。
   v1 与缺失版本都会被拒绝；不提供 v1 双读或自动迁移路径。
 - v2 是严格的：根对象或 `contributes`/`runtime` 下的任何未知字段都会
   报错并指明字段路径，避免拼写错误静默失效。
@@ -283,7 +283,7 @@ Tempora 原生扩展使用精确的 v2 `apiVersion`：
   agents、commands、prompts、hooks、MCP servers、themes 与 runtime；不会隐式
   导入根目录 `CLAUDE.md`、`hooks/hooks.json`、`.claude/settings.json` 或
   `.mcp.json` 等宿主专用 sidecar。
-- minor 别名（如 `reasonix.io/plugin/v2.0`、`v2.1`）及未知 major version
+- minor 别名（如 `tempora.io/plugin/v2.0`、`v2.1`）及未知 major version
   都会被拒绝。
 - `requires` 与 `provides` 声明依赖约束和能力上限；Sidecar handshake
   不能超出该上限。

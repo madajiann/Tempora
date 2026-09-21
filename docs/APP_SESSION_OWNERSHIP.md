@@ -28,6 +28,24 @@ Generation replacement, retirement, reconnect, host suspension and explicit
 close follow the same per-tab publication order. Network handshakes and pump
 waits remain outside the fence; map snapshots are revalidated after taking it.
 
+## Local readable history and runtime readiness
+
+Local navigation starts a bounded canonical history read after publishing the
+target tab identity, independently of controller activation. A readable history
+window can appear while runtime setup is still pending. Draft input stays mounted
+and editable, while send/control actions retain their runtime readiness fence.
+Runtime failure preserves history that already arrived; it cannot turn an
+unfinished history read into a successful empty transcript. Remote transitions
+keep their existing presentation gate.
+
+Navigation detaches renderer subscriptions and retains history under the existing
+store budgets; explicit close evicts it. Lazy bodies can hand off once to a newer
+generation of the same resident owner. Eviction or close/reopen ends the old read.
+Retained residency alone does not prove a navigation cache hit: canonical history
+generations and legacy tab fingerprints are different identity domains, and a new
+tab binding needs explicit ownership reconciliation. Browser-mock paint timings
+do not establish native backend latency or cross-binding cache reuse.
+
 ## Remote bootstrap lock handoff
 
 A remote server owner can release its directory between a competing exclusive
@@ -57,13 +75,18 @@ interleavings with retirement, reconnect, host suspension and close.
 
 ## Independent memory screening
 
-The App memory workflow builds the requested clean commit once. Three isolated
-runner jobs download that same build; each starts a new Chromium process and
-executes 128 full, 128 windowed, 128 safety, and 512 mixed round trips. The
-aggregate requires all 2,688 trips, all checkpoints and heap snapshot metadata,
-three distinct shard identities, the same workflow attempt, source/build hashes,
-Node/platform/architecture, fixture configuration, and browser version. Missing,
-cancelled, mismatched, or failing shards cannot produce a passing final check.
+The App memory workflow builds the requested clean commit once. Ordinary frontend
+pull requests run one short process with 32 full, 32 windowed, 32 safety, and 128
+mixed round trips. App lifecycle, Transcript, navigation, subscription ownership,
+memory fixture and CI-routing changes run the full three-process protocol. Pushes
+to `main-v2`, daily schedules and manual dispatches also run the full protocol:
+each process executes 128 full, 128 windowed, 128 safety, and 512 mixed trips.
+
+The aggregate requires every checkpoint and heap snapshot, distinct shard
+identities, the same workflow attempt, source/build hashes, Node/platform/
+architecture, fixture configuration, browser version and declared profile.
+Missing, cancelled, mismatched, or failing shards cannot produce a passing final
+check. The result records `screeningLevel` so a short pass is not full qualification.
 
 The workflow runs for frontend changes and unknown paths. Known independent
 backend and documentation paths may skip this mock-frontend soak; existing

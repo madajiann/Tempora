@@ -64,7 +64,7 @@ func Plan(current, legacy *Registration, installRoot, version string, uninstalle
 			DisplayVersion:       strings.TrimPrefix(version, "v"),
 			Publisher:            "Tempora",
 			InstallLocation:      root,
-			DisplayIcon:          joinWindowsPath(root, "tempora-launcher.exe"),
+			DisplayIcon:          joinWindowsPath(root, "Tempora.exe"),
 			UninstallString:      quoteWindowsPath(uninstaller),
 			QuietUninstallString: quoteWindowsPath(uninstaller) + " /S",
 		},

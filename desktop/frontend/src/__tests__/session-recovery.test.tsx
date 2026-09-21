@@ -20,6 +20,9 @@ Object.assign(globalThis, { window: dom.window, document: dom.window.document, l
 const root = createRoot(document.getElementById("root")!);
 const readyLocal = { ...initialState, meta: { ready: true, eventChannel: "fixture" } };
 const failedLocal = applyHydrateErrorState(readyLocal, "startup", "history read failed");
+assert.deepEqual(projectSessionAvailability({ local: { ...failedLocal, meta: {
+  ...readyLocal.meta, ready: false, historicalSource: { hostId: "local", path: "/fixture/legacy.jsonl" },
+} } }), { kind: "pending", source: "runtime" }, "unprepared history is a user choice, not a failed recovery");
 const noop = () => {};
 const common: TranscriptSurfaceProjectionInput = {
   hydrating: false, hydrateHistoryLoaded: undefined, hydratePlaceholderItems: undefined, hydratePlaceholderActive: false,
@@ -85,7 +88,7 @@ try {
   await act(async () => root.render(<LocaleProvider><ChatPaneRegion transitioning={false} t={((key: string) => key) as Translator}
     imDetail={null} transcript={{ state: failedLocal, items: [], tabId: "local", geometrySessionKey: "local", footerHeight: 140,
       transcriptHydrating: false, navigationDataReady: true, readOnly: false, controllerReady: true, hydratePlaceholderActive: false,
-      clearContextPending: false, creation: false, availability: projectSessionAvailability({ local: failedLocal }),
+      clearContextPending: false, availability: projectSessionAvailability({ local: failedLocal }),
       rewind: { stateActive: false, committing: false, signal: undefined }, revealSignal: 0, invocationMetadata: undefined,
       surfaceCommitToken: undefined, liveStore: undefined }} onRetryHistory={async () => { retries++; }}
     commands={{ onPrompt: noop, onFork: noop, onLoadOlderHistory: async () => false, onSurfacePaintReady: noop }} /></LocaleProvider>));

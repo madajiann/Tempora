@@ -1,3 +1,8 @@
+import type { HistoryToolCall } from "./historyToolTypes";
+export type { HistoryToolCall } from "./historyToolTypes";
+export type { ProjectNode } from "./projectNodeTypes";
+import type { TranscriptTurnMetadata } from "./transcriptProtocol";
+import type { ConnectionAuthentication } from "./authenticationTypes";
 import type { HistorySwitchPhases } from "./sessionDiagnostics";
 import type { ProviderCatalog } from "./providerCatalogTypes";
 export type { SettingsView } from "./settingsViewTypes";
@@ -5,19 +10,20 @@ export type { ProviderProtocolEndpoint, ProviderCatalog, ProviderPresetView } fr
 import type { WireReadStatus } from "./readStatus";
 export type { WireReadStatus } from "./readStatus";
 import type { RecoveryEventFields } from "./recoveryStatus";
-// Wire contract — mirrors desktop/wire.go (itself mirroring internal/serve/wire.go).
-// One event channel carries every kind; `kind` discriminates the payload.
+// Wire contract: one discriminated event channel mirrors desktop/wire.go and internal/serve/wire.go.
 import type { HistoryServerSearch } from "./searchSources";
 import type { Todo } from "./tools";
 import type { ContextBudgetInfo, ContextMaintenanceInfo, WireContextMaintenance } from "./contextMaintenanceTypes";
 import type { WireApproval } from "./approvalTypes";
-import type { RemoteProjectNodeFields, RemoteSessionMetaFields, RemoteTabMetaFields } from "./remoteTypes";
+import type { RemoteSessionMetaFields, RemoteTabMetaFields } from "./remoteTypes";
 import type { PinnedFileInfo } from "./pinnedContextBridge";
 import type { RecoveryLineageView } from "./sessionRecoveryTypes";
+import type { SessionRef, SessionRuntimeIssue } from "./sessionRef";
 export * from "./remoteTypes";
 export type { ContextBudgetInfo, ContextMaintenanceInfo, ContextMaintenanceReceipt, WireContextMaintenance } from "./contextMaintenanceTypes";
-export type { HistoryContentChunk, HistoryContentRef, HistoryEntry, HistorySlice, HistorySliceRequest, SessionClearResult } from "./historyTypes";
+export type { HistoryContentChunk, HistoryContentRef, HistoryEntry, HistorySlice, HistorySliceRequest, HistoryWindowPageView, HistoryWindowRequestView, HistoryWindowStatus, MessageFieldView, SessionClearResult } from "./historyTypes";
 export type { ProjectGroupsSnapshot, ProjectRuntimeTopic, ProjectTopicKey, ProjectTopicPage, ProjectTopicPageRequest, ProjectTreeChangedV2, ProjectTreeOrganizationBindings, ProjectTreeRuntimeSnapshot, ProjectTreeSnapshot, SessionCatalogBindings, SessionCatalogStatus, SessionGroup, SessionReference } from "./sessionCatalogTypes";
+export type { SessionRef, SessionRuntimeIssue } from "./sessionRef";
 export type EventKind =
   | "user_message"
   | "turn_started"
@@ -379,6 +385,7 @@ export interface WireExtensionSurface {
   surfaceId: string;
   sessionId?: string;
   generation?: number;
+  formInstanceId?: string;
   kind: string; // "status" | "card" | "form" | "notification"
   status?: WireExtensionStatus;
   card?: WireExtensionCard;
@@ -529,15 +536,6 @@ export interface WireWorkspaceChanged {
 
 export type SessionRuntimePhase = "starting" | "ready" | "lease_blocked" | "failed" | "closing";
 
-export interface SessionRuntimeIssue {
-  code: "session_lease_held" | "startup_failed";
-  message: string;
-  retryable: boolean;
-  holderPid?: number;
-  holderHost?: string;
-  acquiredAt?: string;
-}
-
 export interface SessionRuntimeView {
   phase: SessionRuntimePhase;
   epoch: string;
@@ -564,10 +562,12 @@ export interface WireFinalReadiness {
 
 // Tab management types (desktop/tabs.go).
 export interface TabMeta extends RemoteTabMetaFields {
+  historicalSource?: import("../generated/desktopContract.generated").SessionSourceRef;
   id: string;
   tabType?: "session" | "file";
   scope: string;
   workspaceRoot: string;
+  workspaceId?: string;
   workspaceName: string;
   workspacePath?: string;
   gitBranch?: string;
@@ -575,6 +575,7 @@ export interface TabMeta extends RemoteTabMetaFields {
   topicId: string;
   topicTitle: string;
   sessionPath?: string;
+  sessionId?: string; session?: SessionRef | null;
   sessionRevision?: number;
   sessionDigest?: string;
   sessionGeneration?: number;
@@ -615,6 +616,8 @@ export interface TabMeta extends RemoteTabMetaFields {
   versionState?: "active" | "pending" | "resolved" | "trashed" | string;
   parentVersionId?: string;
   startupErr?: string;
+  authentication?: ConnectionAuthentication;
+  modelSettingsPending?: boolean;
   active: boolean;
   cwd: string;
 }
@@ -642,39 +645,7 @@ export interface TerminalWorkspaceView {
   shells: TerminalShellView[];
 }
 
-export interface ProjectNode extends RemoteProjectNodeFields {
-  key: string;
-  kind: "project" | "topic" | "session" | "global_folder" | "global_topic" | "global_session";
-  label: string;
-  root?: string;
-  topicId?: string;
-  recoveryPath?: string;
-  sessionPath?: string;
-  preview?: string;
-  projectColor?: string;
-  turns?: number;
-  turnsState?: "unknown" | "valid" | "corrupt" | string;
-  health?: "ok" | "missing" | "corrupt" | "degraded" | string;
-  createdAt?: number;
-  lastActivityAt?: number;
-  open?: boolean;
-  running?: boolean;
-  status?: ProjectTopicStatus;
-  pinned?: boolean;
-  sortOrder?: number;
-  recovered?: boolean;
-  recoveryReason?: string;
-  recoveryDigest?: string;
-  recoveryParentId?: string;
-  recoveryState?: "normal" | "repairing" | "adopted" | "preferred" | "diverged" | "recovery_only" | string;
-  recoveryBranchCount?: number;
-  recoveryUnresolvedCount?: number;
-  recoveryCleanupEligibleCount?: number;
-  recoveryCopyCount?: number; // Deprecated: ordinary trees hide physical copies.
-  isolatedWorktree?: boolean;
-  runtimeOnly?: boolean;
-  children?: ProjectNode[];
-}
+
 
 export type { RecoveryLineageMember, RecoveryLineageView } from "./sessionRecoveryTypes";
 
@@ -844,7 +815,7 @@ export interface ChangedFileInfo {
 }
 
 // Bound-method payloads (desktop/app.go).
-export interface HistoryMessage {
+export interface HistoryMessage extends TranscriptTurnMetadata {
 	historyTurn?: number;
 	recordId?: string;
 	attemptId?: string;
@@ -886,26 +857,7 @@ export interface HistoryMessage {
   protocolRecovery?: { id: string };
   diagnostic?: { kind: string; status?: number; traceId?: string; providerId?: string; providerDisplayName?: string; protocol?: string; requestPath?: string };
   serverSearch?: HistoryServerSearch[];
-}
-
-export interface HistoryToolCall {
-	partial?: boolean;
-	pending?: boolean;
-	parentId?: string;
-	argChars?: number;
-	startedAt?: number;
-  id: string;
-  name: string;
-  arguments: string;
-  resolvedName?: string;
-  capabilityId?: string;
-  resolvedReadOnly?: boolean;
-  subject?: string;
-  summary?: string;
-  diff?: string;
-  added?: number;
-  removed?: number;
-  argumentsArchived?: boolean;
+  attachments?: Array<{ kind?: string; digest?: string; name?: string; mime?: string; width?: number; height?: number; bytes?: number }>;
 }
 
 export interface HistoryPage {
@@ -924,6 +876,7 @@ export interface HistoryPage {
 // ── Two-phase topic activation (desktop/topic_activation.go) ────────────────
 
 export interface TopicActivationRequest {
+  selector?: import("../generated/desktopContract.generated").SessionSelector;
   scope: string;
   workspaceRoot: string;
   topicId: string;
@@ -1039,11 +992,14 @@ export interface Meta extends RemoteSessionMetaFields {
   ready: boolean;
   runtime?: SessionRuntimeView;
   startupErr?: string;
+  historicalSource?: import("../generated/desktopContract.generated").SessionSourceRef;
   eventChannel: string;
   sessionPath?: string;
+  sessionId?: string; session?: SessionRef | null;
   sessionRevision?: number;
   sessionDigest?: string;
   sessionGeneration?: number;
+  runtimeStateSnapshot?: import("./runtimeStateStore").RuntimeState;
   cwd: string;
   workspaceRoot?: string;
   workspaceName?: string;
@@ -1210,6 +1166,7 @@ export interface CommandInfo {
   group?: "actions" | "management" | "subagents" | "skills" | "integrations";
   plugin?: string;
   color?: string;
+  draftBehavior?: "submit" | "setting" | "direct" | "unavailable";
 }
 
 export interface DirEntry {
@@ -1688,19 +1645,7 @@ export interface MemoryView {
 // SettingsTab is the top-level navigation item in the Settings Centre modal.
 export type SettingsTab = "general" | "models" | "model-stats" | "providers" | "bots" | "mcp" | "remote" | "skills" | "subagents" | "plugins" | "memory" | "hooks" | "diagnostics" | "shortcuts" | "permissions" | "sandbox" | "network" | "browser" | "appearance" | "storage" | "updates";
 
-/** Extension runtime doctor report from App.RuntimeDoctor. */
-export interface RuntimeDoctorReport {
-  text: string;
-  publishedGeneration: number;
-  allowResume: boolean;
-  cleanRollback: boolean;
-  hasIrreversible: boolean;
-  noOpRebuilds: number;
-  fullRebuilds: number;
-  subgraphRebuilds: number;
-  staleDrops: number;
-  admissionRejected: number; runtimeOwnerFallbacks: number;
-}
+export type { RuntimeDoctorReport } from "./runtimeDoctorTypes";
 
 /** Capability diagnostics report from App.CapabilityDiagnostics (capdiag.Report). */
 export interface CapabilityDiagnosticsReport {
@@ -1771,6 +1716,14 @@ export interface CapabilityDiagnosticsReport {
     }>;
   };
   issues: CapabilityIssue[];
+}
+
+export interface CredentialDiagnosticReport {
+  home: string;
+  credentialPath: string;
+  pendingTransactions: number;
+  checks: Array<{ id: string; status: "passed" | "failed" | "unknown" | "not_checked" | string; path?: string; message?: string }>;
+  actions: string[];
 }
 
 export interface CapabilityAssetReport {
@@ -1852,16 +1805,8 @@ export interface ProviderModelCatalogUpdate {
   modelCapabilities?: ProviderModelCapabilityUpdate[];
 }
 
-export interface ProviderModelCapabilityView {
-	automaticState?: string;
-	automaticSource?: string;
-	imageInputEnableAllowed?: boolean;
-	imageInputBlockReason?: string;
-  model: string;
-  inputModalities: string[];
-  state: "supported" | "unsupported" | "unknown" | string;
-  source: string;
-}
+import type { ProviderModelCapabilityView } from "./providerModelCapability";
+export type { ProviderModelCapabilityView } from "./providerModelCapability";
 
 export interface ProviderModelCapabilityUpdate {
   model: string;
@@ -2305,7 +2250,6 @@ export type { ModelSettingsChange, ModelSettingsResult } from "./modelSettingsTy
 export interface DesktopStartupSettingsView {
   bot: BotSettingsView;
   desktopLanguage: string; // "" | "en" | "zh"; empty = auto
-  desktopLayoutStyle: string; // "workbench" | "creation"
   desktopTheme: string; // "auto" | "dark" | "light"
   desktopThemeStyle: string;
   desktopTerminalTheme: string; // "auto" follows app | "dark" | "light"
@@ -2313,6 +2257,7 @@ export interface DesktopStartupSettingsView {
   statusBarStyle: string; // "icon" | "text"
   statusBarItems: string[]; // ordered visible status bar item ids
   checkUpdates: boolean; // check for new versions on startup
+  updaterEnabled?: boolean; // build capability; absent/unknown is disabled
   updateChannel: string; // compatibility field; always "stable"
   conversationWidth?: string; // "standard" | "full"; absent from older desktop payloads
   configWarnings?: string[]; configWarningsRevision?: number; // load recovery notices and async delivery barrier

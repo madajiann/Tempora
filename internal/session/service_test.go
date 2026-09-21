@@ -20,6 +20,7 @@ func TestServiceForkAndRewindUsePersistedTurnBoundaries(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	parent, err := service.Create(t.Context(), CreateOptions{SessionID: "parent"})
 	if err != nil {
 		t.Fatal(err)
@@ -78,6 +79,7 @@ func TestServiceConcurrentOpenPublishesOneExactRuntime(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	ref := SessionRef{HostID: "local", SessionID: "shared"}
 
 	const callers = 16
@@ -131,6 +133,7 @@ func TestServicePrepareCreateIsInvisibleUntilExactPublish(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	prepared, err := service.PrepareCreate(t.Context(), CreateOptions{SessionID: "prepared"})
 	if err != nil {
 		t.Fatal(err)
@@ -166,6 +169,7 @@ func TestQueryListProjectsEventBackedTitleAndCompletedTurns(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), CreateOptions{SessionID: "listed"})
 	if err != nil {
 		t.Fatal(err)
@@ -204,6 +208,7 @@ func TestServiceDiscardPreparedCreateReleasesWriter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	prepared, err := service.PrepareCreate(t.Context(), CreateOptions{SessionID: "discarded"})
 	if err != nil {
 		t.Fatal(err)
@@ -226,14 +231,12 @@ func TestRuntimeCancellationUsesOwnedActivityWithoutTurnID(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), CreateOptions{SessionID: "cancel"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	ctx, finish, err := runtime.BeginActivity(context.Background(), "model")
-	if err != nil {
-		t.Fatal(err)
-	}
+	ctx, exec := bindTestExecution(t, runtime, "model")
 	ref := runtime.Ref()
 	snapshot, err := service.Cancel(ref)
 	if err != nil {
@@ -247,7 +250,7 @@ func TestRuntimeCancellationUsesOwnedActivityWithoutTurnID(t *testing.T) {
 	default:
 		t.Fatal("cancel signal was not delivered")
 	}
-	finish(context.Canceled)
+	exec.Finish()
 	if got := runtime.Snapshot().Phase; got != RuntimeIdle {
 		t.Fatalf("phase after activity exit = %s", got)
 	}
@@ -265,6 +268,7 @@ func TestServiceObserveDistinguishesLiveAcceptedAndColdDurablePrefixes(t *testin
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), CreateOptions{SessionID: "observe"})
 	if err != nil {
 		t.Fatal(err)
@@ -302,21 +306,19 @@ func TestServiceClosePreservesBusyRuntime(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), CreateOptions{SessionID: "busy"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, finish, err := runtime.BeginActivity(t.Context(), "tool")
-	if err != nil {
-		t.Fatal(err)
-	}
+	_, exec := bindTestExecution(t, runtime, "tool")
 	if err := service.Close(t.Context(), runtime.Ref()); !errors.Is(err, ErrRuntimeBusy) {
 		t.Fatalf("Close busy error = %v", err)
 	}
 	if current, ok := service.Runtime(runtime.Ref()); !ok || current != runtime {
 		t.Fatal("busy close released the exact runtime")
 	}
-	finish(nil)
+	exec.Finish()
 	if err := service.Close(t.Context(), runtime.Ref()); err != nil {
 		t.Fatal(err)
 	}
@@ -344,6 +346,7 @@ func TestServiceOpenClosesPersistedRuntimeWithoutRestoringAuthority(t *testing.T
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	binding, err := service.Open(t.Context(), SessionRef{HostID: "local", SessionID: "restart"})
 	if err != nil {
 		t.Fatal(err)
@@ -382,6 +385,7 @@ func TestSessionQueryColdReadDoesNotAcquireWriter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	ref := SessionRef{HostID: "local", SessionID: "cold"}
 	history, err := service.Query().History(t.Context(), ref)
 	if err != nil || len(history) != 1 || history[0].ID != "m" {
@@ -419,6 +423,7 @@ func TestServiceContinueLegacyPublishesNewIdentityAndLeavesSourceUnchanged(t *te
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, migration, err := service.ContinueLegacy(t.Context(), legacy, "")
 	if err != nil {
 		t.Fatal(err)
@@ -444,6 +449,7 @@ func TestServiceExportAndDeleteAreSessionDirectoryAtomic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), CreateOptions{SessionID: "managed"})
 	if err != nil {
 		t.Fatal(err)
@@ -486,6 +492,7 @@ func TestServiceImportValidatesSelfContainedContentAndPublishesAtomically(t *tes
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = source.Shutdown(context.Background()) })
 	runtime, err := source.Create(t.Context(), CreateOptions{SessionID: "portable"})
 	if err != nil {
 		t.Fatal(err)
@@ -510,13 +517,14 @@ func TestServiceImportValidatesSelfContainedContentAndPublishesAtomically(t *tes
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = target.Shutdown(context.Background()) })
 	ref, err := target.Import(t.Context(), bundle)
 	if err != nil {
 		t.Fatal(err)
 	}
-	page, err := target.Query().HistoryPage(t.Context(), ref, "", 10)
-	if err != nil || len(page.Messages) != 1 || page.Messages[0].ContentRef == nil {
-		t.Fatalf("imported history = %+v, %v", page, err)
+	page := historyPageReady(t, target.Query(), ref, "", 10)
+	if len(page.Messages) != 1 || page.Messages[0].ContentRef == nil {
+		t.Fatalf("imported history = %+v", page)
 	}
 	if _, err := target.Import(t.Context(), bundle); !errors.Is(err, ErrSessionExists) {
 		t.Fatalf("duplicate import = %v", err)
@@ -529,6 +537,34 @@ func TestServiceImportValidatesSelfContainedContentAndPublishesAtomically(t *tes
 		if strings.HasPrefix(entry.Name(), ".portable.import-") {
 			t.Fatalf("failed import left staging directory %q", entry.Name())
 		}
+	}
+	headerTarget, err := NewService("desktop", NewFilesystemPersistence(filepath.Join(t.TempDir(), "desktop-sessions-v5", "by-id")))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = headerTarget.Shutdown(context.Background()) })
+	headerRef, err := headerTarget.ImportWithHeader(t.Context(), bundle, CreateOptions{SessionID: "portable", CWD: "/workspace", Origin: SessionOriginCanonicalImport})
+	if err != nil {
+		t.Fatal(err)
+	}
+	headerInfo, err := headerTarget.persistence.Stat(t.Context(), headerRef.SessionID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Headers record CWD in OS-native form; clean the expectation the same way.
+	if headerInfo.CWD != filepath.Clean("/workspace") || headerInfo.Origin != SessionOriginCanonicalImport {
+		t.Fatalf("imported header = %+v", headerInfo)
+	}
+	remapped, err := headerTarget.ImportWithHeader(t.Context(), bundle, CreateOptions{SessionID: "migr-conflict", CWD: "/workspace", Origin: SessionOriginCanonicalImport})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if remapped.SessionID != "migr-conflict" {
+		t.Fatalf("remapped import = %+v", remapped)
+	}
+	remappedPage := historyPageReady(t, headerTarget.Query(), remapped, "", 10)
+	if len(remappedPage.Messages) != 1 || remappedPage.Messages[0].ContentRef == nil {
+		t.Fatalf("remapped history = %+v", remappedPage)
 	}
 }
 
@@ -554,24 +590,26 @@ func TestCancelledActivityCannotCommitLateBusinessResult(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), CreateOptions{SessionID: "fenced"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	ctx, activity, err := runtime.BeginOwnedActivity(t.Context(), "tool")
-	if err != nil {
-		t.Fatal(err)
-	}
+	ctx, exec := bindTestExecution(t, runtime, "tool")
 	if receipt, err := service.CancelSession(runtime.Ref()); err != nil || !receipt.Accepted || receipt.Phase != RuntimeCancelling {
 		t.Fatalf("cancel receipt = %+v, %v", receipt, err)
 	}
-	if _, err := activity.AppendBatch(ctx, "late-result", []Event{{Kind: "diagnostic", Optional: true}}); !errors.Is(err, ErrStaleActivity) && !errors.Is(err, context.Canceled) {
-		t.Fatalf("late activity commit error = %v", err)
+	if !errors.Is(ctx.Err(), context.Canceled) {
+		t.Fatalf("cancel context = %v", ctx.Err())
 	}
-	if runtime.Session().Snapshot().EventSequence != 0 {
-		t.Fatal("late activity changed session projection")
+	if _, err := runtime.Session().Append(t.Context(), Batch{
+		OperationID: "turn-end",
+		TurnID:      "turn-1",
+		Events:      []Event{{Kind: "turn/end", Payload: json.RawMessage(`{"status":"interrupted"}`)}},
+	}); err != nil {
+		t.Fatalf("terminal truth during cancel: %v", err)
 	}
-	activity.Finish(context.Canceled)
+	exec.Finish()
 	if err := service.Close(t.Context(), runtime.Ref()); err != nil {
 		t.Fatal(err)
 	}
@@ -582,31 +620,26 @@ func TestRecoveryOwnerCanCommitOnlyTerminalRecoveryFacts(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), CreateOptions{SessionID: "recovery-terminal"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, activity, err := runtime.BeginOwnedActivity(t.Context(), "tool")
-	if err != nil {
-		t.Fatal(err)
-	}
+	bindTestExecution(t, runtime, "tool")
 	runtime.RequireRecovery("tool")
-	if _, err := activity.Append(t.Context(), Batch{OperationID: "late-tool", Events: []Event{{Kind: "tool/result", Payload: json.RawMessage(`{"id":"tool-1","name":"bash","output":"late"}`)}}}); !errors.Is(err, ErrStaleActivity) {
-		t.Fatalf("late result error = %v", err)
+	if err := service.Close(t.Context(), runtime.Ref()); !errors.Is(err, ErrRuntimeBusy) {
+		t.Fatalf("close during recovery = %v", err)
 	}
 	terminal := Batch{OperationID: "recovery-terminal", TurnID: "turn-1", Events: []Event{
 		{Kind: "runtime/recovery", Payload: json.RawMessage(`{"state":"recovery_required","phase":"tool","reason":"cancellation_grace_expired","requires_user_decision":true}`)},
 		{Kind: "turn/end", Payload: json.RawMessage(`{"status":"recovery_required"}`)},
 	}}
-	if _, err := runtime.RecordRecovery(t.Context(), terminal); err != nil {
+	if _, err := runtime.Session().Append(t.Context(), terminal); err != nil {
 		t.Fatalf("record recovery: %v", err)
 	}
 	projection := runtime.Session().Snapshot().Projection
 	if projection.Recovery == nil || projection.Recovery.State != "recovery_required" || projection.TurnStatus != "recovery_required" {
 		t.Fatalf("recovery projection = %#v, turn status = %q", projection.Recovery, projection.TurnStatus)
-	}
-	if _, err := runtime.RecordRecovery(t.Context(), Batch{OperationID: "bad-recovery", Events: []Event{{Kind: "diagnostic", Optional: true}}}); !errors.Is(err, ErrStaleActivity) {
-		t.Fatalf("non-recovery terminal batch error = %v", err)
 	}
 	runtime.mu.Lock()
 	runtime.phase = RuntimeIdle
@@ -622,6 +655,7 @@ func TestCancelSessionIsIdempotentWithoutAttachedRuntime(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	ref := SessionRef{HostID: "local", SessionID: "not-attached"}
 	receipt, err := service.CancelSession(ref)
 	if err != nil || !receipt.Accepted || receipt.Phase != RuntimeIdle {

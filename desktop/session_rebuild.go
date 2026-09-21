@@ -8,6 +8,16 @@ import (
 	"tempora/internal/session"
 )
 
+func desktopLegacyImportOptions(workspaceRoot string) session.CreateOptions {
+	cwd := canonicalRuntimeRoot(workspaceRoot)
+	if cwd == "" {
+		cwd = globalWorkspaceRoot()
+	}
+	return session.CreateOptions{
+		CWD: cwd, Origin: session.SessionOriginLegacyImport,
+	}
+}
+
 // sessionBinding is intentionally smaller than the public desktop control
 // surface. It lets rebuild code preserve the exact host-owned Runtime without
 // making legacy test controllers implement the final identity API.
@@ -41,6 +51,9 @@ func buildDesktopControllerReplacement(ctx context.Context, old control.SessionA
 	if opts.SessionTemp == nil {
 		opts.SessionTemp = concrete.SessionTemp()
 	}
+	if _, _, bound := exclusiveSessionBinding(old); !bound {
+		opts.SessionCreateOptions = desktopLegacyImportOptions(opts.WorkspaceRoot)
+	}
 	result, err := boot.Rebuild(ctx, concrete, opts)
 	if err != nil {
 		return nil, true, err
@@ -66,6 +79,14 @@ func retireReplacedController(old, replacement control.SessionAPI) {
 		}
 	}
 	old.Close()
+}
+
+// activateReplacementController is called only inside the host's final
+// compare-and-publish critical section. It transfers an exclusive Session
+// Runtime without letting construction-time candidates steal Stop or commit
+// authority from the controller still visible in the tab.
+func activateReplacementController(old, replacement control.SessionAPI) error {
+	return control.ActivateSessionAPIReplacement(old, replacement)
 }
 
 func discardReplacementController(candidate, current control.SessionAPI) {

@@ -45,7 +45,7 @@ go build ./... && go test ./internal/...
 ## 注意
 
 - 合并后必须重新执行品牌残留检查：
-  `grep -rni --include="*.go" "tempora" internal/ cmd/ | grep -v _test | grep -v "DeepSeek-Reasonix"`
+  `grep -rni --include="*.go" "tempora" internal/ cmd/ | grep -v _test | grep -v "DeepSeek-Tempora"`
 - GLM 出厂预设（internal/config/config.go 的 Default()、provider_presets.go）是 Tempora 独有改动，
   上游同位置若发生变化需要手动合并这两处。
 - 上游对 provider/billing 目录改动频繁，是冲突高发区，建议合并时优先保上游、再重放 Tempora 的 GLM 改动。

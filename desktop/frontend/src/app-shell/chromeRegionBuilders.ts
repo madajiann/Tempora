@@ -1,6 +1,6 @@
-import { defaultCreationSidebarWidth, defaultSidebarWidth, SIDEBAR_MAX_WIDTH } from "../store/layout";
+import { defaultSidebarWidth, SIDEBAR_MAX_WIDTH } from "../store/layout";
 import type { Translator } from "../lib/i18n";
-import type { Meta, TabMeta } from "../lib/types";
+import type { Meta, RemoteTabRefView, TabMeta } from "../lib/types";
 import type { SidebarImTopicSource } from "../app-runtime/sidebarImProjection";
 import type { useSessionBannerCommands } from "../app-runtime/useSessionBannerCommands";
 import type { useProjectTopicCommands } from "../app-runtime/useProjectTopicCommands";
@@ -9,6 +9,7 @@ import type { useShellGeometry } from "../app-runtime/useShellGeometry";
 import type { useAppShellStores } from "../app-runtime/useAppShellStores";
 import type { SessionStatusBannersProps } from "./SessionStatusBanners";
 import type { SidebarRegionProps } from "./SidebarRegion";
+import { sessionIdentityRoute } from "../lib/sessionIdentity";
 
 type BannerCommands = ReturnType<typeof useSessionBannerCommands>;
 type ShellStores = ReturnType<typeof useAppShellStores>;
@@ -19,71 +20,69 @@ type OnboardingCommands = ReturnType<typeof useOnboardingCommands>;
  *  banners); store and hook ownership stays with the caller. */
 
 export function buildSidebarRegionProps(input: {
-  automation: boolean;
   className: string;
-  toggleTitle: string;
   shell: ShellStores;
   t: Translator;
   geometry: ReturnType<typeof useShellGeometry>;
   projectTree: {
     activeTab: TabMeta | undefined;
+    /** Owned by useActiveRemoteRef: this assembly must not rebuild it, because
+     *  the project tree keys its tree walks on the object's identity. */
+    activeRemote: RemoteTabRefView | undefined;
+    activeScope?: string;
+    activeWorkspaceRoot?: string;
     imTopicSources: Record<string, SidebarImTopicSource>;
     refreshSignal: number;
-    timeFilter: SidebarRegionProps["projectTree"]["timeFilter"];
-    onTimeFilterChange: SidebarRegionProps["projectTree"]["onTimeFilterChange"];
     searchExpanded: boolean;
     searchFocusSignal: number;
     showShortcutBadges: boolean;
     shortcutPlatform: SidebarRegionProps["projectTree"]["shortcutPlatform"];
     onVisibleTopicsChange: SidebarRegionProps["projectTree"]["onVisibleTopicsChange"];
+    draftSummaries: SidebarRegionProps["projectTree"]["draftSummaries"];
+    onOpenDraft: SidebarRegionProps["projectTree"]["onOpenDraft"];
   };
   topics: ProjectTopicCommands;
   commands: {
     onNewSession: () => void;
+    onOpenPalette: () => void;
     onOpenTrash: () => void;
     onOpenAutomation: () => void;
     onOpenSettings: SidebarRegionProps["onOpenSettings"];
-    onToggleSearch: () => void;
-    onToggle: () => void;
     onOpenTopic: SidebarRegionProps["projectTree"]["onOpenTopic"];
   };
+  paletteShortcut: string;
 }): SidebarRegionProps {
   const { geometry, topics, commands } = input;
   const shell = input.shell;
   return {
-    automation: input.automation,
     className: input.className,
-    workbench: shell.sidebarWorkbench,
-    creation: shell.sidebarCreation,
     collapsed: shell.sidebarCollapsed,
-    navTooltipDisabled: !shell.sidebarCollapsed,
-    searchOpen: shell.sidebarSearchOpen,
-    togglePressed: shell.sidebarTogglePressed,
-    toggleTitle: input.toggleTitle,
     t: input.t,
     onNewSession: commands.onNewSession,
+    onOpenPalette: commands.onOpenPalette,
+    paletteShortcut: input.paletteShortcut,
     onOpenTrash: commands.onOpenTrash,
     onOpenAutomation: commands.onOpenAutomation,
     onOpenSettings: commands.onOpenSettings,
-    onToggleSearch: commands.onToggleSearch,
-    onToggle: commands.onToggle,
     resize: {
       min: geometry.sidebarResizeMinWidth, max: SIDEBAR_MAX_WIDTH, value: geometry.sidebarRenderWidth,
       onPointerDown: geometry.startSidebarResize, onKeyDown: geometry.resizeSidebarWithKeyboard,
-      onReset: () => geometry.setExpandedSidebarWidth(shell.sidebarCreation ? defaultCreationSidebarWidth() : defaultSidebarWidth()),
+      onReset: () => geometry.setExpandedSidebarWidth(defaultSidebarWidth()),
     },
     projectTree: {
-      activeScope: input.projectTree.activeTab?.scope, activeWorkspaceRoot: input.projectTree.activeTab?.workspaceRoot,
-      activeTopicId: input.projectTree.activeTab?.topicId, activeSessionPath: input.projectTree.activeTab?.sessionPath,
-      activeRemote: input.projectTree.activeTab?.remote, imTopicSources: input.projectTree.imTopicSources, onOpenTopic: commands.onOpenTopic,
+      activeScope: input.projectTree.activeScope ?? input.projectTree.activeTab?.scope,
+      activeWorkspaceRoot: input.projectTree.activeWorkspaceRoot ?? input.projectTree.activeTab?.workspaceRoot,
+      activeTopicId: input.projectTree.activeTab?.topicId, activeSessionPath: sessionIdentityRoute(input.projectTree.activeTab),
+      activeRemote: input.projectTree.activeRemote,
+      imTopicSources: input.projectTree.imTopicSources, onOpenTopic: commands.onOpenTopic,
       onCreateTopic: topics.onCreateTopic, onCreateIsolatedWorktree: topics.onCreateIsolatedWorktree,
       onTopicsChanged: topics.refreshProjectsAndTabs, onRenameTopic: topics.renameTopic, refreshSignal: input.projectTree.refreshSignal,
       onAddProject: topics.onAddProject,
-      timeFilter: input.projectTree.timeFilter, onTimeFilterChange: input.projectTree.onTimeFilterChange,
-      variant: shell.sidebarWorkbench ? "workbench" : "creation",
       searchExpanded: input.projectTree.searchExpanded, searchFocusSignal: input.projectTree.searchFocusSignal,
       showShortcutBadges: input.projectTree.showShortcutBadges, shortcutPlatform: input.projectTree.shortcutPlatform,
       onVisibleTopicsChange: input.projectTree.onVisibleTopicsChange,
+      draftSummaries: input.projectTree.draftSummaries,
+      onOpenDraft: input.projectTree.onOpenDraft,
     },
   };
 }
@@ -131,8 +130,6 @@ export function buildAppShellClassNames(input: {
   platform: string;
   windowsFrameless: boolean;
   browserPreview: boolean;
-  workbench: boolean;
-  creation: boolean;
   imDetailActive: boolean;
   sidebarCollapsed: boolean;
   sidebarResizing: boolean;
@@ -150,12 +147,11 @@ export function buildAppShellClassNames(input: {
       `app--${input.platform}`,
       input.windowsFrameless ? "app--windows-frameless" : "",
       input.browserPreview ? "app--browser-preview" : "",
-      input.workbench ? "app--workbench" : "",
-      input.creation ? "app--creation" : "",
+      "app--workbench",
     ].filter(Boolean).join(" "),
     layout: [
       "layout",
-      input.workbench ? "layout--workbench" : "",
+      "layout--workbench",
       input.imDetailActive ? "layout--statusbar-hidden" : "",
       input.sidebarCollapsed ? "layout--sidebar-collapsed" : "",
       input.sidebarResizing ? "layout--resizing layout--sidebar-resizing" : "",

@@ -21,7 +21,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"tempora/internal/filelock"
+	filelock "tempora/internal/identitylock"
 )
 
 const (

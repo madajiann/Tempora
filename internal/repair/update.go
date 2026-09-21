@@ -19,8 +19,8 @@ import (
 	"time"
 
 	"tempora/internal/config"
-	"tempora/internal/filelock"
 	"tempora/internal/fileutil"
+	filelock "tempora/internal/identitylock"
 )
 
 const updateTransactionVersion = 1

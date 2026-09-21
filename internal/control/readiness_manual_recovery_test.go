@@ -7,6 +7,7 @@ import (
 	"tempora/internal/agent"
 	"tempora/internal/event"
 	"tempora/internal/provider"
+	"tempora/internal/session"
 	"tempora/internal/tool"
 )
 
@@ -105,7 +106,8 @@ func TestStandardTodoContinuationYieldsToPendingUserWork(t *testing.T) {
 	})
 	c.executor.Session().Add(provider.Message{Role: provider.RoleAssistant, Content: "让我写完整新第 4 节。"})
 	c.mu.Lock()
-	c.canceling = true
+	c.turns.cancelRequested = true
+	c.turns.phase = session.RuntimeCancelling
 	c.mu.Unlock()
 
 	if err := newTurnOrchestrator(c).runGoalLoopWithRawDisplay(context.Background(), "开始", "开始", "开始"); err != nil {

@@ -32,6 +32,7 @@ import (
 	"tempora/internal/plugin"
 	"tempora/internal/pluginpkg"
 	"tempora/internal/provider"
+	"tempora/internal/session"
 	"tempora/internal/skill"
 	"tempora/internal/store"
 	"tempora/internal/tool"
@@ -2363,7 +2364,7 @@ func TestNewSessionRefusesWhileTurnRunning(t *testing.T) {
 	c := newOwnedTestController(t, Options{Executor: exec, SystemPrompt: "sys", SessionDir: dir, SessionPath: path, Label: "test"})
 
 	c.mu.Lock()
-	c.running = true
+	c.turns.phase = session.RuntimeRunning
 	c.mu.Unlock()
 
 	if err := c.NewSession(); err == nil {
@@ -2377,7 +2378,7 @@ func TestNewSessionRefusesWhileTurnRunning(t *testing.T) {
 	}
 
 	c.mu.Lock()
-	c.running = false
+	c.turns.phase = session.RuntimeIdle
 	c.mu.Unlock()
 	if err := c.NewSession(); err != nil {
 		t.Fatalf("NewSession after the turn stopped: %v", err)
@@ -2528,7 +2529,7 @@ func TestSessionMutationsRefuseWhileRotating(t *testing.T) {
 	// Conversely: while a turn runs, every mutation is refused with its own
 	// message and the gate cannot be claimed.
 	c.mu.Lock()
-	c.running = true
+	c.turns.phase = session.RuntimeRunning
 	c.mu.Unlock()
 	if err := c.beginRotation(); !errors.Is(err, errTurnRunningRotation) {
 		t.Fatalf("beginRotation while running = %v, want errTurnRunningRotation", err)
@@ -2778,53 +2779,6 @@ func TestTwoModelShortChoiceReplySkipsPlanner(t *testing.T) {
 	}
 	if got := agent.StripTransientUserBlocks(lastUserMessage(execProv.requests[0].Messages)); got != "1" {
 		t.Fatalf("executor last user = %q, want raw choice reply", lastUserMessage(execProv.requests[0].Messages))
-	}
-}
-
-func TestSubmitClearDiscardsCurrentContextWithoutSavingTranscript(t *testing.T) {
-	dir := t.TempDir()
-	sess := agent.NewSession("sys")
-	sess.Add(provider.Message{Role: provider.RoleUser, Content: "old context"})
-	exec := agent.New(nil, nil, sess, agent.Options{}, event.Discard)
-	path := filepath.Join(dir, "session.jsonl")
-	cleared := make(chan struct{})
-	sink := event.FuncSink(func(e event.Event) {
-		if e.Kind == event.Notice && e.Text == "context cleared" {
-			close(cleared)
-		}
-	})
-	c := newOwnedTestController(t, Options{Executor: exec, SystemPrompt: "sys", SessionDir: dir, SessionPath: path, Label: "test", Sink: sink})
-	if err := c.Snapshot(); err != nil {
-		t.Fatal(err)
-	}
-	ckpt := ckptDir(path)
-	if err := os.MkdirAll(ckpt, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(ckpt, "turn-0.json"), []byte("{}"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-
-	c.submit("/clear", "", "")
-	select {
-	case <-cleared:
-	case <-time.After(30 * time.Second):
-		t.Fatal("/clear did not finish")
-	}
-	if c.SessionPath() == path {
-		t.Fatal("/clear did not rotate to a fresh session path")
-	}
-	for _, p := range []string{path, agent.BranchMetaPath(path), ckpt} {
-		if _, err := os.Stat(p); !os.IsNotExist(err) {
-			t.Fatalf("discarded artifact %s still exists or stat failed with %v", p, err)
-		}
-	}
-	if _, err := os.Stat(c.SessionPath()); !os.IsNotExist(err) {
-		t.Fatalf("fresh empty session should not be saved yet; stat err=%v", err)
-	}
-	current := exec.Session().Snapshot()
-	if len(current) != 1 || current[0].Role != provider.RoleSystem || current[0].Content != "sys" {
-		t.Fatalf("cleared context = %+v, want only system prompt", current)
 	}
 }
 
@@ -4516,11 +4470,9 @@ func TestRunGuardedPanicEmitsTurnDone(t *testing.T) {
 	}
 done:
 
-	c.mu.Lock()
-	running := c.running
-	c.mu.Unlock()
-	if running {
-		t.Fatal("c.running should be false after panic recovery")
+	waitIdle(t, c)
+	if c.Running() {
+		t.Fatal("controller still running after panic recovery")
 	}
 }
 

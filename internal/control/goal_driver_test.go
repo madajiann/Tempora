@@ -27,11 +27,7 @@ func cleanupGoalDriverController(t *testing.T, c *Controller) {
 			c.goalDriverMu.Lock()
 			settled := !c.goalDriverPending && c.goalDriverActive == nil
 			c.goalDriverMu.Unlock()
-			runtimeRetired := true
-			if exclusive && service != nil && runtime != nil {
-				current, ok := service.Runtime(runtime.Ref())
-				runtimeRetired = !ok || current != runtime
-			}
+			runtimeRetired := !exclusive || service == nil || runtime == nil || goalRuntimeRetired(c, service, runtime, settled)
 			if settled && !c.Running() && runtimeRetired {
 				return
 			}
@@ -93,13 +89,14 @@ func TestGoalDriverContinuesAfterFinalAndCompletesThroughExactRoundAuthority(t *
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), session.CreateOptions{SessionID: "goal-driver"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	runner := &lifecycleDriverRunner{done: make(chan struct{})}
 	exec := agent.New(nil, tool.NewRegistry(), agent.NewSession("system"), agent.Options{}, event.Discard)
-	c := New(Options{Runner: runner, Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
+	c := newOwnedTestController(t, Options{Runner: runner, Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
 	cleanupGoalDriverController(t, c)
 	c.Send("work until the whole target is finished")
 	select {
@@ -171,13 +168,14 @@ func TestGoalDriverTurnsExplicitRoundLimitIntoBlockedState(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), session.CreateOptions{SessionID: "goal-limit"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	runner := &limitedGoalRunner{}
 	exec := agent.New(nil, tool.NewRegistry(), agent.NewSession("system"), agent.Options{}, event.Discard)
-	c := New(Options{Runner: runner, Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
+	c := newOwnedTestController(t, Options{Runner: runner, Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
 	cleanupGoalDriverController(t, c)
 	c.Send("run exactly one automatic round")
 	deadline := time.Now().Add(5 * time.Second)
@@ -254,13 +252,14 @@ func TestConcurrentIdleKicksCannotAdmitParallelGoalRounds(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), session.CreateOptions{SessionID: "goal-dedup"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	runner := &gatedGoalRunner{started: make(chan struct{}), release: make(chan struct{})}
 	exec := agent.New(nil, tool.NewRegistry(), agent.NewSession("system"), agent.Options{}, event.Discard)
-	c := New(Options{Runner: runner, Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
+	c := newOwnedTestController(t, Options{Runner: runner, Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
 	cleanupGoalDriverController(t, c)
 	c.Send("start a deduplicated target")
 	select {
@@ -316,13 +315,14 @@ func TestPausingRunningGoalRoundCancelsActivityAndPersistsPaused(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), session.CreateOptions{SessionID: "goal-cancel"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	runner := &cancelGoalRunner{started: make(chan struct{})}
 	exec := agent.New(nil, tool.NewRegistry(), agent.NewSession("system"), agent.Options{}, event.Discard)
-	c := New(Options{Runner: runner, Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
+	c := newOwnedTestController(t, Options{Runner: runner, Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
 	cleanupGoalDriverController(t, c)
 	c.Send("start then pause")
 	select {
@@ -373,13 +373,14 @@ func TestCancellationAfterAcceptedCompleteDoesNotRewriteGoalToPaused(t *testing.
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), session.CreateOptions{SessionID: "goal-complete-then-cancel"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	runner := &completeThenCancelGoalRunner{completed: make(chan struct{})}
 	exec := agent.New(nil, tool.NewRegistry(), agent.NewSession("system"), agent.Options{}, event.Discard)
-	c := New(Options{Runner: runner, Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
+	c := newOwnedTestController(t, Options{Runner: runner, Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
 	cleanupGoalDriverController(t, c)
 	c.Send("start and finish the target")
 	select {
@@ -430,24 +431,21 @@ func (r *unlimitedGoalRunner) Run(ctx context.Context, _ string) error {
 }
 
 func TestUnlimitedGoalDriverRunsBeyondHarnessDefaultCeiling(t *testing.T) {
-	service, err := session.NewService("desktop", session.NewFilesystemPersistence(t.TempDir()))
-	if err != nil {
-		t.Fatal(err)
-	}
+	service := goalRoundTestService(t)
 	runtime, err := service.Create(t.Context(), session.CreateOptions{SessionID: "goal-unlimited"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	runner := &unlimitedGoalRunner{autoLimit: 257, done: make(chan struct{})}
 	exec := agent.New(nil, tool.NewRegistry(), agent.NewSession("system"), agent.Options{}, event.Discard)
-	c := New(Options{Runner: runner, Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
+	c := newOwnedTestController(t, Options{Runner: runner, Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
 	cleanupGoalDriverController(t, c)
 	c.Send("exercise the unlimited goal driver")
 	select {
 	case <-runner.done:
-	// The race detector instruments all 257 Flush/admission cycles and is
-	// intentionally much slower than the ordinary suite on CI runners.
-	case <-time.After(60 * time.Second):
+	// This asserts the admission count, not disk throughput. The enclosing
+	// test command supplies the watchdog for a genuinely stalled driver.
+	case <-t.Context().Done():
 		t.Fatal("unlimited goal did not cross 256 admitted automatic rounds")
 	}
 	view, err := c.goalLifecycleView()
@@ -497,13 +495,14 @@ func TestGoalDriverBlocksAtExplicitHostTokenBudget(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), session.CreateOptions{SessionID: "goal-budget"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	runner := &budgetedGoalRunner{}
 	exec := agent.New(nil, tool.NewRegistry(), agent.NewSession("system"), agent.Options{}, event.Discard)
-	c := New(Options{Runner: runner, Executor: exec, Sink: event.Discard, GoalTokenBudget: 100,
+	c := newOwnedTestController(t, Options{Runner: runner, Executor: exec, Sink: event.Discard, GoalTokenBudget: 100,
 		SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
 	runner.usage = c.goalUsageTee
 	cleanupGoalDriverController(t, c)
@@ -548,13 +547,14 @@ func TestGoalRoundModelErrorDisarmsWithoutCompleting(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), session.CreateOptions{SessionID: "goal-model-error"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	runner := &modelErrorGoalRunner{}
 	exec := agent.New(nil, tool.NewRegistry(), agent.NewSession("system"), agent.Options{}, event.Discard)
-	c := New(Options{Runner: runner, Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
+	c := newOwnedTestController(t, Options{Runner: runner, Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
 	cleanupGoalDriverController(t, c)
 	c.Send("exercise model failure")
 	deadline := time.Now().Add(5 * time.Second)
@@ -599,13 +599,14 @@ func TestGoalDriverFlushFailureStartsNoAutomaticModelCall(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), session.CreateOptions{SessionID: "goal-flush"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	runner := &modelErrorGoalRunner{}
 	exec := agent.New(nil, tool.NewRegistry(), agent.NewSession("system"), agent.Options{}, event.Discard)
-	c := New(Options{Runner: runner, Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
+	c := newOwnedTestController(t, Options{Runner: runner, Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
 	cleanupGoalDriverController(t, c)
 	c.Send("create before a failed checkpoint")
 	deadline := time.Now().Add(5 * time.Second)
@@ -666,13 +667,14 @@ func TestUserInputArrivingDuringGoalFlushWinsAdmission(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), session.CreateOptions{SessionID: "goal-user-wins"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	runner := &userWinsRunner{}
 	exec := agent.New(nil, tool.NewRegistry(), agent.NewSession("system"), agent.Options{}, event.Discard)
-	c := New(Options{Runner: runner, Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
+	c := newOwnedTestController(t, Options{Runner: runner, Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
 	cleanupGoalDriverController(t, c)
 	c.Send("create the target")
 	select {
@@ -743,6 +745,7 @@ func TestColdRestoredGoalCanResumeFromNaturalUserRequestAndContinue(t *testing.T
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = seedService.CloseAll(context.Background()) })
 	seedRuntime, err := seedService.Create(t.Context(), session.CreateOptions{SessionID: "restored-goal"})
 	if err != nil {
 		t.Fatal(err)
@@ -755,14 +758,9 @@ func TestColdRestoredGoalCanResumeFromNaturalUserRequestAndContinue(t *testing.T
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, activity, err := seedRuntime.BeginOwnedActivity(t.Context(), "seed")
-	if err != nil {
+	if _, err := seedRuntime.Session().Append(t.Context(), session.Batch{OperationID: "seed-goal", Events: []session.Event{{Kind: "goal/state", Payload: payload}}}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := activity.Append(t.Context(), session.Batch{OperationID: "seed-goal", Events: []session.Event{{Kind: "goal/state", Payload: payload}}}); err != nil {
-		t.Fatal(err)
-	}
-	activity.Finish(nil)
 	if err := seedService.Close(t.Context(), seedRuntime.Ref()); err != nil {
 		t.Fatal(err)
 	}
@@ -771,6 +769,7 @@ func TestColdRestoredGoalCanResumeFromNaturalUserRequestAndContinue(t *testing.T
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	binding, err := service.Open(t.Context(), session.SessionRef{HostID: "desktop", SessionID: "restored-goal"})
 	if err != nil {
 		t.Fatal(err)
@@ -778,7 +777,7 @@ func TestColdRestoredGoalCanResumeFromNaturalUserRequestAndContinue(t *testing.T
 	runtime := binding.Runtime()
 	runner := &restoredGoalRunner{done: make(chan struct{})}
 	exec := agent.New(nil, tool.NewRegistry(), agent.NewSession("system"), agent.Options{}, event.Discard)
-	c := New(Options{Runner: runner, Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
+	c := newOwnedTestController(t, Options{Runner: runner, Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
 	cleanupGoalDriverController(t, c)
 	t.Cleanup(func() { _ = binding.Release(context.Background()) })
 	c.Send("继续把这个目标做完")

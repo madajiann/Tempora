@@ -24,8 +24,8 @@ import (
 	"sync"
 	"time"
 
-	"tempora/internal/filelock"
 	"tempora/internal/fileutil"
+	filelock "tempora/internal/identitylock"
 )
 
 const missingReasoningWarnStateFilename = "tool-call-reasoning-warning.json"

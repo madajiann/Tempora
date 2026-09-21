@@ -1,6 +1,6 @@
 package sessiontemp
 
-import "tempora/internal/filelock"
+import filelock "tempora/internal/identitylock"
 
 func tryLockForTest(path string) (func(), error) {
 	return filelock.Acquire(nilContext(), path)

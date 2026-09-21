@@ -17,8 +17,8 @@ import (
 	"time"
 
 	"tempora/internal/agent"
-	"tempora/internal/filelock"
 	"tempora/internal/fileutil"
+	filelock "tempora/internal/identitylock"
 	"tempora/internal/provider"
 	"tempora/internal/store"
 )
@@ -81,7 +81,7 @@ func migrateLegacyHead(ctx context.Context, sourcePath, targetRoot, legacyHeadID
 	if err != nil {
 		return MigrationResult{}, err
 	}
-	return frozen.publish(ctx, targetRoot)
+	return frozen.publish(ctx, targetRoot, CreateOptions{})
 }
 
 // frozenLegacyHead is one legacy head reduced to an immutable, already-parsed
@@ -89,17 +89,42 @@ func migrateLegacyHead(ctx context.Context, sourcePath, targetRoot, legacyHeadID
 // that must compare it against a paired event sidecar can still refuse the
 // import without leaving a partially-adopted target behind.
 type frozenLegacyHead struct {
-	sourcePath    string
-	headID        string
-	source        Source
-	artifacts     []frozenArtifact
-	targetID      string
-	messageSpool  string
-	messageCount  int
-	modelRef      string
-	modelIdentity string
-	goal          map[string]any
-	freezeDir     string
+	sourcePath           string
+	headID               string
+	source               Source
+	artifacts            []frozenArtifact
+	targetID             string
+	messageSpool         string
+	messageCount         int
+	modelRef             string
+	modelIdentity        string
+	modelMessages        []provider.Message
+	projectionDiagnostic string
+	goal                 map[string]any
+	freezeDir            string
+}
+
+// LegacyMigrationHeads lists all heads from an immutable copy, without changing
+// source selection, caches, or logs. Retired heads are returned for the caller
+// to distinguish deliberate deletion from a missing branch.
+func LegacyMigrationHeads(ctx context.Context, sourcePath string) ([]agent.SessionHead, error) {
+	sourcePath = agent.CanonicalSessionPath(sourcePath)
+	lease, err := agent.TryAcquireSessionLease(sourcePath)
+	if err != nil {
+		return nil, err
+	}
+	artifacts, _, dir, err := freezeLegacyArtifacts(ctx, sourcePath)
+	lease.Release()
+	if err != nil {
+		return nil, err
+	}
+	defer os.RemoveAll(dir)
+	for _, artifact := range artifacts {
+		if artifact.path == sourcePath {
+			return agent.ListSessionHeadsForMigration(ctx, artifact.frozenPath)
+		}
+	}
+	return nil, os.ErrNotExist
 }
 
 // freezeLegacyHead acquires the source lease, copies every durable artifact
@@ -140,17 +165,20 @@ func freezeLegacyHead(ctx context.Context, sourcePath, legacyHeadID string, allo
 		targetID:     migrationTargetID(sourcePath, source.SHA256, legacyHeadID),
 		messageSpool: parsed.messageSpool, messageCount: parsed.messageCount,
 		modelRef: parsed.modelRef, modelIdentity: parsed.modelIdentity,
+		modelMessages: parsed.modelMessages, projectionDiagnostic: parsed.projectionDiagnostic,
 		goal:      parsed.goal,
 		freezeDir: freezeDir,
 	}, nil
 }
 
 type frozenLegacyParse struct {
-	messageSpool  string
-	messageCount  int
-	modelRef      string
-	modelIdentity string
-	goal          map[string]any
+	messageSpool         string
+	messageCount         int
+	modelRef             string
+	modelIdentity        string
+	modelMessages        []provider.Message
+	projectionDiagnostic string
+	goal                 map[string]any
 }
 
 // parseFrozenLegacy reads the frozen artifacts from a private directory so the
@@ -198,6 +226,23 @@ func parseFrozenLegacy(ctx context.Context, artifacts []frozenArtifact, sourcePa
 		return frozenLegacyParse{}, closeErr
 	}
 	parsed := frozenLegacyParse{messageSpool: messageSpool, messageCount: stream.Messages}
+	if _, err := os.Stat(agent.ContextStatePath(frozenSourcePath)); err == nil {
+		canonical, loadErr := readMigrationMessageSpool(ctx, messageSpool)
+		if loadErr != nil {
+			return frozenLegacyParse{}, loadErr
+		}
+		modelMessages, valid, projectionErr := agent.LoadValidContextProjectionForMigration(frozenSourcePath, canonical)
+		switch {
+		case projectionErr != nil:
+			parsed.projectionDiagnostic = "legacy context projection ignored: " + projectionErr.Error()
+		case valid:
+			parsed.modelMessages = provider.ModelMessages(modelMessages)
+		default:
+			parsed.projectionDiagnostic = "legacy context projection ignored: sidecar does not match canonical history"
+		}
+	} else if !os.IsNotExist(err) {
+		return frozenLegacyParse{}, err
+	}
 	if modelRef, modelIdentity, ok := agent.LoadSessionModelSelection(frozenSourcePath); ok && strings.TrimSpace(modelRef) != "" {
 		parsed.modelRef, parsed.modelIdentity = strings.TrimSpace(modelRef), strings.TrimSpace(modelIdentity)
 	}
@@ -205,10 +250,29 @@ func parseFrozenLegacy(ctx context.Context, artifacts []frozenArtifact, sourcePa
 	return parsed, nil
 }
 
+func readMigrationMessageSpool(ctx context.Context, path string) ([]provider.Message, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	decoder := json.NewDecoder(&contextReader{ctx: ctx, reader: file})
+	var messages []provider.Message
+	for {
+		var message provider.Message
+		if err := decoder.Decode(&message); errors.Is(err, io.EOF) {
+			return messages, nil
+		} else if err != nil {
+			return nil, err
+		}
+		messages = append(messages, message)
+	}
+}
+
 // publish materializes the frozen input as the deterministic final target. The
 // directory is built in a sibling temporary path and atomically renamed, so a
 // reader never observes a partial session.
-func (f *frozenLegacyHead) publish(ctx context.Context, targetRoot string) (MigrationResult, error) {
+func (f *frozenLegacyHead) publish(ctx context.Context, targetRoot string, options CreateOptions) (MigrationResult, error) {
 	if f == nil {
 		return MigrationResult{}, fmt.Errorf("session: nil frozen legacy head")
 	}
@@ -221,17 +285,13 @@ func (f *frozenLegacyHead) publish(ctx context.Context, targetRoot string) (Migr
 	if err := ctx.Err(); err != nil {
 		return MigrationResult{}, err
 	}
-	if m, err := readManifest(filepath.Join(targetDir, "manifest.json")); err == nil {
-		if m.Source != nil && m.Source.Path == f.sourcePath && m.Source.SHA256 == f.source.SHA256 && m.Source.LegacyHeadID == f.headID {
-			if err := appendMigrationMapping(ctx, targetRoot, MigrationEntry{SourcePath: f.sourcePath, SourceSize: f.source.Size, SourceSHA256: f.source.SHA256, LegacyHeadID: f.headID, TargetCodec: Codec, TargetID: f.targetID, CreatedAt: m.CreatedAt}); err != nil {
-				return MigrationResult{}, fmt.Errorf("repair migration mapping: %w", err)
-			}
-			result.Reused = true
-			return result, nil
-		}
-		return MigrationResult{}, fmt.Errorf("session: target %s already exists for different input", f.targetID)
-	} else if !os.IsNotExist(err) {
+	reused, err := f.reusePublished(ctx, targetRoot, targetDir, options)
+	if err != nil {
 		return MigrationResult{}, err
+	}
+	if reused {
+		result.Reused = true
+		return result, nil
 	}
 	if err := os.MkdirAll(targetRoot, 0o700); err != nil {
 		return MigrationResult{}, err
@@ -248,7 +308,7 @@ func (f *frozenLegacyHead) publish(ctx context.Context, targetRoot string) (Migr
 	}()
 
 	manifest := Manifest{SchemaVersion: SchemaVersion, Codec: Codec, StorageRevision: StorageRevision, ContentRoot: sharedContentRoot, SessionID: f.targetID, CreatedAt: time.Now().UTC(), Source: &f.source}
-	if err := writeManifest(filepath.Join(tmp, "manifest.json"), manifest); err != nil {
+	if err := writeImportedManifest(tmp, manifest, options); err != nil {
 		return MigrationResult{}, err
 	}
 	legacyDir := filepath.Join(tmp, "legacy")
@@ -265,68 +325,9 @@ func (f *frozenLegacyHead) publish(ctx context.Context, targetRoot string) (Migr
 	if err != nil {
 		return MigrationResult{}, err
 	}
-	const messageBatchSize = 128
-	var appendErr error
-	spool, err := os.Open(f.messageSpool)
-	if err != nil {
-		_ = target.Close(context.Background())
-		return MigrationResult{}, err
-	}
-	decoder := json.NewDecoder(&contextReader{ctx: ctx, reader: spool})
-	events := make([]Event, 0, messageBatchSize)
-	batchNumber := 0
-	flushMessages := func() error {
-		if len(events) == 0 {
-			return nil
-		}
-		_, err := target.Append(ctx, Batch{OperationID: fmt.Sprintf("legacy-import:%s:messages:%d", f.source.SHA256, batchNumber), Events: events})
-		batchNumber++
-		events = make([]Event, 0, messageBatchSize)
-		return err
-	}
-	for appendErr == nil {
-		var message provider.Message
-		decodeErr := decoder.Decode(&message)
-		if errors.Is(decodeErr, io.EOF) {
-			appendErr = flushMessages()
-			break
-		}
-		if decodeErr != nil {
-			appendErr = decodeErr
-			break
-		}
-		{
-			raw, marshalErr := json.Marshal(struct {
-				Message provider.Message `json:"message"`
-			}{Message: message})
-			if marshalErr != nil {
-				appendErr = marshalErr
-				break
-			}
-			events = append(events, Event{Kind: "message/complete", Payload: raw})
-		}
-		if len(events) == messageBatchSize {
-			appendErr = flushMessages()
-		}
-	}
-	if closeErr := spool.Close(); appendErr == nil {
-		appendErr = closeErr
-	}
-	if appendErr == nil && f.modelRef != "" {
-		raw, marshalErr := json.Marshal(map[string]string{"modelRef": f.modelRef, "modelIdentity": f.modelIdentity})
-		if marshalErr != nil {
-			appendErr = marshalErr
-		} else {
-			_, appendErr = target.Append(ctx, Batch{OperationID: "legacy-import:" + f.source.SHA256 + ":model", Events: []Event{{Kind: "session/config", Payload: raw}}})
-		}
-	}
-	if appendErr == nil && f.goal != nil {
-		raw, marshalErr := json.Marshal(f.goal)
-		if marshalErr != nil {
-			appendErr = marshalErr
-		} else {
-			_, appendErr = target.Append(ctx, Batch{OperationID: "legacy-import:" + f.source.SHA256 + ":goal", Events: []Event{{Kind: "goal/state", Payload: raw}}})
-		}
+	appendErr := f.appendMessages(ctx, target)
+	if appendErr == nil {
+		appendErr = f.appendMetadata(ctx, target)
 	}
 	if appendErr == nil {
 		_, appendErr = target.Flush(ctx)
@@ -348,6 +349,179 @@ func (f *frozenLegacyHead) publish(ctx context.Context, targetRoot string) (Migr
 		return result, fmt.Errorf("publish migration mapping: %w", err)
 	}
 	return result, nil
+}
+
+func (f *frozenLegacyHead) appendMessages(ctx context.Context, target *Session) (err error) {
+	const messageBatchSize = 128
+	spool, err := os.Open(f.messageSpool)
+	if err != nil {
+		return err
+	}
+	defer func() { err = errors.Join(err, spool.Close()) }()
+
+	decoder := json.NewDecoder(&contextReader{ctx: ctx, reader: spool})
+	events := make([]Event, 0, messageBatchSize)
+	batchNumber := 0
+	flush := func() error {
+		if len(events) == 0 {
+			return nil
+		}
+		_, err := target.Append(ctx, Batch{
+			OperationID: fmt.Sprintf("legacy-import:%s:messages:%d", f.source.SHA256, batchNumber),
+			Events:      events,
+		})
+		batchNumber++
+		events = make([]Event, 0, messageBatchSize)
+		return err
+	}
+	for {
+		var message provider.Message
+		decodeErr := decoder.Decode(&message)
+		if errors.Is(decodeErr, io.EOF) {
+			return flush()
+		}
+		if decodeErr != nil {
+			return decodeErr
+		}
+		raw, marshalErr := json.Marshal(struct {
+			Message provider.Message `json:"message"`
+		}{Message: message})
+		if marshalErr != nil {
+			return marshalErr
+		}
+		events = append(events, Event{Kind: "message/complete", Payload: raw})
+		if len(events) == messageBatchSize {
+			if err := flush(); err != nil {
+				return err
+			}
+		}
+	}
+}
+
+func (f *frozenLegacyHead) appendMetadata(ctx context.Context, target *Session) error {
+	prefix := "legacy-import:" + f.source.SHA256 + ":"
+	if len(f.modelMessages) > 0 {
+		event, err := legacyModelContextEvent(f.modelMessages)
+		if err != nil {
+			return err
+		}
+		if _, err := target.Append(ctx, Batch{OperationID: prefix + "model-context", Events: []Event{event}}); err != nil {
+			return err
+		}
+	}
+	if f.projectionDiagnostic != "" {
+		raw, err := json.Marshal(map[string]string{
+			"code":   "legacy_context_projection_ignored",
+			"detail": f.projectionDiagnostic,
+		})
+		if err != nil {
+			return err
+		}
+		if _, err := target.Append(ctx, Batch{OperationID: prefix + "projection-diagnostic", Events: []Event{{Kind: "diagnostic", Optional: true, Payload: raw}}}); err != nil {
+			return err
+		}
+	}
+	if f.modelRef != "" {
+		raw, err := json.Marshal(map[string]string{"modelRef": f.modelRef, "modelIdentity": f.modelIdentity})
+		if err != nil {
+			return err
+		}
+		if _, err := target.Append(ctx, Batch{OperationID: prefix + "model", Events: []Event{{Kind: "session/config", Payload: raw}}}); err != nil {
+			return err
+		}
+	}
+	if f.goal == nil {
+		return nil
+	}
+	raw, err := json.Marshal(f.goal)
+	if err != nil {
+		return err
+	}
+	_, err = target.Append(ctx, Batch{OperationID: prefix + "goal", Events: []Event{{Kind: "goal/state", Payload: raw}}})
+	return err
+}
+
+func (f *frozenLegacyHead) reusePublished(ctx context.Context, targetRoot, targetDir string, options CreateOptions) (bool, error) {
+	manifest, err := readManifest(filepath.Join(targetDir, "manifest.json"))
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	if manifest.Source == nil || manifest.Source.Path != f.sourcePath || manifest.Source.SHA256 != f.source.SHA256 || manifest.Source.LegacyHeadID != f.headID {
+		return false, fmt.Errorf("session: target %s already exists for different input", f.targetID)
+	}
+	if err := validateSessionHeaderForCreate(targetDir, f.targetID, options); err != nil {
+		return false, err
+	}
+	if err := f.repairPublishedProjection(ctx, targetDir); err != nil {
+		return false, err
+	}
+	entry := MigrationEntry{SourcePath: f.sourcePath, SourceSize: f.source.Size, SourceSHA256: f.source.SHA256, LegacyHeadID: f.headID, TargetCodec: Codec, TargetID: f.targetID, CreatedAt: manifest.CreatedAt}
+	if err := appendMigrationMapping(ctx, targetRoot, entry); err != nil {
+		return false, fmt.Errorf("repair migration mapping: %w", err)
+	}
+	return true, nil
+}
+
+func legacyModelContextEvent(messages []provider.Message) (Event, error) {
+	raw, err := json.Marshal(map[string]any{
+		"messages": provider.ModelMessages(messages),
+		"reason":   "legacy-import-projection",
+	})
+	if err != nil {
+		return Event{}, err
+	}
+	return Event{Kind: "model/context-replace", Payload: raw}, nil
+}
+
+// repairPublishedProjection upgrades a target created by an older importer
+// only while every commit still belongs to the deterministic import. Any
+// subsequent user or runtime commit makes the target ineligible for mutation.
+func (f *frozenLegacyHead) repairPublishedProjection(ctx context.Context, targetDir string) error {
+	if f == nil || len(f.modelMessages) == 0 {
+		return nil
+	}
+	prefix := "legacy-import:" + f.source.SHA256 + ":"
+	pristine, hasProjection := true, false
+	if err := VisitCommits(ctx, targetDir, func(commit Commit) error {
+		if !strings.HasPrefix(commit.OperationID, prefix) {
+			pristine = false
+		}
+		for _, event := range commit.Events {
+			if event.Kind == "model/context-replace" || event.Kind == "compaction" {
+				hasProjection = true
+			}
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
+	if !pristine || hasProjection {
+		return nil
+	}
+	target, err := OpenWithOptions(targetDir, f.targetID, OpenOptions{ExternalHistory: true})
+	if err != nil {
+		// A live canonical target owns its writer lease. Reuse remains safe, but
+		// an in-place repair must wait for a later inactive retry.
+		return nil
+	}
+	event, err := legacyModelContextEvent(f.modelMessages)
+	if err == nil {
+		_, err = target.Append(ctx, Batch{OperationID: prefix + "model-context", Events: []Event{event}})
+	}
+	if err == nil {
+		_, err = target.Flush(ctx)
+	}
+	return errors.Join(err, target.Close(ctx))
+}
+
+func writeImportedManifest(dir string, manifest Manifest, options CreateOptions) error {
+	if err := writeManifest(filepath.Join(dir, "manifest.json"), manifest); err != nil {
+		return err
+	}
+	return writeSessionHeaderForCreate(dir, manifest.SessionID, manifest.CreatedAt, options)
 }
 
 type frozenArtifact struct {
@@ -519,7 +693,7 @@ func readManifest(path string) (Manifest, error) {
 	if err := json.Unmarshal(b, &m); err != nil {
 		return Manifest{}, err
 	}
-	if m.SchemaVersion != SchemaVersion || m.Codec != Codec || m.StorageRevision != StorageRevision {
+	if !currentStoredManifest(m) {
 		return Manifest{}, fmt.Errorf("%w: manifest schema or codec", ErrUnsupportedVersion)
 	}
 	return m, nil

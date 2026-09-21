@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"maps"
+	"slices"
 	"strings"
 
 	"tempora/internal/event"
@@ -13,12 +14,23 @@ import (
 )
 
 type Projection struct {
-	CommittedSequence uint64
-	TurnID            string
-	TurnStatus        event.TurnStatus
-	CurrentTurnStart  uint64
-	Turns             []TurnBoundary
-	Messages          []provider.Message
+	Submissions          SubmissionIndex
+	TranscriptInputs     []transcriptInput
+	HiddenTurns          map[string]bool
+	RetractedInputs      map[string]string
+	CommittedSequence    uint64
+	TurnID               string
+	TurnStatus           event.TurnStatus
+	CurrentTurnStart     uint64
+	CurrentTurnStartedAt int64
+	// CurrentTurnMessageID is the stable identity of the newest assistant
+	// message committed inside the open turn. It becomes the turn's final reply
+	// identity when the turn closes.
+	CurrentTurnMessageID string
+	CurrentAttempts      map[string]bool
+	CurrentCalls         map[string]bool
+	Turns                []TurnBoundary
+	Messages             []provider.Message
 	// ModelMessages is the exact provider-visible projection. Canonical Messages
 	// remains the complete UI/history transcript; compaction replaces only this
 	// view and never deletes the underlying business history.
@@ -27,23 +39,44 @@ type Projection struct {
 	TodoWritten   bool
 	Interactions  map[string]string
 	ActiveTools   map[string]string
+	StartedTools  map[string]bool
+	ActiveSteps   map[string]bool
 	Recovery      *event.RecoveryStatus
 	PlanState     json.RawMessage
 	GoalState     json.RawMessage
 	Title         string
+	// TitleSequence is the sequence of the latest accepted session/title event.
+	// It is independent from CommittedSequence so ordinary chat appends do not
+	// conflict with a delayed title mutation.
+	TitleSequence uint64
 	ModelRef      string
 	ModelIdentity string
 }
 
 type TurnBoundary struct {
+	SamplingCount int              `json:"samplingCount,omitempty"`
+	ToolCount     int              `json:"toolCount,omitempty"`
+	DurationMs    int64            `json:"durationMs,omitempty"`
 	TurnID        string           `json:"turnId"`
 	StartSequence uint64           `json:"startSequence"`
 	EndSequence   uint64           `json:"endSequence"`
 	Status        event.TurnStatus `json:"status"`
+	// BoundarySequence is the last sequence of the commit that closed this turn.
+	// A cut may only land here: a turn end and the state ending with it can share
+	// one commit, and a cut inside that commit inherits half an operation.
+	BoundarySequence uint64 `json:"boundarySequence"`
+	// Availability is fixed from the complete commit that closed the turn. It
+	// must not be recomputed from the latest projection: a later commit may
+	// resolve authority that the earlier fork prefix would still inherit.
+	Availability ForkAvailability `json:"availability"`
+	// MessageID is the stable transcript identity of the turn's final reply, empty
+	// when the turn committed none. Surfaces match turns to messages through this
+	// identity, never through an array position.
+	MessageID string `json:"messageId,omitempty"`
 }
 
 var ProjectionKinds = map[string]bool{
-	"message/complete": true, "message/upsert": true, "assistant/attempt": true,
+	"message/complete": true, "message/upsert": true, "message/retract": true, "assistant/attempt": true,
 	"tool/call": true, "tool/start": true, "tool/result": true,
 	"turn/start": true, "turn/end": true, "step/start": true, "step/end": true,
 	"todo/write": true, "interaction/created": true, "interaction/resolved": true,
@@ -71,22 +104,41 @@ func Project(commits []Commit) (Projection, error) {
 }
 
 func applyProjectionCommit(projection *Projection, commit Commit) error {
+	initializeProjectionMaps(projection)
+	return applyProjectionEvents(projection, commit)
+}
+
+func initializeProjectionMaps(projection *Projection) {
 	if projection.Interactions == nil {
 		projection.Interactions = map[string]string{}
 	}
 	if projection.ActiveTools == nil {
 		projection.ActiveTools = map[string]string{}
 	}
+	if projection.StartedTools == nil {
+		projection.StartedTools = map[string]bool{}
+	}
+	if projection.ActiveSteps == nil {
+		projection.ActiveSteps = map[string]bool{}
+	}
+}
+
+func applyProjectionEvents(projection *Projection, commit Commit) error {
+	closedBefore := len(projection.Turns)
 	for _, ev := range commit.Events {
 		projection.CommittedSequence = ev.Sequence
 		var err error
 		switch ev.Kind {
+		case "submission/accepted":
+			err = projectSubmission(projection, commit, ev)
 		case "legacy/import":
 			err = projectLegacyImport(projection, commit, ev)
 		case "message/complete":
 			err = projectMessageComplete(projection, commit, ev)
 		case "message/upsert":
 			err = projectMessageUpsert(projection, commit, ev)
+		case "message/retract":
+			err = projectMessageRetract(projection, commit, ev)
 		case "assistant/attempt":
 			err = projectAssistantAttempt(projection, commit, ev)
 		case "history/replace":
@@ -129,18 +181,19 @@ func applyProjectionCommit(projection *Projection, commit Commit) error {
 		if err != nil {
 			return err
 		}
+		applyTranscriptMetadata(projection, commit, ev)
+	}
+	// turn/end can be followed by more events in the same atomic commit. Only
+	// after the whole commit is projected do we know whether its cut leaves a
+	// turn, interaction, or tool authority open.
+	for index := closedBefore; index < len(projection.Turns); index++ {
+		projection.Turns[index].Availability = forkProjectionAvailability(*projection, projection.Turns[index].BoundarySequence)
 	}
 	return nil
 }
 
 func projectLegacyImport(projection *Projection, commit Commit, ev Event) error {
-	var body struct {
-		Source        Source             `json:"source"`
-		Messages      []provider.Message `json:"messages"`
-		Goal          json.RawMessage    `json:"goal,omitempty"`
-		ModelRef      string             `json:"modelRef,omitempty"`
-		ModelIdentity string             `json:"modelIdentity,omitempty"`
-	}
+	var body legacyImportPayload
 	if err := strictPayload(ev.Payload, &body); err != nil || body.Messages == nil {
 		return damagedPayload(ev, err)
 	}
@@ -164,7 +217,22 @@ func projectMessageComplete(projection *Projection, commit Commit, ev Event) err
 	}
 	projection.Messages = append(projection.Messages, *body.Message)
 	projection.ModelMessages = append(projection.ModelMessages, provider.ModelMessages([]provider.Message{*body.Message})...)
+	projection.recordTurnReply(*body.Message)
 	return nil
+}
+
+// recordTurnReply keeps the open turn's final answer identity. A fork entry
+// belongs on the turn's answer, so a trailing tool call, a retried attempt, or a
+// host-generated protocol message must not take the anchor away from the text a
+// user actually reads.
+func (projection *Projection) recordTurnReply(message provider.Message) {
+	if projection.TurnID == "" || message.Role != provider.RoleAssistant || message.LocalOnly {
+		return
+	}
+	if strings.TrimSpace(message.RawContent) == "" && strings.TrimSpace(message.Content) == "" {
+		return
+	}
+	projection.CurrentTurnMessageID = message.ID
 }
 
 func projectMessageUpsert(projection *Projection, commit Commit, ev Event) error {
@@ -190,6 +258,30 @@ func projectMessageUpsert(projection *Projection, commit Commit, ev Event) error
 		// append case is retained for explicitly-created records.
 		projection.ModelMessages = append(projection.ModelMessages, visible[0])
 	}
+	if projection.CurrentTurnMessageID == body.Message.ID && (body.Message.LocalOnly || body.Message.Role != provider.RoleAssistant) {
+		projection.CurrentTurnMessageID = ""
+	}
+	projection.recordTurnReply(*body.Message)
+	return nil
+}
+
+func projectMessageRetract(projection *Projection, commit Commit, ev Event) error {
+	ids, err := retractedMessageIDs(ev, ev.Payload)
+	if err != nil {
+		return err
+	}
+	removed := make(map[string]bool, len(ids))
+	for _, id := range ids {
+		removed[id] = true
+	}
+	filter := func(messages []provider.Message) []provider.Message {
+		return slices.DeleteFunc(messages, func(message provider.Message) bool { return removed[message.ID] })
+	}
+	projection.Messages = filter(projection.Messages)
+	projection.ModelMessages = filter(projection.ModelMessages)
+	if removed[projection.CurrentTurnMessageID] {
+		projection.CurrentTurnMessageID = ""
+	}
 	return nil
 }
 
@@ -205,15 +297,17 @@ func projectAssistantAttempt(projection *Projection, commit Commit, ev Event) er
 	if err := strictPayload(ev.Payload, &body); err != nil || body.ID == "" || (body.Action != "begin" && body.Action != "discard" && body.Action != "commit") {
 		return damagedPayload(ev, err)
 	}
+	if projection.TurnID != "" && body.Action == "begin" {
+		if projection.CurrentAttempts == nil {
+			projection.CurrentAttempts = map[string]bool{}
+		}
+		projection.CurrentAttempts[body.ID] = true
+	}
 	return nil
 }
 
 func projectHistoryReplace(projection *Projection, commit Commit, ev Event) error {
-	var body struct {
-		Messages []provider.Message `json:"messages"`
-		Reason   string             `json:"reason,omitempty"`
-		Sources  []uint64           `json:"sourceSequences,omitempty"`
-	}
+	var body historyReplacePayload
 	if err := strictPayload(ev.Payload, &body); err != nil || body.Messages == nil {
 		return damagedPayload(ev, err)
 	}
@@ -223,11 +317,7 @@ func projectHistoryReplace(projection *Projection, commit Commit, ev Event) erro
 }
 
 func projectModelContextReplace(projection *Projection, commit Commit, ev Event) error {
-	var body struct {
-		Messages []provider.Message `json:"messages"`
-		Reason   string             `json:"reason,omitempty"`
-		Sources  []uint64           `json:"sourceSequences,omitempty"`
-	}
+	var body historyReplacePayload
 	if err := strictPayload(ev.Payload, &body); err != nil || body.Messages == nil {
 		return damagedPayload(ev, err)
 	}
@@ -243,6 +333,9 @@ func projectSessionTitle(projection *Projection, commit Commit, ev Event) error 
 		return damagedPayload(ev, err)
 	}
 	projection.Title = body.Title
+	// Sequence zero is a valid first event, so store the one-based identity;
+	// zero remains the durable "no title event yet" revision.
+	projection.TitleSequence = ev.Sequence + 1
 	return nil
 }
 
@@ -276,6 +369,9 @@ func projectTurnStart(projection *Projection, commit Commit, ev Event) error {
 	projection.TurnID = commit.TurnID
 	projection.TurnStatus = event.TurnInProgress
 	projection.CurrentTurnStart = ev.Sequence
+	projection.CurrentTurnStartedAt = commit.CreatedAt.UnixMilli()
+	projection.CurrentTurnMessageID = ""
+	projection.CurrentAttempts, projection.CurrentCalls = map[string]bool{}, map[string]bool{}
 	projection.Todos, projection.TodoWritten = []event.Todo{}, false
 	projection.Recovery = nil
 	return nil
@@ -288,6 +384,11 @@ func projectStepStart(projection *Projection, commit Commit, ev Event) error {
 	}
 	if err := strictPayload(ev.Payload, &body); err != nil || body.ID == "" {
 		return damagedPayload(ev, err)
+	}
+	if ev.Kind == "step/start" {
+		projection.ActiveSteps[body.ID] = true
+	} else {
+		delete(projection.ActiveSteps, body.ID)
 	}
 	return nil
 }
@@ -328,6 +429,13 @@ func projectToolCall(projection *Projection, commit Commit, ev Event) error {
 	if err := strictPayload(ev.Payload, &body); err != nil || body.ID == "" || body.Name == "" {
 		return damagedPayload(ev, err)
 	}
+	projection.ActiveTools[body.ID] = body.Name
+	if projection.TurnID != "" {
+		if projection.CurrentCalls == nil {
+			projection.CurrentCalls = map[string]bool{}
+		}
+		projection.CurrentCalls[body.ID] = true
+	}
 	return nil
 }
 
@@ -340,6 +448,7 @@ func projectToolStart(projection *Projection, commit Commit, ev Event) error {
 		return damagedPayload(ev, err)
 	}
 	projection.ActiveTools[body.ID] = body.Name
+	projection.StartedTools[body.ID] = true
 	return nil
 }
 
@@ -385,6 +494,7 @@ func projectToolResult(projection *Projection, commit Commit, ev Event) error {
 		return damagedPayload(ev, err)
 	}
 	delete(projection.ActiveTools, body.ID)
+	delete(projection.StartedTools, body.ID)
 	return nil
 }
 
@@ -470,12 +580,18 @@ func projectTurnEnd(projection *Projection, commit Commit, ev Event) error {
 	}
 	if projection.TurnID != "" && projection.CurrentTurnStart != 0 {
 		projection.Turns = append(projection.Turns, TurnBoundary{
-			TurnID: projection.TurnID, StartSequence: projection.CurrentTurnStart,
+			SamplingCount: len(projection.CurrentAttempts), ToolCount: len(projection.CurrentCalls),
+			DurationMs: max(0, commit.CreatedAt.UnixMilli()-projection.CurrentTurnStartedAt),
+			TurnID:     projection.TurnID, StartSequence: projection.CurrentTurnStart,
 			EndSequence: ev.Sequence, Status: body.Status,
+			BoundarySequence: commit.LastSequence(),
+			MessageID:        projection.CurrentTurnMessageID,
 		})
 	}
 	projection.TurnID = ""
 	projection.CurrentTurnStart = 0
+	projection.CurrentTurnStartedAt = 0
+	projection.CurrentTurnMessageID = ""
 	projection.TurnStatus = body.Status
 	return nil
 }
@@ -498,6 +614,11 @@ func projectionMessageIndex(messages []provider.Message, id string) int {
 }
 
 func cloneProjection(projection Projection) Projection {
+	projection.TranscriptInputs = append([]transcriptInput(nil), projection.TranscriptInputs...)
+	projection.HiddenTurns = maps.Clone(projection.HiddenTurns)
+	projection.RetractedInputs = maps.Clone(projection.RetractedInputs)
+	projection.CurrentAttempts = maps.Clone(projection.CurrentAttempts)
+	projection.CurrentCalls = maps.Clone(projection.CurrentCalls)
 	projection.Messages = append([]provider.Message(nil), projection.Messages...)
 	projection.ModelMessages = append([]provider.Message(nil), projection.ModelMessages...)
 	projection.Turns = append([]TurnBoundary(nil), projection.Turns...)
@@ -508,6 +629,8 @@ func cloneProjection(projection Projection) Projection {
 	tools := make(map[string]string, len(projection.ActiveTools))
 	maps.Copy(tools, projection.ActiveTools)
 	projection.ActiveTools = tools
+	projection.StartedTools = maps.Clone(projection.StartedTools)
+	projection.ActiveSteps = maps.Clone(projection.ActiveSteps)
 	if projection.Recovery != nil {
 		recovery := *projection.Recovery
 		projection.Recovery = &recovery

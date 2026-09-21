@@ -81,6 +81,17 @@ type ProjectTopicPageRequest struct {
 	Query         string `json:"query,omitempty"`
 	TimeFilter    string `json:"timeFilter,omitempty"`
 	SortMode      string `json:"sortMode,omitempty"`
+	GroupFilter   string `json:"groupFilter,omitempty"`
+	GroupID       string `json:"groupId,omitempty"`
+	ExcludePinned bool   `json:"excludePinned,omitempty"`
+
+	groupIncludeJSON string
+	groupExcludeJSON string
+	groupCursorBind  string
+	groupInclude     map[string]struct{}
+	groupExclude     map[string]struct{}
+	groupSelected    *desktopGroup
+	groupAll         []desktopGroup
 }
 
 type ProjectTopicKey struct {
@@ -193,14 +204,16 @@ func (a *App) startSessionCatalog() {
 	}
 	ctx, cancel := context.WithCancel(a.bootContext())
 	done := make(chan struct{})
+	initialReconcileDone := make(chan struct{})
 	a.catalogCancel = cancel
 	a.catalogDone = done
+	a.catalogInitialReconcileDone = initialReconcileDone
 	a.catalogLifecycleMu.Unlock()
 	history.RegisterSessionPersistObserver(desktopSessionCatalogPersistObserverKey, desktopSessionCatalogPersistObserver{app: a})
 
 	go func() {
 		defer close(done)
-		a.runSessionCatalog(ctx)
+		a.runSessionCatalog(ctx, initialReconcileDone)
 	}()
 }
 
@@ -213,6 +226,7 @@ func (a *App) stopSessionCatalog(timeout time.Duration) bool {
 	done := a.catalogDone
 	a.catalogCancel = nil
 	a.catalogDone = nil
+	a.catalogInitialReconcileDone = nil
 	a.catalogLifecycleMu.Unlock()
 	if cancel != nil {
 		cancel()
@@ -370,7 +384,7 @@ func (a *App) emitProjectTreeChangedV2(revision uint64, roots []string, reason s
 	if roots == nil {
 		roots = []string{}
 	}
-	a.emitRuntimeEvent("project-tree:changed-v2", ProjectTreeChangedV2{Revision: revision, Roots: roots, Reason: reason})
+	a.emitRuntimeEvent("project-tree:changed-v2", ProjectTreeChangedV2{Revision: a.unifiedProjectRevision(revision), Roots: roots, Reason: reason})
 	// One-release compatibility event. Its wrapper is catalog-only, so legacy
 	// frontends refresh without making current frontends rebuild the whole tree
 	// after they already consumed the targeted v2 revision.
@@ -492,7 +506,11 @@ func sessionDirectoryForPath(path string) string {
 	if path == "" {
 		return ""
 	}
-	return filepath.Dir(path)
+	clean := filepath.Clean(path)
+	if clean == "." || filepath.Base(clean) == clean {
+		return ""
+	}
+	return filepath.Dir(clean)
 }
 
 func (a *App) saveTabSessionMetaSnapshotAndIndex(snap tabSessionMetaSnapshot) error {
@@ -501,7 +519,7 @@ func (a *App) saveTabSessionMetaSnapshotAndIndex(snap tabSessionMetaSnapshot) er
 	}
 	// Transcript saves index through the observer; enqueue again after the
 	// sidecar commit so scope and title changes are visible without a full scan.
-	a.requestSessionCatalogIndexPath(snap.scope, snap.workspaceRoot, snap.path)
+	a.requestSessionCatalogIndexPath(snap.scope, snap.workspaceRoot, string(snap.path))
 	return nil
 }
 
@@ -602,10 +620,11 @@ func (a *App) GetProjectTreeSnapshot() ProjectTreeSnapshot {
 	if remoteNodes, err := a.remoteProjectNodes(); err == nil {
 		projects = append(projects, remoteNodes...)
 	}
+	projects = a.mergeCanonicalWorkspaceShells(projects)
 	projects = applyPinnedProjectOrder(applyProjectTreeOrder(projects, f.SidebarOrder), f.PinnedProjects)
 	status := a.currentSessionCatalogStatus()
 	return ProjectTreeSnapshot{
-		Revision: status.Revision, Projects: projects, Catalog: status,
+		Revision: a.unifiedProjectRevision(status.Revision), Projects: projects, Catalog: status,
 		Indexed: status.Indexed, Total: status.Total,
 		IndexingDone: a.catalogIndexingDone(status),
 	}

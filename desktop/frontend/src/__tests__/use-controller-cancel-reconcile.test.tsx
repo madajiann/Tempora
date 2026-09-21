@@ -5,7 +5,7 @@ import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { useController } from "../lib/useController";
 import type { AppBindings } from "../lib/bridge";
-import type { ContextInfo, EffortInfo, HistorySliceRequest, Meta, TabMeta, WireEvent } from "../lib/types";
+import type { ContextInfo, EffortInfo, HistoryMessage, HistorySliceRequest, Meta, TabMeta, WireEvent } from "../lib/types";
 import { historySliceFromMessages } from "./mockHistorySlice";
 import { installDesktopHostStub } from "./desktopHostStub";
 
@@ -49,6 +49,7 @@ function tabMeta(overrides: Partial<TabMeta> = {}): TabMeta {
     workspacePath: "/repo",
     topicId: "topic-a",
     topicTitle: "General",
+    session: { hostId: "local", sessionId: "canonical-a" },
     label: "model",
     ready: true,
     running: false,
@@ -71,6 +72,7 @@ function meta(): Meta {
     workspaceRoot: "/repo",
     workspaceName: "repo",
     workspacePath: "/repo",
+    session: { hostId: "local", sessionId: "canonical-a" },
     autoApproveTools: false,
     bypass: false,
     collaborationMode: "normal",
@@ -102,6 +104,14 @@ globalThis.requestAnimationFrame = dom.window.requestAnimationFrame.bind(dom.win
 globalThis.cancelAnimationFrame = dom.window.cancelAnimationFrame.bind(dom.window);
 
 let backendRunning = false;
+const backendHistory: HistoryMessage[] = [{
+  role: "user",
+  content: "hello",
+  messageId: "initial-user",
+  createdAt: 1000,
+  checkpointTurn: 0,
+  attachments: [{ kind: "image", digest: "a".repeat(64), name: "photo.png", mime: "image/png", width: 1, height: 1, bytes: 68 }],
+}];
 let cancelCalls = 0;
 let cancelInboxCalls = 0;
 let cancelInboxError: Error | null = null;
@@ -133,12 +143,13 @@ const desktopStub = installDesktopHostStub(({
         checkpointLoads += 1;
         return [{ turn: 0, prompt: "hello", files: [], time: Date.now(), canConversation: true }];
       },
+      ForkTargetsForTab: async () => ({ targets: [], verifiable: false }),
       HistoryForTab: async () => [],
       HistorySliceForTab: async (tabID: string, req: HistorySliceRequest) => {
         historyLoads += 1;
         return historySliceFromMessages(
           tabID,
-          [{ role: "user", content: "hello", createdAt: Date.now(), checkpointTurn: 0 }],
+          backendHistory,
           req,
         );
       },
@@ -173,10 +184,16 @@ const desktopStub = installDesktopHostStub(({
         };
       },
       SubmitToTab: async () => {},
-      SubmitToTabWithID: async () => {},
+      SubmitToTabWithID: async (tabId: string, text: string, submissionId: string) => {
+        const messageId = `user-${submissionId}`;
+        const createdAt = Date.now();
+        backendHistory.push({ role: "user", content: text, messageId, submissionId, createdAt });
+        desktopStub.emit("agent:event", { kind: "user_message", tabId, text, messageId, submissionId, createdAt });
+      },
       CancelTab: async () => {
         cancelCalls += 1;
         backendRunning = false;
+        desktopStub.emit("agent:event", { kind: "turn_done", tabId: "tab-a", status: "cancelled" });
       },
       CancelTabWithInboxItems: async () => {
         cancelInboxCalls += 1;
@@ -187,12 +204,14 @@ const desktopStub = installDesktopHostStub(({
         cancelInboxCalls += 1;
         if (cancelInboxError) throw cancelInboxError;
         backendRunning = false;
+        desktopStub.emit("agent:event", { kind: "turn_done", tabId: "tab-a", status: "cancelled" });
         return { discardedItemIds: [...cancelDiscardedItemIDs] };
       },
       InterruptTurnForTab: async () => {
         interruptCalls += 1;
         if (interruptError) throw interruptError;
         backendRunning = false;
+        desktopStub.emit("agent:event", { kind: "turn_done", tabId: "tab-a", status: "cancelled" });
       },
     } as Partial<AppBindings> as AppBindings,
   },
@@ -229,18 +248,26 @@ await act(async () => {
   desktopStub.emit("agent:event", { kind: "turn_status", tabId: "tab-a", turnId: "turn-gap", seq: 3, status: "waiting_user" });
   for (let step = 0; step < 20; step += 1) await Promise.resolve();
 });
-eq(turnReplayCalls, 1, "sequence gap replays the durable missing prefix once");
-eq(controller?.state.items.find((item) => item.kind === "assistant")?.id, "a:turn-gap:0", "gap replay keeps the stable sampling-segment item id");
+eq(turnReplayCalls, 0, "v2 does not consult the retired ledger sequence space");
 eq(controller?.state.pendingPrompt, true, "future event projects only after the missing prefix");
 await act(async () => {
   desktopStub.emit("agent:event", { kind: "turn_status", tabId: "tab-a", turnId: "turn-gap", seq: 3, status: "in_progress" });
   await Promise.resolve();
 });
-eq(controller?.state.pendingPrompt, true, "duplicate sequence is ignored idempotently");
+eq(controller?.state.pendingPrompt, false, "ordered Follow revision is authoritative despite legacy sequence values");
+const historyLoadsBeforeSettlement = historyLoads;
+const historyMutationBeforeSettlement = controller?.state.historyMutation.seq ?? 0;
 await act(async () => {
   desktopStub.emit("agent:event", { kind: "turn_done", tabId: "tab-a", turnId: "turn-gap", seq: 4, status: "completed" });
   await Promise.resolve();
 });
+// A terminal turn is folded into the bounded durable window independently of
+// cancellation. Let that expected read settle before measuring the later
+// cancellation path, whose invariant is still that it schedules no reload.
+await act(async () => { await flushPromises(); });
+eq(historyLoads, historyLoadsBeforeSettlement, "completion never rebases from history");
+ok((controller?.state.historyMutation.seq ?? 0) >= historyMutationBeforeSettlement, "completion retains the installed transcript");
+historyLoads = 0;
 
 backendRunning = true;
 await act(async () => {
@@ -298,7 +325,8 @@ await act(async () => {
   await controller?.send("corrected");
   await flushPromises();
 });
-ok(controller?.state.items.some((item) => item.kind === "user" && item.text === "corrected"), "resubmission survives the completed cancellation cleanup");
+ok(Object.values(controller?.state.localSubmissions ?? {}).some((submission) => submission.text === "corrected"),
+  "resubmission keeps its local echo through completed cancellation cleanup");
 eq(historyLoads, 0, "resubmission cannot race a stale cancellation history response");
 
 await act(async () => {
@@ -326,9 +354,10 @@ eq(cancelOutcome?.discardedItemIds.join(","), "withdrawn-guidance", "cancel retu
 
 cancelInboxError = new Error("tempora_error:inbox_invalid_state");
 await act(async () => {
-  await controller?.cancel(["queued-guidance"]);
+  cancelOutcome = await controller?.cancel(["queued-guidance"]);
   await flushPromises();
 });
+ok(Boolean(cancelOutcome?.error), "cancellation outcome preserves failure for the decision card");
 const inboxCancelNotice = controller?.state.items.find((item) =>
   item.kind === "notice" && item.text.includes("Cancel failed: This inbox instruction cannot be changed"),
 );
@@ -391,7 +420,7 @@ await act(async () => {
 await waitFor("event gap runtime snapshot", () => controller?.state.running === false);
 eq(cancelCalls, gapCancelCalls, "event gap recovery never replays a state-changing command");
 ok(projectedUsers.every(item => controller?.state.items.includes(item)), "event gap recovery retains projected user item identities");
-eq(historyLoads, gapHistoryLoads, "same-session event repair does not reload mounted history");
+eq(historyLoads, gapHistoryLoads + 1, "transport gap obtains one consistent Follow snapshot");
 
 await act(async () => {
   root.unmount();

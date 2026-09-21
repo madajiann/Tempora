@@ -9,7 +9,8 @@ import { WebBlock } from "./harness-chat/WebBlock";
 import { normalizeSearchSources } from "../lib/searchSourcesPresentation";
 import { parseSearchSources, searchOutputMetadata } from "../lib/searchSources";
 import toolCss from "./harness-chat/ToolRow.styles";
-import { classifyTool } from "../lib/chatToolPresentation";
+import { classifyTool, toolPresentation } from "../lib/chatToolPresentation";
+import { boundedPayloadSections, utf8Prefix } from "../lib/toolPayloadPreview";
 import "./harness-chat/TerminalBlock.css";
 import "./harness-chat/DiffBlock.css";
 import "./harness-chat/Pill.css";
@@ -25,7 +26,9 @@ export default function ChatToolBody({ item, loader }: { item: Extract<ChatNode,
   const error = errorItem === item;
   const epoch = useRef(0);
   useEffect(() => { return () => { epoch.current++; }; }, [item]);
-  const full = loaded?.item === item ? loaded.text : undefined;
+  const full = loaded && loaded.item.id === item.id && loaded.item.args === item.args &&
+    loaded.item.output === item.output && loaded.item.error === item.error && loaded.item.dataArchived === item.dataArchived
+    ? loaded.text : undefined;
   const preview = JSON.stringify({ args: item.args, output: item.output, error: item.error, diff: item.fileDiff });
   const limited = full === undefined && (loader.needsFullContent(item, "tool") || preview.length > 8000);
   const load = async () => {
@@ -50,12 +53,13 @@ export default function ChatToolBody({ item, loader }: { item: Extract<ChatNode,
     expand: (hidden: number) => t("chat.expandLines", { count: hidden }), expandAria: (hidden: number) => t("chat.expandLines", { count: hidden }) };
   const diffs = !limited ? diffsFor(item.name, value.args || "{}") : [];
   const kind = classifyTool(item);
+  const presentation = toolPresentation(item);
   const search = kind === "search" && !limited ? normalizeSearchSources(item.searchSources ?? parseSearchSources(value.output || "")) : undefined;
   const searchMeta = searchOutputMetadata(value.output);
   return <>
-    {!limited && kind === "shell" ? <TerminalBlock command={typeof args.command === "string" ? args.command : value.args || ""}
-      output={value.error || value.output} running={item.status === "running"} exitCode={item.execution?.exitCode}
-      signal={item.status === "error" && item.execution?.exitCode == null ? t("chat.failed") : item.status === "stopped" ? t("chat.stopped") : undefined}
+    {!limited && kind === "shell" && (item.execution || item.status === "running" || item.status === "stopped") ? <TerminalBlock command={typeof args.command === "string" ? args.command : value.args || ""}
+      output={value.error || value.output} running={presentation.state === "running"} exitCode={presentation.exitCode}
+      presentation={{ state: presentation.dot, label: t(presentation.label) }}
       maxLines={200} className={toolCss.terminalBody}
       labels={{ ...labels, signal: signal => signal, exitCode: code => `${code}`, running: t("chat.running"), failed: t("chat.failed"), done: t("chat.done"), noOutput: t("chat.noOutput") }} />
       : search && item.status === "done" ? <WebBlock kind="search" answer={searchMeta.summary ?? item.searchSummary}
@@ -71,14 +75,12 @@ export default function ChatToolBody({ item, loader }: { item: Extract<ChatNode,
 export function ToolPayload({ text, preview }: { text: string; preview: boolean }) {
   const t = useT();
   let value: unknown;
-  try { value = JSON.parse(text); } catch { return <pre>{preview ? text.slice(0, 8000) : text}</pre>; }
-  if (!value || typeof value !== "object" || Array.isArray(value)) return <pre>{preview ? text.slice(0, 8000) : text}</pre>;
-  let remaining = preview ? 8000 : Infinity;
-  return <>{Object.entries(value).map(([key, content]) => {
-    if (content == null || remaining <= 0) return null;
-    const body = typeof content === "string" ? content : JSON.stringify(content, null, 2);
-    const shown = body.slice(0, remaining); remaining -= shown.length;
+  try { value = JSON.parse(text); } catch { return <pre>{preview ? utf8Prefix(text, 16 * 1024) : text}</pre>; }
+  if (!value || typeof value !== "object" || Array.isArray(value)) return <pre>{preview ? utf8Prefix(text, 16 * 1024) : text}</pre>;
+  const entries = preview ? boundedPayloadSections(value as Record<string, unknown>)
+    : Object.entries(value).filter(([, content]) => content != null).map(([key, content]) => ({ key, body: typeof content === "string" ? content : JSON.stringify(content, null, 2) }));
+  return <>{entries.map(({ key, body }) => {
     const label = key === "args" ? t("chat.tool.input") : key === "output" ? t("chat.tool.output") : key;
-    return <section key={key} className={toolCss.ioSection}><span className={toolCss.ioLabel}>{label}</span><pre className={toolCss.ioText} data-error={key === "error" || undefined}>{shown}</pre></section>;
+    return <section key={key} className={toolCss.ioSection}><span className={toolCss.ioLabel}>{label}</span><pre className={toolCss.ioText} data-error={key === "error" || undefined}>{body}</pre></section>;
   })}</>;
 }

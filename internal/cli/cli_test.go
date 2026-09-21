@@ -198,24 +198,6 @@ func mustGetwd(t *testing.T) string {
 	return cwd
 }
 
-func isolateCLIConfigHome(t *testing.T) string {
-	t.Helper()
-	home := t.TempDir()
-	t.Setenv("HOME", home)
-	// Keep tests on the default-path code path while preventing a caller's
-	// higher-priority TEMPORA_HOME from escaping this temporary home.
-	t.Setenv("TEMPORA_HOME", "")
-	if err := os.Unsetenv("TEMPORA_HOME"); err != nil {
-		t.Fatalf("unset TEMPORA_HOME: %v", err)
-	}
-	t.Setenv("TEMPORA_CREDENTIALS_STORE", "file")
-	t.Setenv("USERPROFILE", home)
-	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
-	t.Setenv("AppData", filepath.Join(home, "AppData"))
-	t.Chdir(t.TempDir())
-	return home
-}
-
 func TestIsolateCLIConfigHomeOverridesExistingTemporaHome(t *testing.T) {
 	externalHome := t.TempDir()
 	t.Setenv("TEMPORA_HOME", externalHome)
@@ -1179,7 +1161,7 @@ func TestCLITelemetryConsentDefaultsYesAndPromptsOnlyOnce(t *testing.T) {
 	if got != want || starts != 1 {
 		t.Fatalf("first start = %p, calls=%d; want %p, 1", got, starts, want)
 	}
-	if !strings.Contains(out.String(), "Tempora maintainers") || !strings.Contains(out.String(), "[Y/n]:") || !strings.Contains(out.String(), "tempora config telemetry off") {
+	if !strings.Contains(out.String(), "crash.tempora.io") || !strings.Contains(out.String(), "[Y/n]:") || !strings.Contains(out.String(), "tempora config telemetry off") {
 		t.Fatalf("consent prompt is incomplete: %q", out.String())
 	}
 	if errOut.Len() != 0 {
@@ -1400,7 +1382,7 @@ func TestCLITelemetryConsentPromptIsLocalized(t *testing.T) {
 		startCLITelemetryWithIO(config.Default(), telemetry.Options{
 			Version: "v1.20.0", Interactive: true, CLIMode: "tui",
 		}, strings.NewReader("\n"), &out, io.Discard)
-		for _, required := range []string{"Tempora maintainers", "tempora config telemetry off", "[Y/n]:"} {
+		for _, required := range []string{"crash.tempora.io", "tempora config telemetry off", "[Y/n]:"} {
 			if !strings.Contains(out.String(), required) {
 				t.Fatalf("%s consent prompt missing %q: %q", lang, required, out.String())
 			}
@@ -1547,26 +1529,19 @@ func TestAppendEnvUpsertHandlesExportPrefix(t *testing.T) {
 	}
 }
 
-// TestGroupByFamily verifies the wizard groups the default presets into
-// "deepseek" (flash + pro) and "glm" (flash + pro), preserving the order each
-// family first appears in.
+// TestGroupByFamily verifies the wizard groups the default preset into
+// "deepseek" (flash + pro), preserving the order each family first appears in.
 func TestGroupByFamily(t *testing.T) {
 	order, members, info := groupByFamily(config.Default().Providers)
 
-	if got := order; !reflect.DeepEqual(got, []string{"deepseek", "glm"}) {
-		t.Fatalf("family order = %v, want [deepseek glm]", got)
+	if got := order; !reflect.DeepEqual(got, []string{"deepseek"}) {
+		t.Fatalf("family order = %v, want [deepseek]", got)
 	}
 	if got := members["deepseek"]; !reflect.DeepEqual(got, []int{0, 1}) {
 		t.Errorf("deepseek members = %v, want [0 1]", got)
 	}
-	if got := members["glm"]; !reflect.DeepEqual(got, []int{2, 3}) {
-		t.Errorf("glm members = %v, want [2 3]", got)
-	}
 	if info["deepseek"].name != "DeepSeek" {
 		t.Errorf("display name = %q", info["deepseek"].name)
-	}
-	if info["glm"].name != "GLM" {
-		t.Errorf("glm display name = %q", info["glm"].name)
 	}
 }
 

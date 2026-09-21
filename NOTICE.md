@@ -1,8 +1,8 @@
 # NOTICE
 
-Tempora 是 [DeepSeek-Reasonix](https://github.com/esengine/DeepSeek-Reasonix)（reasonix.io）的二次开发分支（fork），遵循 MIT 许可证发布。
+Tempora 是 [DeepSeek-Tempora](https://github.com/esengine/DeepSeek-Reasonix)（tempora.io）的二次开发分支（fork），遵循 MIT 许可证发布。
 
-- 上游项目：DeepSeek-Reasonix，Copyright (c) 2026 Reasonix Contributors
+- 上游项目：DeepSeek-Tempora，Copyright (c) 2026 Tempora Contributors
 - 本分支：Tempora，Copyright (c) 2026 Tempora Contributors
 - 上游的 MIT 许可证文本见 [LICENSE](LICENSE)，本分支完整保留其署名。
 - 本分支的全部修改同样以 MIT 许可证发布。

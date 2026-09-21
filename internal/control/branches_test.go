@@ -10,6 +10,7 @@ import (
 	"tempora/internal/agent"
 	"tempora/internal/event"
 	"tempora/internal/provider"
+	"tempora/internal/session"
 	"tempora/internal/store"
 	"tempora/internal/tool"
 )
@@ -314,7 +315,7 @@ func TestSubmitBranchEmitsErrorNoticeWhileRunning(t *testing.T) {
 	c.SetSessionPath(agent.NewSessionPath(c.sessionDir, "test"))
 
 	c.mu.Lock()
-	c.running = true
+	c.turns.phase = session.RuntimeRunning
 	c.mu.Unlock()
 
 	c.Submit("/branch experiment")

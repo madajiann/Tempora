@@ -1,14 +1,41 @@
+import { makeMockSessionExportBindings, type SessionExportBindings } from "./sessionExportBridge";
+import type { AttachmentBindings } from "./attachmentBindings";
+import { makeMockSessionLifecycleBindings, type SessionLifecycleBindings } from "./sessionLifecycleBindings";
 import { makeMockModelSettingsBindings, type ModelSettingsBindings } from "./modelSettingsBridge";
 import { mockProviderTemplate, mockPreset, mockBundlePreset, mockKimiAPIModels, mockLongCatModels, mockTokenRhythmModels, mockTokenRhythmModelOverrides, mockMiMoV25Models, mockMiniMaxModels, mockGLMAPIModels, mockGLMCodingModels, mockGLMAnthropicModels, mockQwenAPIModels, mockQwenPlanModels, mockQwenPlanVisionModels, mockStepFunModels, mockOpenCodeGoModels, mockNovitaModels, mockGMIModels, mockVercelModels, mockOllamaCloudModels } from "./mockProviderTemplates";
 // The Electron host and the browser mock share this React-to-Go contract.
 import type {
   CancelReceipt,
+  ChatFileReferenceRequest,
+  ChatFileReferenceResult,
   DesktopCommandName,
+  HistoryWindowPage,
+  HistoryWindowRequest,
+  LegacyEmptySessionCleanupStatus,
+  MarkdownSVGView,
+  MessageFieldPage,
   MessageHistoryPage,
+  MessageLocation,
   Ref as SessionContentRef,
   SearchHistoryPage,
+  SessionArchitectureDiagnostics,
+  SessionCreationResult,
+  SessionDraftContextView,
+  SessionDraftSaveRequest,
+  SessionDraftSaveResult,
+  SessionDraftSubmissionRequest,
+  SessionDraftSubmissionView,
+  SessionDraftSummary,
+  SessionDraftView,
   SessionHistoryContentChunk,
+  SessionMutationResult,
+  SessionRef,
+  SessionSelector,
+  ComposerTarget,
+  WorkspaceSessionPage,
+  WorkspaceSnapshot,
 } from "../generated/desktopContract.generated";
+import type { ExactInteractionBindings } from "./exactInteractionBindings";
 import type { InvocationRequest } from "./invocationDisplay";
 import type { FollowupBindings } from "./pendingFollowup";
 import { addBreadcrumb } from "./breadcrumbs";
@@ -19,24 +46,28 @@ import { makeMockTaskCatalogBindings, type TaskCatalogBindings } from "./taskCat
 import { makeMockBlankProjectBindings, type BlankProjectBindings } from "./blankProjectBridge";
 import { makeMockQualityFloorBindings, type QualityFloorBindings } from "./deliveryFloorBridge";
 import { t } from "./i18n";
-import { makeMockForkBindings } from "./mockForkWorktree";
+import { makeMockForkBindings, withMockHistoryIds } from "./mockForkWorktree";
 import { makeMockWorktreeMergeBindings } from "./worktreeMergeMock";
 import { providerIsConfigured, providerRequiresKey, removeProviderAccessesForMock } from "./providerModels";
 import { DEFAULT_STATUS_BAR_ITEMS } from "./statusBarItems";
 import { registerTrustedThemeBackgroundURLs } from "./themePack";
 import { modeHasAutoApproveTools, modeWithAutoApproveTools, modeWithPlan, normalizeCollaborationMode, normalizeMode, normalizeToolApprovalMode } from "./types";
-import { makeMockProjectTreeOrganizationBindings } from "./mockProjectTreeOrganization";
+import { makeMockProjectTreeOrganizationBindings, subscribeMockProjectTreeChanged, notifyMockProjectTreeChanged } from "./mockProjectTreeOrganization";
 import { decisionSurfaceMockFromInput, isLongDecisionOptionsMockInput } from "./decisionSurfaceMock";
 import { mockWorkspaceFile } from "./mockWorkspaceFile";
-import { mockAIRenameSession, type SessionTitleBindings } from "./mockSessionTitle";
-import { mockHistoryContentField, mockHistorySlice } from "./bridgeHistoryFixtures";
+import { mockAIRenameTarget, mockSessionTitleTarget, type SessionTitleBindings } from "./mockSessionTitle";
+import { sessionTitleTarget } from "./sessionTitleOperation";
+import { mockHistoryContentField, mockHistorySlice, mockTopicHistory as topicHistoryFixture } from "./bridgeHistoryFixtures";
 import { createMockModelScopePreset, type MockProviderPresetTemplate } from "./mockModelScopePreset";
 import { createMockRemoteProjects } from "./mockRemoteProjects";
+import { createBrowserMockInteractionIdentity, mockSessionMeta, withMockSessionIdentity } from "./browserMockInteractionIdentity";
 import { mockRemoteHostView } from "./mockRemoteHosts";
 import type { RemoteProjectBindings } from "./remoteProjectBridge";
+import type { ForkTargetsBindings } from "./forkTargets";
 import type { ToolRecoveryBindings } from "./toolRecovery";
 import type { ScrollDiagnosticBindings } from "./scrollDiagnosticBridge";
 import type { TranscriptProtocolBindings } from "./transcriptProtocol";
+import { makeMockSessionReaderBindings, publishMockTranscriptEvent, type SessionReaderBindings } from "./sessionReaderBridge";
 import { makeMockMCPAppBindings, type MCPAppBindings } from "./mcpAppBridge";
 import { makeMockPinnedContextBindings, type PinnedContextBindings } from "./pinnedContextBridge";
 import { createDesktopPreferencesMock } from "./desktopPreferencesMock";
@@ -64,6 +95,7 @@ import type {
   BotSettingsView,
   CapabilitiesView,
   CapabilityDiagnosticsReport,
+  CredentialDiagnosticReport,
   RuntimeDoctorReport,
   CheckpointMeta,
   CommandInfo,
@@ -88,6 +120,7 @@ import type {
   ExternalOpenersView,
   HistoryMessage,
   HistoryPage,
+  HistorySearchPage,
   HistoryContentChunk,
   HistoryContentRef,
   HistorySlice,
@@ -203,7 +236,6 @@ interface NativeConfirmRequest {
   cancelLabel: string;
   destructive: boolean;
 }
-
 interface DesktopWindowState {
   width: number;
   height: number;
@@ -213,7 +245,62 @@ interface DesktopWindowState {
 }
 // AppBindings is the hand-written React-to-Go contract. _CheckGeneratedBindings
 // catches generated methods missing here; update this interface and typecheck.
-export interface AppBindings extends ToolRecoveryBindings, ModelSettingsBindings, SessionCatalogBindings, ProjectTreeOrganizationBindings, HistoryCatalogBindings, TaskCatalogBindings, BlankProjectBindings, QualityFloorBindings, SessionTitleBindings, ScrollDiagnosticBindings, RemoteProjectBindings, MCPAppBindings, PinnedContextBindings, FollowupBindings, TranscriptProtocolBindings {
+export interface AppBindings extends AttachmentBindings, SessionExportBindings, SessionLifecycleBindings, ForkTargetsBindings, ToolRecoveryBindings, ModelSettingsBindings, SessionCatalogBindings, ProjectTreeOrganizationBindings, HistoryCatalogBindings, TaskCatalogBindings, BlankProjectBindings, QualityFloorBindings, SessionTitleBindings, ScrollDiagnosticBindings, RemoteProjectBindings, MCPAppBindings, PinnedContextBindings, FollowupBindings, TranscriptProtocolBindings, SessionReaderBindings, ExactInteractionBindings {
+  GetLegacyEmptySessionCleanupStatus(): Promise<LegacyEmptySessionCleanupStatus>;
+  RetryLegacyEmptySessionCleanup(): Promise<LegacyEmptySessionCleanupStatus>;
+  OpenSessionDraft(workspaceId: string): Promise<SessionDraftView>;
+  OpenSessionDraftForTarget(scope: string, workspaceRoot: string): Promise<SessionDraftView>;
+  RestoreSessionDraft(): Promise<SessionDraftView | null>;
+  SaveSessionDraft(request: SessionDraftSaveRequest): Promise<SessionDraftSaveResult>;
+  ListSessionDraftSummaries(): Promise<SessionDraftSummary[]>;
+  DiscardSessionDraft(draftId: string, revision: number): Promise<void>;
+  DismissSessionDraft(draftId: string): Promise<void>;
+  SetSessionDraftRestoreTarget(draftId: string): Promise<void>;
+  GetSessionDraft(draftId: string): Promise<SessionDraftView>;
+  GetSessionDraftState(draftId: string): Promise<import("../generated/desktopContract.generated").SessionDraftState>;
+  ResumeDraftSubmission(operationId: string, revision: number): Promise<SessionDraftSubmissionView>;
+  GetDraftContext(draftId: string): Promise<SessionDraftContextView>;
+  BeginDraftSubmission(request: SessionDraftSubmissionRequest): Promise<SessionDraftSubmissionView>;
+  GetDraftSubmission(operationId: string): Promise<SessionDraftSubmissionView>;
+  CancelDraftSubmission(operationId: string): Promise<SessionDraftSubmissionView>;
+  SavePastedImageForComposerTarget(target: ComposerTarget, dataUrl: string): Promise<string>;
+  SavePastedFileForComposerTarget(target: ComposerTarget, name: string, dataUrl: string): Promise<string>;
+  SaveClipboardImageForComposerTarget(target: ComposerTarget): Promise<string>;
+  AttachDroppedForComposerTarget(target: ComposerTarget, path: string): Promise<DroppedItem>;
+  ListDirForTarget(target: ComposerTarget, rel: string): Promise<DirEntry[]>;
+  SearchFileRefsForTarget(target: ComposerTarget, query: string): Promise<DirEntry[]>;
+  AttachmentDataURLForComposerTarget(target: ComposerTarget, path: string): Promise<string>;
+  GetSessionActivityBaseline(selector: SessionSelector): Promise<import("../generated/desktopContract.generated").SessionActivityBaseline>;
+  GetWorkspaceSnapshot(): Promise<WorkspaceSnapshot>;
+  CreateSession(workspaceId: string): Promise<SessionRef>;
+  ForkSession(ref: SessionRef, turnBoundary: string): Promise<SessionRef>;
+  ForkSessionTarget(selector: SessionSelector, turnBoundary: string): Promise<SessionRef>;
+  CopySessionTarget(selector: SessionSelector, operationId: string): Promise<SessionCreationResult>;
+  HistorySliceForTarget(selector: SessionSelector, request: HistorySliceRequest): Promise<HistorySlice>;
+  HistoryContentForTarget(selector: SessionSelector, ref: HistoryContentRef, chunkIndex: number): Promise<HistoryContentChunk>;
+  SearchHistoryContentForTarget(selector: SessionSelector, query: string, cursor: string, limit: number): Promise<HistorySearchPage>;
+  SessionHistoryPageForTarget(selector: SessionSelector, cursor: string, limit: number): Promise<MessageHistoryPage>;
+  SessionHistoryContentForTarget(selector: SessionSelector, ref: SessionContentRef, offset: number): Promise<SessionHistoryContentChunk>;
+  LocateSessionMessageForTarget(selector: SessionSelector, messageId: string, snapshot: number): Promise<MessageLocation>;
+  SessionMessageFieldForTarget(selector: SessionSelector, messageId: string, version: number, field: string, offset: number, length: number): Promise<MessageFieldPage>;
+  SearchSessionHistoryForTarget(selector: SessionSelector, query: string, cursor: string, limit: number): Promise<SearchHistoryPage>;
+  SessionHistoryWindowForTarget(selector: SessionSelector, request: HistoryWindowRequest): Promise<HistoryWindowPage>;
+  ListWorkspaceSessions(workspaceId: string, query: string, cursor: string, limit: number, includeArchived: boolean): Promise<WorkspaceSessionPage>;
+  OpenSession(ref: SessionRef): Promise<HistoryPage>;
+  ReadSessionHistory(ref: SessionRef, cursor: string, limit: number): Promise<HistoryPage>;
+  RenameCanonicalSession(ref: SessionRef, title: string): Promise<void>;
+  SetSessionPinned(selector: SessionSelector, pinned: boolean): Promise<void>;
+  ArchiveCanonicalSession(ref: SessionRef): Promise<void>;
+  ArchiveSessionTarget(selector: SessionSelector): Promise<SessionMutationResult>;
+  RestoreCanonicalSession(ref: SessionRef): Promise<void>;
+  RestoreSessionTarget(selector: SessionSelector): Promise<SessionMutationResult>;
+  DeleteSessionTarget(selector: SessionSelector): Promise<SessionMutationResult>;
+  MoveWorkspaceSession(workspaceId: string, sessionId: string, beforeSessionId: string): Promise<void>;
+  MoveSessionTarget(selector: SessionSelector, workspaceId: string, beforeSessionId: string): Promise<SessionMutationResult>;
+  RenameWorkspace(workspaceId: string, title: string): Promise<void>;
+  SetWorkspaceVisible(workspaceId: string, visible: boolean): Promise<void>;
+  MoveWorkspace(workspaceId: string, beforeWorkspaceId: string): Promise<void>;
+  GetSessionArchitectureDiagnostics(): Promise<SessionArchitectureDiagnostics>;
   Platform(): Promise<string>;
   MinimiseMainWindow(): Promise<void>;
   ToggleMaximiseMainWindow(): Promise<void>;
@@ -363,12 +450,6 @@ export interface AppBindings extends ToolRecoveryBindings, ModelSettingsBindings
   // Windowed history paging (supersedes HistoryPageForTab for tab history).
   HistorySliceForTab(tabID: string, req: HistorySliceRequest): Promise<HistorySlice>;
   HistoryContentForTab(tabID: string, ref: HistoryContentRef, chunkIndex: number): Promise<HistoryContentChunk>;
-  SessionHistoryPageForTab(tabID: string, cursor: string, limit: number): Promise<MessageHistoryPage>;
-  SessionHistoryContentForTab(tabID: string, ref: SessionContentRef, offset: number): Promise<SessionHistoryContentChunk>;
-  RemoteSessionHistoryPageForTab(tabID: string, cursor: string, limit: number): Promise<MessageHistoryPage>;
-  RemoteSessionHistoryContentForTab(tabID: string, ref: SessionContentRef, offset: number): Promise<SessionHistoryContentChunk>;
-  SearchSessionHistoryForTab(tabID: string, textQuery: string, cursor: string, limit: number): Promise<SearchHistoryPage>;
-  RemoteSearchSessionHistoryForTab(tabID: string, textQuery: string, cursor: string, limit: number): Promise<SearchHistoryPage>;
   HistoryCheckpointTurnsForTab(tabID: string): Promise<number[]>;
   Checkpoints(): Promise<CheckpointMeta[]>;
   CheckpointsForTab(tabID: string): Promise<CheckpointMeta[]>;
@@ -458,6 +539,9 @@ export interface AppBindings extends ToolRecoveryBindings, ModelSettingsBindings
   MCPMarketplaceResolve(registryName: string): Promise<MCPMarketplaceEntry>;
   SkillsSettings(): Promise<SkillsSettingsView>;
   CapabilityDiagnostics(includeSessionRuntime: boolean): Promise<CapabilityDiagnosticsReport>;
+  CredentialDiagnostics(probe: boolean): Promise<CredentialDiagnosticReport>;
+  RepairCredentials(dryRun: boolean): Promise<CredentialDiagnosticReport>;
+  RetryAuthenticationForTab(tabId: string): Promise<NonNullable<TabMeta["authentication"]>>;
   RuntimeDoctor(): Promise<RuntimeDoctorReport>;
   Plugins(): Promise<PluginView[]>;
   PlanPluginInstall(source: string, options: PluginInstallOptions): Promise<string>;
@@ -509,6 +593,10 @@ export interface AppBindings extends ToolRecoveryBindings, ModelSettingsBindings
   ReadPresentedFileForTab(tabID: string, toolCallID: string, path: string): Promise<FilePreview>;
   ReadPresentedFileSourceForTab(tabID: string, toolCallID: string, path: string): Promise<FilePreview>;
   ReadPresentedTextPageForTab(tabID: string, toolCallID: string, path: string, offset: number, expectedVersion: string): Promise<import("./types").PresentedTextPage>;
+  ResolveChatFileReferencesForTab(tabID: string, turnKey: string, candidates: ChatFileReferenceRequest[]): Promise<ChatFileReferenceResult>;
+  ReadReferenceFileForTab(tabID: string, path: string): Promise<FilePreview>;
+  ReadReferenceFileSourceForTab(tabID: string, path: string): Promise<FilePreview>;
+  SanitizeMarkdownSVG(content: string): Promise<MarkdownSVGView>;
   CreateWorkspaceBrowserPreviewForTab(tabID: string, rel: string): Promise<string>;
   CreatePresentedBrowserPreviewForTab(tabID: string, toolCallID: string, path: string): Promise<string>;
   RevokeWorkspaceBrowserPreview(url: string): Promise<void>;
@@ -531,15 +619,19 @@ export interface AppBindings extends ToolRecoveryBindings, ModelSettingsBindings
   WorkspaceGitCommitDetail(tabID: string, hash: string, path: string): Promise<GitCommitDetailView>;
   OpenWorkspacePathForTab(tabID: string, rel: string): Promise<void>;
   OpenPresentedPathForTab(tabID: string, toolCallID: string, path: string): Promise<void>;
+  OpenReferencePathForTab(tabID: string, path: string): Promise<void>;
   ResolvePresentedPathForTab(tabID: string, toolCallID: string, path: string): Promise<string>;
+  ResolveReferencePathForTab(tabID: string, path: string): Promise<string>;
   ResolveWorkspacePathForTab(tabID: string, rel: string): Promise<string>;
   ExternalOpeners(): Promise<ExternalOpenersView>; ExternalOpenersForTab(tabID: string): Promise<ExternalOpenersView>;
   SetPreferredExternalOpener(id: string): Promise<void>;
   OpenWorkspaceInExternalOpenerForTab(tabID: string, id: string): Promise<void>; OpenLocalPathInExternalOpener(path: string, id: string): Promise<void>; SaveLocalPathAs(path: string): Promise<string>;
   RevealWorkspacePathForTab(tabID: string, rel: string): Promise<void>;
   RevealPresentedPathForTab(tabID: string, toolCallID: string, path: string): Promise<void>;
+  RevealReferencePathForTab(tabID: string, path: string): Promise<void>;
   SaveWorkspacePathAsForTab(tabID: string, rel: string): Promise<string>;
   SavePresentedPathAsForTab(tabID: string, toolCallID: string, path: string): Promise<string>;
+  SaveReferencePathAsForTab(tabID: string, path: string): Promise<string>;
   SaveRemoteFileAs(hostID: string, remotePath: string): Promise<string>;
   SaveRemotePresentedFileAs(tabID: string, hostID: string, toolCallID: string, remotePath: string): Promise<string>;
   ResolveRemotePresentedPathForTab(tabID: string, hostID: string, toolCallID: string, remotePath: string): Promise<string>;
@@ -552,12 +644,14 @@ export interface AppBindings extends ToolRecoveryBindings, ModelSettingsBindings
   PickExportFile(defaultFilename: string, mimeType: string): Promise<string>;
   ExportGoalDiagnostics(): Promise<string>;
   SaveExportFile(path: string, payload: string, base64Encoded: boolean): Promise<void>;
+  SaveSessionMarkdownForTab(tabID: string, path: string, title: string): Promise<void>;
   SaveExportImageFiles(path: string, payloads: string[]): Promise<void>;
   AttachDropped(path: string): Promise<DroppedItem>;
   AttachmentDataURL(path: string): Promise<string>;
   Models(): Promise<ModelInfo[]>;
   SetModel(name: string): Promise<void>;
   ModelsForTab(tabID: string): Promise<ModelInfo[]>;
+  ModelsForDraft(draftID: string): Promise<ModelInfo[]>;
   SetModelForTab(tabID: string, name: string): Promise<void>;
   Effort(): Promise<EffortInfo>;
   SetEffort(level: string): Promise<void>;
@@ -605,7 +699,6 @@ export interface AppBindings extends ToolRecoveryBindings, ModelSettingsBindings
   SetAutoPlan(mode: string): Promise<void>;
   SetDefaultToolApprovalMode(mode: string): Promise<void>;
   SetDefaultAutoRecoveryCheckpoint(enabled: boolean): Promise<void>;
-
   RenameProviderConnections(names: string[], displayName: string): Promise<void>;
   SaveProvider(p: ProviderView): Promise<void>;
   SetProviderWebSearch(names: string[], enabled: boolean): Promise<void>;
@@ -802,7 +895,6 @@ export interface AppBindings extends ToolRecoveryBindings, ModelSettingsBindings
 // sites by tsc when components invoke app.<method>(...).
 type AssertNever<T extends never> = T;
 export type _CheckGenToApp = AssertNever<Exclude<DesktopCommandName, keyof AppBindings>>;
-
 // Must match desktop/app.go's eventChannel constant.
 const EVENT_CHANNEL = "agent:event";
 
@@ -810,10 +902,22 @@ function hostEvents(name: string, cb: (...args: unknown[]) => void): (() => void
   const host = desktopHost();
   return host.kind === "none" ? null : host.events.on(name, cb);
 }
+type LazyMockAttachmentCommand = keyof AttachmentBindings
+  | "SavePastedImage"
+  | "SavePastedImageForComposerTarget"
+  | "SaveClipboardImage"
+  | "SaveClipboardImageForComposerTarget"
+  | "SavePastedFile"
+  | "SavePastedFileForComposerTarget"
+  | "AttachDropped"
+  | "AttachDroppedForComposerTarget"
+  | "AttachmentDataURL"
+  | "AttachmentDataURLForComposerTarget";
+type MockAppBindings = Omit<AppBindings, LazyMockAttachmentCommand>;
 
 let mockSingleton: AppBindings | null = null;
 function getMock(): AppBindings {
-  if (!mockSingleton) mockSingleton = makeMockApp();
+  if (!mockSingleton) mockSingleton = makeMockApp() as AppBindings;
   return mockSingleton;
 }
 
@@ -905,13 +1009,21 @@ export function onRuntimeRebuilt(cb: (tabId?: string, runtimeEpoch?: string) => 
 export function onReady(cb: (tabId?: string) => void): () => void {
   const off = hostEvents("agent:ready", (tabId?: unknown) => cb(typeof tabId === "string" ? tabId : undefined));
   if (off) return off;
-  // In dev mock, fire immediately since there's no real boot sequence.
+  // The browser mock has no native event bridge, but SessionRef navigation
+  // still needs the same reload semantics as the desktop host.
+  mockReadyListeners.add(cb);
   cb();
-  return () => {};
+  return () => mockReadyListeners.delete(cb);
 }
 
 export function onProjectTreeChanged(cb: () => void): () => void {
-  return hostEvents("project-tree:changed", (payload?: unknown) => (payload as { reason?: unknown } | undefined)?.reason !== "runtime" && (payload as { reason?: unknown } | undefined)?.reason !== "catalog-v2" && cb()) ?? (() => {});
+  return hostEvents("project-tree:changed", (payload?: unknown) => (payload as { reason?: unknown } | undefined)?.reason !== "runtime" && (payload as { reason?: unknown } | undefined)?.reason !== "catalog-v2" && cb()) ?? subscribeMockProjectTreeChanged(cb);
+}
+
+export function onLegacyEmptySessionCleanupChanged(cb: (status: LegacyEmptySessionCleanupStatus) => void): () => void {
+  return hostEvents("legacy-empty-session-cleanup:changed", (payload?: unknown) => {
+    if (payload && typeof payload === "object") cb(payload as LegacyEmptySessionCleanupStatus);
+  }) ?? (() => {});
 }
 
 // onTopicActivation subscribes to the "topic:activation" channel carrying the
@@ -940,6 +1052,11 @@ export function onTabMeta(cb: (event: TabMetaRefreshEvent) => void): () => void 
 
 const mockTopicActivationListeners = new Set<(event: TopicActivationEvent) => void>();
 const mockTabMetaListeners = new Set<(event: TabMetaRefreshEvent) => void>();
+const mockReadyListeners = new Set<(tabId?: string) => void>();
+
+function emitMockReady(tabId?: string): void {
+  mockReadyListeners.forEach((listener) => listener(tabId));
+}
 
 export function __emitMockTopicActivation(event: TopicActivationEvent): void {
   mockTopicActivationListeners.forEach((listener) => listener(event));
@@ -1023,8 +1140,10 @@ function elapsedMs(startedAt: number): number {
 
 export const app: AppBindings = new Proxy({} as AppBindings, {
   get(_t, prop) {
-    const target = desktopHost().app ?? getMock();
-    const v = (target as unknown as Record<string, unknown>)[String(prop)];
+    const host = desktopHost().app, target = host ?? getMock();
+    let v = (target as unknown as Record<string, unknown>)[String(prop)];
+    if (!host && v === undefined && typeof prop === "string") v = (...args: unknown[]) => import("./attachmentBindings").then(
+      module => module.callMockAttachment(target, prop as keyof AttachmentBindings, args));
     if (typeof v !== "function") return v;
     return (...args: unknown[]) => {
       const method = String(prop), crumb = bridgeBreadcrumb(method);
@@ -1077,6 +1196,7 @@ function mockSubscribe(cb: (e: WireEvent) => void): () => void {
 
 function emit(e: WireEvent) {
   const event = mockScopedTabId && !e.tabId ? { ...e, tabId: mockScopedTabId } : e;
+  publishMockTranscriptEvent(event);
   listeners.forEach((l) => l(event));
 }
 
@@ -1123,12 +1243,6 @@ function browserPlatformOverride(): "darwin" | "windows" | "linux" | "" {
   return value === "darwin" || value === "windows" || value === "linux" ? value : "";
 }
 
-function browserMockDesktopLayoutStyle(): "workbench" | "creation" {
-  if (typeof window === "undefined" || desktopHost().app) return "workbench";
-  const value = new URLSearchParams(window.location.search).get("layout");
-  return value === "creation" ? value : "workbench";
-}
-
 function browserPreviewBashSandboxMode(): "enforce" | "off" {
   return browserPlatformOverride() === "windows" ? "off" : "enforce";
 }
@@ -1136,7 +1250,7 @@ function browserPreviewBashSandboxMode(): "enforce" | "off" {
 function browserPreviewEffectiveShell(prefer = "auto"): "bash" | "git-bash" | "powershell" | "pwsh" {
   const normalized = prefer.trim().toLowerCase();
   if (normalized === "powershell" || normalized === "pwsh") return normalized;
-  return browserPlatformOverride() === "windows" ? "git-bash" : "bash";
+  return browserPlatformOverride() === "windows" ? (normalized === "bash" ? "git-bash" : "pwsh") : "bash";
 }
 
 function mockScenario(): "demo" | "fresh" | "running" | "guidance" | "recovery" | "sandbox_escape" | "notice" | "deepseek_upgrade" | "bench" {
@@ -1278,14 +1392,18 @@ function cloneMockProviderTemplates(id: string, key: string): ProviderView[] | u
   }));
 }
 
-const mockPreviewImageDataURL =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='120' viewBox='0 0 160 120'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23f97316'/%3E%3Cstop offset='1' stop-color='%232563eb'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='160' height='120' rx='14' fill='url(%23g)'/%3E%3Ccircle cx='44' cy='38' r='16' fill='%23fff7ed' opacity='.9'/%3E%3Cpath d='M18 96 62 58l24 22 18-16 38 32z' fill='%23ffffff' opacity='.9'/%3E%3C/svg%3E";
-
 function mockExternalOpenerIconDataURL(color: string, label: string): string {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="${color}"/><text x="32" y="40" text-anchor="middle" font-family="system-ui" font-size="25" font-weight="700" fill="white">${label}</text></svg>`;
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
-function makeMockApp(): AppBindings {
+function makeMockApp(): MockAppBindings {
+  const credentialDiagnostics = (actions: string[] = []): CredentialDiagnosticReport => ({
+    home: "/mock/.tempora",
+    credentialPath: "/mock/.tempora/.env",
+    pendingTransactions: 0,
+    checks: [],
+    actions,
+  });
   const scenario = mockScenario();
   // Both bridge families publish into the same catalog, as ListTabs does in
   // the desktop backend. A remote event is not a second source of tab state.
@@ -1311,7 +1429,29 @@ function makeMockApp(): AppBindings {
   const noticePreviewMock = scenario === "notice";
   const deepSeekUpgradeMock = scenario === "deepseek_upgrade";
   const benchMock = scenario === "bench";
-  const mockAttachmentDataURLs = new Map<string, string>();
+  const mockDrafts = new Map<string, SessionDraftView>();
+  const mockDraftOperations = new Map<string, SessionDraftSubmissionView>();
+  const mockDraftForTarget = (scope: string, workspaceRoot: string): SessionDraftView => {
+    const normalizedScope = scope === "project" && workspaceRoot ? "project" : "global";
+    const normalizedRoot = normalizedScope === "project" ? workspaceRoot : "";
+    const workspaceId = normalizedScope === "global" ? "global" : `project-${normalizedRoot}`;
+    const prior = [...mockDrafts.values()].find((draft) => draft.workspaceId === workspaceId && draft.status === "active");
+    if (prior) return prior;
+    const now = Date.now();
+    const draft: SessionDraftView = {
+      id: `draft-mock-${mockDrafts.size + 1}`,
+      workspaceId,
+      scope: normalizedScope,
+      workspaceRoot: normalizedRoot,
+      revision: 1,
+      contentJson: "{}",
+      settings: { model: "deepseek/deepseek-v4-flash", modelSource: "default", mode: "default", toolApprovalMode: "ask", disabledMcp: {}, mcpOrder: [] },
+      status: "active",
+      updatedAt: now,
+    };
+    mockDrafts.set(draft.id, draft);
+    return draft;
+  };
   let cancelled = false;
   let pendingAskPreview = false, pendingApprovalPreview = false;
   // Mirrors the last emitted approval preview so mode switches can mirror the
@@ -1751,7 +1891,6 @@ function makeMockApp(): AppBindings {
     },
     desktopLanguage: "",
     desktopCurrency: "",
-    desktopLayoutStyle: browserMockDesktopLayoutStyle(),
     desktopTheme: "auto",
     desktopThemeStyle: "graphite",
     desktopTerminalTheme: "auto",
@@ -1762,6 +1901,7 @@ function makeMockApp(): AppBindings {
     statusBarItems: [...DEFAULT_STATUS_BAR_ITEMS],
     defaultToolApprovalMode: "workspace-write",
     checkUpdates: true,
+    updaterEnabled: true,
     updateChannel: "stable",
     telemetry: true,
     metrics: true,
@@ -1927,140 +2067,10 @@ function makeMockApp(): AppBindings {
     return Boolean(topic && topic.label === t("mock.newSession") && !topic.turns && !topic.lastActivityAt && !topic.status);
   };
   const mockTopicRunsInScenario = (topicId: string) => runningMock && mockTopicIsRunning(topicId);
-  const mockLongTranscriptHistory = (): HistoryMessage[] => {
-    const out: HistoryMessage[] = [];
-    for (let i = 1; i <= 18; i++) {
-      out.push({
-        role: "user",
-        content: `第 ${i} 轮：检查聊天滚动定位，切换会话后应该自动停在最新消息底部。`,
-        createdAt: t0 - (19 - i) * 15 * 60_000,
-      });
-      if (i === 4) {
-        out.push({ role: "phase", content: "复现切换会话后的滚动位置" });
-      }
-      if (i === 8) {
-        const toolID = "mock-scroll-layout-check";
-        out.push({
-          role: "assistant",
-          content: "我会先读取滚动容器尺寸，再确认是否存在动态高度变化导致的底部偏移。",
-          reasoning: "旧实现只重置 stick 标志，没有主动等待布局稳定；AskCard、Approval、Todo 这类卡片可能在下一帧改变高度。",
-          toolCalls: [{ id: toolID, name: "bash", arguments: JSON.stringify({ command: "npm run check:css && pnpm typecheck" }) }],
-        });
-        out.push({
-          role: "tool",
-          toolCallId: toolID,
-          toolName: "bash",
-          content: "CSS syntax check passed\nz-index token check passed\ntsc --noEmit passed\n",
-        });
-        continue;
-      }
-      if (i === 13) {
-        out.push({ role: "notice", level: "info", content: "模拟提示：用户向上查看历史后，右下角应出现跳到底部按钮。" });
-      }
-      out.push({
-        role: "assistant",
-        content: [
-          `第 ${i} 轮结果：当前滚动契约会在切换会话或 reveal 信号到达后执行强制贴底。`,
-          "它会先立即设置 scrollTop 到 scrollHeight，再连续几个 animation frame 复查，避免动态内容把底部再次推走。",
-          "如果用户主动向上滚动，普通 streaming 不会强行拉回；只有点击跳到底部按钮或显式切换会话才会重新贴底。",
-        ].join("\n\n"),
-      });
-    }
-    out.push({
-      role: "compaction",
-      content: "",
-      trigger: "manual",
-      messages: 36,
-      summary: "Mock 长会话用于验证桌面端 Transcript 自动贴底、多帧布局修正和跳到底部按钮。",
-      archive: "mock-scroll-preview",
-    });
-    out.push({
-      role: "assistant",
-      content: "最终状态：这条消息应该位于真实底部。向上滚动后，右下角会显示跳到底部按钮；点击按钮后应回到这里。",
-    });
-    return out;
-  };
   // Benchmark fixtures (?mock=bench) live in a lazily imported module: the
   // generators build ~1MiB of mock content and must stay out of the eager
   // bundle (initial-chunk gzip budget). See bridgeBenchFixtures.ts.
   const benchFixturesPromise = benchMock ? import("./bridgeBenchFixtures") : null;
-	  const mockTopicHistory = (topicId: string): HistoryMessage[] => {
-	    switch (topicId) {
-      case "topic_product":
-        return [
-          {
-            role: "user",
-            content: [
-              "[[tempora-im]]",
-              "provider=lark",
-              "label=Feishu / Lark",
-              "sender=ou_mock_user_001",
-              "chat=p2p 会话",
-              "[[/tempora-im]]",
-              "你可以做什么",
-            ].join("\n"),
-          },
-          {
-            role: "assistant",
-            content: "这是 Global 范围下的 IM 会话。我可以先处理不依赖项目文件的问答、计划和信息整理；需要进入项目时，再由桌面端显式绑定或迁移到项目话题。",
-          },
-        ];
-      case "topic_ai":
-        return [
-          {
-            role: "user",
-            content: [
-              "[[tempora-im]]",
-              "provider=weixin",
-              "label=微信",
-              "sender=wxid_mock_user_001",
-              "chat=单聊",
-              "[[/tempora-im]]",
-              "帮我整理一下今天要做的事",
-            ].join("\n"),
-          },
-          {
-            role: "assistant",
-            content: "可以。我会先在 Global 范围里整理任务清单；如果某条任务需要读取项目文件，再切到你授权的项目话题处理。",
-          },
-        ];
-      case "topic_dev_standard":
-        return mockLongTranscriptHistory();
-      case "topic_p3b_pd":
-        return [
-          { role: "user", content: "把 p3b P&D 的范围和风险重新整理成可执行计划。" },
-          { role: "phase", content: "分析需求范围" },
-        ];
-      case "topic_p3a_pd":
-        return [
-          { role: "user", content: "复盘 p3a 的技术方案，先不要写文件，先说明你的判断。" },
-        ];
-      case "topic_hotfix":
-        return [
-          { role: "user", content: "检查 post-p3-hotfix 的回归风险，重点看最近的 shell 输出和 git 改动。" },
-          { role: "assistant", content: "", reasoning: "我先定位最近一次 hotfix 的上下文，然后用只读命令检查状态；左侧保持“思考中”，工具细节在这里展开。" },
-        ];
-      case "topic_sys_coord":
-        return [
-          { role: "user", content: "准备执行 joyquant-sys 的同步脚本，但需要我确认后再运行。" },
-          { role: "assistant", content: "", reasoning: "这个动作会运行脚本并可能刷新本地缓存，所以需要先等用户确认。" },
-        ];
-      case "topic_sys_standard":
-        return [
-          { role: "user", content: "继续制定 SYS 项目开发规范，先停在当前检查点。" },
-          { role: "assistant", content: "已暂停在规范整理阶段。当前保留了目录约定、分支策略和待确认的发布检查项；继续时可以从这里恢复。" },
-          { role: "notice", level: "info", content: "会话已暂停：未继续执行命令，等待用户恢复或切换任务。" },
-        ];
-      case "topic_sys_exception":
-        return [
-          { role: "user", content: "演练异常处理流程，看看失败时界面怎么提示。" },
-          { role: "assistant", content: "我尝试校验恢复脚本时遇到异常，已停止继续执行。" },
-          { role: "notice", level: "warn", content: "运行异常：恢复脚本缺少必要环境变量 JOYQUANT_SYS_TOKEN。请补齐配置后重试。" },
-        ];
-      default:
-        return [];
-	    }
-	  };
 	  const mockHistoryPage = (messages: HistoryMessage[], beforeTurn = 0, limit = 60): HistoryPage => {
 	    const totalTurns = messages.reduce((count, message) => count + (message.role === "user" ? 1 : 0), 0);
 	    const safeLimit = Math.max(1, Math.min(200, Math.floor(limit || 60)));
@@ -2112,7 +2122,7 @@ function makeMockApp(): AppBindings {
           pendingApprovalPreviewPrompt = { id: "mock-sys-confirm", tool: "bash" };
           emit({ kind: "reasoning", text: "我已经准备好执行同步脚本，但这个操作会影响本地 workspace，需要用户确认。" });
           await delay(160);
-          emit({
+          emitMockPrompt({
             kind: "approval_request",
             approval: {
               id: "mock-sys-confirm",
@@ -2151,14 +2161,8 @@ function makeMockApp(): AppBindings {
     if (!tabId) return;
     mockTabs = mockTabs.map((tab) => (tab.id === tabId ? { ...tab, running } : tab));
   };
-  const emitMockTurnStarted = (submissionId?: string) => {
-    setMockTabRunning(currentMockTurnTabId(), true);
-    emit({ kind: "turn_started", submissionId });
-  };
-  const emitMockTurnDone = (submissionId?: string) => {
-    setMockTabRunning(currentMockTurnTabId(), false);
-    emit({ kind: "turn_done", submissionId });
-  };
+  const mockInteractions = createBrowserMockInteractionIdentity({ emit, currentTabId: currentMockTurnTabId, setRunning: setMockTabRunning });
+  const { emitPrompt: emitMockPrompt, turnStarted: emitMockTurnStarted, turnDone: emitMockTurnDone } = mockInteractions;
   // Fresh user decisions never auto-allow on a posture switch (mirrors the
   // backend's requiresFreshApprovalTool set).
   const mockFreshApprovalTools = new Set(["exit_plan_mode", "sandbox_escape", "memory_remember", "memory_forget", "managed_config_write"]);
@@ -2325,7 +2329,7 @@ function makeMockApp(): AppBindings {
       pendingApprovalPreviewPrompt = { id: "mock-sandbox-escape-preview", tool: "sandbox_escape" };
       emitMockTurnStarted();
       emit({ kind: "reasoning", text: t("mock.sandboxEscapeReasoning") });
-      emit({
+      emitMockPrompt({
         kind: "approval_request",
         approval: {
           id: "mock-sandbox-escape-preview",
@@ -2372,9 +2376,227 @@ function makeMockApp(): AppBindings {
       mockTabs = mockTabs.map((tab, index) => (index === 0 ? { ...tab, label } : tab));
     }
   };
-  return {
+  const mockArchivedSessionIDs = new Set<string>();
+  const mockPurgedSessionIDs = new Set<string>();
+  const mockSessionIDForNode = (node: ProjectNode) => (node.topicId || node.key || "mock-session").replace(/[^a-zA-Z0-9._-]/g, "-");
+  const mockWorkspaceID = (node: ProjectNode) => node.kind === "global_folder" ? "global" : `project-${(node.root || node.key).replace(/[^a-zA-Z0-9._-]/g, "-")}`;
+  const mockWorkspaceSnapshot = (): WorkspaceSnapshot => ({
+    generation: 1,
+    workspaces: mockProjectTreeForDisplay().filter((node) => node.kind === "project" || node.kind === "global_folder").map((node) => ({
+      id: mockWorkspaceID(node), root: node.root || "", title: node.label,
+      sessionIds: projectChildren(node).map(mockSessionIDForNode), visible: true, createdAt: 0, updatedAt: 0,
+    })),
+    archivedSessionIds: [...mockArchivedSessionIDs], pendingCreates: [],
+  });
+  return { ...({} as AttachmentBindings),
+    async OpenSessionDraft(workspaceId: string) {
+      const prior = [...mockDrafts.values()].find((draft) => draft.workspaceId === workspaceId && draft.status === "active");
+      if (prior) return structuredClone(prior);
+      return structuredClone(mockDraftForTarget(workspaceId === "global" ? "global" : "project", workspaceId === "global" ? "" : workspaceId));
+    },
+    async OpenSessionDraftForTarget(scope: string, workspaceRoot: string) {
+      return structuredClone(mockDraftForTarget(scope, workspaceRoot));
+    },
+    async RestoreSessionDraft() {
+      return structuredClone([...mockDrafts.values()].find((draft) => draft.status === "active") ?? null);
+    },
+    async SaveSessionDraft(request: SessionDraftSaveRequest) {
+      const current = mockDrafts.get(request.draftId);
+      if (!current || current.status !== "active") throw new Error("session draft not found");
+      if (current.revision !== request.revision) return { draft: structuredClone(current), conflict: true, outcome: "conflict" };
+      const next = { ...current, revision: current.revision + 1, contentJson: request.contentJson, settings: structuredClone(request.settings), updatedAt: Date.now() };
+      mockDrafts.set(next.id, next);
+      return { draft: structuredClone(next), conflict: false, outcome: "saved" };
+    },
+    async ListSessionDraftSummaries() {
+      return [...mockDrafts.values()].filter((draft) => draft.status === "active").map((draft) => ({
+        id: draft.id, workspaceId: draft.workspaceId, scope: draft.scope, workspaceRoot: draft.workspaceRoot,
+        revision: draft.revision, hasContent: draft.contentJson !== "{}", state: "saved", updatedAt: draft.updatedAt,
+      }));
+    },
+    async DiscardSessionDraft(draftId: string, revision: number) {
+      const current = mockDrafts.get(draftId);
+      if (!current || current.revision !== revision) throw new Error("session draft revision conflict");
+      mockDrafts.set(draftId, { ...current, status: "discarded", revision: current.revision + 1 });
+    },
+    async DismissSessionDraft(_draftId: string) {},
+    async SetSessionDraftRestoreTarget(_draftId: string) {},
+    async GetSessionDraft(draftId: string) {
+      const draft = mockDrafts.get(draftId);
+      if (!draft) throw new Error("session draft not found");
+      return structuredClone(draft);
+    },
+    async GetDraftContext(draftId: string) {
+      const draft = mockDrafts.get(draftId);
+      if (!draft) throw new Error("session draft not found");
+      return { draft: structuredClone(draft), commands: [], servers: [] };
+    },
+    async GetSessionDraftState(draftId: string) {
+      const draft = mockDrafts.get(draftId);
+      if (!draft) throw new Error("session draft not found");
+      const operation = [...mockDraftOperations.values()].reverse().find(item => item.draftId === draftId);
+      return structuredClone({ draft, operation });
+    },
+    async ResumeDraftSubmission(operationId: string, revision: number) {
+      const operation = mockDraftOperations.get(operationId);
+      if (!operation || operation.revision !== revision) throw new Error("operation revision conflict");
+      return structuredClone(operation);
+    },
+    async BeginDraftSubmission(request: SessionDraftSubmissionRequest) {
+      const draft = mockDrafts.get(request.draftId);
+      if (!draft || draft.revision !== request.revision) throw new Error("session draft revision conflict");
+      const operationId = `draft-op-mock-${mockDraftOperations.size + 1}`;
+      const sessionId = `draft-session-mock-${mockDraftOperations.size + 1}`;
+      const view: SessionDraftSubmissionView = { operationId, draftId: draft.id, requestId: request.requestId, revision: 1, canResume: false, canEdit: false, canCancel: false, canDiscard: false, phase: "accepted", submissionId: `draft-submit-mock-${mockDraftOperations.size + 1}`, session: { hostId: "local", sessionId }, updatedAt: Date.now() };
+      mockDraftOperations.set(operationId, view);
+      mockDrafts.set(draft.id, { ...draft, status: "converted", revision: draft.revision + 1 });
+      return structuredClone(view);
+    },
+    async GetDraftSubmission(operationId: string) {
+      const operation = mockDraftOperations.get(operationId);
+      if (!operation) throw new Error("session draft submission not found");
+      return structuredClone(operation);
+    },
+    async CancelDraftSubmission(operationId: string) {
+      const operation = mockDraftOperations.get(operationId);
+      if (!operation) throw new Error("session draft submission not found");
+      const next = { ...operation, phase: operation.phase === "accepted" ? "accepted" : "cancelled", updatedAt: Date.now() };
+      mockDraftOperations.set(operationId, next);
+      return structuredClone(next);
+    },
+		...makeMockSessionExportBindings(),
     ...makeMockSessionCatalogBindings(cloneProjectTree),
     ...makeMockBlankProjectBindings(),
+    async GetWorkspaceSnapshot() { return mockWorkspaceSnapshot(); },
+    async GetLegacyEmptySessionCleanupStatus() {
+      return { version: 1, state: "complete", removed: 0, pending: 0, busy: 0, unknown: 0, protected: 0, hasContent: 0, items: [] };
+    },
+    async RetryLegacyEmptySessionCleanup() {
+      return { version: 1, state: "complete", removed: 0, pending: 0, busy: 0, unknown: 0, protected: 0, hasContent: 0, items: [] };
+    },
+    ...makeMockSessionLifecycleBindings(mockWorkspaceSnapshot, mockArchivedSessionIDs, mockPurgedSessionIDs, notifyMockProjectTreeChanged),
+    async CreateSession(_workspaceId: string) { return { hostId: "local", sessionId: `mock-${Date.now()}` }; },
+    async ForkSession(_ref: SessionRef, _turnBoundary: string) { return { hostId: "local", sessionId: `mock-fork-${Date.now()}` }; },
+    async ForkSessionTarget(_selector: SessionSelector, _turnBoundary: string) { return { hostId: "local", sessionId: `mock-fork-${Date.now()}` }; },
+    async GetSessionActivityBaseline(selector: SessionSelector) {
+      return { ref: selector.ref ?? { hostId: "local", sessionId: "" }, resultSequence: 0, eventVersion: "", lifecycleGeneration: 0, complete: false };
+    },
+    async CopySessionTarget(_selector: SessionSelector, operationId: string): Promise<SessionCreationResult> {
+      return {
+        ref: { hostId: "local", sessionId: `mock-copy-${operationId || Date.now()}` },
+        operationId: operationId || `mock-copy-operation-${Date.now()}`,
+        committed: true,
+      };
+    },
+    async HistorySliceForTarget(_selector: SessionSelector, _request: HistorySliceRequest): Promise<HistorySlice> {
+      return { entries: [], nextCursor: "", hasOlder: false, totalTurns: 0, startTurn: 0, endTurn: 0, stale: false, revision: 0 };
+    },
+    async HistoryContentForTarget(_selector: SessionSelector, ref: HistoryContentRef, chunkIndex: number): Promise<HistoryContentChunk> {
+      return {
+        entryId: ref.entryId, field: ref.field, chunk: Math.max(0, chunkIndex),
+        chunks: 1, data: "", done: true, stale: false,
+      };
+    },
+    async SearchHistoryContentForTarget(_selector: SessionSelector, _query: string, _cursor: string, _limit: number): Promise<HistorySearchPage> {
+      return {
+        items: [], nextCursor: "", revision: 0, partial: false, staleCursor: false,
+        status: { state: "ready", mode: "incremental", total: 0, indexed: 0, pending: 0, failed: 0, revision: 0 },
+      };
+    },
+    async SessionHistoryPageForTarget(_selector: SessionSelector, _cursor: string, _limit: number): Promise<MessageHistoryPage> {
+      return { messages: [], snapshotSequence: 0, coverageSequence: 0, status: "ready", totalTurns: 0, generation: "mock", hasMore: false };
+    },
+    async SessionHistoryContentForTarget(_selector: SessionSelector, ref: SessionContentRef, offset: number): Promise<SessionHistoryContentChunk> {
+      return { data: "", nextOffset: Math.min(Math.max(0, offset), ref.bytes), done: offset >= ref.bytes };
+    },
+    async LocateSessionMessageForTarget(_selector: SessionSelector, messageId: string, snapshot: number): Promise<MessageLocation> {
+      return { messageId, snapshotSequence: snapshot, coverageSequence: snapshot, status: "ready", position: 0, visibleTurn: 0 };
+    },
+    async SessionMessageFieldForTarget(
+      _selector: SessionSelector,
+      messageId: string,
+      version: number,
+      field: string,
+      offset: number,
+      _length: number,
+    ): Promise<MessageFieldPage> {
+      return { status: "ready", messageId, version, field, totalBytes: 0, offset, data: "", nextOffset: offset, encoding: "utf8" };
+    },
+    async SearchSessionHistoryForTarget(_selector: SessionSelector, _query: string, _cursor: string, _limit: number): Promise<SearchHistoryPage> {
+      return { hits: [], snapshotSequence: 0, coverageSequence: 0, status: "ready", hasMore: false };
+    },
+    async SessionHistoryWindowForTarget(_selector: SessionSelector, _request: HistoryWindowRequest): Promise<HistoryWindowPage> {
+      return { messages: [], status: "ready", snapshotSequence: 0, coverageSequence: 0, totalTurns: 0, hasOlder: false, hasNewer: false };
+    },
+    async ListWorkspaceSessions(workspaceId: string, query: string, _cursor: string, limit: number, includeArchived: boolean) {
+      const parent = mockProjectTreeForDisplay().find((node) => mockWorkspaceID(node) === workspaceId);
+      const needle = query.trim().toLowerCase();
+      const sessions = projectChildren(parent ?? { key: "", kind: "global_folder", label: "", children: [] }).map((node) => {
+        const sessionId = mockSessionIDForNode(node), isArchived = mockArchivedSessionIDs.has(sessionId);
+        return {
+          ref: { hostId: "local", sessionId }, workspaceId, title: node.label, preview: node.preview || "", turns: node.turns || 0,
+          createdAt: node.createdAt || 0, updatedAt: node.lastActivityAt || 0, blank: !node.turns && !node.preview,
+          archived: isArchived, running: Boolean(node.running), metadataStatus: "ready", health: "healthy",
+        };
+      }).filter((row) => !mockPurgedSessionIDs.has(row.ref.sessionId) && (includeArchived || !row.archived) && (!needle || `${row.title}\n${row.preview}`.toLowerCase().includes(needle))).slice(0, limit);
+      return { sessions, registryGeneration: 1 };
+    },
+    async OpenSession(ref: SessionRef) {
+      if (ref.hostId !== "local") throw new Error(`unsupported mock session host: ${ref.hostId}`);
+      const { rebindMockSessionTab } = await import("./bridgeMockSessionNavigation");
+      const rebound = rebindMockSessionTab(ref, mockTabs.find((candidate) => candidate.active) ?? mockTabs[0], mockProjectTreeForDisplay(), globalWorkspaceRoot, mockTopicRunsInScenario);
+      // SessionRef navigation rebinds the existing surface; legacy Topic
+      // activation swaps tab ids and makes its ready event correctly stale.
+      pruneMockTabsTo(rebound.id);
+      mockTabs = [rebound];
+      emitMockReady(rebound.id);
+      return this.HistoryPageForTab(rebound.id, 0, 60);
+    },
+    async ReadSessionHistory(_ref: SessionRef, _cursor: string, _limit: number) { return { messages: [], startTurn: 0, endTurn: 0, totalTurns: 0, hasOlder: false }; },
+    async RenameCanonicalSession(_ref: SessionRef, _title: string) {},
+    async SetSessionPinned(_selector: SessionSelector, _pinned: boolean) { notifyMockProjectTreeChanged(); },
+    async ArchiveCanonicalSession(ref: SessionRef) { mockArchivedSessionIDs.add(ref.sessionId); notifyMockProjectTreeChanged(); },
+    async ArchiveSessionTarget(selector: SessionSelector): Promise<SessionMutationResult> {
+      const node = mockSessionTitleTarget(mockProjectTree, selector);
+      const targetKey = node ? sessionTitleTarget(node) : selector.sessionPath?.trim() || selector.topicId?.trim() || selector.ref?.sessionId || "";
+      if (selector.ref?.sessionId) mockArchivedSessionIDs.add(selector.ref.sessionId);
+      if (selector.sessionPath) await this.DeleteSession(selector.sessionPath);
+      notifyMockProjectTreeChanged();
+      return { targetKey, operationId: `mock-archive-${Date.now()}`, committed: true, lifecycleGeneration: 2 };
+    },
+    async RestoreCanonicalSession(ref: SessionRef) { mockArchivedSessionIDs.delete(ref.sessionId); notifyMockProjectTreeChanged(); },
+    async RestoreSessionTarget(selector: SessionSelector): Promise<SessionMutationResult> {
+      const node = mockSessionTitleTarget(mockProjectTree, selector);
+      const targetKey = node ? sessionTitleTarget(node) : selector.sessionPath?.trim() || selector.topicId?.trim() || selector.ref?.sessionId || "";
+      if (selector.ref?.sessionId) mockArchivedSessionIDs.delete(selector.ref.sessionId);
+      notifyMockProjectTreeChanged();
+      return { targetKey, operationId: `mock-restore-${Date.now()}`, committed: true, lifecycleGeneration: 3 };
+    },
+    async DeleteSessionTarget(selector: SessionSelector): Promise<SessionMutationResult> {
+      const node = mockSessionTitleTarget(mockProjectTree, selector);
+      const sessionId = selector.ref?.sessionId || (node ? mockSessionIDForNode(node) : "");
+      if (sessionId) mockPurgedSessionIDs.add(sessionId);
+      notifyMockProjectTreeChanged();
+      return { targetKey: node ? sessionTitleTarget(node) : sessionId, operationId: `mock-delete-${Date.now()}`, committed: true, lifecycleGeneration: 4 };
+    },
+    async MoveWorkspaceSession(_workspaceId: string, _sessionId: string, _beforeSessionId: string) {},
+    async MoveSessionTarget(selector: SessionSelector, _workspaceId: string, _beforeSessionId: string): Promise<SessionMutationResult> {
+      const node = mockSessionTitleTarget(mockProjectTree, selector);
+      return { targetKey: node ? sessionTitleTarget(node) : "", operationId: `mock-move-${Date.now()}`, committed: true, lifecycleGeneration: 1 };
+    },
+    async RenameWorkspace(_workspaceId: string, _title: string) {},
+    async SetWorkspaceVisible(_workspaceId: string, _visible: boolean) {},
+    async MoveWorkspace(_workspaceId: string, _beforeWorkspaceId: string) {},
+    async GetSessionArchitectureDiagnostics() {
+      return {
+        pending_operations: 0, missing_members: 0, identity_mismatches: 0,
+        source_conflicts: 0, recovery_entries: 0,
+        session_headers_total: 0, workspace_members_total: 0, unassigned_sessions: 0,
+        migration_pending: 0, migration_failed: 0, migration_completed: 0,
+        projection_pending: 0, projection_failed: 0, pending_create_recovered: 0,
+        prune_blocked_persistence: 0,
+      };
+    },
     async MinimiseMainWindow() {
       console.info("mock MinimiseMainWindow");
     },
@@ -2443,13 +2665,13 @@ function makeMockApp(): AppBindings {
         emitMockTurnDone(submissionID);
         return;
       }
-      if (decisionSurfaceMock === "mcp_interaction") return (await import("./mockMCPInteraction")).showMockMCPInteraction(delay, () => cancelled, emit);
+      if (decisionSurfaceMock === "mcp_interaction") return (await import("./mockMCPInteraction")).showMockMCPInteraction(delay, () => cancelled, emitMockPrompt);
       if (decisionSurfaceMock === "tool_approval") {
         pendingApprovalPreview = true;
         pendingApprovalPreviewPrompt = { id: "mock-approval-preview", tool: "bash" };
         await delay(250);
         if (cancelled) return;
-        emit({
+        emitMockPrompt({
           kind: "approval_request",
           approval: {
             id: "mock-approval-preview",
@@ -2464,7 +2686,7 @@ function makeMockApp(): AppBindings {
         pendingApprovalPreviewPrompt = { id: "mock-recovery-preview", tool: "write_file" };
         await delay(250);
         if (cancelled) return;
-        emit({
+        emitMockPrompt({
           kind: "approval_request",
           approval: {
             id: "mock-recovery-preview",
@@ -2508,7 +2730,7 @@ function makeMockApp(): AppBindings {
         pendingApprovalPreviewPrompt = { id: "mock-sandbox-escape-preview", tool: "sandbox_escape" };
         await delay(250);
         if (cancelled) return;
-        emit({
+        emitMockPrompt({
           kind: "approval_request",
           approval: {
             id: "mock-sandbox-escape-preview",
@@ -2524,7 +2746,7 @@ function makeMockApp(): AppBindings {
         pendingApprovalPreviewPrompt = { id: "mock-plan-approval-preview", tool: "exit_plan_mode" };
         await delay(250);
         if (cancelled) return;
-        emit({
+        emitMockPrompt({
           kind: "approval_request",
           approval: {
             id: "mock-plan-approval-preview",
@@ -2550,7 +2772,7 @@ function makeMockApp(): AppBindings {
         const allowOnceDescription = t("approval.allowOnceDesc");
         const denyDescription = t("approval.denyDesc");
 
-        emit({
+        emitMockPrompt({
           kind: "ask_request",
           ask: {
             id: "mock-long-options",
@@ -2611,7 +2833,7 @@ function makeMockApp(): AppBindings {
         pendingAskPreview = true;
         await delay(250);
         if (cancelled) return;
-        emit({
+        emitMockPrompt({
           kind: "ask_request",
           ask: {
             id: `mock-ask-preview-${Date.now()}`,
@@ -2841,6 +3063,14 @@ function makeMockApp(): AppBindings {
         },
         async SubmitToTab(_tabID, input) { await withMockTabScope(_tabID, () => this.Submit(input)); },
         async SubmitToTabWithID(_tabID, input, submissionID) { const submit = this.Submit as (value: string, id?: string) => Promise<void>; await withMockTabScope(_tabID, () => submit(input, submissionID)); },
+        async StartTurnForTab(_tabID, input, submissionID) {
+          const turnId = `mock-turn-${submissionID}`;
+          const submit = this.Submit as (value: string, id?: string) => Promise<void>;
+          void withMockTabScope(_tabID, () => submit(input, submissionID)).catch((error) => {
+            console.error("mock turn failed", error);
+          });
+          return { turnId, status: "started", disposition: "turn_started", runtimeEpoch: "mock", submissionId: submissionID };
+        },
         async SubmitDisplay(_display, input) { await this.Submit(input); },
         async SubmitDisplayToTab(_tabID, display, input) { await withMockTabScope(_tabID, () => this.SubmitDisplay(display, input)); },
         async SubmitDisplayToTabWithID(_tabID, _display, input, submissionID) { await this.SubmitToTabWithID(_tabID, input, submissionID); },
@@ -3025,6 +3255,7 @@ function makeMockApp(): AppBindings {
             throw new Error(`unsupported prompt kind: ${kind}`);
           });
         },
+        async ResolvePromptForSession(target, answer) { await this.ResolvePromptForTab?.(target.tabId, target.promptId, target.turnId, target.runtimeEpoch, target.kind, answer); },
         async ReplayPendingPrompts() {},
         async ReplayPendingPromptsForTab(_tabID) {},
         async ConfirmAction(req) {
@@ -3203,6 +3434,7 @@ function makeMockApp(): AppBindings {
       () => mockTabs,
       (tabs) => { mockTabs = tabs; },
       t("rewind.fork"),
+      (tabID) => getMock().HistoryForTab(tabID),
     ),
     async SummarizeFrom() {},
     async SummarizeFromForTab() {},
@@ -3220,9 +3452,9 @@ function makeMockApp(): AppBindings {
               const history = fixtures.benchTopicHistory(tab.topicId);
               if (history) return history;
             }
-            return mockTopicHistory(tab.topicId);
+            return withMockHistoryIds(tab.id, topicHistoryFixture(t0, tab.topicId));
           }
-          return this.History();
+          return withMockHistoryIds(tabID ?? "mock", await this.History());
         },
         async HistoryPage(beforeTurn = 0, limit = 60) {
           return mockHistoryPage(await this.History(), beforeTurn, limit);
@@ -3259,24 +3491,7 @@ function makeMockApp(): AppBindings {
           out.chunks = 1;
           return out;
         },
-        async SessionHistoryPageForTab(): Promise<MessageHistoryPage> {
-          return { messages: [], snapshotSequence: 0, hasMore: false };
-        },
-        async SessionHistoryContentForTab(_tabID: string, ref: SessionContentRef, offset: number): Promise<SessionHistoryContentChunk> {
-          return { data: "", nextOffset: Math.min(offset, ref.bytes), done: offset >= ref.bytes };
-        },
-        async RemoteSessionHistoryPageForTab(): Promise<MessageHistoryPage> {
-          return { messages: [], snapshotSequence: 0, hasMore: false };
-        },
-        async RemoteSessionHistoryContentForTab(_tabID: string, ref: SessionContentRef, offset: number): Promise<SessionHistoryContentChunk> {
-          return { data: "", nextOffset: Math.min(offset, ref.bytes), done: offset >= ref.bytes };
-        },
-        async SearchSessionHistoryForTab(): Promise<SearchHistoryPage> {
-          return { hits: [], snapshotSequence: 0, hasMore: false };
-        },
-        async RemoteSearchSessionHistoryForTab(): Promise<SearchHistoryPage> {
-          return { hits: [], snapshotSequence: 0, hasMore: false };
-        },
+        ...makeMockSessionReaderBindings(),
     async ListSessions() {
       return sessions.map((s) => ({ ...s }));
     },
@@ -3501,7 +3716,7 @@ function makeMockApp(): AppBindings {
           return null;
         },
         async Meta() {
-          const active = mockTabs.find((tab) => tab.active) ?? mockTabs[0];
+          const active = withMockSessionIdentity(mockTabs.find((tab) => tab.active) ?? mockTabs[0]);
           const toolApprovalMode = normalizeToolApprovalMode(active?.toolApprovalMode, active ? normalizeMode(active.mode) : "normal", settings.autoApproveTools);
           const autoApproveTools = toolApprovalMode === "danger-full-access";
           const collaborationMode = normalizeCollaborationMode(active?.collaborationMode, active?.goal, active ? normalizeMode(active.mode) : "normal");
@@ -3514,6 +3729,7 @@ function makeMockApp(): AppBindings {
             workspaceRoot: active?.workspaceRoot || workspacePath,
             workspaceName: active?.workspaceName,
             workspacePath,
+            ...mockSessionMeta(active),
             sandboxPath: settings.sandbox.workspaceRoot,
             gitBranch: active?.gitBranch || (active?.scope === "project" ? "main" : ""),
             imageInputEnabled: true,
@@ -3526,7 +3742,7 @@ function makeMockApp(): AppBindings {
           };
         },
         async MetaForTab(tabID) {
-          const tab = mockTabs.find((item) => item.id === tabID) ?? mockTabs.find((item) => item.active) ?? mockTabs[0];
+          const tab = withMockSessionIdentity(mockTabs.find((item) => item.id === tabID) ?? mockTabs.find((item) => item.active) ?? mockTabs[0]);
           const toolApprovalMode = normalizeToolApprovalMode(tab?.toolApprovalMode, tab ? normalizeMode(tab.mode) : "normal", settings.autoApproveTools);
           const autoApproveTools = toolApprovalMode === "danger-full-access";
           const collaborationMode = normalizeCollaborationMode(tab?.collaborationMode, tab?.goal, tab ? normalizeMode(tab.mode) : "normal");
@@ -3539,6 +3755,7 @@ function makeMockApp(): AppBindings {
             workspaceRoot: tab?.workspaceRoot || workspacePath,
             workspaceName: tab?.workspaceName,
             workspacePath,
+            ...mockSessionMeta(tab),
             sandboxPath: settings.sandbox.workspaceRoot,
             gitBranch: tab?.gitBranch || (tab?.scope === "project" ? "main" : ""),
             autoApproveTools,
@@ -3726,6 +3943,15 @@ function makeMockApp(): AppBindings {
         ],
       };
       return JSON.parse(JSON.stringify(report)) as CapabilityDiagnosticsReport;
+    },
+    async CredentialDiagnostics(_probe: boolean) {
+      return credentialDiagnostics();
+    },
+    async RepairCredentials(dryRun: boolean) {
+      return credentialDiagnostics([dryRun ? "would repair credential access" : "repaired credential access"]);
+    },
+    async RetryAuthenticationForTab(_tabId: string) {
+      return { status: "ready" };
     },
     async Plugins() {
       return capPlugins.map((p) => ({ ...p }));
@@ -4046,6 +4272,9 @@ function makeMockApp(): AppBindings {
     async ListDirForTab(_tabID: string, rel: string) {
       return this.ListDir(rel);
     },
+    async ListDirForTarget(_target: ComposerTarget, rel: string) {
+      return this.ListDir(rel);
+    },
     async SearchFileRefs(query: string) {
       const q = query.toLowerCase();
       return ["desktop/frontend/src/lib/bridge.ts", "desktop/frontend/src/main.tsx", "internal/control/refs.go"]
@@ -4053,6 +4282,9 @@ function makeMockApp(): AppBindings {
         .map((name) => ({ name, isDir: false }));
     },
     async SearchFileRefsForTab(_tabID: string, query: string) {
+      return this.SearchFileRefs(query);
+    },
+    async SearchFileRefsForTarget(_target: ComposerTarget, query: string) {
       return this.SearchFileRefs(query);
     },
     async ReadFile(rel: string) {
@@ -4072,6 +4304,27 @@ function makeMockApp(): AppBindings {
     },
     async ReadPresentedTextPageForTab(_tabID: string, _toolCallID: string, path: string, offset: number, expectedVersion: string) {
       return { path, body: "", offset, nextOffset: offset, size: offset, hasMore: false, version: expectedVersion };
+    },
+    async ResolveChatFileReferencesForTab(_tabID: string, turnKey: string, candidates: ChatFileReferenceRequest[]): Promise<ChatFileReferenceResult> {
+      return {
+        turnKey,
+        references: candidates.map(candidate => ({
+          key: candidate.key,
+          path: candidate.path,
+          status: "unavailable" as const,
+          actions: [],
+          reason: "not-found" as const,
+        })),
+      };
+    },
+    async ReadReferenceFileForTab(tabID: string, path: string) {
+      return this.ReadFileForTab(tabID, path);
+    },
+    async ReadReferenceFileSourceForTab(tabID: string, path: string) {
+      return this.ReadFileForTab(tabID, path);
+    },
+    async SanitizeMarkdownSVG(): Promise<MarkdownSVGView> {
+      return { ok: false, reason: "unsupported" };
     },
     async CreatePresentedBrowserPreviewForTab(tabID: string, _toolCallID: string, path: string) {
       return this.CreateWorkspaceBrowserPreviewForTab(tabID, path);
@@ -4160,8 +4413,14 @@ function makeMockApp(): AppBindings {
     async OpenPresentedPathForTab(tabID: string, _toolCallID: string, path: string) {
       return this.OpenWorkspacePathForTab(tabID, path);
     },
+    async OpenReferencePathForTab(_tabID: string, path: string) {
+      console.info("mock OpenReferencePathForTab", path);
+    },
     async ResolvePresentedPathForTab(tabID: string, _toolCallID: string, path: string) {
       return this.ResolveWorkspacePathForTab(tabID, path);
+    },
+    async ResolveReferencePathForTab(_tabID: string, path: string) {
+      return path;
     },
     async ResolveWorkspacePathForTab(_tabID: string, rel: string) { return `${cwd.replace(/[\\/]+$/, "")}/${rel.replace(/^[/\\]+/, "").replace(/[\\/]+$/, "")}`; },
     async ExternalOpeners() {
@@ -4183,6 +4442,9 @@ function makeMockApp(): AppBindings {
     async RevealPresentedPathForTab(tabID: string, _toolCallID: string, path: string) {
       return this.RevealWorkspacePathForTab(tabID, path);
     },
+    async RevealReferencePathForTab(_tabID: string, path: string) {
+      console.info("mock RevealReferencePathForTab", path);
+    },
     async SaveWorkspacePathAsForTab(_tabID: string, rel: string) {
       console.info("mock SaveWorkspacePathAsForTab", rel);
       return rel;
@@ -4190,23 +4452,11 @@ function makeMockApp(): AppBindings {
     async SavePresentedPathAsForTab(tabID: string, _toolCallID: string, path: string) {
       return this.SaveWorkspacePathAsForTab(tabID, path);
     },
+    async SaveReferencePathAsForTab(_tabID: string, path: string) {
+      return path;
+    },
     async RevealPath(path: string) {
       console.info("mock RevealPath", path);
-    },
-    async SavePastedImage(dataUrl: string) {
-      const path = `.tempora/attachments/mock-${mockAttachmentDataURLs.size + 1}.png`;
-      mockAttachmentDataURLs.set(path, dataUrl);
-      return path;
-    },
-    async SaveClipboardImage() {
-      const path = `.tempora/attachments/mock-clipboard-${mockAttachmentDataURLs.size + 1}.png`;
-      mockAttachmentDataURLs.set(path, mockPreviewImageDataURL);
-      return path;
-    },
-    async SavePastedFile(name: string, dataUrl: string) {
-      const path = `.tempora/attachments/mock-${name}`;
-      mockAttachmentDataURLs.set(path, dataUrl);
-      return path;
     },
     async PickExportFile(defaultFilename: string, _mimeType: string) {
       return defaultFilename;
@@ -4229,6 +4479,9 @@ function makeMockApp(): AppBindings {
       a.remove();
       if (!base64Encoded) URL.revokeObjectURL(url);
     },
+    async SaveSessionMarkdownForTab(_tabID: string, path: string, title: string) {
+      await this.SaveExportFile(path, `# ${title || "Tempora session"}\n`, false);
+    },
     async SaveExportImageFiles(path: string, payloads: string[]) {
       if (payloads.length === 0) throw new Error("No image payloads to export");
       const slash = Math.max(path.lastIndexOf("/"), path.lastIndexOf("\\"));
@@ -4243,20 +4496,6 @@ function makeMockApp(): AppBindings {
         await this.SaveExportFile(partPath, payloads[index], true);
       }
     },
-    async AttachDropped(path: string) {
-      const name = path.split(/[/\\]/).filter(Boolean).pop() ?? path;
-      const hasExt = /\.\w{1,6}$/i.test(name);
-      if (!hasExt) {
-        const tokenName = name.replace(/[^\w.-]+/g, "-") || "folder";
-        return { kind: "workspace" as const, path: `__tempora_external_folder/mock/${tokenName}`, isDir: true, displayPath: path };
-      }
-      const attachmentPath = `.tempora/attachments/mock-${name}`;
-      mockAttachmentDataURLs.set(attachmentPath, mockPreviewImageDataURL);
-      return { kind: "attachment" as const, path: attachmentPath };
-    },
-    async AttachmentDataURL(path: string) {
-      return mockAttachmentDataURLs.get(path) ?? mockPreviewImageDataURL;
-    },
         async Models() {
           const active = mockTabs.find((tab) => tab.active) ?? mockTabs[0];
           const current = mockTabModelRef(active);
@@ -4265,6 +4504,10 @@ function makeMockApp(): AppBindings {
         async ModelsForTab(tabID) {
           const tab = mockTabs.find((item) => item.id === tabID) ?? mockTabs.find((item) => item.active) ?? mockTabs[0];
           const current = mockTabModelRef(tab);
+          return mockModelCatalog.map((model) => ({ ...model, current: model.ref === current }));
+        },
+        async ModelsForDraft(draftID) {
+          const current = mockDrafts.get(draftID)?.settings.model ?? "";
           return mockModelCatalog.map((model) => ({ ...model, current: model.ref === current }));
         },
         async SetModel(name) {
@@ -4461,11 +4704,10 @@ function makeMockApp(): AppBindings {
       return this.SaveDoc(path, body);
     },
     async DesktopStartupSettings() {
-      const { bot, desktopLanguage, desktopLayoutStyle, desktopTheme, desktopThemeStyle, desktopTerminalTheme, displayMode, sessionExperience, reasoningDisplayMode, reasoningDisplayModeExplicit, statusBarStyle, statusBarItems, checkUpdates, conversationWidth } = settings;
+      const { bot, desktopLanguage, desktopTheme, desktopThemeStyle, desktopTerminalTheme, displayMode, sessionExperience, reasoningDisplayMode, reasoningDisplayModeExplicit, statusBarStyle, statusBarItems, checkUpdates, updaterEnabled, conversationWidth } = settings;
       return JSON.parse(JSON.stringify({
         bot,
         desktopLanguage,
-        desktopLayoutStyle,
         desktopTheme,
         desktopThemeStyle,
         desktopTerminalTheme,
@@ -4473,6 +4715,7 @@ function makeMockApp(): AppBindings {
         statusBarStyle,
         statusBarItems,
         checkUpdates,
+        updaterEnabled,
         conversationWidth,
       })) as DesktopStartupSettingsView;
     },
@@ -5030,9 +5273,9 @@ function makeMockApp(): AppBindings {
         async PickThemeBackground() {
           return "";
         },
-        async SetDesktopLayoutStyle(style: string) {
-          settings.desktopLayoutStyle = style === "creation" ? "creation" : "workbench";
-        },
+        // The layout-style preference was removed from the UI; the binding
+        // stays because the generated host contract still declares it.
+        async SetDesktopLayoutStyle(_style: string) {},
         async SetDesktopZoomFactor(factor: number) {
           mockDesktopZoomFactor = Math.min(2.0, Math.max(0.5, Number.isFinite(factor) ? factor : 1.0));
         },
@@ -5135,7 +5378,7 @@ function makeMockApp(): AppBindings {
     async AbandonPendingUpdate() {},
     async OpenDownloadPage() {
       if (typeof window !== "undefined") {
-        window.open("https://github.com/madajiann/Tempora/releases/latest", "_blank", "noopener");
+        window.open("https://tempora.io/?download=desktop#start", "_blank", "noopener");
       }
     },
     async OpenUserConfigPath() {},
@@ -5297,10 +5540,7 @@ function makeMockApp(): AppBindings {
       return { ...mockTabs[0] };
     },
     async StartTopicActivation(req: TopicActivationRequest): Promise<TopicActivationTicket> {
-      // Mirror the real two-phase contract: the surface switches synchronously
-      // (same open + single-tab prune as ActivateTopic), the terminal event
-      // lands asynchronously on the mock "topic:activation" listeners, and a
-      // superseded pending activation is cancelled at supersede time.
+      // Publish identity first; terminal runtime events arrive asynchronously.
       const tab = req.sessionPath
         ? await this.OpenTopicSession(req.scope, req.workspaceRoot, req.topicId, req.sessionPath)
         : req.scope === "project"
@@ -5491,7 +5731,21 @@ function makeMockApp(): AppBindings {
         tab.topicId === topicID ? { ...tab, topicTitle: nextTitle } : tab,
       );
     },
-    async AIRenameSession(topicID: string) { return mockAIRenameSession(findMockTopic(topicID)); },
+    async AIRenameSession(topicID: string) { return mockAIRenameTarget(mockProjectTree, topicID); },
+    async AIRenameSessionTarget(selector: SessionSelector): Promise<SessionMutationResult> {
+      const node = mockSessionTitleTarget(mockProjectTree, selector);
+      const title = node ? mockAIRenameTarget(mockProjectTree, sessionTitleTarget(node)) : "";
+      return { targetKey: sessionTitleTarget(node ?? { key: "", kind: "topic", label: "" }), operationId: `mock-title-${Date.now()}`, committed: true, title, lifecycleGeneration: 1 };
+    },
+    async RenameSessionTarget(selector: SessionSelector, title: string): Promise<SessionMutationResult> {
+      const node = mockSessionTitleTarget(mockProjectTree, selector);
+      const nextTitle = title.trim();
+      if (node && nextTitle) {
+        const activePrefix = node.label?.startsWith("● ") ? "● " : "";
+        node.label = `${activePrefix}${nextTitle}`;
+      }
+      return { targetKey: node ? sessionTitleTarget(node) : "", operationId: `mock-title-${Date.now()}`, committed: Boolean(node), title: nextTitle, lifecycleGeneration: 1 };
+    },
     async DeleteTopic(topicID: string) {
       deleteMockTopic(topicID);
     },
@@ -5725,6 +5979,7 @@ function makeMockApp(): AppBindings {
       return "";
     },
     async SubmitExtensionForm() {},
+    async SubmitExtensionFormExact() {}, async ResolveRemoteTabPromptExact() {}, async SubmitRemoteTabExtensionFormExact() {},
     ...remoteProjects.bindings,
     async CleanRemoteLegacyWorkbenchData() {},
   };

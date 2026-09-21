@@ -24,7 +24,7 @@ import (
 	"tempora/internal/config"
 	"tempora/internal/control"
 	"tempora/internal/event"
-	"tempora/internal/filelock"
+	filelock "tempora/internal/identitylock"
 	"tempora/internal/permissionpreset"
 	"tempora/internal/secrets"
 )

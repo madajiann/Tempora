@@ -33,11 +33,15 @@ type turnEventDurableSink struct{ owner *turnEventSink }
 
 // turnEventState has an independent lock so ledger I/O never holds c.mu.
 type turnEventState struct {
-	mu                         sync.RWMutex
-	ledger                     *turnevent.Ledger
-	err                        error
-	v3                         *session.Session
-	v3Path                     string
+	mu     sync.RWMutex
+	ledger *turnevent.Ledger
+	err    error
+	v3     *session.Session
+	v3Path string
+	// v3Runtime pins the session instance the cached store belongs to. A
+	// reclaim closes the old runtime and a later takeover re-opens the same
+	// identity, so the path key alone would keep serving the closed store.
+	v3Runtime                  *session.Runtime
 	v3Release                  func(context.Context) error
 	v3Err                      error
 	projection                 *transcript.Projection
@@ -48,11 +52,16 @@ type turnEventState struct {
 	pendingCheckpoint          *transcript.Checkpoint
 	projectionPersistedThrough uint64
 	projectionWriteErr         error
-	v3ProjectionSequence       uint64
-	v3ProjectionSession        string
-	v3ProjectionEpoch          string
 	volatileTodos              []event.Todo
 	volatileTodoWritten        bool
+	// pendingExecutionCommit is prepared by an unpublished hot-rebuild
+	// candidate and consumed atomically with Runtime execution activation.
+	// commitMu owns it and its queue reservation.
+	pendingExecutionCommit *session.PreparedBatch
+	pendingTermination     *TerminationPlan
+	turnMessageIDs         map[string]bool
+	finalizedTurn          string
+	terminationBoundary    *terminationBoundary
 }
 
 // projectVolatileTodo keeps the same event-derived projection for controllers
@@ -219,12 +228,7 @@ func (s *turnEventSink) persistAndPublish(e event.Event) error {
 	// Outside-turn notices are not lifecycle records and must pass through after
 	// bootstrap or a terminal event.
 	if ledger.ActiveTurnID() == "" {
-		if ledger.CurrentStatus() == event.TurnRecoveryRequired && lateBusinessEvent(e.Kind) {
-			return nil
-		}
-		s.c.refreshRuntimeState(e)
-		s.publishInner(e)
-		return nil
+		return s.publishOutsideTurn(ledger, e)
 	}
 	if e.Kind == event.TurnStarted && ledger.CurrentStatus() == event.TurnInProgress {
 		return nil
@@ -240,7 +244,6 @@ func (s *turnEventSink) persistAndPublish(e event.Event) error {
 		status = event.TurnWaitingUser
 	case event.TurnDone:
 		status = terminalTurnStatus(e)
-		e.ReadCompletion = s.c.updateTurnLedgerTranscript(ledger)
 	case event.TurnStatusChanged:
 		// The emitter supplied the exact transition in e.Status.
 	}
@@ -256,14 +259,28 @@ func (s *turnEventSink) persistAndPublish(e event.Event) error {
 	if !ok {
 		return nil
 	}
+	if err := s.c.flushSubmissionStart(s.c.submissionAdmissionContext(), e.Kind); err != nil {
+		return err
+	}
 	projectionSaved := true
 	if e.Kind == event.TurnDone {
+		if store := s.c.sessionEventStore(); store != nil {
+			if _, err := store.Flush(context.Background()); err != nil {
+				return err
+			}
+		}
 		s.c.captureTranscriptCheckpoint(ledger, envelope.TranscriptDigest)
 		if err := s.c.persistTranscriptCheckpoint(ledger); err != nil {
 			projectionSaved = false
 			slog.Warn("controller: persist transcript display checkpoint", "err", err)
 		}
 	}
+	if _, runtime, exclusive := s.c.v3Binding(); exclusive && runtime != nil {
+		if err := runtime.PublishTranscriptFrame(envelope); err != nil {
+			return err
+		}
+	}
+	s.c.recordTurnLifecycle(stamped)
 	s.c.refreshRuntimeState(stamped)
 	s.publishInner(stamped)
 	if e.Kind == event.TurnDone && !ledger.ProjectionAckRequired() && projectionSaved {
@@ -286,25 +303,49 @@ func lateBusinessEvent(kind event.Kind) bool {
 }
 
 func (s *turnEventSink) commitEnvelope(ledger *turnevent.Ledger, e event.Event, status event.TurnStatus) (event.Event, turnevent.Envelope, bool, error) {
-	s.c.turnEvents.commitMu.Lock()
-	stamped, envelope, ok, err := ledger.AppendEnvelope(e, status)
-	if err == nil && ok {
-		err = s.c.appendSessionEventLocked(context.Background(), stamped)
+	if e.Kind == event.TurnDone {
+		s.c.snapshotMu.Lock()
+		defer s.c.snapshotMu.Unlock()
 	}
-	if err == nil && ok && stamped.Sequence > 0 {
-		s.c.turnEvents.mu.RLock()
-		projection := s.c.turnEvents.projection
-		s.c.turnEvents.mu.RUnlock()
-		if projection != nil {
-			if projectionErr := projection.Apply(envelope); projectionErr != nil {
-				s.c.turnEvents.mu.Lock()
-				s.c.turnEvents.projectionErr = projectionErr
-				s.c.turnEvents.mu.Unlock()
-			}
+	s.c.turnEvents.commitMu.Lock()
+	defer s.c.turnEvents.commitMu.Unlock()
+	if s.c.discardLateTurnEvent(e) {
+		slog.Info("controller: discarded late turn event", "kind", e.Kind, "turnId", e.TurnID)
+		return e, turnevent.Envelope{}, false, nil
+	}
+	ctx := context.Background()
+	if e.Kind == event.TurnDone {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, terminationFlushTimeout)
+		defer cancel()
+	}
+	if e.Kind == event.Notice && e.Code == event.NoticeCodeMCPToolsList && e.MessageID == "" {
+		if store := s.c.sessionEventStore(); store != nil {
+			e.MessageID = fmt.Sprintf("notice:%s:%d", store.ID(), store.EventSequence()+1)
 		}
 	}
-	s.c.turnEvents.commitMu.Unlock()
-	return stamped, envelope, ok, err
+	if err := s.c.appendSessionEventLocked(ctx, e); err != nil {
+		return e, turnevent.Envelope{}, false, err
+	}
+	if e.Kind == event.TurnDone {
+		e.ReadCompletion = s.c.updateTurnLedgerTranscript(ledger)
+	}
+	stamped, envelope, ok, err := ledger.AppendEnvelope(e, status)
+	if err != nil || !ok || stamped.Sequence == 0 {
+		return stamped, envelope, ok, err
+	}
+	s.c.turnEvents.mu.RLock()
+	projection := s.c.turnEvents.projection
+	s.c.turnEvents.mu.RUnlock()
+	_, _, exclusive := s.c.v3Binding()
+	if projection != nil && !exclusive {
+		if projectionErr := projection.Apply(envelope); projectionErr != nil {
+			s.c.turnEvents.mu.Lock()
+			s.c.turnEvents.projectionErr = projectionErr
+			s.c.turnEvents.mu.Unlock()
+		}
+	}
+	return stamped, envelope, true, nil
 }
 
 func (s *turnEventDurableSink) Emit(e event.Event) {
@@ -318,6 +359,19 @@ func (s *turnEventDurableSink) EmitChecked(e event.Event) error {
 	err := s.owner.persistAndPublish(e)
 	if err == nil {
 		return nil
+	}
+	if classifyCommitError(err) == commitLifecycle {
+		slog.Info("controller: lifecycle event commit", "err", err, "kind", e.Kind)
+		return nil
+	}
+	if e.Kind == event.TurnDone && classifyCommitError(err) != commitOwnership {
+		s.owner.c.disarmGoalLifecycle("persistence-error")
+		s.owner.c.mu.Lock()
+		s.owner.c.enterRecoveryLocked("terminal_commit_failed")
+		s.owner.c.mu.Unlock()
+		if _, runtime, exclusive := s.owner.c.v3Binding(); exclusive && runtime != nil {
+			runtime.Transcript().PersistenceFailed()
+		}
 	}
 	// Async stream callers cannot observe checked errors. Fail the Turn here so
 	// a poisoned WAL immediately cancels provider, prompt, and process work.
@@ -411,43 +465,6 @@ func (c *Controller) turnEventLedgerError() error {
 	return c.turnEvents.err
 }
 
-func (c *Controller) prepareTurnAdmission(body func(context.Context) error) func(context.Context) error {
-	return c.prepareTurnAdmissionWithGoalRound(body, nil)
-}
-
-func (c *Controller) prepareTurnAdmissionWithGoalRound(body func(context.Context) error, goalRound *goalRoundReservation) func(context.Context) error {
-	admissionErr := c.turnEventLedgerError()
-	ledger := c.turnEventLedger()
-	if admissionErr == nil && goalRound != nil && ledger == nil {
-		admissionErr = errors.New("goal round admission requires the v3 turn ledger")
-	}
-	if admissionErr == nil && ledger != nil {
-		if ledger.CurrentStatus() == event.TurnRecoveryRequired {
-			admissionErr = ErrRecoveryRequired
-		} else if _, err := ledger.Begin(); err != nil {
-			admissionErr = err
-		} else if err := c.emitTurnEventChecked(event.Event{Kind: event.TurnStatusChanged, Status: event.TurnQueued}); err != nil {
-			admissionErr = err
-		} else if goalRound != nil {
-			admissionErr = c.commitGoalRoundAdmission(goalRound)
-		} else if err := c.emitTurnEventChecked(event.Event{Kind: event.TurnStarted, Status: event.TurnInProgress}); err != nil {
-			admissionErr = err
-		} else if c.executor != nil {
-			// The committed host turn boundary owns todo lifetime. The executor
-			// repeats this reset on entry for controller-less clients.
-			c.executor.BeginTurnTodoState()
-		}
-	}
-	if admissionErr == nil {
-		if c.executor != nil && goalRound != nil {
-			c.executor.BeginTurnTodoState()
-		}
-		return body
-	}
-	slog.Error("controller: persist turn admission", "err", admissionErr)
-	return func(context.Context) error { return fmt.Errorf("persist turn admission: %w", admissionErr) }
-}
-
 func (c *Controller) applyTurnDoneProtocol(done event.Event, cancelRequested bool) event.Event {
 	if cancelRequested {
 		// Interruption is a terminal state, not a send failure; partial text is
@@ -473,16 +490,22 @@ func (c *Controller) rebindTurnEvents(sessionPath string) {
 	}
 	desiredV3Path := sessionDirectory(sessionPath)
 	ledgerID := agent.BranchID(sessionPath)
+	var desiredRuntime *session.Runtime
 	if _, runtime, _ := c.v3Binding(); runtime != nil {
 		ref := runtime.Ref()
 		desiredV3Path = "session:" + ref.HostID + "/" + ref.SessionID
 		ledgerID = ref.SessionID
+		desiredRuntime = runtime
 	}
 	c.turnEvents.mu.RLock()
 	currentV3, currentV3Path := c.turnEvents.v3, c.turnEvents.v3Path
+	currentV3Runtime := c.turnEvents.v3Runtime
 	c.turnEvents.mu.RUnlock()
 	v3, releaseV3, v3Err := currentV3, (func(context.Context) error)(nil), error(nil)
-	if currentV3 == nil || currentV3Path != desiredV3Path {
+	// The runtime pin matters for exclusive sessions: a reclaim closes the
+	// old instance and the takeover re-opens the same identity, so the path
+	// alone cannot tell a live store from the closed one it replaced.
+	if currentV3 == nil || currentV3Path != desiredV3Path || currentV3Runtime != desiredRuntime {
 		v3, releaseV3, v3Err = c.openSessionEventStore(sessionPath)
 	}
 	ledger := turnevent.NewMemory(ledgerID)
@@ -500,6 +523,7 @@ func (c *Controller) rebindTurnEvents(sessionPath string) {
 		c.turnEvents.err = err
 		c.turnEvents.v3 = nil
 		c.turnEvents.v3Path = ""
+		c.turnEvents.v3Runtime = nil
 		c.turnEvents.v3Release = nil
 		c.turnEvents.v3Err = err
 		c.turnEvents.mu.Unlock()
@@ -533,6 +557,7 @@ func (c *Controller) rebindTurnEvents(sessionPath string) {
 	c.turnEvents.err = nil
 	c.turnEvents.v3 = v3
 	c.turnEvents.v3Path = desiredV3Path
+	c.turnEvents.v3Runtime = desiredRuntime
 	if releaseV3 != nil {
 		c.turnEvents.v3Release = releaseV3
 	}
@@ -544,6 +569,9 @@ func (c *Controller) rebindTurnEvents(sessionPath string) {
 	c.turnEvents.projectionPersistedThrough = 0
 	c.turnEvents.projectionWriteErr = nil
 	c.turnEvents.mu.Unlock()
+	if !c.sessionEngineEnabled() {
+		c.bindAttachmentService()
+	}
 	var projection *transcript.Projection
 	var projectionErr error
 	if !c.sessionEngineEnabled() {
@@ -573,9 +601,53 @@ func (c *Controller) rebindTurnEvents(sessionPath string) {
 	}
 }
 
+func classifyCommitError(err error) commitFailureKind {
+	if err == nil {
+		return commitOK
+	}
+	if errors.Is(err, errTerminationDurability) {
+		return commitUnexpected
+	}
+	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		return commitLifecycle
+	}
+	if errors.Is(err, session.ErrStaleActivity) || errors.Is(err, session.ErrOperationConflict) {
+		return commitLifecycle
+	}
+	if errors.Is(err, session.ErrSessionNotRunning) || errors.Is(err, session.ErrStaleGeneration) ||
+		errors.Is(err, session.ErrStaleExecution) || errors.Is(err, session.ErrReadOnly) || errors.Is(err, session.ErrRuntimeRetiring) {
+		return commitOwnership
+	}
+	return commitUnexpected
+}
+
+type commitFailureKind int
+
+const (
+	commitOK commitFailureKind = iota
+	commitLifecycle
+	commitOwnership
+	commitUnexpected
+)
+
 func (c *Controller) failTurnEventLedger(err error) {
 	defer c.refreshRuntimeState(event.Event{})
 	if c == nil || err == nil {
+		return
+	}
+	switch classifyCommitError(err) {
+	case commitLifecycle:
+		slog.Info("controller: lifecycle commit result", "err", err)
+		return
+	case commitOwnership:
+		c.turnEvents.mu.Lock()
+		if c.turnEvents.err == nil {
+			c.turnEvents.err = err
+		}
+		c.turnEvents.mu.Unlock()
+		c.signalTurnCancel()
+		c.promptOwner.CancelAll()
+		c.approval.clearAll()
 		return
 	}
 	c.turnEvents.mu.Lock()
@@ -583,19 +655,9 @@ func (c *Controller) failTurnEventLedger(err error) {
 		c.turnEvents.err = err
 	}
 	c.turnEvents.mu.Unlock()
-	c.mu.Lock()
-	cancel := c.cancel
-	if cancel != nil {
-		c.canceling = true
-	}
-	c.mu.Unlock()
-	if cancel != nil {
-		// Use the owners' internal locks to invalidate pending resolutions. The
-		// cancellation signal is independent of any answer callback.
-		c.promptOwner.CancelAll()
-		c.approval.clearAll()
-		cancel()
-	}
+	c.signalTurnCancel()
+	c.promptOwner.CancelAll()
+	c.approval.clearAll()
 }
 
 // staleTurnStatus reports a status stamped for a turn that has since reached
@@ -703,14 +765,4 @@ func (c *Controller) DrainTurnEventMetrics() turnevent.MetricsSnapshot {
 		return turnevent.MetricsSnapshot{}
 	}
 	return ledger.DrainMetrics()
-}
-
-// TurnIDForSubmission exposes the synchronous admission receipt without
-// depending on whether the provider is still running when the desktop call returns.
-func (c *Controller) TurnIDForSubmission(submissionID string) string {
-	ledger := c.turnEventLedger()
-	if ledger == nil {
-		return ""
-	}
-	return ledger.TurnIDForSubmission(submissionID)
 }

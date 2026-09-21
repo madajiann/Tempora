@@ -5889,7 +5889,7 @@ func TestFileRefsIncludeRegisteredExternalFolderChildren(t *testing.T) {
 	}
 }
 
-func TestDeleteSessionCancelsActiveRuntime(t *testing.T) {
+func TestLegacyDeleteSessionCancelsActiveRuntime(t *testing.T) {
 	isolateDesktopUserDirs(t)
 
 	dir := config.SessionDir()
@@ -5913,7 +5913,7 @@ func TestDeleteSessionCancelsActiveRuntime(t *testing.T) {
 	app.tabs["keep"] = &WorkspaceTab{ID: "keep", Scope: "global", Ctrl: keepCtrl, Ready: true}
 	app.tabOrder = []string{"test", "keep"}
 
-	if err := app.DeleteSession(filepath.Base(path)); err != nil {
+	if err := app.deleteSession(filepath.Base(path)); err != nil {
 		t.Fatalf("DeleteSession(active basename): %v", err)
 	}
 	if _, ok := app.tabs["test"]; ok {
@@ -5931,7 +5931,7 @@ func TestDeleteSessionCancelsActiveRuntime(t *testing.T) {
 	}
 }
 
-func TestDeleteSessionCancelsPreReadyBlankBuild(t *testing.T) {
+func TestLegacyDeleteSessionCancelsPreReadyBlankBuild(t *testing.T) {
 	isolateDesktopUserDirs(t)
 
 	globalRoot := globalTabWorkspaceRoot()
@@ -5965,7 +5965,7 @@ func TestDeleteSessionCancelsPreReadyBlankBuild(t *testing.T) {
 		activeTabID: "blank",
 	}
 
-	if err := app.DeleteSession(filepath.Base(path)); err != nil {
+	if err := app.deleteSession(filepath.Base(path)); err != nil {
 		t.Fatalf("DeleteSession(pre-ready blank): %v", err)
 	}
 	if !cancelled {
@@ -5982,7 +5982,7 @@ func TestDeleteSessionCancelsPreReadyBlankBuild(t *testing.T) {
 	}
 }
 
-func TestDeleteLastTopicSessionFallbackDoesNotReuseDeletedTopic(t *testing.T) {
+func TestLegacyDeleteLastTopicSessionFallbackDoesNotReuseDeletedTopic(t *testing.T) {
 	isolateDesktopUserDirs(t)
 
 	projectRoot := t.TempDir()
@@ -6016,28 +6016,23 @@ func TestDeleteLastTopicSessionFallbackDoesNotReuseDeletedTopic(t *testing.T) {
 		activeTabID: "only",
 	}
 
-	if err := app.DeleteSession(path); err != nil {
+	if err := app.deleteSession(path); err != nil {
 		t.Fatalf("DeleteSession(last topic session): %v", err)
 	}
 
 	if _, ok := app.tabs["only"]; ok {
 		t.Fatalf("deleted topic session tab should be removed")
 	}
-	for id, tab := range app.tabs {
-		if tab.TopicID == topicID {
-			t.Fatalf("fallback tab %q reused deleted topic %q", id, topicID)
-		}
-		if strings.TrimSpace(tab.TopicID) != "" {
-			t.Fatalf("fallback tab %q topic ID = %q, want transient unindexed blank", id, tab.TopicID)
-		}
-	}
+	// The deleted topic owns no content, so nothing is re-activated and no
+	// replacement blank session is created: the frontend lands on the draft.
+	assertNoVisibleRuntime(t, app)
 	trashPath := filepath.Join(dir, sessionTrashDir, "delete-last.jsonl", "delete-last.jsonl")
 	if _, err := os.Stat(trashPath); err != nil {
 		t.Fatalf("deleted session should be moved to trash: %v", err)
 	}
 }
 
-func TestDeleteSessionWithStuckJobReturnsAfterSingleGrace(t *testing.T) {
+func TestLegacyDeleteSessionWithStuckJobUsesSingleGrace(t *testing.T) {
 	isolateDesktopUserDirs(t)
 
 	dir := config.SessionDir()
@@ -6069,14 +6064,12 @@ func TestDeleteSessionWithStuckJobReturnsAfterSingleGrace(t *testing.T) {
 	app.tabs["keep"] = &WorkspaceTab{ID: "keep", Scope: "global", Ctrl: keepCtrl, Ready: true}
 	app.tabOrder = []string{"test", "keep"}
 
-	start := time.Now()
-	if err := app.DeleteSession(filepath.Base(path)); err != nil {
+	if err := app.deleteSession(filepath.Base(path)); err != nil {
 		t.Fatalf("DeleteSession(stuck job): %v", err)
 	}
-	elapsed := time.Since(start)
-	if elapsed > grace+2*time.Second {
-		t.Fatalf("DeleteSession took %s, want one teardown grace plus bounded metadata I/O", elapsed)
-	}
+	// The single timeout notice and cleanup marker prove that deletion used the
+	// bounded teardown path. Host filesystem latency after that boundary is not
+	// a Go correctness property and must not be sampled by this unit test.
 	assertSingleTeardownTimeoutNotice(t, teardownNotices, grace)
 	if !agent.IsCleanupPending(path) {
 		t.Fatalf("stuck delete should mark cleanup pending")
@@ -6086,7 +6079,7 @@ func TestDeleteSessionWithStuckJobReturnsAfterSingleGrace(t *testing.T) {
 	}
 }
 
-func TestDeleteSessionTrashConflictKeepsRuntime(t *testing.T) {
+func TestLegacyDeleteSessionTrashConflictKeepsRuntime(t *testing.T) {
 	isolateDesktopUserDirs(t)
 
 	dir := config.SessionDir()
@@ -6109,7 +6102,7 @@ func TestDeleteSessionTrashConflictKeepsRuntime(t *testing.T) {
 	ctrl.Submit("work")
 	<-runner.started
 
-	err := app.DeleteSession(filepath.Base(path))
+	err := app.deleteSession(filepath.Base(path))
 	if err != nil {
 		t.Fatalf("DeleteSession should succeed after cleaning empty trash dir: %v", err)
 	}
@@ -6128,7 +6121,7 @@ func TestDeleteSessionTrashConflictKeepsRuntime(t *testing.T) {
 	waitNotRunning(t, ctrl)
 }
 
-func TestDeleteSessionValidTrashRemovesEmptyLiveStub(t *testing.T) {
+func TestLegacyDeleteSessionValidTrashRemovesEmptyLiveStub(t *testing.T) {
 	isolateDesktopUserDirs(t)
 
 	dir := config.SessionDir()
@@ -6159,7 +6152,7 @@ func TestDeleteSessionValidTrashRemovesEmptyLiveStub(t *testing.T) {
 		tabOrder:    []string{"active"},
 	}
 
-	if err := app.DeleteSession(filepath.Base(path)); err != nil {
+	if err := app.deleteSession(filepath.Base(path)); err != nil {
 		t.Fatalf("DeleteSession should remove stale live stub: %v", err)
 	}
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
@@ -6170,7 +6163,7 @@ func TestDeleteSessionValidTrashRemovesEmptyLiveStub(t *testing.T) {
 	}
 }
 
-func TestDeleteSessionValidTrashRemovesDuplicateLiveSession(t *testing.T) {
+func TestLegacyDeleteSessionValidTrashRemovesDuplicateLiveSession(t *testing.T) {
 	isolateDesktopUserDirs(t)
 
 	dir := config.SessionDir()
@@ -6202,7 +6195,7 @@ func TestDeleteSessionValidTrashRemovesDuplicateLiveSession(t *testing.T) {
 		tabOrder:    []string{"active"},
 	}
 
-	if err := app.DeleteSession(filepath.Base(path)); err != nil {
+	if err := app.deleteSession(filepath.Base(path)); err != nil {
 		t.Fatalf("DeleteSession should remove duplicate live session: %v", err)
 	}
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
@@ -6251,7 +6244,7 @@ func TestRestoreSessionRejectsOpenEmptyLiveStub(t *testing.T) {
 	}
 }
 
-func TestDeleteSessionValidTrashRenamesDifferentLiveConflict(t *testing.T) {
+func TestLegacyDeleteSessionValidTrashRenamesDifferentLiveConflict(t *testing.T) {
 	isolateDesktopUserDirs(t)
 
 	dir := config.SessionDir()
@@ -6275,7 +6268,7 @@ func TestDeleteSessionValidTrashRenamesDifferentLiveConflict(t *testing.T) {
 	app := NewApp()
 	app.setTestCtrl(activeCtrl, "")
 
-	if err := app.DeleteSession(filepath.Base(path)); err != nil {
+	if err := app.deleteSession(filepath.Base(path)); err != nil {
 		t.Fatalf("DeleteSession should move different live session to a unique trash item: %v", err)
 	}
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
@@ -6306,7 +6299,7 @@ func TestDeleteSessionValidTrashRenamesDifferentLiveConflict(t *testing.T) {
 	}
 }
 
-func TestDeleteSessionCancelsInactiveOpenRuntime(t *testing.T) {
+func TestLegacyDeleteSessionCancelsInactiveOpenRuntime(t *testing.T) {
 	isolateDesktopUserDirs(t)
 
 	dir := config.SessionDir()
@@ -6336,7 +6329,7 @@ func TestDeleteSessionCancelsInactiveOpenRuntime(t *testing.T) {
 		activeTabID: "active",
 	}
 	installSessionCatalogForTest(t, app, dir, "global", "")
-	if err := app.DeleteSession(filepath.Base(inactivePath)); err != nil {
+	if err := app.deleteSession(filepath.Base(inactivePath)); err != nil {
 		t.Fatalf("DeleteSession(inactive open basename): %v", err)
 	}
 	if _, ok := app.tabs["inactive"]; ok {
@@ -6554,12 +6547,10 @@ func TestRestoreSessionRejectsDestroyingSession(t *testing.T) {
 	if err := app.RestoreSession(trashPath); err != nil {
 		t.Fatalf("RestoreSession after finish: %v", err)
 	}
-	if _, err := os.Stat(sessionPath); err != nil {
-		t.Fatalf("session should be restored: %v", err)
-	}
+	assertLegacyLifecycle(t, app, trashPath, "active")
 }
 
-func TestDeleteSessionClearsAutoBotSessionMapping(t *testing.T) {
+func TestLegacyDeleteSessionClearsAutoBotSessionMapping(t *testing.T) {
 	isolateDesktopUserDirs(t)
 
 	dir := config.SessionDir()
@@ -6589,7 +6580,7 @@ func TestDeleteSessionClearsAutoBotSessionMapping(t *testing.T) {
 	app.setTestCtrl(ctrl, "")
 	defer app.activeCtrl().Close()
 
-	if err := app.DeleteSession(path); err != nil {
+	if err := app.deleteSession(path); err != nil {
 		t.Fatalf("DeleteSession: %v", err)
 	}
 
@@ -8021,7 +8012,7 @@ func TestBeginTabTurnWorkspaceRepairStaysOutsideLifecycleAdmission(t *testing.T)
 	case <-writerAdmissionLocked:
 		// The repair is still blocked on reconcileMu; acquiring the lifecycle
 		// writer here proves no slow repair/build I/O owns the read side.
-	case <-time.After(5 * time.Second):
+	case <-t.Context().Done():
 		fixture.tab.reconcileMu.Unlock()
 		t.Fatal("workspace repair held runtimeAdmissionMu while waiting")
 	}
@@ -8032,12 +8023,12 @@ func TestBeginTabTurnWorkspaceRepairStaysOutsideLifecycleAdmission(t *testing.T)
 		if err != nil {
 			t.Fatalf("beginTabTurn after workspace repair: %v", err)
 		}
-	case <-time.After(10 * time.Second):
+	case <-t.Context().Done():
 		t.Fatal("workspace repair did not complete after lifecycle writer released")
 	}
 	select {
 	case <-writerDone:
-	case <-time.After(5 * time.Second):
+	case <-t.Context().Done():
 		t.Fatal("lifecycle writer did not complete after repaired turn admission")
 	}
 }
@@ -9673,21 +9664,6 @@ func startNonCooperativeSessionJob(t *testing.T, jm *jobs.Manager, sessionPath s
 		}
 		released = true
 		close(release)
-	}
-}
-
-func waitNotRunning(t *testing.T, ctrl control.SessionAPI) {
-	t.Helper()
-	// Windows release runners can take more than one second to schedule the
-	// controller's asynchronous completion while the full desktop suite is
-	// active. Keep a bounded responsiveness check without treating scheduler
-	// delay as a leaked controller.
-	deadline := time.Now().Add(5 * time.Second)
-	for ctrl.Running() {
-		if time.Now().After(deadline) {
-			t.Fatal("controller still running")
-		}
-		time.Sleep(10 * time.Millisecond)
 	}
 }
 

@@ -26,7 +26,7 @@ import (
 	"strings"
 	"time"
 
-	"tempora/internal/filelock"
+	filelock "tempora/internal/identitylock"
 	"tempora/internal/usagecatalog"
 )
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,6 +10,7 @@ import (
 	"strings"
 
 	"tempora/internal/control"
+	"tempora/internal/servecontract"
 	"tempora/internal/session"
 	"tempora/internal/sessioncontent"
 	"tempora/internal/transcript"
@@ -20,6 +22,15 @@ type RemoteTranscriptSnapshot struct {
 }
 
 func (a *App) remoteTranscriptRead(tabID, route string, request any, destination any) (bool, error) {
+	return a.remoteTranscriptReadAttempt(tabID, route, request, destination, true)
+}
+
+// remoteTranscriptReadAttempt retries one 409 after refreshing the remote
+// identity: the serve may rotate its foreground while the desktop is reading
+// (model switch, resume, takeover), and retrying the stale route would only
+// repeat the conflict while a status refresh re-points the tab at the live
+// session.
+func (a *App) remoteTranscriptReadAttempt(tabID, route string, request, destination any, refreshOnConflict bool) (bool, error) {
 	client, base, err := a.remoteTabCommandClient(tabID)
 	if err != nil {
 		return false, err
@@ -41,12 +52,26 @@ func (a *App) remoteTranscriptRead(tabID, route string, request any, destination
 		query.Set("session", sessionPath)
 	}
 	ctx, cancel := commandContext(a)
+	requestClient := client
+	if route == "/transcript/follow" {
+		cancel()
+		ctx = a.bootContext()
+		if ctx == nil {
+			ctx = context.Background()
+		}
+		ctx, cancel = context.WithCancel(ctx)
+		// Keep credentials and transport, but let the subscription context
+		// own cancellation instead of the command client's total deadline.
+		streamClient := *client
+		streamClient.Timeout = 0
+		requestClient = &streamClient
+	}
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, serveURL(base, route)+"?"+query.Encode(), nil)
 	if err != nil {
 		return false, err
 	}
-	response, err := client.Do(req)
+	response, err := requestClient.Do(req)
 	if err != nil {
 		return false, err
 	}
@@ -69,6 +94,13 @@ func (a *App) remoteTranscriptRead(tabID, route string, request any, destination
 	switch response.StatusCode {
 	case http.StatusNotFound, http.StatusMethodNotAllowed, http.StatusNotImplemented:
 		return false, nil
+	case http.StatusConflict:
+		if refreshOnConflict {
+			if _, refreshErr := a.RemoteTabStatus(tabID); refreshErr == nil {
+				return a.remoteTranscriptReadAttempt(tabID, route, request, destination, false)
+			}
+		}
+		return false, fmt.Errorf("remote transcript read failed (HTTP %d)", response.StatusCode)
 	case http.StatusOK:
 	default:
 		return false, fmt.Errorf("remote transcript read failed (HTTP %d)", response.StatusCode)
@@ -80,7 +112,11 @@ func (a *App) remoteTranscriptRead(tabID, route string, request any, destination
 		Stale           bool `json:"stale"`
 	}
 	if route != "/transcript/content" {
-		if json.Unmarshal(body, &header) != nil || header.ProtocolVersion != transcript.ProtocolVersion {
+		expected := transcript.ProtocolVersion
+		if route == "/transcript/follow" {
+			expected = transcript.FollowProtocolVersion
+		}
+		if json.Unmarshal(body, &header) != nil || header.ProtocolVersion != expected {
 			return false, nil
 		}
 	}
@@ -88,6 +124,22 @@ func (a *App) remoteTranscriptRead(tabID, route string, request any, destination
 		return false, fmt.Errorf("invalid remote transcript response: %w", err)
 	}
 	return true, nil
+}
+
+func (a *App) RemoteTranscriptFollowForTab(tabID string, req transcript.FollowRequest) (control.TranscriptFollowResponse, error) {
+	var result control.TranscriptFollowResponse
+	a.remoteTabMu.Lock()
+	tab := a.remoteTabs[tabID]
+	compatible := tab != nil && tab.capabilities[servecontract.TranscriptV2]
+	a.remoteTabMu.Unlock()
+	if !compatible {
+		return result, fmt.Errorf("transcript v2 is required; upgrade Serve and Desktop together")
+	}
+	supported, err := a.remoteTranscriptRead(tabID, "/transcript/follow", req, &result)
+	if err == nil && !supported {
+		err = fmt.Errorf("transcript v2 is required; upgrade Serve and Desktop together")
+	}
+	return result, err
 }
 
 func (a *App) RemoteTranscriptSnapshotForTab(tabID string, req transcript.PageRequest) (RemoteTranscriptSnapshot, error) {
@@ -106,6 +158,27 @@ func (a *App) RemoteTranscriptPageForTab(tabID string, req transcript.PageReques
 		err = control.ErrTranscriptProjectionUnavailable
 	}
 	return snap, err
+}
+
+// RemoteTranscriptOutlineForTab reads the turn index a Serve advertises through
+// the transcript-outline capability. An absent token means the route is not
+// served at all, so the client keeps its loaded-turn rail instead of spending a
+// round trip to learn that. Errors from an advertised capability are reported
+// rather than downgraded to "unsupported".
+func (a *App) RemoteTranscriptOutlineForTab(tabID string, req transcript.OutlineRequest) (transcript.OutlinePage, error) {
+	a.remoteTabMu.Lock()
+	tab := a.remoteTabs[tabID]
+	advertised := tab != nil && tab.capabilities[servecontract.TranscriptOutlineV1]
+	a.remoteTabMu.Unlock()
+	if !advertised {
+		return transcript.OutlinePage{}, control.ErrTranscriptProjectionUnavailable
+	}
+	var page transcript.OutlinePage
+	supported, err := a.remoteTranscriptRead(tabID, "/transcript/outline", req, &page)
+	if err == nil && !supported {
+		err = control.ErrTranscriptProjectionUnavailable
+	}
+	return page, err
 }
 
 func (a *App) RemoteTranscriptContentForTab(tabID string, req transcript.ContentRequest) (transcript.ContentChunk, error) {
@@ -140,7 +213,16 @@ func (a *App) remoteSessionHistoryRead(tabID, route string, query url.Values, de
 		a.remoteTabMu.Unlock()
 		return false, fmt.Errorf("remote session history runtime changed")
 	}
-	if !tab.capabilities[serveCapabilitySessionContentV1] {
+	requiredCapability := serveCapabilitySessions
+	switch route {
+	case "/session-history/content":
+		requiredCapability = serveCapabilitySessionContentV1
+	case "/session/open":
+		requiredCapability = serveCapabilitySessionReadV2
+	case "/session-history/window", "/session-message-field":
+		requiredCapability = serveCapabilityHistoryWindowV1
+	}
+	if !tab.capabilities[requiredCapability] {
 		a.remoteTabMu.Unlock()
 		return false, nil
 	}
@@ -193,6 +275,22 @@ func (a *App) remoteSessionHistoryRead(tabID, route string, query url.Values, de
 
 // RemoteSessionHistoryPageForTab reads one fixed-snapshot canonical history
 // page. The Serve enforces the 500-message and 2 MiB page budgets.
+func (a *App) RemoteSessionOpenForTab(tabID string) (session.SessionOpenView, error) {
+	a.remoteTabMu.Lock()
+	tab := a.remoteTabs[tabID]
+	supportedRead := tab != nil && tab.capabilities[serveCapabilitySessionReadV2]
+	a.remoteTabMu.Unlock()
+	if !supportedRead {
+		return session.SessionOpenView{}, fmt.Errorf("remote Tempora Serve does not support %s; upgrade the remote service", serveCapabilitySessionReadV2)
+	}
+	var view session.SessionOpenView
+	supported, err := a.remoteSessionHistoryRead(tabID, "/session/open", nil, &view, session.HistoryPageMaxBytes+(64<<10))
+	if err == nil && !supported {
+		err = control.ErrTranscriptProjectionUnavailable
+	}
+	return view, err
+}
+
 func (a *App) RemoteSessionHistoryPageForTab(tabID, cursor string, limit int) (session.MessageHistoryPage, error) {
 	query := make(url.Values)
 	if cursor != "" {
@@ -232,6 +330,71 @@ func (a *App) RemoteSessionHistoryContentForTab(tabID string, ref sessioncontent
 	return chunk, err
 }
 
+// RemoteSessionHistoryWindowForTab pages a bounded window around an anchor
+// through Serve. The history-window-v1 capability is required; an older
+// remote service answers with an upgrade hint instead of simulating the
+// window through full downloads.
+func (a *App) RemoteSessionHistoryWindowForTab(tabID string, req session.HistoryWindowRequest) (session.HistoryWindowPage, error) {
+	a.remoteTabMu.Lock()
+	tab := a.remoteTabs[tabID]
+	supportedWindow := tab != nil && tab.capabilities[serveCapabilityHistoryWindowV1]
+	a.remoteTabMu.Unlock()
+	if !supportedWindow {
+		// A typed status, not an error: an older Serve is a capability answer
+		// the reader keeps working against (protocol-7 pages) rather than a
+		// failure, and the string carries the upgrade hint to the surface.
+		return session.HistoryWindowPage{Status: session.HistoryWindowUnsupported, Messages: []session.PersistentMessage{}}, nil
+	}
+	query := make(url.Values)
+	query.Set("anchor", req.Anchor)
+	if req.MessageID != "" {
+		query.Set("messageId", req.MessageID)
+	}
+	if req.Turn > 0 {
+		query.Set("turn", fmt.Sprint(req.Turn))
+	}
+	if req.Cursor != "" {
+		query.Set("cursor", req.Cursor)
+	}
+	if req.Direction != "" {
+		query.Set("direction", req.Direction)
+	}
+	if req.Limit > 0 {
+		query.Set("limit", fmt.Sprint(req.Limit))
+	}
+	var page session.HistoryWindowPage
+	supported, err := a.remoteSessionHistoryRead(tabID, "/session-history/window", query, &page, session.HistoryPageMaxBytes+(64<<10))
+	if err == nil && !supported {
+		err = control.ErrTranscriptProjectionUnavailable
+	}
+	return page, err
+}
+
+// RemoteSessionMessageFieldForTab reads one bounded fragment of one top-level
+// message field through Serve.
+func (a *App) RemoteSessionMessageFieldForTab(tabID, messageID string, version int, field string, offset, length int64) (session.MessageFieldPage, error) {
+	a.remoteTabMu.Lock()
+	tab := a.remoteTabs[tabID]
+	supportedWindow := tab != nil && tab.capabilities[serveCapabilityHistoryWindowV1]
+	a.remoteTabMu.Unlock()
+	if !supportedWindow {
+		return session.MessageFieldPage{Status: session.HistoryWindowUnsupported, MessageID: messageID, Field: field}, nil
+	}
+	query := url.Values{
+		"messageId": []string{messageID},
+		"field":     []string{field},
+		"version":   []string{fmt.Sprint(version)},
+		"offset":    []string{fmt.Sprint(offset)},
+		"length":    []string{fmt.Sprint(length)},
+	}
+	var page session.MessageFieldPage
+	supported, err := a.remoteSessionHistoryRead(tabID, "/session-message-field", query, &page, 512<<10)
+	if err == nil && !supported {
+		err = control.ErrTranscriptProjectionUnavailable
+	}
+	return page, err
+}
+
 func (a *App) RemoteSearchSessionHistoryForTab(tabID, textQuery, cursor string, limit int) (session.SearchHistoryPage, error) {
 	query := url.Values{"q": []string{textQuery}}
 	if cursor != "" {
@@ -246,4 +409,17 @@ func (a *App) RemoteSearchSessionHistoryForTab(tabID, textQuery, cursor string, 
 		err = control.ErrTranscriptProjectionUnavailable
 	}
 	return page, err
+}
+
+func (a *App) RemoteLocateSessionMessageForTab(tabID, messageID string, snapshot uint64) (session.MessageLocation, error) {
+	query := url.Values{"messageId": []string{messageID}}
+	if snapshot > 0 {
+		query.Set("snapshot", fmt.Sprint(snapshot))
+	}
+	var location session.MessageLocation
+	supported, err := a.remoteSessionHistoryRead(tabID, "/session-history/locate", query, &location, 64<<10)
+	if err == nil && !supported {
+		err = control.ErrTranscriptProjectionUnavailable
+	}
+	return location, err
 }

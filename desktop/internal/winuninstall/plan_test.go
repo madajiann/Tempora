@@ -42,7 +42,7 @@ func TestPlanRefreshesManagedDesktopRegistrationAndDeletesMatchingLegacyAlias(t 
 	}
 	if got.Desired.InstallLocation != `d:\tempora` ||
 		got.Desired.UninstallString != `"d:\tempora\uninstall.exe"` ||
-		got.Desired.DisplayIcon != `d:\tempora\tempora-launcher.exe` {
+		got.Desired.DisplayIcon != `d:\tempora\Tempora.exe` {
 		t.Fatalf("desired registration = %+v", got.Desired)
 	}
 }

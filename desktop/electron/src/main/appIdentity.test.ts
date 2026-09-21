@@ -74,3 +74,10 @@ test("every created Windows window gets relaunch metadata and other platforms do
   assert.equal(applied.length, 2);
   assert.deepEqual(applied[0], applied[1]);
 });
+
+test("taskbar pins prefer the canonical entry even when the legacy launcher exists", () => {
+  const shell = String.raw`C:\Apps\Tempora\versions\v1.38.9\app\Tempora.exe`;
+  const canonical = String.raw`C:\Apps\Tempora\Tempora.exe`;
+  assert.equal(windowsTaskbarDetails(shell, () => true)?.relaunchCommand, `"${canonical}"`);
+  assert.equal(windowsTaskbarDetails(shell, path => path === canonical)?.appIconPath, canonical);
+});

@@ -399,8 +399,8 @@ func TestTurnOrchestratorRefTurnPreservesExpandedPasteForRouting(t *testing.T) {
 			Scope:       skill.ScopeBuiltin,
 		}},
 	})
-	resolve := func(context.Context, string) (string, []string) {
-		return "<file path=\"notes.txt\">\nreference\n</file>", nil
+	resolve := func(context.Context, string) resolvedReferences {
+		return resolvedReferences{block: "<file path=\"notes.txt\">\nreference\n</file>"}
 	}
 
 	if err := c.runRefTurnWithResolverSync(context.Background(), expanded, expanded, display, "", resolve); err != nil {
@@ -589,7 +589,7 @@ func TestTurnOrchestratorCancelPreservesVisibleUserPrompt(t *testing.T) {
 	c.SetPlanMode(true)
 	// Simulate a user-initiated cancel: set the cancelling flag.
 	c.mu.Lock()
-	c.canceling = true
+	c.turns.cancelRequested = true
 	c.mu.Unlock()
 
 	// Pre-seed only the executor's legacy mutable copy. Without a committed
@@ -683,7 +683,7 @@ func TestTurnOrchestratorInterruptedAfterCompactionRelocatesVisibleTurn(t *testi
 			c := newOwnedTestController(t, Options{Runner: runner, Executor: agent.New(nil, nil, sess, agent.Options{}, event.Discard)})
 			if tc.cancel {
 				c.mu.Lock()
-				c.canceling = true
+				c.turns.cancelRequested = true
 				c.mu.Unlock()
 			}
 
@@ -727,7 +727,7 @@ func TestTurnOrchestratorCancelClassifiesCancelledToolResultAsInterrupted(t *tes
 	}
 	c := newOwnedTestController(t, Options{Runner: runner, Executor: agent.New(nil, nil, sess, agent.Options{}, event.Discard)})
 	c.mu.Lock()
-	c.canceling = true
+	c.turns.cancelRequested = true
 	c.mu.Unlock()
 
 	err := newTurnOrchestrator(c).runTurnWithRawDisplay(context.Background(), "run tests", "run tests", "")
@@ -761,7 +761,7 @@ func TestTurnOrchestratorCancelBeforeRunnerAddsUserPreservesVisiblePrompt(t *tes
 	})
 	c.SetPlanMode(true)
 	c.mu.Lock()
-	c.canceling = true
+	c.turns.cancelRequested = true
 	c.mu.Unlock()
 
 	err := newTurnOrchestrator(c).runTurnWithImageRefsRawDisplay(context.Background(), "Referenced context:\n\n<image path=\"diagram.png\">\n@diagram.png\n</image>\n\ninspect the diagnostic", "inspect the diagnostic", "@diagram.png", "")
@@ -814,7 +814,7 @@ func TestTurnOrchestratorCancelFlushesCleanTranscriptToDisk(t *testing.T) {
 	})
 	c.SetPlanMode(true)
 	c.mu.Lock()
-	c.canceling = true
+	c.turns.cancelRequested = true
 	c.mu.Unlock()
 
 	o := newTurnOrchestrator(c)

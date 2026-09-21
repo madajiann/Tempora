@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 import { execFileSync } from "node:child_process";
-import { appendFileSync, readFileSync } from "node:fs";
+import { appendFileSync, readFileSync, realpathSync } from "node:fs";
+import { pathToFileURL } from "node:url";
 
 const ZERO_SHA = /^0{40}$/;
 const ROOT_DOC = /^[^/]+\.md$/;
@@ -12,12 +13,16 @@ const ROOT_TOOLING = /^(?:Makefile|\.golangci[^/]*)$/;
 const FRONTEND = /^desktop\/frontend\//;
 const DESKTOP_MANIFEST = /^(?:desktop\/(?:package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|\.npmrc)|desktop\/frontend\/(?:package\.json|pnpm-lock\.yaml|vite\.config\.[cm]?[jt]s|tsconfig[^/]*\.json))$/;
 const ELECTRON = /^(?:desktop\/electron\/|desktop\/(?:package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml)$)/;
-const PACKAGING = /^(?:desktop\/(?:packaging\/|build\/)|scripts\/(?:desktop-build|package-windows-desktop|install-nsis)\b)/;
+const PACKAGING = /^(?:desktop\/(?:packaging\/|build\/)|scripts\/(?:desktop-build|package-windows-desktop|install-nsis|check-windows-uninstaller|finalize-windows-signed-candidate)\b)/;
+const RELEASE_CONTROL = /^(?:\.github\/workflows\/(?:release[^/]*|prepare-release-notes|pages)\.yml|scripts\/(?:release|resolve-release-candidate|validate-release-candidate|build-release-cli-candidate|publish-homebrew-cask|desktop-release-artifacts|finalize-windows-signed-candidate|verify-release-artifact-archive|verify-stable-release-artifacts)[^/]*|npm\/publish(?:-candidate)?(?:\.test)?\.mjs)$/;
 const DESKTOP_GO = /^(?:desktop\/(?:[^/]+\.go|go\.(?:mod|sum)|cmd\/|internal\/)|internal\/|cmd\/|go\.(?:mod|sum)$)/;
 const SDK = /^(?:sdk\/|internal\/extension\/)/;
-const CI_CONTROL = /^(?:\.github\/workflows\/(?:ci|app-memory)\.yml|scripts\/ci-paths(?:\.test)?\.mjs)$/;
+const WINDOWS_BUILTIN = /^(?:internal\/(?:tool\/builtin\/|tool\/tool\.go$|sandbox\/|permission\/|permissionpreset\/)|scripts\/windows-pr-contract-tests(?:\.test)?\.mjs$)/;
+const CI_CONTROL = /^(?:\.github\/workflows\/ci\.yml|scripts\/ci-paths(?:\.test)?\.mjs)$/;
+const MEMORY_CONTROL = /^(?:\.github\/workflows\/app-memory\.yml|scripts\/ci-paths(?:\.test)?\.mjs)$/;
+const MEMORY_FULL = /^(?:desktop\/frontend\/(?:bench\/app-(?:memory|browser|page-actions)[^/]*|src\/(?:App(?:Runtime)?\.tsx|app-runtime\/.*|app-shell\/.*|components\/Transcript(?:Cards)?\.tsx|lib\/(?:useController[^/]*|subscriptionScope|useNavigationSurface|navigationSurfaceTransition|keyedResource|fileResource|useWorkspaceChangesResource|mcpServerLifecycle|fileNavigationLifetime|bridge(?:BenchFixtures|HistoryFixtures)?)\.[^/]+))|\.github\/workflows\/app-memory\.yml|scripts\/ci-paths(?:\.test)?\.mjs)$/;
 
-const FLAG_NAMES = ["code", "desktop", "desktop_go", "frontend", "browser", "memory", "electron", "native", "packaging", "site", "sdk", "notes_only"];
+const FLAG_NAMES = ["code", "desktop", "desktop_go", "frontend", "browser", "memory", "memory_full", "electron", "native", "packaging", "site", "sdk", "windows_builtin", "release_control", "notes_only"];
 
 function normalized(path) {
   return path.replaceAll("\\", "/").replace(/^\.\//, "");
@@ -51,17 +56,38 @@ export function classifyPaths(input, { full = false } = {}) {
       flags.site = true;
       setReason(reasons, "site", path, "site source");
     }
+    if (RELEASE_CONTROL.test(path)) {
+      flags.release_control = true;
+      setReason(reasons, "release_control", path, "release control plane");
+      if (path === ".github/workflows/pages.yml") {
+        flags.site = true;
+        setReason(reasons, "site", path, "site deployment control");
+      }
+    }
     if (SDK.test(path)) {
       flags.sdk = true;
       setReason(reasons, "sdk", path, "SDK or generated protocol source");
     }
+    if (WINDOWS_BUILTIN.test(path)) {
+      flags.windows_builtin = true;
+      setReason(reasons, "windows_builtin", path, "Windows shell, workspace or sandbox contract");
+    }
+    // site and sdk belong here too: a PR that edits the routing contract must
+    // exercise every gate it can change, and without them such a PR skips site
+    // and no-ops sdk while the aggregates trivially accept those skips.
     if (CI_CONTROL.test(path)) {
-      for (const flag of ["desktop_go", "frontend", "browser", "memory", "electron", "native", "packaging"]) {
+      for (const flag of ["desktop_go", "frontend", "browser", "electron", "native", "packaging", "site", "sdk", "windows_builtin"]) {
         flags[flag] = true;
         setReason(reasons, flag, path, "CI routing contract");
       }
     }
-    if (!ROOT_UNRELATED.test(path) && !ROOT_DOC.test(path)) {
+    if (MEMORY_CONTROL.test(path)) {
+      for (const flag of ["memory", "memory_full"]) {
+        flags[flag] = true;
+        setReason(reasons, flag, path, "memory workflow or shared routing contract");
+      }
+    }
+    if (!RELEASE_CONTROL.test(path) && !ROOT_UNRELATED.test(path) && !ROOT_DOC.test(path)) {
       flags.code = true;
       setReason(reasons, "code", path, "root module input");
     }
@@ -75,6 +101,10 @@ export function classifyPaths(input, { full = false } = {}) {
       for (const flag of ["frontend", "browser", "memory"]) {
         flags[flag] = true;
         setReason(reasons, flag, path, "frontend build input");
+      }
+      if (MEMORY_FULL.test(path)) {
+        flags.memory_full = true;
+        setReason(reasons, "memory_full", path, "App lifecycle or memory screening input");
       }
     }
     if (electron) {
@@ -92,7 +122,7 @@ export function classifyPaths(input, { full = false } = {}) {
     if (!(frontend || electron || packaging || desktopGo)) unknown.push(path);
   }
   if (unknown.length > 0) {
-    for (const flag of ["code", "desktop_go", "frontend", "browser", "memory", "electron", "native", "packaging"]) {
+    for (const flag of ["code", "desktop_go", "frontend", "browser", "memory", "memory_full", "electron", "native", "packaging"]) {
       flags[flag] = true;
       for (const path of unknown) setReason(reasons, flag, path, "unknown path; fail closed");
     }
@@ -128,7 +158,18 @@ function summary(result) {
   return lines.join("\n") + "\n";
 }
 
-if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
+function isMainModule() {
+  // stdin/eval hosts can provide a sentinel or a nonexistent argv[1]. Importing
+  // this module must not require that host argument to name a filesystem entry.
+  if (!process.argv[1] || process.argv[1] === "-") return false;
+  try {
+    return import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href;
+  } catch {
+    return false;
+  }
+}
+
+if (isMainModule()) {
   try {
     const args = parseArgs(process.argv.slice(2));
     let files;

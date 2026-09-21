@@ -367,6 +367,10 @@ console.log("\nuse controller meta");
   eq(sameMeta(meta(), meta()), true, "identical meta is unchanged");
   eq(sameMeta(meta({ sessionGeneration: 1 }), meta({ sessionGeneration: 1 })), true, "identical sessionGeneration is unchanged");
 eq(sameMeta(meta({ sessionGeneration: 1 }), meta({ sessionGeneration: 2 })), false, "sessionGeneration changes invalidate meta equality");
+eq(sameMeta(
+  meta({ session: { hostId: "local", sessionId: "a" } }),
+  meta({ session: { hostId: "local", sessionId: "b" } }),
+), false, "SessionRef changes invalidate meta equality when paths are empty");
 eq(sameMeta(meta({ collaborationMode: "normal" }), meta({ collaborationMode: "plan" })), false, "collaboration mode changes invalidate meta equality");
   eq(sameMeta(meta({ workspacePath: "/repo" }), meta({ workspacePath: "/other" })), false, "workspace path changes invalidate meta equality");
   eq(sameMeta(meta({ gitBranch: "main" }), meta({ gitBranch: "feature" })), false, "git branch changes invalidate meta equality");
@@ -392,8 +396,14 @@ eq(sameMeta(meta({ collaborationMode: "normal" }), meta({ collaborationMode: "pl
   eq(preserved.toolApprovalMode, "workspace-write", "blank tab snapshot migrates legacy auto to workspace write");
   eq(preserved.autoApproveTools, false, "blank tab snapshot does not silently enable full access");
   const todos = [{ content: "Keep task state", status: "in_progress" }];
-  const withTodos = metaFromTab(tab(), meta({ canonicalTodos: todos }));
+  const previous = meta({ sessionPath: "/sessions/a", sessionGeneration: 1, canonicalTodos: todos });
+  const withTodos = metaFromTab(tab({ sessionPath: "/sessions/a", sessionGeneration: 1 }), previous);
   eq(withTodos.canonicalTodos, todos, "optimistic tab metadata preserves canonical todos for the same session");
+  eq(metaFromTab(tab({ sessionPath: "/sessions/b" }), previous).canonicalTodos, undefined, "reused tab metadata cannot carry A's todos into B");
+  eq(metaFromTab(tab({ sessionPath: "" }), previous).canonicalTodos, undefined, "a blank session cannot inherit the previous todo batch");
+  eq(metaFromTab(tab({ sessionPath: "/sessions/a", sessionGeneration: 2 }), previous).canonicalTodos, undefined, "reopening the same path cannot inherit a previous binding generation's todos");
+  const canonical = metaFromTab(tab({ sessionId: "canonical", session: { hostId: "local", sessionId: "canonical" } }));
+  eq(canonical.session?.sessionId, "canonical", "optimistic tab metadata carries canonical SessionRef identity");
 }
 
 {
@@ -681,9 +691,9 @@ eq(sameMeta(meta({ collaborationMode: "normal" }), meta({ collaborationMode: "pl
   s = reducer(s, { type: "event", e: { kind: "turn_started" } });
   s = reducer(s, { type: "event", e: { kind: "notice", level: "info", text: "runtime notice" } });
   s = reducer(s, { type: "event", e: { kind: "turn_done", checkpointTurn: 0, submissionId: "meta-submission" } });
-  const user = s.items.find((item) => item.kind === "user");
+  const user = s.localSubmissions["meta-submission"];
   const notice = s.items.find((item) => item.kind === "notice" && item.text === "runtime notice");
-  eq(user?.kind === "user" && user.checkpointTurn, 0, "turn_done stamps the exact user with checkpoint turn zero");
+  eq(user?.checkpointTurn, 0, "turn_done stamps the exact local submission with checkpoint turn zero");
   eq(Boolean(notice), true, "turn_done checkpoint assignment preserves runtime notices");
 }
 

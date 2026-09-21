@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"tempora/internal/filelock"
 	"tempora/internal/fileutil"
+	filelock "tempora/internal/identitylock"
 	"tempora/internal/mcplaunch"
 )
 

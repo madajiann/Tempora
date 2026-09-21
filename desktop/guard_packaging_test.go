@@ -19,8 +19,7 @@ func writePortableFixture(t *testing.T, dir, name, content string) {
 func TestVerifyWindowsPortableVersionedLayout(t *testing.T) {
 	verify := filepath.Join("..", "scripts", "verify-windows-portable.sh")
 	good := t.TempDir()
-	// versioned-v1 root entries
-	writePortableFixture(t, good, "tempora-launcher.exe", "launcher")
+	// versioned-v1 root entries (canonical layout: no legacy launcher)
 	writePortableFixture(t, good, "Tempora.exe", "launcher")
 	writePortableFixture(t, good, "tempora-cli.exe", "cli-entry")
 	ver := filepath.Join(good, "versions", "v1.20.0")
@@ -53,6 +52,46 @@ func TestVerifyWindowsPortableVersionedLayout(t *testing.T) {
 	}
 	if out, err := exec.Command("bash", verify, good).CombinedOutput(); err != nil {
 		t.Fatalf("valid versioned portable failed: %v\n%s", err, out)
+	}
+	writePortableFixture(t, good, "tempora-launcher.exe", "launcher")
+	if out, err := exec.Command("bash", verify, good).CombinedOutput(); err == nil {
+		t.Fatalf("canonical package accepted legacy entry: %s", out)
+	}
+	if out, err := exec.Command("bash", verify, good, "legacy-dual").CombinedOutput(); err != nil {
+		t.Fatalf("explicit legacy package rejected: %v\n%s", err, out)
+	}
+	writePortableFixture(t, good, "tempora-launcher.exe", "mismatch")
+	if out, err := exec.Command("bash", verify, good, "legacy-dual").CombinedOutput(); err == nil {
+		t.Fatalf("legacy package accepted mismatched entries: %s", out)
+	}
+	if err := os.Remove(filepath.Join(good, "tempora-launcher.exe")); err != nil {
+		t.Fatal(err)
+	}
+	for _, mode := range []string{"legacy-dual", "auto"} {
+		if out, err := exec.Command("bash", verify, good, mode).CombinedOutput(); err == nil {
+			t.Fatalf("accepted mode %s: %s", mode, out)
+		}
+	}
+	writePortableFixture(t, good, "unexpected.EXE", "extra")
+	if out, err := exec.Command("bash", verify, good).CombinedOutput(); err == nil {
+		t.Fatalf("accepted extra executable: %s", out)
+	}
+	if err := os.Remove(filepath.Join(good, "unexpected.EXE")); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(good, "current.json"), []byte("broken"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if out, err := exec.Command("bash", verify, good).CombinedOutput(); err == nil {
+		t.Fatalf("accepted damaged pointer: %s", out)
+	}
+	if err := os.WriteFile(filepath.Join(good, "current.json"), []byte(`{
+  "schemaVersion": 1,
+  "activeVersion": "v1.20.0",
+  "activeDir": "versions/v1.20.0"
+}
+`), 0o644); err != nil {
+		t.Fatal(err)
 	}
 
 	// Flat Guard layout must be rejected.

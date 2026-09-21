@@ -4,7 +4,7 @@
 
 <p align="center">
   <strong>Tempora</strong> — a coding agent built for long-running autonomous sessions.
-  Forked from <a href="https://github.com/esengine/DeepSeek-Reasonix">DeepSeek-Reasonix</a> (MIT),
+  Forked from <a href="https://github.com/esengine/DeepSeek-Reasonix">DeepSeek-Tempora</a> (MIT),
   shipping DeepSeek and Zhipu GLM out of the box.
 </p>
 
@@ -86,10 +86,10 @@ tempora doctor                           # environment diagnostics
 
 ## License
 
-MIT. Tempora is a fork of DeepSeek-Reasonix; see [LICENSE](LICENSE) and
+MIT. Tempora is a fork of DeepSeek-Tempora; see [LICENSE](LICENSE) and
 [NOTICE.md](NOTICE.md) for upstream attribution.
 
 ## Acknowledgements
 
-Thanks [esengine](https://github.com/esengine) and every DeepSeek-Reasonix
+Thanks [esengine](https://github.com/esengine) and every DeepSeek-Tempora
 contributor — Tempora stands on their shoulders.

@@ -162,7 +162,6 @@ func prepareMCPPrivateStateForOS(s Spec, processSandbox sandbox.Spec, env []stri
 		env = setEnvValue(env, key, value)
 	}
 	processSandbox.WriteRoots = append(processSandbox.WriteRoots, root, privateRoot)
-	processSandbox.AppContainerWriteRoots = append(processSandbox.AppContainerWriteRoots, root, privateRoot)
 	return processSandbox, env, nil
 }
 
@@ -472,7 +471,7 @@ func mergeEnv(base []string, overrides map[string]string) []string {
 }
 
 func setEnvValue(env []string, key, value string) []string {
-	out := make([]string, 0, len(env)+1)
+	out := make([]string, 0, len(env))
 	replaced := false
 	for _, kv := range env {
 		k, _, ok := strings.Cut(kv, "=")

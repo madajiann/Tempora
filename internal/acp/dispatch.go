@@ -17,6 +17,7 @@ import (
 	"tempora/internal/permission"
 	"tempora/internal/provider"
 	"tempora/internal/shellparse"
+	"tempora/internal/tool"
 )
 
 // notifier is the slice of Conn the dispatch sink depends on: it pushes
@@ -467,7 +468,7 @@ func (s *updateSink) permissionMeta(a event.Approval) map[string]any {
 		tempora["ordinaryPermissionNeeded"] = wa.OrdinaryPermissionNeeded
 		tempora["persistAllowed"] = wa.PersistAllowed
 	}
-	if a.Tool == "bash" && strings.TrimSpace(s.cwd) != "" {
+	if tool.IsShellToolName(a.Tool) && strings.TrimSpace(s.cwd) != "" {
 		var input struct {
 			Command                     string `json:"command"`
 			RunInBackground             bool   `json:"run_in_background"`
@@ -637,7 +638,7 @@ func toolKindFor(name string) string {
 		return "search"
 	case "edit_file", "move_file", "multiedit", "write_file":
 		return "edit"
-	case "bash":
+	case "bash", "pwsh", "powershell", "shell":
 		return "execute"
 	case control.SandboxEscapeApprovalTool:
 		return "execute"

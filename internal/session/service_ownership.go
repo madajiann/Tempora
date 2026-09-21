@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 )
 
 // HostID returns the immutable host namespace used to validate SessionRef.
@@ -71,6 +72,8 @@ func NewService(hostID string, persistence SessionPersistence) (*Service, error)
 		hostID: hostID, persistence: persistence,
 		active: map[SessionRef]*Runtime{}, closed: map[SessionRef]error{}, preparing: map[SessionRef]*prepareRuntime{},
 		bindings: map[*Runtime]int{}, retiring: map[*Runtime]chan struct{}{}, retireIdle: map[*Runtime]bool{},
+		idleTimers: map[*Runtime]*time.Timer{}, idleWeight: map[*Runtime]int64{}, idleOrder: map[*Runtime]uint64{},
+		idleBudget: 256 << 20, idleTTL: 60 * time.Second,
 	}
 	service.query = newQuery(hostID, persistence, service)
 	return service, nil
@@ -102,7 +105,10 @@ func (s *Service) PrepareCreate(ctx context.Context, options CreateOptions) (*Pr
 	}
 	session.externalizeDurableHistory()
 	ref := SessionRef{HostID: s.hostID, SessionID: session.ID()}
-	candidate := newRuntime(ref, session)
+	candidate, err := newRuntime(ref, session)
+	if err != nil {
+		return nil, errors.Join(err, session.Close(context.Background()))
+	}
 	candidate.owner = s
 	return &PreparedRuntime{service: s, runtime: candidate, instance: randomID()}, nil
 }
@@ -257,7 +263,12 @@ func (s *Service) openRuntime(ctx context.Context, ref SessionRef) (*Runtime, er
 		return nil, fmt.Errorf("session: close interrupted runtime: %w", recoverErr)
 	}
 	session.externalizeDurableHistory()
-	candidate := newRuntime(ref, session)
+	candidate, err := newRuntime(ref, session)
+	if err != nil {
+		closeErr := session.Close(context.Background())
+		s.finishPrepare(ref)
+		return nil, errors.Join(err, closeErr)
+	}
 	candidate.owner = s
 	s.mu.Lock()
 	pending := s.preparing[ref]
@@ -318,6 +329,9 @@ func (s *Service) Bind(runtime *Runtime) (*ClientBinding, error) {
 	}
 	s.bindings[runtime]++
 	delete(s.retireIdle, runtime)
+	if timer := s.idleTimers[runtime]; timer != nil {
+		s.removeIdleCacheLocked(runtime, true)
+	}
 	return &ClientBinding{service: s, runtime: runtime}, nil
 }
 
@@ -361,7 +375,12 @@ func (s *Service) releaseBinding(ctx context.Context, runtime *Runtime) error {
 	}
 	s.mu.Unlock()
 	if count <= 1 {
-		return s.closeIfUnbound(ctx, runtime)
+		var flushErr error
+		if !runtime.executionBusy() {
+			_, flushErr = runtime.session.Flush(ctx)
+		}
+		s.scheduleIdleRetirement(runtime)
+		return flushErr
 	}
 	return nil
 }
@@ -370,12 +389,79 @@ func (s *Service) closeIfUnbound(ctx context.Context, runtime *Runtime) error {
 	if runtime == nil {
 		return nil
 	}
+	s.scheduleIdleRetirement(runtime)
+	return nil
+}
+
+func (s *Service) scheduleIdleRetirement(runtime *Runtime) {
+	if runtime == nil {
+		return
+	}
+	weight := runtime.session.cacheWeight()
 	s.mu.Lock()
 	if s.active[runtime.ref] != runtime || s.bindings[runtime] != 0 || !s.retireIdle[runtime] {
 		s.mu.Unlock()
-		return nil
+		return
 	}
-	if runtime.current.Load() != nil {
+	if runtime.executionBusy() {
+		s.mu.Unlock()
+		return
+	}
+	if s.idleTimers[runtime] != nil {
+		s.mu.Unlock()
+		return
+	}
+	ttl := s.idleTTL
+	s.idleClock++
+	s.idleOrder[runtime] = s.idleClock
+	s.idleWeight[runtime] = weight
+	s.idleUsed += weight
+	if ttl > 0 {
+		s.idleTimers[runtime] = time.AfterFunc(ttl, func() {
+			_ = s.retireIfUnbound(context.Background(), runtime)
+		})
+	}
+	var victims []*Runtime
+	for s.idleBudget >= 0 && s.idleUsed > s.idleBudget && len(s.idleOrder) > 0 {
+		var oldest *Runtime
+		var order uint64
+		for candidate, candidateOrder := range s.idleOrder {
+			if oldest == nil || candidateOrder < order {
+				oldest, order = candidate, candidateOrder
+			}
+		}
+		if oldest == nil {
+			break
+		}
+		s.removeIdleCacheLocked(oldest, true)
+		victims = append(victims, oldest)
+	}
+	s.mu.Unlock()
+	for _, victim := range victims {
+		_ = s.retireIfUnbound(context.Background(), victim)
+	}
+	if ttl <= 0 && len(victims) == 0 {
+		_ = s.retireIfUnbound(context.Background(), runtime)
+	}
+}
+
+func (s *Service) removeIdleCacheLocked(runtime *Runtime, stop bool) {
+	if timer := s.idleTimers[runtime]; timer != nil && stop {
+		timer.Stop()
+	}
+	delete(s.idleTimers, runtime)
+	s.idleUsed -= s.idleWeight[runtime]
+	if s.idleUsed < 0 {
+		s.idleUsed = 0
+	}
+	delete(s.idleWeight, runtime)
+	delete(s.idleOrder, runtime)
+}
+
+func (s *Service) retireIfUnbound(ctx context.Context, runtime *Runtime) error {
+	s.mu.Lock()
+	s.removeIdleCacheLocked(runtime, false)
+	if s.active[runtime.ref] != runtime || s.bindings[runtime] != 0 || !s.retireIdle[runtime] || runtime.executionBusy() {
 		s.mu.Unlock()
 		return nil
 	}
@@ -398,6 +484,7 @@ func (s *Service) closeIfUnbound(ctx context.Context, runtime *Runtime) error {
 	if !errors.Is(err, ErrRuntimeBusy) && s.active[runtime.ref] == runtime && s.bindings[runtime] == 0 {
 		delete(s.active, runtime.ref)
 		delete(s.retireIdle, runtime)
+		s.removeIdleCacheLocked(runtime, true)
 		s.closed[runtime.ref] = err
 		s.revision.Add(1)
 	}

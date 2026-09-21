@@ -26,11 +26,17 @@ type Identity struct {
 type ActiveAttempt struct {
 	ID        string `json:"id"`
 	MessageID string `json:"messageId"`
+	TurnID    string `json:"turnId"`
+	NextIndex uint64 `json:"nextIndex"`
 }
 
 // Runtime is reduced from the same ordered events as the visible records.
 // In particular it is never sampled independently after a history read.
 type Runtime struct {
+	FinalMessageID    string                       `json:"finalMessageId,omitempty"`
+	DurationMs        int64                        `json:"durationMs,omitempty"`
+	SamplingCount     int                          `json:"samplingCount"`
+	ToolCount         int                          `json:"toolCount"`
 	TurnID            string                       `json:"turnId,omitempty"`
 	SubmissionID      string                       `json:"submissionId,omitempty"`
 	Status            event.TurnStatus             `json:"status,omitempty"`
@@ -47,6 +53,7 @@ type Boundary struct {
 	Identity           Identity `json:"identity"`
 	ProjectionRevision uint64   `json:"projectionRevision"`
 	CoveredThroughSeq  uint64   `json:"coveredThroughSeq"`
+	DurableSeq         uint64   `json:"durableSeq"`
 }
 
 // Projection has one commit boundary for rows, runtime and coverage. All
@@ -58,14 +65,48 @@ type Projection struct {
 	identity      Identity
 	revision      uint64
 	covered       uint64
+	durable       uint64
+	followers     map[string]*follower
+	results       map[string]uint64
 	buffer        Buffer
 	runtime       Runtime
 	startedTurnID string
 	attempts      map[string]ActiveAttempt
+	toolCalls     map[string]bool
 	prompts       map[string]eventwire.Event
 	snapshots     map[string]frozenSnapshot
 	snapshotOrder []string
 	snapshotBytes int
+	recordSerial  uint64
+	// outline is the complete turn index of a frozen cut. It is built by
+	// freezeLocked and read only from frozen cuts, so it always describes the
+	// same revision as the records paged beside it.
+	outline []OutlineEntry
+}
+
+// ensureRecordIdentity owns the last-resort identity for display-only rows.
+// Canonical messages retain their existing m:/tool: identities; transient
+// frames without a business sequence receive an identity scoped to this
+// projection incarnation and keep it for every later snapshot.
+func (p *Projection) ensureRecordIdentity(message *Message) {
+	if message.RecordID != "" {
+		return
+	}
+	switch {
+	case message.Role == "tool" && message.ToolCallID != "":
+		message.RecordID = "tool:" + message.ToolCallID
+	case message.MessageID != "":
+		message.RecordID = "m:" + message.MessageID
+	default:
+		p.recordSerial++
+		message.RecordID = fmt.Sprintf("view:%s:%d", p.incarnation, p.recordSerial)
+	}
+}
+
+func (p *Projection) ensureBufferRecordIdentities() {
+	for _, row := range p.buffer.messages {
+		p.ensureRecordIdentity(&row.message)
+	}
 }
 
 func NewProjection(identity Identity, baseline []Message, covered uint64) (*Projection, error) {
@@ -75,15 +116,15 @@ func NewProjection(identity Identity, baseline []Message, covered uint64) (*Proj
 	// reuse their conversion buffers immediately after construction.
 	encoded, err := json.Marshal(baseline)
 	if err != nil {
-		return nil, err
+		return nil, newBaselineError(err, "baseline_encode_failed", len(baseline), -1, -1, Message{})
 	}
 	var owned []Message
 	if err = json.Unmarshal(encoded, &owned); err != nil {
-		return nil, err
+		return nil, newBaselineError(err, "baseline_decode_failed", len(baseline), -1, -1, Message{})
 	}
 	p.buffer.byMessageID = make(map[string]*bufferedMessage)
-	seen := make(map[string]bool)
-	for _, m := range owned {
+	seen := make(map[string]int)
+	for index, m := range owned {
 		if m.Role == "user" {
 			p.buffer.userTurns++
 			if m.HistoryTurn == 0 {
@@ -97,13 +138,13 @@ func NewProjection(identity Identity, baseline []Message, covered uint64) (*Proj
 			case m.MessageID != "":
 				m.RecordID = "m:" + m.MessageID
 			default:
-				return nil, errors.New("transcript baseline has a record without identity")
+				return nil, newBaselineError(errors.New("transcript baseline has a record without identity"), "missing_record_identity", len(owned), index, -1, m)
 			}
 		}
-		if seen[m.RecordID] {
-			return nil, fmt.Errorf("duplicate transcript record %q", m.RecordID)
+		if previous, exists := seen[m.RecordID]; exists {
+			return nil, newBaselineError(fmt.Errorf("duplicate transcript record %q", m.RecordID), "duplicate_record_identity", len(owned), index, previous, m)
 		}
-		seen[m.RecordID] = true
+		seen[m.RecordID] = index
 		row := &bufferedMessage{message: m}
 		if m.Role == "assistant" {
 			row.content.replace(m.Content)
@@ -130,6 +171,28 @@ func (p *Projection) Apply(envelope turnevent.Envelope) error {
 	if envelope.Sequence != p.covered+1 {
 		return errors.New("transcript projection sequence gap")
 	}
+	return p.applyLocked(envelope, envelope.Sequence)
+}
+
+// ApplyFrame uses an independent display revision. The caller supplies the
+// business cut; a token, phase or usage notification cannot allocate log sequence.
+func (p *Projection) ApplyFrame(envelope turnevent.Envelope, covered uint64) error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if (envelope.SessionID != "" && envelope.SessionID != p.identity.SessionID) || (envelope.RuntimeEpoch != "" && envelope.RuntimeEpoch != p.identity.RuntimeEpoch) {
+		return errors.New("transcript event identity mismatch")
+	}
+	if covered < p.covered {
+		return errors.New("transcript business coverage regression")
+	}
+	if err := p.applyLocked(envelope, covered); err != nil {
+		return err
+	}
+	p.trimSettledLocked()
+	return nil
+}
+
+func (p *Projection) applyLocked(envelope turnevent.Envelope, covered uint64) error {
 	// Detach pointer payloads before retaining them. Event publication cannot
 	// mutate a previously committed snapshot through an aliased tool slice.
 	encoded, err := json.Marshal(envelope)
@@ -142,6 +205,7 @@ func (p *Projection) Apply(envelope turnevent.Envelope) error {
 	}
 	if e, ok := EventFromEnvelope(owned); ok {
 		p.buffer.Apply(e)
+		p.ensureBufferRecordIdentities()
 		if e.Kind == event.TurnDone {
 			p.applyTerminalNotices(e)
 		}
@@ -154,59 +218,30 @@ func (p *Projection) Apply(envelope turnevent.Envelope) error {
 			}
 		}
 	}
+	p.applyRuntimeLocked(owned)
 	w := owned.Event
-	p.runtime.TurnID, p.runtime.Status = owned.TurnID, owned.Status
-	p.runtime.SubmissionID = owned.SubmissionID
-	switch owned.Kind {
-	case "turn_started":
-		p.retireRecoveryNotices()
-		if p.startedTurnID != owned.TurnID || p.runtime.StartedAt == 0 {
-			p.runtime.StartedAt = owned.CreatedAt
-			p.startedTurnID = owned.TurnID
-		}
-		p.runtime.Phase = ""
-		p.runtime.CompletionSummary = nil
-		p.runtime.TurnUsage = nil
-		p.buffer.completion = nil
-	case "usage":
-		p.runtime.TurnUsage = mergeTurnUsage(p.runtime.TurnUsage, w.Usage)
-	case "turn_phase":
-		p.runtime.Phase = w.Phase
-	case "completion_summary":
-		p.runtime.CompletionSummary = w.Completion
-	case "stream_attempt":
-		if w.StreamAttempt != nil {
-			if w.StreamAttempt.Action == "begin" {
-				p.attempts[w.StreamAttempt.ID] = ActiveAttempt{ID: w.StreamAttempt.ID, MessageID: w.MessageID}
-			} else {
-				delete(p.attempts, w.StreamAttempt.ID)
-			}
-		}
-	case "ask_request", "approval_request", "mcp_interaction":
-		id := w.PromptID
-		if id == "" {
-			id = owned.ItemID
-		}
-		if id != "" {
-			p.prompts[id] = w
-		}
-	case "prompt_answered":
-		delete(p.prompts, owned.ItemID)
-	case "turn_done":
-		durationMs := int64(0)
-		if p.runtime.StartedAt > 0 && owned.CreatedAt >= p.runtime.StartedAt {
-			durationMs = owned.CreatedAt - p.runtime.StartedAt
-		}
-		p.buffer.attachTurnStats(owned.TurnID, p.runtime.TurnUsage, durationMs, owned.CreatedAt)
-		clear(p.prompts)
-		clear(p.attempts)
-		if owned.TranscriptDigest != "" {
-			p.identity.HeadID = owned.HeadID
-			p.identity.RewriteEpoch = owned.RewriteEpoch
+	p.covered = covered
+	p.revision++
+	// Legacy ledger numbering is never a chat coverage cursor.
+	w.Sequence = 0
+	state := p.runtime
+	change := Change{Event: &w, Runtime: &state}
+	if owned.Kind == "text" || owned.Kind == "reasoning" || owned.Kind == "tool_call_delta" || (owned.Kind == "tool_dispatch" && w.Tool != nil && w.Tool.Partial) {
+		if attempt, ok := p.attempts[w.AttemptID]; ok {
+			change.AttemptID, change.Index = attempt.ID, attempt.NextIndex
+			attempt.NextIndex++
+			p.attempts[attempt.ID] = attempt
 		}
 	}
-	p.covered = owned.Sequence
-	p.revision++
+	if owned.Kind == "stream_attempt" && w.StreamAttempt != nil && w.StreamAttempt.Action == "commit" {
+		change.AttemptID, change.ResultSeq = w.StreamAttempt.ID, p.results[w.MessageID]
+		change.ResultKind = "message/complete"
+		if w.StreamAttempt.Reason == "interrupted" {
+			change.ResultKind = "message/interrupted"
+		}
+		change.ResetRequired = change.ResultSeq == 0
+	}
+	p.publishChangeLocked(change)
 	return nil
 }
 
@@ -256,13 +291,21 @@ func (p *Projection) SetRuntimeEpoch(epoch string) {
 		p.identity.RuntimeEpoch = epoch
 		p.incarnation = rand.Text()
 		p.revision++
+		for _, f := range p.followers {
+			f.reset = true
+			select {
+			case f.wake <- struct{}{}:
+			default:
+			}
+		}
+		clear(p.followers)
 	}
 }
 
 func (p *Projection) boundaryLocked() Boundary {
 	return Boundary{ProtocolVersion: ProtocolVersion,
 		SnapshotID: fmt.Sprintf("%s:%d", p.incarnation, p.revision),
-		Identity:   p.identity, ProjectionRevision: p.revision, CoveredThroughSeq: p.covered}
+		Identity:   p.identity, ProjectionRevision: p.revision, CoveredThroughSeq: p.covered, DurableSeq: p.durable}
 }
 
 func (p *Projection) Boundary() Boundary {
@@ -288,4 +331,73 @@ func (p *Projection) runtimeLocked() (Runtime, []ActiveAttempt) {
 	}
 	sort.Slice(attempts, func(i, j int) bool { return attempts[i].ID < attempts[j].ID })
 	return runtime, attempts
+}
+
+func (p *Projection) applyRuntimeLocked(owned turnevent.Envelope) {
+	w := owned.Event
+	if owned.TurnID != "" {
+		p.runtime.TurnID, p.runtime.Status = owned.TurnID, owned.Status
+		p.runtime.SubmissionID = owned.SubmissionID
+	}
+	switch owned.Kind {
+	case "turn_started":
+		p.runtime.FinalMessageID, p.runtime.DurationMs = "", 0
+		p.runtime.SamplingCount, p.runtime.ToolCount = 0, 0
+		p.toolCalls = make(map[string]bool)
+		p.retireRecoveryNotices()
+		if p.startedTurnID != owned.TurnID || p.runtime.StartedAt == 0 {
+			p.runtime.StartedAt = owned.CreatedAt
+			p.startedTurnID = owned.TurnID
+		}
+		p.runtime.Phase = ""
+		p.runtime.CompletionSummary = nil
+		p.runtime.TurnUsage = nil
+		p.buffer.completion = nil
+	case "usage":
+		p.runtime.TurnUsage = mergeTurnUsage(p.runtime.TurnUsage, w.Usage)
+	case "turn_phase":
+		p.runtime.Phase = w.Phase
+	case "completion_summary":
+		p.runtime.CompletionSummary = w.Completion
+	case "stream_attempt":
+		if w.StreamAttempt != nil {
+			if w.StreamAttempt.Action == "begin" {
+				p.runtime.SamplingCount++
+				p.attempts[w.StreamAttempt.ID] = ActiveAttempt{ID: w.StreamAttempt.ID, MessageID: w.MessageID, TurnID: owned.TurnID}
+			} else {
+				delete(p.attempts, w.StreamAttempt.ID)
+			}
+		}
+	case "tool_dispatch":
+		if w.Tool != nil && w.Tool.ID != "" && !p.toolCalls[w.Tool.ID] {
+			if p.toolCalls == nil {
+				p.toolCalls = make(map[string]bool)
+			}
+			p.toolCalls[w.Tool.ID] = true
+			p.runtime.ToolCount++
+		}
+	case "ask_request", "approval_request", "mcp_interaction":
+		id := w.PromptID
+		if id == "" {
+			id = owned.ItemID
+		}
+		if id != "" {
+			p.prompts[id] = w
+		}
+	case "prompt_answered":
+		delete(p.prompts, owned.ItemID)
+	case "turn_done":
+		durationMs := int64(0)
+		if p.runtime.StartedAt > 0 && owned.CreatedAt >= p.runtime.StartedAt {
+			durationMs = owned.CreatedAt - p.runtime.StartedAt
+		}
+		p.runtime.DurationMs = durationMs
+		p.buffer.attachTurnStats(owned.TurnID, p.runtime.TurnUsage, durationMs, owned.CreatedAt, p.runtime.FinalMessageID)
+		clear(p.prompts)
+		clear(p.attempts)
+		if owned.TranscriptDigest != "" {
+			p.identity.HeadID = owned.HeadID
+			p.identity.RewriteEpoch = owned.RewriteEpoch
+		}
+	}
 }

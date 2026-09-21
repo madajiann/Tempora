@@ -53,7 +53,10 @@ type PersistenceBinding struct {
 	// metadataSource rebuilds the list projection for the catalog cache once
 	// the accepted prefix is fully durable. Session supplies it so the binding
 	// never holds a projection of its own.
-	metadataSource func(durable uint64) (catalogMetadata, bool)
+	metadataSource         func(durable uint64) (catalogMetadata, bool)
+	recoverySource         func(durable uint64) (recoveryPublishState, bool)
+	recoveryPublished      func(durable uint64)
+	disableRecoveryPublish bool
 
 	mu            sync.Mutex
 	queue         []Commit
@@ -248,6 +251,47 @@ func (b *PersistenceBinding) Flush(ctx context.Context) (DurableReceipt, error) 
 	}
 }
 
+// FlushThrough waits for one accepted commit boundary. Later writes may keep
+// draining, but cannot extend this caller's snapshot or cancel its shared writer.
+func (b *PersistenceBinding) FlushThrough(ctx context.Context, through uint64) (DurableReceipt, error) {
+	if b == nil {
+		return DurableReceipt{}, os.ErrClosed
+	}
+	if err := ctx.Err(); err != nil {
+		return DurableReceipt{}, err
+	}
+	b.mu.Lock()
+	durable, changed := b.durable, b.spaceChanged
+	b.mu.Unlock()
+	if durable >= through {
+		return DurableReceipt{DurableSequence: durable}, nil
+	}
+	done := make(chan error, 1)
+	go func() { done <- b.drain(context.Background(), true) }()
+	for {
+		select {
+		case <-ctx.Done():
+			return DurableReceipt{DurableSequence: b.durableSequence()}, ctx.Err()
+		case err := <-done:
+			durable = b.durableSequence()
+			if durable >= through {
+				return DurableReceipt{DurableSequence: durable}, nil
+			}
+			if err == nil {
+				err = fmt.Errorf("session: watermark %d was not accepted", through)
+			}
+			return DurableReceipt{DurableSequence: durable}, err
+		case <-changed:
+			b.mu.Lock()
+			durable, changed = b.durable, b.spaceChanged
+			b.mu.Unlock()
+			if durable >= through {
+				return DurableReceipt{DurableSequence: durable}, nil
+			}
+		}
+	}
+}
+
 func (b *PersistenceBinding) durableSequence() uint64 {
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -372,7 +416,7 @@ func (b *PersistenceBinding) drain(ctx context.Context, explicit bool) error {
 }
 
 func (b *PersistenceBinding) refreshCatalogMetadata() {
-	if b == nil || b.metadataSource == nil {
+	if b == nil {
 		return
 	}
 	b.mu.Lock()
@@ -382,11 +426,24 @@ func (b *PersistenceBinding) refreshCatalogMetadata() {
 	}
 	durable := b.durable
 	b.mu.Unlock()
-	metadata, ok := b.metadataSource(durable)
-	if !ok {
-		return
+	recoveryPublished := false
+	if !b.disableRecoveryPublish && b.recoverySource != nil {
+		if state, ok := b.recoverySource(durable); ok {
+			if store, ok := b.handle.(*Store); ok && store.recovery != nil {
+				if err := store.recovery.publish(context.Background(), state.checkpoint, state.operations); err == nil {
+					recoveryPublished = true
+				}
+			}
+		}
 	}
-	_ = writeCatalogMetadataForSession(filepath.Join(filepath.Dir(b.dir), ".query-cache", filepath.Base(b.dir)), b.dir, metadata)
+	if b.metadataSource != nil {
+		if metadata, ok := b.metadataSource(durable); ok {
+			_ = writeCatalogMetadataForSession(filepath.Join(filepath.Dir(b.dir), ".query-cache", filepath.Base(b.dir)), b.dir, metadata)
+		}
+	}
+	if (recoveryPublished || b.disableRecoveryPublish || b.recoverySource == nil) && b.recoveryPublished != nil {
+		b.recoveryPublished(durable)
+	}
 }
 
 func (b *PersistenceBinding) persist(ctx context.Context, handle SessionHandle, commits []Commit) error {
@@ -508,9 +565,13 @@ func (b *PersistenceBinding) Close(ctx context.Context) error {
 	b.closeOnce.Do(func() {
 		b.mu.Lock()
 		b.accepting = false
+		needsFlush := len(b.queue) > 0 || b.uncertain != nil
 		b.notifySpaceLocked()
 		b.mu.Unlock()
-		_, flushErr := b.Flush(context.Background())
+		var flushErr error
+		if needsFlush {
+			_, flushErr = b.Flush(context.Background())
+		}
 		b.drainMu.Lock()
 		defer b.drainMu.Unlock()
 		b.mu.Lock()

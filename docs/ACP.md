@@ -64,9 +64,9 @@ the following capability shape (irrelevant fields omitted):
       "sse": false
     },
     "_meta": {
-      "reasonix.io": {
+      "tempora.io": {
         "sessionSteer": {
-          "method": "_reasonix.io/session/steer"
+          "method": "_tempora.io/session/steer"
         }
       }
     }
@@ -89,12 +89,12 @@ tools run locally inside the Tempora process.
 Hosts supporting MCP elicitation advertise this in `initialize.clientCapabilities`:
 
 ```json
-{"_meta":{"reasonix.io":{"mcpInteraction":{"supported":true,"schemaVersion":1}}}}
+{"_meta":{"tempora.io":{"mcpInteraction":{"supported":true,"schemaVersion":1}}}}
 ```
 
 Tempora advertises the matching capability under
-`agentCapabilities._meta.reasonix.io.mcpInteraction`, including the method
-`_reasonix.io/mcp/request_interaction`. Negotiated sessions use the interactive
+`agentCapabilities._meta.tempora.io.mcpInteraction`, including the method
+`_tempora.io/mcp/request_interaction`. Negotiated sessions use the interactive
 MCP host profile. Clients without this exact opt-in keep the core profile and
 receive no new reverse requests. This applies to new, loaded and rebuilt sessions.
 
@@ -239,7 +239,7 @@ proposal.
 Read the method name from:
 
 ```text
-agentCapabilities._meta["reasonix.io"].sessionSteer.method
+agentCapabilities._meta["tempora.io"].sessionSteer.method
 ```
 
 Do not assume the extension exists, and do not call the unnamespaced
@@ -254,7 +254,7 @@ Call the advertised method while `session/prompt` is active:
 {
   "jsonrpc": "2.0",
   "id": 2,
-  "method": "_reasonix.io/session/steer",
+  "method": "_tempora.io/session/steer",
   "params": {
     "sessionId": "session-id",
     "prompt": [
@@ -290,7 +290,7 @@ On `InvalidRequest`, the compatibility session did not queue the guidance.
 ## Durable session inbox extension
 
 Discover the versioned queue at
-`agentCapabilities._meta["reasonix.io"].sessionInbox`. Schema version 1
+`agentCapabilities._meta["tempora.io"].sessionInbox`. Schema version 1
 advertises method names in its `methods` map; clients must use those advertised
 names rather than constructing vendor method strings.
 
@@ -312,10 +312,10 @@ calling `setPaused` with `false`.
 ## Runtime reload and extension surface
 
 Tempora advertises two more extension points in
-`agentCapabilities._meta["reasonix.io"]`:
+`agentCapabilities._meta["tempora.io"]`:
 
 - `sessionReloadExtensions` — the vendor method
-  `_reasonix.io/session/reloadExtensions`. Calling it reloads the session's
+  `_tempora.io/session/reloadExtensions`. Calling it reloads the session's
   agent runtime (extensions, tools, skills, commands, hooks, providers) with
   the same fail-atomic semantics as the CLI `/reload` command: while a turn
   or rebuild is active exactly one reload is queued (`{"queued": true}`) and
@@ -323,7 +323,7 @@ Tempora advertises two more extension points in
   swapped atomically, and a failed rebuild keeps the previous runtime. After
   a successful reload Tempora pushes a fresh `available_commands_update`.
 - `extensionSurface` — structured extension UI support. Clients that also
-  advertise `reasonix.io.extensionSurface` in their initialize `_meta`
+  advertise `tempora.io.extensionSurface` in their initialize `_meta`
   receive structured extension surface payloads; clients without it receive
   equivalent text fallbacks (`agent_message_chunk` for cards and statuses,
   permission requests for extension forms), so no client-side handling is

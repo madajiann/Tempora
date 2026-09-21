@@ -1,10 +1,10 @@
-import { lazy, Suspense, memo, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { lazy, Suspense, memo, useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { FileText, Globe, GitBranch, PackageOpen, Search, Terminal, Users, Wrench, X } from "lucide-react";
 import { ChatSource, type ChatNode } from "../lib/chatViewSource";
 import type { ChatContentLoader } from "../lib/chatContentLoader";
 import type { ChatScrollController } from "../lib/chatScrollController";
 import { reconcileMountedOrder, revealEarlierMountedOrder, type ChatMountedOrder } from "../lib/chatMountedOrder";
-import type { CheckpointMeta } from "../lib/types";
+import { forkBlockReason, forkReasonKey, type ForkBlockReason, type ForkTargetView } from "../lib/forkTargets";
 import { useT } from "../lib/i18n";
 import { AssistantMessage, UserMessage } from "./Message";
 import { CopyButton } from "./CopyButton";
@@ -17,23 +17,40 @@ import { TurnProcessNodeView } from "./harness-chat/TurnProcessNodeView";
 import { ContextInjectionRow } from "./harness-chat/ContextInjectionRow";
 import { ToolRow } from "./harness-chat/ToolRow";
 import { subjectOf, summarizeFileDiff } from "../lib/tools";
-import { classifyTool, shellDisplayName } from "../lib/chatToolPresentation";
+import { classifyTool, shellDisplayName, toolPresentation } from "../lib/chatToolPresentation";
+import { RESOURCE_BUDGETS } from "../lib/resourceBudgets";
 const ChatToolBody = lazy(() => import("./ChatToolBody"));
 const ToolPayload = lazy(() => import("./ChatToolBody").then(module => ({ default: module.ToolPayload })));
 const PresentedFiles = lazy(() => import("./PresentedFiles").then(module => ({ default: module.PresentedFiles })));
 const ModifiedFiles = lazy(() => import("./PresentedFiles").then(module => ({ default: module.ModifiedFiles })));
+const TOOL_RELATION_PAGE_SIZE = RESOURCE_BUDGETS.toolRelationsPerPage;
 
 export function useChatNode(source: ChatSource, key: string) {
   const subscribe = useCallback((listener: () => void) => source.subscribeNode(key, listener), [source, key]);
   const snapshot = useCallback(() => source.getNodeSnapshot(key), [source, key]);
   return useSyncExternalStore(subscribe, snapshot, snapshot);
 }
+/**
+ * The transcript's fork affordance. Every question about one turn is answered
+ * from the host's persisted turn records, so the entry never depends on
+ * checkpoints, on whether the session is running, or on a page offset.
+ */
+export type ChatForkAction = {
+  /** Persisted boundary of a tail's answer message, undefined when the source keeps none. */
+  targetFor: (answerKey: string | undefined) => ForkTargetView | undefined;
+  /** False until this session's target set arrives; every entry reads as loading. */
+  loaded: boolean;
+  /** True when the source keeps persisted turn records at all. */
+  verifiable: boolean;
+  /** Non-null replaces every entry's own state, e.g. a create request already in flight. */
+  blocked: ForkBlockReason | null;
+  create: (target: ForkTargetView) => void;
+};
 export type ChatActions = {
   openDetails: (key: string, trigger: HTMLElement) => void;
-  fork?: (turn: number) => void;
+  /** Absent on surfaces that cannot fork at all; those render no branch entry. */
+  fork?: ChatForkAction;
   recover: (id: string) => void;
-  forkDisabled: boolean;
-  checkpoints: readonly CheckpointMeta[];
 };
 type SeatProps = { source: ChatSource; nodeKey: string; loader: ChatContentLoader; scroll: ChatScrollController; actions: ChatActions; tabId?: string; hostId?: string };
 
@@ -84,8 +101,8 @@ const ChatNodeSeat = memo(function ChatNodeSeat({ source, nodeKey, loader, scrol
   let body;
   switch (node.kind) {
     case "user": body = <ChatUser node={node} loader={loader} />; break;
-    case "assistant": body = node.item.text || node.item.searchSources?.length || node.item.memoryCitations?.length ? <ChatAnswer node={node} loader={loader} source={source} tabId={tabId} hostId={hostId} /> : null; break;
-    case "reasoning": body = node.item.reasoning ? <ChatReasoning node={node} loader={loader} source={source} scroll={scroll} /> : null; break;
+    case "assistant": body = node.item.text || node.item.searchSources?.length || node.item.memoryCitations?.length || loader.needsFullContent(node.item, "content") ? <ChatAnswer node={node} loader={loader} source={source} tabId={tabId} hostId={hostId} /> : null; break;
+    case "reasoning": body = node.item.reasoning || loader.needsFullContent(node.item, "reasoning") ? <ChatReasoning node={node} loader={loader} source={source} scroll={scroll} /> : null; break;
     case "process": body = <TurnProcessNodeView node={node} onToggle={() => { scroll.beforeChange(); source.toggleProcess(node.turnKey); }} />; break;
     case "tool": body = <ChatTool node={node} loader={loader} actions={actions} scroll={scroll} />; break;
     case "phase": body = <ContextInjectionRow title={t("chat.activity")} summary={node.item.text} beforeToggle={scroll.beforeChange}>{node.item.text}</ContextInjectionRow>; break;
@@ -103,6 +120,7 @@ function ChatNotice({ node, actions, scroll }: { node: Extract<ChatNode, { kind:
   const t = useT();
   const item = node.item;
   const summary = item.completionSummary;
+  if (item.code === "capability_proxy_audit") return <ChatDisclosure label={t("chat.details")}><pre>{item.text}{"\n"}{item.detail}</pre></ChatDisclosure>;
   // Empty delivery accounting is not a chat result. Keep meaningful records in details.
   if (summary && !summary.mutations && !summary.changed_files && !summary.checks_passed && !summary.checks_failed) return null;
   if (item.level === "warn" || item.action === "recover_context") return <div className="chat-notice" role="status" data-level={item.level}>
@@ -129,11 +147,12 @@ function ChatTool({ node, loader, actions, scroll }: { node: Extract<ChatNode, {
     : "";
   const summary = presentSummary || description || subjectOf(item.name, item.args) || item.subject || item.summary || "";
   const toolKind = classifyTool(item);
+  const presentation = toolPresentation(item);
   const Icon = toolKind === "present" ? PackageOpen : { search: Search, web: Globe, shell: Terminal, agent: Users, file: FileText, tool: Wrench }[toolKind];
   const title = item.name === "web_search" ? t("chat.tool.search") : item.name === "web_fetch" ? t("chat.tool.web")
     : item.name === "present" ? t("present.toolTitle") : toolKind === "shell" ? shellDisplayName(item) : item.resolvedName || item.name;
   return <ToolRow icon={<Icon size={14} />} title={title} summary={[summary, summarizeFileDiff(item.fileDiff)].filter(Boolean).join(" · ")}
-    state={item.status} statusLabel={t(item.status === "running" ? "chat.running" : item.status === "stopped" ? "chat.stopped" : "chat.failed")}
+    state={presentation.state} dot={presentation.dot} statusLabel={t(presentation.label)}
     errorSummary={item.error?.trim().split("\n")[0]} beforeToggle={scroll.beforeChange}
     inspectLabel={t("chat.details")} inspect={trigger => actions.openDetails(node.key, trigger)}>
     <Suspense fallback={<p role="status">{t("chat.loading")}</p>}><ChatToolBody item={item} loader={loader} /></Suspense>
@@ -159,12 +178,21 @@ function BodyLoadError({ item, loader }: { item: Extract<ChatNode, { kind: "assi
   return error && <button className="btn" onClick={() => { setError(false); setAttempt(value => value + 1); }}>{t("chat.loadFailed")}</button>;
 }
 function ChatUser({ node, loader }: { node: Extract<ChatNode, { kind: "user" }>; loader: ChatContentLoader }) {
-  return <><UserMessage id={node.item.id} text={node.item.text} submitText={node.item.submitText} failed={node.item.failed} createdAt={node.item.createdAt} /><BodyLoadError item={node.item} loader={loader} /></>;
+  const t = useT();
+  return <><UserMessage id={node.item.id} text={node.item.text} submitText={node.item.submitText} failed={node.item.failed} createdAt={node.item.createdAt} />
+    {node.item.submissionState === "unknown" && !node.item.messageId && <span role="status">{t("chat.submissionUnknown")}</span>}
+    <BodyLoadError item={node.item} loader={loader} /></>;
 }
 function ChatAnswer({ node, loader, source, tabId, hostId }: { node: Extract<ChatNode, { kind: "assistant" }>; loader: ChatContentLoader; source: ChatSource; tabId?: string; hostId?: string }) {
   const tail = useChatNode(source, `${node.turnKey}:tail`);
   const presentedFiles = tail?.kind === "tail" ? tail.presentedFiles : [];
-  return <><AssistantMessage item={node.item} presentedFiles={presentedFiles} tabId={tabId} hostId={hostId} /><BodyLoadError item={node.item} loader={loader} /></>;
+  const modifiedFiles = tail?.kind === "tail" ? tail.modifiedFiles : [];
+  // A turn's file facts are the answers the host can already give without
+  // reading the answer text; when they grow, earlier reference failures are
+  // worth asking about again.
+  const factsVersion = presentedFiles.length + modifiedFiles.length;
+  return <><AssistantMessage item={node.item} presentedFiles={presentedFiles} modifiedFiles={modifiedFiles}
+    turnKey={node.turnKey} factsVersion={factsVersion} tabId={tabId} hostId={hostId} /><BodyLoadError item={node.item} loader={loader} /></>;
 }
 
 function ChatReasoning({ node, loader, source, scroll }: { node: Extract<ChatNode, { kind: "reasoning" }>; loader: ChatContentLoader; source: ChatSource; scroll: ChatScrollController }) {
@@ -200,11 +228,14 @@ function ChatReasoning({ node, loader, source, scroll }: { node: Extract<ChatNod
 function ChatTurnTail({ node, source, actions, loader, tabId, hostId }: { node: Extract<ChatNode, { kind: "tail" }>; source: ChatSource; actions: ChatActions; loader: ChatContentLoader; tabId?: string; hostId?: string }) {
   const answer = useChatNode(source, node.answerKey ?? "");
   const t = useT();
-  const reasonId = useId();
   const hasAnswer = answer?.kind === "assistant" && Boolean(answer.item.text.trim());
   if (!hasAnswer && !node.presentedFiles.length && !node.modifiedFiles.length) return null;
-  const checkpoint = actions.checkpoints.find(checkpoint => checkpoint.turn === node.turn);
-  const unavailable = actions.forkDisabled || !checkpoint?.canConversation || node.turn == null || !actions.fork;
+  const fork = actions.fork;
+  // A tail with no answer has no message identity, so it can name no boundary.
+  const target = hasAnswer ? fork?.targetFor(node.answerKey) : undefined;
+  const reason = fork ? forkBlockReason({ target, loaded: fork.loaded, verifiable: fork.verifiable, blocked: fork.blocked, latest: node.latest }) : null;
+  const reasonText = reason ? t(forkReasonKey(reason)) : "";
+  const create = fork?.create;
   return <div className="chat-turn-tail">
     {node.presentedFiles.length > 0 && <Suspense fallback={null}>
       <PresentedFiles files={node.presentedFiles} tabId={tabId} hostId={hostId} />
@@ -218,24 +249,23 @@ function ChatTurnTail({ node, source, actions, loader, tabId, hostId }: { node: 
     if (current?.kind !== "assistant" || (current.item !== answer.item && current.item.text !== text)) throw new Error("Answer changed; retry");
     return text;
   }} label={t("msg.copy")} showInlineLabel={false} className="chat-action-icon" />
-    <Tooltip label={unavailable ? t("chat.branchUnavailable") : t("chat.branch")} side="bottom">
+    {fork && <Tooltip label={reason ? reasonText : t("chat.branch")} side="bottom">
       <button
         type="button"
         className="chat-action-icon"
-        aria-label={t("chat.branch")}
-        aria-disabled={unavailable || undefined}
-        aria-describedby={unavailable ? reasonId : undefined}
-        data-unavailable={unavailable || undefined}
-        onClick={unavailable ? undefined : () => actions.fork?.(node.turn!)}
+        aria-label={reason ? `${t("chat.branch")}: ${reasonText}` : t("chat.branch")}
+        aria-disabled={reason ? true : undefined}
+        data-unavailable={reason ? true : undefined}
+        onClick={reason || !target || !create ? undefined : () => create(target)}
       ><GitBranch aria-hidden="true" /></button>
-    </Tooltip>
-    {unavailable && <span id={reasonId} className="sr-only">{t("chat.branchUnavailable")}</span>}
+    </Tooltip>}
     {answer!.item.turnUsage && answer!.item.turnUsage.totalTokens > 0 && <TurnUsagePanel usage={answer!.item.turnUsage} />}
     {(answer!.item.turnDurationMs ?? answer!.item.workDurationMs) != null && <TurnTimePanel
       durationMs={(answer!.item.turnDurationMs ?? answer!.item.workDurationMs)!}
       tokensPerSecond={answer!.item.tokensPerSecond}
     />}
     {answer!.item.createdAt != null && <time className="chat-actions__time" dateTime={new Date(answer!.item.createdAt).toISOString()}>{formatMessageClock(answer!.item.createdAt)}</time>}
+    {answer!.item.samplingCount !== undefined && <span>{t("chat.turnCounts", { samples: answer!.item.samplingCount, tools: answer!.item.toolCount ?? 0 })}</span>}
   </div>}
   </div>;
 }
@@ -250,9 +280,11 @@ export function ChatDetails({ source, nodeKey, loader, onClose, onNavigate }: { 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   const [selectedTab, setSelectedTab] = useState<"result" | "parameters" | "children" | "raw">("result");
+  const [visibleChildren, setVisibleChildren] = useState<number>(TOOL_RELATION_PAGE_SIZE);
   const root = useRef<HTMLElement>(null);
   const epoch = useRef(0);
   useEffect(() => { root.current?.focus(); return () => { epoch.current++; }; }, []);
+  useEffect(() => setVisibleChildren(TOOL_RELATION_PAGE_SIZE), [nodeKey]);
   const load = async () => {
     if (node?.kind !== "tool") throw new Error("Tool unavailable");
     const ticket = ++epoch.current; setBusy(true); setError(false);
@@ -304,9 +336,10 @@ export function ChatDetails({ source, nodeKey, loader, onClose, onNavigate }: { 
       {activeTab === "parameters" && <pre>{formattedArgs}</pre>}
       {activeTab === "children" && <div className="chat-details__relations">
         {node.item.parentId && source.getNodeSnapshot(node.item.parentId)?.kind === "tool" && <button className="btn" onClick={() => onNavigate(node.item.parentId!)}>← {t("chat.details.parent")}</button>}
-        {children.map(child => <button className="chat-tool" key={child.key} onClick={() => onNavigate(child.key)}>{child.item.resolvedName ?? child.item.name} · {child.item.status}</button>)}
+        {children.slice(0, visibleChildren).map(child => <button className="chat-tool" key={child.key} onClick={() => onNavigate(child.key)}>{child.item.resolvedName ?? child.item.name} · {child.item.status}</button>)}
+        {children.length > visibleChildren && <button className="btn" data-testid="tool-children-more" onClick={() => setVisibleChildren(count => count + TOOL_RELATION_PAGE_SIZE)}>{t("chat.loadMoreTools", { count: Math.min(TOOL_RELATION_PAGE_SIZE, children.length - visibleChildren) })}</button>}
       </div>}
-      {activeTab === "raw" && <pre>{full ?? preview}</pre>}
+      {activeTab === "raw" && <><pre>{full ?? preview}</pre>{source.toolAudits(node.item.id).map((audit, index) => <pre key={index}>{audit}</pre>)}</>}
     </div>
   </aside>;
 }

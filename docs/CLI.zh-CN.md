@@ -18,8 +18,8 @@ tempora --effort high
 tempora --dir /path/to/project
 ```
 
-不带子命令运行 `tempora` 会进入交互式终端界面。尚未配置 provider 时，先运行
-`tempora setup`。
+不带子命令运行 `tempora` 会进入交互式终端界面。所选连接缺少凭据时，CLI 会打开
+本地连接选择器，不会发送模型请求；认证未就绪期间仍可查看历史并使用本地命令。
 
 | 参数 | 用途 |
 | --- | --- |
@@ -33,7 +33,7 @@ tempora --dir /path/to/project
 | `--copy` | 复制要恢复的会话，并在可写副本中继续。 |
 | `--allowed-tools RULES` | 增加仅当前会话生效的权限 allow 规则；可重复传入，`--allowedTools` 是别名。 |
 | `--permission-mode MODE` | 以指定的权限姿态启动。 |
-| `--dangerously-skip-permissions` | 以“完全权限”启动；必须由用户明确选择。 |
+| `--dangerously-skip-permissions` | 已弃用的兼容参数；会保守迁移为 `workspace-write`。进入 YOLO 请用 `--permission-mode danger-full-access`。 |
 
 适用时，参数可以放在 prompt 前面或后面。
 
@@ -72,10 +72,25 @@ provider，并支持：
 不会直接覆盖。
 
 Provider 定义只保存 `api_key_env` 变量名。即使使用 `--local`，Key 的真实值也始终保存
-在 CLI 与桌面端共用的 Tempora 全局 `.env` 中。如果变量名已被其他 provider 使用，
-setup 会询问是否共享该凭据；两个 provider 使用不同 Key 时，应改用不同变量名。通过
-setup 添加或删除 provider 时，也会同步维护桌面端 provider access，因此相同模型可以
-直接在桌面端使用。
+在 CLI 与桌面端共用的 Tempora 全局 `.env` 中。新增、替换或明确清空 Key 时，Tempora
+会分配新的独立凭据槽位，并原子切换所选连接的引用；已有固定变量继续可读，只在用户编辑
+对应连接时迁移。
+
+TUI 内可用 `/setup` 打开同一连接流程，`/auth` 是别名。Key 输入会遮罩显示；按
+`Ctrl+T` 测试当前草稿连接，Enter 保存，Escape 取消。`/?` 是 `/help` 的别名。
+认证未就绪时，普通输入不会触发 provider 请求。
+
+```sh
+tempora doctor credentials
+tempora doctor credentials --json
+tempora doctor credentials --probe
+tempora doctor credentials --repair --dry-run
+tempora doctor credentials --repair
+```
+
+默认诊断只读。`--probe` 只测试临时创建和原子重命名，不替换 `.env`。修复仅限
+Tempora home 内归当前用户所有的普通文件；不会接管所有权、删除 deny 规则、向
+`Everyone` 授权、跟随链接/reparse point，也不会终止占用文件的进程。
 
 ### 配置费用展示币种
 
@@ -232,7 +247,11 @@ tempora run "运行测试" --output-format stream-json
 决定，切换展示币种不会改写价表。可用 `tempora doctor billing` 排查。
 
 执行失败时使用 `subtype: "error_during_execution"` 和 `is_error: true`。
-结构化模式会把运行时错误保留在 JSON 中，不再额外重复输出一份人类可读错误。
+结构化模式会把运行时错误保留在 JSON 中，不再额外重复输出一份人类可读错误。认证失败还会
+按需返回 `error_code`、`authentication_status` 和 `recovery_actions`；
+`--events-jsonl` 的最终 `run_done` 记录使用相同字段。例如缺少 Key 时会返回
+`missing_credential`，并列出 `configure_credentials`、`select_model`、
+`diagnose_credentials` 等恢复动作，且不会发送模型请求。
 
 完成校验器已移除。模型正常结束且没有工具调用时，当前轮次直接结束；包含工具调用时，
 继续进入工具循环；真正的空响应会在 frozen request 边界重试。旧的
@@ -368,7 +387,8 @@ tempora -p "同时更新两个项目" \
 | `Enter` | 选择当前高亮项。 |
 | `Esc` | 取消当前选择器或审批。 |
 | `y` / `a` / `p` / `n`、数字键 | 执行对应的审批动作。 |
-| `Shift+Tab` | 在当前终端支持的协作模式间循环。 |
+| `Shift+Tab` | 按“仅可查看 → 工作区内修改 → YOLO → Plan”循环。 |
+| `Ctrl+Y` | 切换 YOLO；实际设置的运行时权限为 `danger-full-access`。 |
 
 响应式底栏左侧显示当前交互状态；空间足够时，右侧显示模型和推理强度。第二行按
 可用性显示仓库与会话遥测，例如缓存命中率、上下文占用、压缩余量、后台任务和余额。
@@ -400,6 +420,7 @@ SSH 下远端进程无法读取本机剪贴板，请使用终端粘贴快捷键�
 | `/model` | 搜索已配置模型并切换当前模型。 |
 | `/provider` | 选择 provider，再选择该 provider 下的模型。 |
 | `/resume` | 搜索最近会话并切换。 |
+| `/takeover` | 从本机常驻 serve 接管上一次被拒绝的会话（或列表项）：本 CLI 成为写入方，远端观看者变为只读旁观者直至取回。桌面端取回后可直接再次接管原会话；若已无任何运行时持有该会话，则直接恢复它。 |
 | `/status` | 显示模型、effort、cache、Git、后台任务和余额信息。 |
 | `/theme [auto\|light\|dark\|style]` | 查看或切换 CLI 背景模式和强调色。 |
 | `/currency [auto\|CNY\|USD]` | 查看或切换用户全局费用展示币种，并刷新当前运行时。 |

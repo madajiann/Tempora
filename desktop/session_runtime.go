@@ -289,8 +289,13 @@ func (a *App) bindSessionRuntimeKeyLocked(tab *WorkspaceTab, path string) bool {
 		a.newSessionRuntimeLocked(tab, key)
 		return true
 	}
-	if rt.Key != "" && rt.Key != key && a.runtimeBySessionKey[rt.Key] == rt {
-		delete(a.runtimeBySessionKey, rt.Key)
+	if rt.Key != key {
+		for alias, candidate := range a.runtimeBySessionKey {
+			if candidate == rt {
+				delete(a.runtimeBySessionKey, alias)
+			}
+		}
+		a.unregisterDetachedRuntimeLocked(tab)
 	}
 	rt.Key = key
 	a.runtimeBySessionKey[key] = rt
@@ -421,9 +426,10 @@ func (a *App) claimSessionRuntime(tab *WorkspaceTab, path string, ctx context.Co
 			// populated are a compatibility edge. Attach them before claiming
 			// the key so applyRuntimeTab can publish one authoritative runtime
 			// instead of leaving behind an unused placeholder.
-			if detached := a.detachedSessions[key]; detached != nil && detached.Ctrl != nil {
+			if matched := a.liveRuntimeTabMatchingLocked(tab, path); matched != nil && matched.Ctrl != nil {
+				identity := runtimeAttachIdentity(matched, path)
 				a.mu.Unlock()
-				return a.attachExistingSessionRuntime(tab, path, a.ctx)
+				return a.attachExistingSessionRuntime(tab, identity, a.ctx)
 			}
 			a.bindSessionRuntimeKeyLocked(tab, path)
 			a.mu.Unlock()

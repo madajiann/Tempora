@@ -2,11 +2,15 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { isolatedGroups, selectPackages, testArgs } from "./windows-go-tests.mjs";
+import { windowsPRContractArgs, windowsPRContractGroups } from "./windows-pr-contract-tests.mjs";
 
 const packages = ["tempora/cmd/tempora", "tempora/internal/agent", "tempora/internal/agent/testutil",
-  "tempora/internal/agentpreset", "tempora/internal/boot", "tempora/internal/control",
+  "tempora/internal/acp", "tempora/internal/agentpreset", "tempora/internal/boot", "tempora/internal/bot", "tempora/internal/control",
   "tempora/internal/control/child", "tempora/internal/extension/sidecar", "tempora/internal/proc",
-  "tempora/internal/newpackage", "tempora/internal/winsandbox", "tempora/tools/repolint"];
+  "tempora/internal/serve", "tempora/internal/session", "tempora/internal/worktree",
+  "tempora/internal/lsp", "tempora/internal/fileops", "tempora/internal/newpackage", "tempora/internal/projectiondb",
+  "tempora/internal/sessioncatalog", "tempora/internal/sqliteuri", "tempora/internal/topicstate",
+  "tempora/internal/winaclresidue", "tempora/tools/repolint"];
 
 test("the full Windows groups cover every package exactly once, including new packages", () => {
   const grouped = ["full", ...isolatedGroups].flatMap(group => selectPackages(packages, group));
@@ -16,10 +20,17 @@ test("the full Windows groups cover every package exactly once, including new pa
 });
 
 test("PR smoke keeps platform coverage without duplicating isolated suites", () => {
-  assert.deepEqual(selectPackages(packages, "smoke"), ["tempora/cmd/tempora", "tempora/internal/extension/sidecar", "tempora/internal/proc", "tempora/internal/winsandbox"]);
+  assert.deepEqual(selectPackages(packages, "smoke"), [
+    "tempora/cmd/tempora", "tempora/internal/extension/sidecar", "tempora/internal/proc", "tempora/internal/lsp",
+    "tempora/internal/fileops",
+    "tempora/internal/projectiondb", "tempora/internal/sessioncatalog", "tempora/internal/sqliteuri",
+    "tempora/internal/topicstate", "tempora/internal/winaclresidue",
+  ]);
   for (const group of isolatedGroups) {
     assert.deepEqual(testArgs(packages, group).slice(0, 4), ["test", "-p", "1", "-timeout=8m"]);
   }
+  assert.equal(testArgs(packages, "bot")[4], "-json");
+  assert.equal(testArgs(packages, "acp").includes("-json"), false);
   assert.deepEqual(testArgs(packages, "full").slice(0, 4), ["test", "-p", "4", "-timeout=8m"]);
   assert.throws(() => testArgs(packages, "typo"), /Unknown/);
   assert.throws(() => testArgs([], "full"), /Empty/);
@@ -34,7 +45,33 @@ test("CI invokes every isolated group and both residual entrypoints", () => {
   assert.ok(isolated);
   const matrix = isolated.match(/group: \[([^\]]+)\]/)[1].split(",").map(value => value.trim());
   assert.deepEqual([...matrix, "control"].toSorted(), isolatedGroups.toSorted());
+  assert.match(isolated, /- name: test\n(?:        #.*\n)*        timeout-minutes: 15\n/);
   assert.match(isolated, /run: node scripts\/windows-go-tests\.mjs \$\{\{ matrix.group \}\}/);
   assert.match(isolated, /fail-fast: false/);
   assert.match(isolated, /actions\/setup-node@v7/);
+});
+
+test("Windows PR contract selector covers shell identity, lifecycle and cancellation regressions", () => {
+  const source = readFileSync(new URL("../.github/workflows/ci.yml", import.meta.url), "utf8");
+  assert.match(source, /run: node scripts\/windows-pr-contract-tests\.mjs/);
+  const selected = new Set(windowsPRContractGroups.flatMap(group => group.tests));
+  for (const required of [
+    "TestWorkspacePassesBashTimeout",
+    "TestBashSchemaUnchangedWithSessionTemp",
+    "TestBashUnsupportedOSSandboxUsesToolLayerPermissionBoundary",
+    "TestOSSandboxSupportedPerPlatform",
+    "TestE2EApprovalRoundTrip",
+    "TestE2ECancelMidTurn",
+    "TestBotGatewayStopWaitsForDispatchHandler",
+    "TestBotGatewayStopWaitsForTurn",
+    "TestBotGatewayStopBeforeTurnCancelPublication",
+  ]) {
+    assert.equal(selected.has(required), true, `${required} is missing from the Windows PR contract`);
+  }
+  for (const group of windowsPRContractGroups) {
+    const args = windowsPRContractArgs(group);
+    assert.equal(args.at(-1), group.package);
+    for (const name of group.tests) assert.match(args[3], new RegExp(`\\b${name}\\b`));
+  }
+  assert.deepEqual(windowsPRContractArgs(windowsPRContractGroups[0], { fullBuiltin: true }), ["test", "-timeout=5m", "./internal/tool/builtin"]);
 });

@@ -10,8 +10,8 @@ import (
 	"strings"
 	"sync"
 
-	"tempora/internal/filelock"
 	"tempora/internal/fileutil"
+	filelock "tempora/internal/identitylock"
 )
 
 // oauthRefreshGates prevent duplicate refresh requests from transports in the

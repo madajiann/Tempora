@@ -53,8 +53,8 @@ fi
 
 expected_tag="desktop-${version}"
 github_base="https://github.com/esengine/DeepSeek-Reasonix/releases/download/${expected_tag}/"
-r2_base="https://dl.reasonix.io/${expected_tag}/"
-legacy_preview_base="https://dl.reasonix.io/desktop-preview/"
+r2_base="https://dl.tempora.io/${expected_tag}/"
+legacy_preview_base="https://dl.tempora.io/desktop-preview/"
 if [ "$channel" = "legacy-preview" ] && [ "$asset_base" = "$legacy_preview_base" ]; then
 	:
 elif [ "$asset_base" != "$github_base" ] && [ "$asset_base" != "$r2_base" ]; then
@@ -82,10 +82,10 @@ jq -e \
 
 	(type == "object") and
 	(.version == $version) and
-	(.download_page == "https://reasonix.io/?download=desktop#start") and
+	(.download_page == "https://tempora.io/?download=desktop#start") and
 	(if $legacy
-		then (.release_notes_url == null or .release_notes_url == ("https://reasonix.io/changelog/" + $notes_version + "/"))
-		else (.release_notes_url == ("https://reasonix.io/changelog/" + $notes_version + "/"))
+		then (.release_notes_url == null or .release_notes_url == ("https://tempora.io/changelog/" + $notes_version + "/"))
+		else (.release_notes_url == ("https://tempora.io/changelog/" + $notes_version + "/"))
 	end) and
 	(.platforms | exact_keys([
 		"darwin-arm64",

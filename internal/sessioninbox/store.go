@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"tempora/internal/filelock"
+	filelock "tempora/internal/identitylock"
 	"tempora/internal/store"
 )
 

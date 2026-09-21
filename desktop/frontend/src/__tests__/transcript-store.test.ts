@@ -1,3 +1,4 @@
+import { FakeBackend, type RefTable } from "./helpers/transcriptFakeBackend";
 // Run: tsx src/__tests__/transcript-store.test.ts
 //
 // TranscriptStore unit tests over a fake slice backend: stable ids, page
@@ -6,15 +7,13 @@
 // refs, and the markdown cache budget.
 
 import { TranscriptStore } from "../lib/transcriptStore";
+import { verifyTranscriptContentOwnership } from "./helpers/transcriptContentOwnership";
 import { historyPageRequestBudget } from "../lib/historyPaging";
 import { historyMessagesToItems, type Item } from "../lib/useController";
 import type {
   HistoryContentChunk,
-  HistoryContentRef,
-  HistoryEntry,
   HistoryMessage,
   HistorySlice,
-  HistorySliceRequest,
 } from "../lib/types";
 
 let passed = 0;
@@ -46,115 +45,7 @@ function deferred<T>() {
 
 // ── fake slice backend ──────────────────────────────────────────────────────
 
-type RefTable = Map<string, string>; // `${entryId}:${field}` -> full content
 
-class FakeBackend {
-  sliceCalls: HistorySliceRequest[] = [];
-  contentCalls: Array<{ ref: HistoryContentRef; chunk: number }> = [];
-  sliceGate: ReturnType<typeof deferred<HistorySlice>> | undefined;
-  contentGate: ReturnType<typeof deferred<HistoryContentChunk>> | undefined;
-  staleNextCursor = false;
-  revision = 1;
-  digest = "digest-1";
-
-  constructor(
-    private readonly messages: HistoryMessage[],
-    private readonly refs: RefTable = new Map(),
-    private readonly sessionId = "s1",
-  ) {}
-
-  private entryId(index: number): string {
-    return `${this.sessionId}:r0:m${index}:o0`;
-  }
-
-  private entriesFor(lo: number, hi: number): HistoryEntry[] {
-    let turn = 0;
-    const turnsOf: number[] = [];
-    for (const message of this.messages) {
-      if (message.role === "user") turn += 1;
-      turnsOf.push(turn);
-    }
-    return this.messages.slice(lo, hi).map((message, offset) => {
-      const index = lo + offset;
-      const entryId = this.entryId(index);
-      const refs: HistoryContentRef[] = [];
-      let msg = message;
-      const full = this.refs.get(`${entryId}:content`);
-      if (full !== undefined) {
-        msg = { ...message, content: full.slice(0, 16) };
-        refs.push({ entryId, field: "content", size: full.length, chunks: 2, revision: 1, digest: "d" });
-      }
-      return { entryId, turn: turnsOf[index], order: index, message: msg, refs };
-    });
-  }
-
-  slice(lo: number, hi: number): HistorySlice {
-    const entries = this.entriesFor(lo, hi);
-    const turns = entries.map((entry) => entry.turn).filter((value) => value > 0);
-    return {
-      entries,
-      nextCursor: lo > 0 ? btoa(JSON.stringify({ v: 1, before: lo })) : "",
-      hasOlder: lo > 0,
-      totalTurns: this.messages.filter((message) => message.role === "user").length,
-      startTurn: turns.length > 0 ? Math.min(...turns) : 0,
-      endTurn: turns.length > 0 ? Math.max(...turns) : 0,
-      stale: false,
-      revision: this.revision,
-      revisionKnown: true,
-      digest: this.digest,
-    };
-  }
-
-  // Turn- and entry-budgeted windowing, mirroring the Go slice semantics for
-  // the compact stress fixtures used below.
-  async HistorySliceForTab(_tabID: string, req: HistorySliceRequest): Promise<HistorySlice> {
-    this.sliceCalls.push(req);
-    if (this.sliceGate) {
-      const gate = this.sliceGate;
-      this.sliceGate = undefined;
-      return gate.promise;
-    }
-    let before = this.messages.length;
-    if (req.cursor) {
-      if (this.staleNextCursor) return { entries: [], nextCursor: "", hasOlder: false, totalTurns: 0, startTurn: 0, endTurn: 0, stale: true, revision: this.revision, revisionKnown: true, digest: this.digest };
-      const decoded = JSON.parse(atob(req.cursor)) as { before?: number };
-      before = Math.min(before, decoded.before ?? before);
-    }
-    if (before <= 0 || this.messages.length === 0) return this.slice(0, 0);
-    let turn = 0;
-    const turnsOf: number[] = [];
-    for (const message of this.messages) {
-      if (message.role === "user") turn += 1;
-      turnsOf.push(turn);
-    }
-    const turns = Math.max(1, Math.floor(req.turns || 12));
-    const newestTurn = turnsOf[before - 1];
-    const oldestTurn = newestTurn > 0 ? Math.max(newestTurn - turns + 1, 1) : 0;
-    let lo = 0;
-    if (oldestTurn > 1) {
-      lo = before;
-      for (let i = 0; i < before; i += 1) {
-        if (turnsOf[i] >= oldestTurn) { lo = i; break; }
-      }
-    }
-    const entries = Math.max(1, Math.floor(req.entries || 120));
-    lo = Math.max(lo, before - entries);
-    return this.slice(lo, before);
-  }
-
-  async HistoryContentForTab(_tabID: string, ref: HistoryContentRef, chunkIndex: number): Promise<HistoryContentChunk> {
-    this.contentCalls.push({ ref, chunk: chunkIndex });
-    if (this.contentGate) {
-      const gate = this.contentGate;
-      this.contentGate = undefined;
-      return gate.promise;
-    }
-    const full = this.refs.get(`${ref.entryId}:${ref.field}`) ?? "";
-    const half = Math.ceil(full.length / 2);
-    const data = chunkIndex === 0 ? full.slice(0, half) : full.slice(half);
-    return { entryId: ref.entryId, field: ref.field, chunk: chunkIndex, chunks: 2, data, done: chunkIndex >= 1, stale: false };
-  }
-}
 
 // ── fixtures ────────────────────────────────────────────────────────────────
 
@@ -259,10 +150,14 @@ console.log("\ntranscript store");
 }
 
 // ── page concatenation equals single-shot conversion ────────────────────────
+// This is a conversion-fidelity property, not a residency one: paging a whole
+// transcript in must project exactly what one single-shot conversion produces.
+// The window is deliberately unbounded here so the comparison sees every page;
+// the bounded-window behaviour is covered separately below.
 {
   const messages = bigTranscript(46);
   const backend = new FakeBackend(messages);
-  const store = new TranscriptStore(backend);
+  const store = new TranscriptStore(backend, { windowMaxPages: 1_000 });
   const first = await store.loadLatest("tab-1", "/s/one.jsonl", { turns: 12 });
   ok(!!first && first.items.length > 0, "latest page projects items");
   eq(first?.hasOlder, true, "latest page reports older history");
@@ -303,13 +198,25 @@ console.log("\ntranscript store");
   eq(pages, 32, "10,000-turn target paging respects both turn and production entry bounds");
   eq(backend.sliceCalls.length, 32, "10,000-turn target paging performs the expected bounded backend calls");
   ok(backend.sliceCalls.slice(1).every((request) => request.entries === 1000), "targeted pages use the backend's bounded 1000-entry capacity");
-  eq(users.length, 10_000, "10,000-turn target paging preserves every question");
   eq(users[0]?.historyTurn, 1, "10,000-turn target paging lands on absolute turn one");
-  eq(users[users.length - 1]?.historyTurn, 10_000, "10,000-turn target paging keeps the tail coordinate");
   ok(new Set(projection?.items.map((item) => item.id)).size === projection?.items.length, "10,000-turn target paging keeps item ids unique");
   const stats = store.stats();
   ok(stats.bodyBytes <= stats.bodyBudgetBytes, "10,000-turn transcript stays within the production history body budget");
   ok(elapsedMs < 10_000, `10,000-turn targeted paging completes within 10s (${elapsedMs.toFixed(1)}ms)`);
+
+  // Reading 32 pages deep leaves a bounded window, not the whole session. The
+  // reclaimed range is reported as still-newer rather than lost, and paging
+  // forward from it restores the tail — full reachability, bounded residency.
+  ok(stats.residentWindowEntries <= stats.windowMaxPages * 1000, `window residency is bounded (${stats.residentWindowEntries} entries, max ${stats.windowMaxPages * 1000})`);
+  ok(stats.reclaimedPages > 0, "deep paging reclaimed pages instead of holding every page");
+  eq(projection?.hasNewer, true, "the reclaimed tail is reported as still newer");
+  const forward = await store.loadNewer("tab-stress", "/s/stress.jsonl", { entries: 1000 });
+  eq(forward?.kind, "append", "paging forward appends into the same window");
+  const forwardUsers = (forward?.appendItems ?? []).filter((item): item is Extract<Item, { kind: "user" }> => item.kind === "user");
+  ok(forwardUsers.length > 0, "paging forward restores newer history after a reclaim");
+  const lastForward = forwardUsers[forwardUsers.length - 1];
+  const lastExisting = users[users.length - 1];
+  ok((lastForward?.historyTurn ?? 0) > (lastExisting?.historyTurn ?? 0), "paging forward moves the window toward the live tail");
 }
 
 // ── cross-page tool call/result merge ───────────────────────────────────────
@@ -361,13 +268,61 @@ console.log("\ntranscript store");
     { entryId: "s1:r0:m2:o0", turn: 2, order: 2, message: { role: "user", content: "p2" }, refs: [] },
     { entryId: "s1:r0:m3:o0", turn: 2, order: 3, message: { role: "assistant", content: "a2" }, refs: [] },
   ]);
-  eq(appended.length, 2, "append contributes the new rows' items");
+  eq(appended?.items.length, baseIds.length + 2, "append contributes the new rows' items");
   const projection = store.peek("tab-a", "/s/a.jsonl");
   eq(JSON.stringify((projection?.items ?? []).slice(0, baseIds.length).map((item) => item.id)), JSON.stringify(baseIds), "append keeps existing item ids");
   eq(projection?.items.length, baseIds.length + 2, "append grows the projection");
 }
 
+// ── long-running live tail uses the same three-page residency budget ────────
+{
+  const backend = new FakeBackend([{ role: "user", content: "seed" }, { role: "assistant", content: "seed answer" }]);
+  const store = new TranscriptStore(backend, { windowMaxPages: 3, windowPageEntries: 4 });
+  await store.loadLatest("tab-live", "/s/live.jsonl", { turns: 12 });
+  let reclaimed = 0;
+  for (let batch = 0; batch < 8; batch += 1) {
+    const turn = batch + 2;
+    const result = store.appendEntries("tab-live", "/s/live.jsonl", [
+      { entryId: `live-u-${turn}`, turn, order: turn * 2, message: { role: "user", content: `p${turn}` }, refs: [] },
+      { entryId: `live-a-${turn}`, turn, order: turn * 2 + 1, message: { role: "assistant", content: `a${turn}` }, refs: [] },
+    ]);
+    reclaimed += result?.removeIds.length ?? 0;
+  }
+  const projection = store.peek("tab-live", "/s/live.jsonl");
+  ok((projection?.items.length ?? 0) <= 12, "live tail remains inside three four-entry pages");
+  ok(reclaimed > 0, "live append reports mounted ids reclaimed from the oldest edge");
+  ok((projection?.startTurn ?? 0) > 1, "live window advances its visible start turn after reclaim");
+  eq(projection?.endTurn, 9, "live window retains the latest settled turn");
+}
+
 // ── weighted LRU: count, pin, byte budget, re-open ──────────────────────────
+{
+  const store = new TranscriptStore(new FakeBackend([]));
+  store.installSlice("tab-aba", "/s/same.jsonl", {
+    entries: [{ entryId: "m:old", turn: 1, order: 0, message: { role: "user", content: "old generation" }, refs: [] }],
+    nextCursor: "", newerCursor: "", hasOlder: false, hasNewer: false,
+    startTurn: 1, endTurn: 1, totalTurns: 1, revision: 4, digest: "digest-v4", stale: false,
+  });
+  ok(Boolean(store.peek("tab-aba", "/s/same.jsonl", { revision: 4, digest: "digest-v4" })), "matching fingerprint serves the resident projection");
+  eq(store.peek("tab-aba", "/s/same.jsonl", { revision: 5, digest: "digest-v5" }), undefined, "same-path ABA fingerprint mismatch is a cache miss");
+}
+
+{
+  const store = new TranscriptStore(new FakeBackend([]));
+  const initial = store.installSlice("reader-v2", "/reader", {
+    entries: [{ entryId: "m:old", turn: 1, order: 0, message: { role: "user", content: "old reader page" }, refs: [] }],
+    nextCursor: "", newerCursor: "newer", hasOlder: false, hasNewer: true,
+    startTurn: 1, endTurn: 1, totalTurns: 100, revision: 1, digest: "generation", stale: false,
+  });
+  for (let sequence = 2; sequence < 130; sequence++) {
+    const updated = store.upsertEntries("reader-v2", "/reader", [{ entryId: `m:tail-${sequence}`, turn: sequence, order: sequence,
+      message: { role: "assistant", content: "committed tail" }, refs: [] }], sequence);
+    eq(updated?.items.length, initial.items.length, "distant commits do not replace or grow the reader window");
+    eq(updated?.items[0]?.id, initial.items[0]?.id, "reader anchor survives distant commits");
+  }
+  eq(store.peek("reader-v2", "/reader")?.hasNewer, true, "committed tail remains reachable by forward pagination");
+}
+
 {
   const backend = new FakeBackend([{ role: "user", content: "u" }, { role: "assistant", content: "a" }]);
   const store = new TranscriptStore(backend, { maxResidentSessions: 3 });
@@ -499,7 +454,8 @@ console.log("\ntranscript store");
 }
 
 {
-  // Content chunks arriving after a fresh load (session switch) are discarded.
+  // A content request spanning a fresh load discards the old chunk and
+  // transparently retries against the replacement generation.
   const full = "y".repeat(80);
   const refs: RefTable = new Map([["s1:r0:m1:o0:content", full]]);
   const backend = new FakeBackend(
@@ -517,11 +473,11 @@ console.log("\ntranscript store");
   // load's content request is still awaiting its chunk.
   const reload = store.loadLatest("tab-l", "/s/l.jsonl", { turns: 12 });
   staleGate.resolve({ entryId: "s1:r0:m1:o0", field: "content", chunk: 0, chunks: 2, data: "STALE", done: true, stale: false });
-  await first;
+  const resolved = await first;
   await reload;
-  await store.requestFullContent("tab-l", "s1:r0:m1:o0", "content");
-  await new Promise((resolve) => setTimeout(resolve, 0));
   const assistant = (store.peek("tab-l", "/s/l.jsonl")?.items ?? []).find((item) => item.kind === "assistant");
+  eq(resolved, full, "generation rollover retries the original request against the replacement record");
+  eq(backend.contentCalls.length, 3, "the replacement generation fetches both content chunks once");
   eq(assistant?.kind === "assistant" && assistant.text, full, "late content chunk from a previous generation is discarded");
 }
 
@@ -578,6 +534,71 @@ console.log("\ntranscript store");
   eq(compatible?.revisionKnown, true, "positive legacy slice revision implies a known canonical identity");
 }
 
+// ── canonical ownership survives ephemeral tab replacement ────────────────
+{
+  const backend = new FakeBackend([{ role: "user", content: "warm A" }, { role: "assistant", content: "answer A" }]);
+  const store = new TranscriptStore(backend);
+  const sessionA = "s\0local\0session-a\0" + "0";
+  store.noteSessionBinding("tab-a-1", "/same/path.jsonl", sessionA);
+  await store.loadLatest("tab-a-1", "/same/path.jsonl", {
+    expectedRevision: 1,
+    expectedDigest: "digest-1",
+  });
+  const callsAfterWarm = backend.sliceCalls.length;
+  store.evictTab("tab-a-1");
+
+  store.noteSessionBinding("tab-a-3", "/same/path.jsonl", sessionA);
+  const rebound = store.peek("tab-a-3", "/same/path.jsonl", {
+    revision: 1,
+    digest: "digest-1",
+  });
+  eq(rebound?.items.find(item => item.kind === "user")?.id, "he:s1:r0:m0:o0", "new tab id reuses the stable session resident projection");
+  eq(backend.sliceCalls.length, callsAfterWarm, "stable session rebind paints without a full history read");
+  eq(store.residentSessionCount(), 1, "stable rebind does not duplicate the resident session");
+  eq(store.peek("tab-a-1", "/same/path.jsonl"), undefined, "old tab binding cannot address the rebound resident session");
+
+  const staleFollowerAppend = store.appendEntries("tab-a-1", "/same/path.jsonl", [{
+    entryId: "old:follower", turn: 2, order: 2, message: { role: "user", content: "late" }, refs: [],
+  }]);
+  eq(staleFollowerAppend, undefined, "old follower events are fenced after the tab rebind");
+
+  backend.revision = 2;
+  backend.digest = "digest-2";
+  const refreshed = await store.loadLatest("tab-a-3", "/same/path.jsonl", {
+    preferResident: true,
+    expectedRevision: 2,
+    expectedDigest: "digest-2",
+  });
+  eq(backend.sliceCalls.length, callsAfterWarm + 1, "changed canonical fingerprint reloads after a stable rebind");
+  eq(refreshed?.digest, "digest-2", "rebound session installs the new canonical fingerprint");
+
+  store.evictTab("tab-a-3");
+  store.noteSessionBinding("tab-b", "/same/path.jsonl", "s\0local\0session-b\0" + "0");
+  eq(store.peek("tab-b", "/same/path.jsonl", { revision: 2, digest: "digest-2" }), undefined, "same path with a different SessionID never reuses the resident projection");
+  eq(store.peek("tab-b", "/same/path.jsonl", {}), undefined, "missing canonical fingerprint cannot manufacture a warm hit");
+}
+
+// A lazy body request belongs to the tab binding that started it, not merely
+// to the stable resident object retained for the next tab.
+{
+  const full = "canonical body ".repeat(16);
+  const refs = new Map<string, string>([["s1:r0:m0:o0:content", full]]);
+  const backend = new FakeBackend([{ role: "assistant", content: full }], refs);
+  const store = new TranscriptStore(backend);
+  const stable = "s\0local\0session-content\0" + "0";
+  store.noteSessionBinding("content-old", "/content.jsonl", stable);
+  await store.loadLatest("content-old", "/content.jsonl");
+  const contentGate = deferred<HistoryContentChunk>();
+  backend.contentGate = contentGate;
+  const pending = store.requestFullContent("content-old", "s1:r0:m0:o0", "content");
+  store.evictTab("content-old");
+  store.noteSessionBinding("content-new", "/content.jsonl", stable);
+  contentGate.resolve({
+    entryId: "s1:r0:m0:o0", field: "content", chunk: 0, chunks: 2, data: full, done: true, stale: false,
+  });
+  eq(await pending, undefined, "late lazy content from the old tab is discarded after canonical rebind");
+}
+
 // Legacy tool references are call-specific and never expand hidden siblings or
 // retain fetched full bodies in the controller's contribution map.
 {
@@ -612,5 +633,67 @@ console.log("\ntranscript store");
   eq(store.peek("legacy", "/legacy")?.items.find(candidate => candidate.id === "one"), item, "full details leave the preview Item unchanged");
 }
 
-console.log(`\n${passed} passed, ${failed} failed`);
+// ── reclaiming a page never strands a tool result ──────────────────────────
+// A result row whose call was reclaimed names a call the reader can no longer
+// see. Pages here are 2 messages wide over 3-message turns, so page boundaries
+// fall between a call and its result and the reclaim has to widen past it.
+{
+  const messages: HistoryMessage[] = [];
+  for (let i = 0; i < 12; i += 1) {
+    messages.push({ role: "user", content: `q${i}` });
+    messages.push({ role: "assistant", content: "", toolCalls: [{ id: `call-${i}`, name: "bash", arguments: `run ${i}` }] });
+    messages.push({ role: "tool", toolCallId: `call-${i}`, toolName: "bash", content: `out ${i}` });
+  }
+  const backend = new FakeBackend(messages);
+  const store = new TranscriptStore(backend, { windowMaxPages: 2 });
+  const residentIds = () => new Set((store.peek("tab-tool", "/s/tool.jsonl")?.items ?? []).map((item) => item.id));
+
+  // Page back to the head. Page [0,2) holds turn 0's call; the page after it
+  // starts with that call's result, so the boundary splits the pair.
+  await store.loadLatest("tab-tool", "/s/tool.jsonl", { entries: 2 });
+  for (let page = 0; page < 40; page += 1) {
+    if (!await store.loadOlder("tab-tool", "/s/tool.jsonl", { entries: 2 })) break;
+  }
+  const atHead = residentIds();
+  ok(atHead.size > 0, "paging reaches the head of the transcript");
+
+  // Growing forward reclaims the head page. The result that belonged to a call
+  // on that page has to go with it, or the reader keeps an output row whose
+  // call is no longer on screen.
+  const newer = await store.loadNewer("tab-tool", "/s/tool.jsonl", { entries: 2 });
+  ok(newer?.kind === "append", "paging forward appends after reaching the head");
+  ok(store.stats().reclaimedPages > 0, "growing forward reclaimed a page");
+  const afterReclaim = residentIds();
+  for (const id of atHead) {
+    if (!/^call-\d+$/.test(id)) continue;
+    ok(!afterReclaim.has(id), `reclaimed call ${id} did not leave its result behind`);
+  }
+  ok(store.stats().residentWindowEntries <= 2 * 2, "the window stayed at its page budget");
+}
+
+// A completed result may live outside the resident page. Its locator supplies
+// execution evidence, while the body is fetched only when explicitly expanded.
+{
+ const output = "跨页结果✓".repeat(30);
+ const bytes = new TextEncoder().encode(JSON.stringify({content:output,tool_execution:{state:"completed"}}));
+ const backend = new FakeBackend([{role:"assistant",content:"",toolCalls:[{id:"detached",name:"bash",arguments:"{}",resultObservation:{state:"completed",messageId:"outside",version:1,contentRef:{digest:"detached-digest",bytes:bytes.length,indexDigest:"",mediaType:"application/json"}}}]}]);
+ backend.HistoryContentForTab = async (_,ref) => ({entryId:ref.entryId,field:ref.field,chunk:0,chunks:1,data:Array.from(bytes,b=>String.fromCharCode(b)).join(""),done:true,stale:false});
+ const store = new TranscriptStore(backend,{windowMaxPages:1});
+ const view = await store.loadLatest("detached-tab","/detached");
+ const item=view?.items.find((item):item is Extract<Item,{kind:"tool"}>=>item.kind==="tool");
+ if(!item) throw new Error("detached tool missing");
+ eq(item.status,"done","cross-page completion is authoritative");
+ eq(item.contentState,"unloaded","body is separately unloaded");
+ const before=store.stats().residentWindowEntries;
+ const loaded=JSON.parse((await store.requestToolContent("detached-tab",item,{}))!);
+ eq(loaded.output,output,"detached UTF-8 output is complete");
+ eq(store.stats().residentWindowEntries,before,"detached results do not grow the resident window");
+ backend.HistoryContentForTab=async()=>{throw new Error("unreadable result")};
+ let failed=false;try{await store.requestToolContent("detached-tab",item,{})}catch{failed=true}
+ ok(failed,"unreadable content remains an error");
+ eq(item.status,"done","read failure does not turn completion into cancellation");
+}
+
+await verifyTranscriptContentOwnership();
+console.log(`\n${passed} passed, ${failed} failed; content ownership interleavings passed`);
 if (failed > 0) process.exit(1);

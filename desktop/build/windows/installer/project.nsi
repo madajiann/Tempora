@@ -302,6 +302,11 @@ ShowInstDetails show # This will always show the installation details.
 !macroend
 
 Function .onInit
+   !ifdef ARG_TEMPORA_UNINSTALLER_ONLY
+   ; This compiler artifact exists only to extract the shared uninstaller.
+   ; It is never an installable or publishable product.
+   Quit
+   !endif
    !insertmacro tempora.checkArchitecture
 
    ; The helper passes /TEMPORAUPDATE=1 and a final /D=<current directory>.
@@ -600,7 +605,11 @@ tempora_layout_activated:
     ; Keep both target and icon on the stable launcher. Pointing IconLocation at
     ; versions\vX\tempora-desktop.exe leaves a blank shortcut as soon as version
     ; retention removes that directory after a later update.
+    ; Preserve user arguments, icons and working directories on existing links;
+    ; the owned-link repair below migrates their targets without replacing them.
+    IfFileExists "$SMPROGRAMS\${INFO_PRODUCTNAME}.lnk" +2 0
     CreateShortcut "$SMPROGRAMS\${INFO_PRODUCTNAME}.lnk" "$INSTDIR\${TEMPORA_LAUNCHER}" "" "$INSTDIR\${TEMPORA_LAUNCHER}" 0
+    IfFileExists "$DESKTOP\${INFO_PRODUCTNAME}.lnk" +2 0
     CreateShortCut "$DESKTOP\${INFO_PRODUCTNAME}.lnk" "$INSTDIR\${TEMPORA_LAUNCHER}" "" "$INSTDIR\${TEMPORA_LAUNCHER}" 0
     ; Stamp the exact paths created in this shell context before the user can pin them.
     nsExec::ExecToLog /OEM '"$INSTDIR\${TEMPORA_LAUNCHER}" --repair-shortcuts "$SMPROGRAMS\${INFO_PRODUCTNAME}.lnk" "$DESKTOP\${INFO_PRODUCTNAME}.lnk"'

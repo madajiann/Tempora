@@ -33,6 +33,7 @@ func reviewRuntime(t *testing.T) (*Service, *Runtime) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), CreateOptions{SessionID: "review"})
 	if err != nil {
 		t.Fatal(err)
@@ -123,11 +124,7 @@ func TestDirectoryOwnershipExcludesWriterDuringRename(t *testing.T) {
 
 func TestCancelReceiptDoesNotWaitForSessionProjection(t *testing.T) {
 	service, runtime := reviewRuntime(t)
-	ctx, activity, err := runtime.BeginOwnedActivity(t.Context(), "model")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { activity.Finish(nil) })
+	ctx, _ := bindTestExecution(t, runtime, "model")
 	store := runtime.Session().Handle().(*Store)
 	store.mu.Lock()
 	defer store.mu.Unlock()
@@ -145,11 +142,7 @@ func TestCancelReceiptDoesNotWaitForSessionProjection(t *testing.T) {
 
 func TestCancelSignalsWithoutRuntimeMutex(t *testing.T) {
 	service, runtime := reviewRuntime(t)
-	ctx, activity, err := runtime.BeginOwnedActivity(t.Context(), "model")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { activity.Finish(nil) })
+	ctx, _ := bindTestExecution(t, runtime, "model")
 
 	runtime.mu.Lock()
 	done := make(chan CancelReceipt, 1)
@@ -256,6 +249,7 @@ func TestOldRuntimeDisposerCannotCloseSuccessor(t *testing.T) {
 
 func TestClientBindingOwnsDetachButNotRuntimeClose(t *testing.T) {
 	service, runtime := reviewRuntime(t)
+	service.idleTTL = 20 * time.Millisecond
 	first, err := service.Bind(runtime)
 	if err != nil {
 		t.Fatal(err)
@@ -276,21 +270,68 @@ func TestClientBindingOwnsDetachButNotRuntimeClose(t *testing.T) {
 	if err := second.Release(t.Context()); err != nil {
 		t.Fatal(err)
 	}
-	if _, ok := service.Runtime(runtime.Ref()); ok {
-		t.Fatal("idle runtime remained published after its final client detached")
+	if got, ok := service.Runtime(runtime.Ref()); !ok || got != runtime {
+		t.Fatal("idle runtime was not retained for quick rebinding")
 	}
+	deadline := time.Now().Add(time.Second)
+	for time.Now().Before(deadline) {
+		if _, ok := service.Runtime(runtime.Ref()); !ok {
+			return
+		}
+		time.Sleep(time.Millisecond)
+	}
+	t.Fatal("idle runtime remained published after its retention period")
+}
+
+func TestIdleRuntimeCacheBudgetRetiresLeastRecentlyUsedRuntime(t *testing.T) {
+	service, first := reviewRuntime(t)
+	service.idleTTL = time.Hour
+	service.idleBudget = 64 << 10
+	firstBinding, err := service.Bind(first)
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := service.Create(t.Context(), CreateOptions{SessionID: "budget-second"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		for _, ref := range []SessionRef{first.Ref(), second.Ref()} {
+			if _, live := service.Runtime(ref); live {
+				_ = service.Close(context.Background(), ref)
+			}
+		}
+	})
+	secondBinding, err := service.Bind(second)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := firstBinding.Release(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+	if err := secondBinding.Release(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+	deadline := time.Now().Add(time.Second)
+	for time.Now().Before(deadline) {
+		_, firstLive := service.Runtime(first.Ref())
+		_, secondLive := service.Runtime(second.Ref())
+		if !firstLive && secondLive {
+			return
+		}
+		time.Sleep(time.Millisecond)
+	}
+	t.Fatal("idle cache budget did not retire the least recently used runtime")
 }
 
 func TestLastClientDetachDoesNotCancelActiveRuntime(t *testing.T) {
 	service, runtime := reviewRuntime(t)
+	service.idleTTL = 20 * time.Millisecond
 	binding, err := service.Bind(runtime)
 	if err != nil {
 		t.Fatal(err)
 	}
-	ctx, activity, err := runtime.BeginOwnedActivity(t.Context(), "model")
-	if err != nil {
-		t.Fatal(err)
-	}
+	ctx, exec := bindTestExecution(t, runtime, "model")
 	if err := binding.Release(t.Context()); err != nil {
 		t.Fatal(err)
 	}
@@ -300,10 +341,18 @@ func TestLastClientDetachDoesNotCancelActiveRuntime(t *testing.T) {
 	if got, ok := service.Runtime(runtime.Ref()); !ok || got != runtime {
 		t.Fatal("active runtime retired when its last client detached")
 	}
-	activity.Finish(nil)
-	if _, ok := service.Runtime(runtime.Ref()); ok {
-		t.Fatal("unbound runtime did not retire after its activity finished")
+	exec.Finish()
+	if _, ok := service.Runtime(runtime.Ref()); !ok {
+		t.Fatal("completed runtime was not retained for quick rebinding")
 	}
+	deadline := time.Now().Add(time.Second)
+	for time.Now().Before(deadline) {
+		if _, ok := service.Runtime(runtime.Ref()); !ok {
+			return
+		}
+		time.Sleep(time.Millisecond)
+	}
+	t.Fatal("unbound runtime did not retire after its retention period")
 }
 
 func TestOwnerCloseFencesConcurrentClientBinding(t *testing.T) {
@@ -397,11 +446,9 @@ func TestRewindBeforeFirstTurnPreservesInitialization(t *testing.T) {
 
 func TestFinishedActivityCancelsItsContext(t *testing.T) {
 	_, runtime := reviewRuntime(t)
-	ctx, activity, err := runtime.BeginOwnedActivity(t.Context(), "model")
-	if err != nil {
-		t.Fatal(err)
-	}
-	activity.Finish(nil)
+	ctx, exec := bindTestExecution(t, runtime, "model")
+	exec.cancel()
+	exec.Finish()
 	if !errors.Is(ctx.Err(), context.Canceled) {
 		t.Fatal("finished activity retains live cancellation context")
 	}

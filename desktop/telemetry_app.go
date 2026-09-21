@@ -14,14 +14,17 @@ import (
 	"time"
 
 	"tempora/internal/config"
-	"tempora/internal/filelock"
 	"tempora/internal/fileutil"
+	filelock "tempora/internal/identitylock"
 )
 
 // telemetry_app.go is the anonymous launch ping: one POST per app start carrying a
 // random install id, version, and OS facts — never conversation, key, or file data.
 // Gated on config desktop.telemetry (default on) and skipped entirely in dev builds.
 
+// Tempora fork: telemetry endpoint intentionally empty — no launch ping leaves
+// the app. Upstream wires crash.reasonix.io here; we keep the code path but
+// send nothing (postStartupPing no-ops on empty endpoint).
 var pingEndpoint = ""
 
 // desktopRendererEngine is the one renderer the desktop ships now: the
@@ -107,9 +110,6 @@ func (a *App) sendStartupPing() {
 }
 
 func postStartupPing(ctx context.Context, c *http.Client, endpoint string, p startupPing) error {
-	if endpoint == "" {
-		return nil
-	}
 	body, err := json.Marshal(p)
 	if err != nil {
 		return err

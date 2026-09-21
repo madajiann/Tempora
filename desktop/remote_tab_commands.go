@@ -1,10 +1,12 @@
 package main
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -106,6 +108,59 @@ func (a *App) resumeRemoteTabSessionPathForSelection(tabID, name, sessionPath, s
 	return a.resumeRemoteTabSessionPathForOpenSelection(tabID, name, sessionPath, sessionTitle, selectionRevision, nil)
 }
 
+// remoteTabResumeAdmission carries the bridge a resume may use and the route
+// it restores on failure. admitted=false means the locked pre-check already
+// answered the request and the caller returns answer unchanged.
+type remoteTabResumeAdmission struct {
+	admitted           bool
+	answer             bool
+	client             *http.Client
+	base               string
+	gen                uint64
+	requestedSessionID string
+	failureRoute       remoteTabProvisionalResume
+}
+
+// admitRemoteTabResume fences a resume against a newer selection and decides
+// whether the tab's bridge can carry it now.
+func (a *App) admitRemoteTabResume(tabID string, tab *remoteTab, name, sessionPath, sessionTitle string,
+	selectionRevision uint64, previous *remoteTabOpenSelection) remoteTabResumeAdmission {
+	a.remoteTabMu.Lock()
+	defer a.remoteTabMu.Unlock()
+	if a.remoteTabs[tabID] != tab || (selectionRevision != 0 && tab.selectionRevision != selectionRevision) {
+		return remoteTabResumeAdmission{answer: true}
+	}
+	if tab.client == nil || tab.state != "ready" {
+		if tab.state != "connecting" && tab.state != "reconnecting" {
+			return remoteTabResumeAdmission{}
+		}
+		// Always defer the selection while connecting: the first click after a
+		// fresh desktop start has selectionRevision 0, which once fell through
+		// to a refusal and silently dropped the click while the tunnel came up.
+		requeueRemoteTabOpenSelectionLocked(tab, &remoteTabPendingOpenSelection{
+			name: strings.TrimSpace(name), sessionID: strings.TrimSpace(tab.session.sessionID), path: strings.TrimSpace(sessionPath), title: strings.TrimSpace(sessionTitle),
+			revision: selectionRevision, deferred: true, identityCommitted: true, previous: previous,
+		})
+		return remoteTabResumeAdmission{answer: true}
+	}
+	consumeQueuedRemoteTabOpenSelectionLocked(tab, selectionRevision)
+	admission := remoteTabResumeAdmission{
+		admitted: true, answer: true,
+		client: tab.client, base: tab.base, gen: tab.gen,
+		failureRoute: remoteTabProvisionalResume{
+			targetPath: tab.routing.currentPath, pathRevision: tab.routing.pathRevision,
+			selectionRevision: tab.selectionRevision, previousSelection: previous,
+		},
+	}
+	if strings.TrimSpace(sessionPath) == "" && strings.TrimSpace(tab.session.name) == strings.TrimSpace(name) {
+		// Canonical rows have no legacy path: carry the committed ID into
+		// /resume instead of resolving a display token through the listing.
+		// A synthetic identity row's name is empty; the ID still identifies it.
+		admission.requestedSessionID = strings.TrimSpace(tab.session.sessionID)
+	}
+	return admission
+}
+
 func (a *App) resumeRemoteTabSessionPathForOpenSelection(tabID, name, sessionPath, sessionTitle string, selectionRevision uint64, previous *remoteTabOpenSelection) bool {
 	a.remoteTabMu.Lock()
 	tab := a.remoteTabs[tabID]
@@ -115,40 +170,20 @@ func (a *App) resumeRemoteTabSessionPathForOpenSelection(tabID, name, sessionPat
 	}
 	tab.sessionMu.Lock()
 	defer tab.sessionMu.Unlock()
-	a.remoteTabMu.Lock()
-	if a.remoteTabs[tabID] != tab || (selectionRevision != 0 && tab.selectionRevision != selectionRevision) {
-		a.remoteTabMu.Unlock()
-		return true
+	admission := a.admitRemoteTabResume(tabID, tab, name, sessionPath, sessionTitle, selectionRevision, previous)
+	if !admission.admitted {
+		return admission.answer
 	}
-	if tab.client == nil || tab.state != "ready" {
-		if tab.state == "connecting" || tab.state == "reconnecting" {
-			// Always defer the selection while connecting: the first click
-			// after a fresh desktop start has selectionRevision 0, which
-			// previously fell through to "return false" — the user's click
-			// was silently dropped because the SSH tunnel wasn't ready yet.
-			requeueRemoteTabOpenSelectionLocked(tab, &remoteTabPendingOpenSelection{
-				name: strings.TrimSpace(name), path: strings.TrimSpace(sessionPath), title: strings.TrimSpace(sessionTitle),
-				revision: selectionRevision, deferred: true, identityCommitted: true, previous: previous,
-			})
-			a.remoteTabMu.Unlock()
-			return true
-		}
-		a.remoteTabMu.Unlock()
-		return false
-	}
-	consumeQueuedRemoteTabOpenSelectionLocked(tab, selectionRevision)
-	client, base, gen := tab.client, tab.base, tab.gen
-	failureRoute := remoteTabProvisionalResume{
-		targetPath: tab.routing.currentPath, pathRevision: tab.routing.pathRevision,
-		selectionRevision: tab.selectionRevision, previousSelection: previous,
-	}
-	a.remoteTabMu.Unlock()
+	client, base, gen := admission.client, admission.base, admission.gen
+	requestedSessionID, failureRoute := admission.requestedSessionID, admission.failureRoute
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	var target serveSessionEntry
 	if sessionPath != "" {
 		target = serveSessionEntry{Name: strings.TrimSpace(name), Path: strings.TrimSpace(sessionPath), Title: strings.TrimSpace(sessionTitle)}
+	} else if requestedSessionID != "" {
+		target = serveSessionEntry{Name: strings.TrimSpace(name), SessionID: requestedSessionID, Title: strings.TrimSpace(sessionTitle)}
 	} else {
 		entries, err := serveSessions(ctx, client, base)
 		if err != nil {
@@ -162,7 +197,10 @@ func (a *App) resumeRemoteTabSessionPathForOpenSelection(tabID, name, sessionPat
 		}
 	}
 	if targetRoute := remoteSessionRoute(target); targetRoute != "" {
-		body, _ := json.Marshal(map[string]string{"path": target.Path, "hostId": target.HostID, "sessionId": target.SessionID})
+		body, err := remoteSessionResumeBody(target)
+		if err != nil {
+			return a.completeRemoteTabResumeFailure(tabID, tab, client, gen, failureRoute, err.Error())
+		}
 		// /resume may reattach a controller already producing frames. Route them
 		// before the request returns so the all-session pump does not discard its
 		// handoff output or prompt replay as background work.
@@ -207,11 +245,13 @@ func (a *App) resumeRemoteTabSessionPathForOpenSelection(tabID, name, sessionPat
 			if mounted.SessionID != "" {
 				target.SessionID = mounted.SessionID
 			}
-			target.TakenOver = strings.TrimSpace(mounted.Path) != ""
+			target.TakenOver = mounted.TakenOver || strings.TrimSpace(mounted.Path) != ""
 		}
 		title := strings.TrimSpace(target.Title)
 		if title == "" {
-			title = name
+			// An ID-only target carries no display text; stay labelled until
+			// the title refresh learns the generated one.
+			title = cmp.Or(name, remoteWorkspaceName(tab.ref.Workspace))
 		}
 		if !a.commitAndPublishRemoteTabResume(tabID, tab, client, gen, route, target, title) {
 			// A newer route won the publication fence; never restore the older
@@ -249,7 +289,10 @@ func (a *App) DeleteRemoteProjectSession(hostID, workspace, name string) error {
 	defer done()
 	ctx, cancel := commandContext(a)
 	defer cancel()
-	body, _ := json.Marshal(map[string]string{"name": name})
+	// Keep the legacy basename for older Serve builds, but also send the
+	// immutable identity. Canonical sessions live under sessions-v4/<id>/ and
+	// cannot be removed by the old name.jsonl-only endpoint.
+	body, _ := json.Marshal(map[string]string{"name": name, "sessionId": strings.TrimSpace(name)})
 	return servePost(ctx, client, serveURL(base, "/delete-session"), body)
 }
 
@@ -283,6 +326,40 @@ func (a *App) remoteTabPost(tabID, path string, body map[string]any) error {
 		cancel()
 		return err
 	}
+}
+
+// remoteTabPostJSON posts a command through the same capability gate, session
+// fence, and admission check as remoteTabPost, and additionally decodes the
+// reply. Commands that return a new identity need the body; remoteTabPost
+// discards it.
+func (a *App) remoteTabPostJSON(tabID, path string, body map[string]any, out any) error {
+	if err := a.requireRemoteExecutionProtocol(tabID); err != nil {
+		return err
+	}
+	client, base, expectedPath, err := a.remoteTabCommandTarget(tabID)
+	if err != nil {
+		return err
+	}
+	ctx, cancel := commandContext(a)
+	defer cancel()
+	payload, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+	url := serveURL(base, path)
+	resp, err := serveDoForSession(ctx, client, http.MethodPost, url, payload, expectedPath)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	data, _ := io.ReadAll(io.LimitReader(resp.Body, serveSnapshotMaxBytes+1))
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return &serveHTTPStatusError{url: url, statusCode: resp.StatusCode, message: strings.TrimSpace(string(data))}
+	}
+	if err := json.Unmarshal(data, out); err != nil {
+		return fmt.Errorf("decode %s: %w", path, err)
+	}
+	return nil
 }
 
 func (a *App) remoteTabGet(tabID, path string) (json.RawMessage, error) {
@@ -536,7 +613,8 @@ func (a *App) refreshRemoteTabTitle(tabID string) {
 		return
 	}
 	for _, entry := range entries {
-		if !entry.Current || expectedPath != "" && strings.TrimSpace(entry.Path) != strings.TrimSpace(expectedPath) {
+		entryRoute := remoteSessionIdentityRoute(strings.TrimSpace(entry.Path), strings.TrimSpace(entry.SessionID))
+		if !entry.Current || expectedPath != "" && entryRoute != strings.TrimSpace(expectedPath) {
 			continue
 		}
 		entry.Name = strings.TrimSpace(entry.Name)

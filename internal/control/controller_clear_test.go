@@ -6,13 +6,14 @@ import (
 
 	"tempora/internal/agent"
 	"tempora/internal/event"
+	"tempora/internal/session"
 )
 
 func TestClearSessionRefusesWhileTurnRuns(t *testing.T) {
 	exec := agent.New(nil, nil, agent.NewSession("sys"), agent.Options{}, event.Discard)
 	c := newOwnedTestController(t, Options{Executor: exec})
 	c.mu.Lock()
-	c.running = true
+	c.turns.phase = session.RuntimeRunning
 	c.mu.Unlock()
 
 	err := c.ClearSession()

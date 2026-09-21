@@ -41,9 +41,6 @@ export function UpdateBanner({
 
   useEffect(() => {
     if (!enabled) return;
-    // refresh() (not check()): refresh is busy-guarded, so a remount of this
-    // banner (settings round-trip, screen swap) can never supersede an active
-    // download and orphan its progress UI. A fresh boot still checks (idle).
     void refresh();
   }, [enabled, refresh]);
 

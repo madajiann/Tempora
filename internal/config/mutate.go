@@ -15,7 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"tempora/internal/filelock"
+	filelock "tempora/internal/identitylock"
 )
 
 // userEditMu serializes in-process read-modify-write cycles. The public lock

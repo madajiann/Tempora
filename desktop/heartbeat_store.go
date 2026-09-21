@@ -12,8 +12,8 @@ import (
 	"sort"
 	"time"
 
-	"tempora/internal/filelock"
 	"tempora/internal/fileutil"
+	filelock "tempora/internal/identitylock"
 )
 
 func (e *HeartbeatEngine) readConfigSnapshot() (heartbeatConfigSnapshot, error) {

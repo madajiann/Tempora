@@ -265,11 +265,38 @@ seconds of inactivity.
   reclaims the session automatically, and an explicit reclaim is always
   possible. The desktop remote tab enters spectator mode and shows a reclaim
   banner.
+- **Final-format identities**: sessions-v4 sessions hand over through their
+  writer lock rather than the legacy lease. `/takeover` in the CLI (or a
+  local window's startup resume) asks every resident serve to release the
+  identity, then the CLI mirrors its frames while the desktop tab watches
+  read-only. **Take back** (`/reclaim`) returns ownership; the CLI stays
+  alive on the reclaimed conversation and can `/takeover` the same session
+  back directly or `/resume` elsewhere. Serve discovery ignores state files
+  whose recorded process is gone.
+- **History before activation**: the identity-addressed history endpoints
+  (`/session-history/*` and `/session/open`) answer for any session stored
+  on the serve, not just the bound foreground — persisted history is a cold
+  read that needs no runtime. A desktop remote tab therefore renders the
+  stored transcript while `POST /resume` is still activating the session;
+  the live Follow v2 stream replaces the baseline once the runtime is ready.
+  The live `/transcript/*` protocol still requires the owning runtime and
+  keeps answering 409 otherwise.
 - The desktop project tree lists the workspace's remote sessions. Selecting a
   row resumes that exact session in the shared transcript and composer
   surface; a running turn keeps executing remotely with its state shown in
   the tree. The desktop holds the SSH tunnel and never mixes local
   conversation sessions into the remote tab.
+- **Forking a completed turn**: `GET /fork-targets` lists the foreground
+  session's turns with the reason each one is or is not forkable, and
+  `POST /fork-session` creates an independent child session from one of them
+  without switching the foreground session, moving the lease, or interrupting a
+  running turn. Desktop uses this path when the server advertises
+  `session-fork-targets-v1`; without that capability the tab reports the server
+  as unsupported rather than falling back to `/fork`, which switches the parent.
+  Both requests carry an expected-session header. The read returns the
+  authoritative `source`; creation submits `sourceSessionId`, stable `turnId`,
+  the atomic commit's `boundarySequence`, and a required `operationId`.
+  Refusals use structured `code`, `reason`, and `message` JSON fields.
 
 The following screenshots show both ends of a handoff. First, the Tempora
 window running locally on the remote host confirms taking over an idle

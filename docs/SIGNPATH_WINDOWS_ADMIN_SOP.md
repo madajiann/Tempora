@@ -58,8 +58,8 @@ SignPath 权限说明：
 
 截至 2026-07-25 的线上核对结果：
 
-- SignPath 组织：`DeepSeek-Reasonix [OSS]`
-- SignPath 项目：`DeepSeek-Reasonix`
+- SignPath 组织：`DeepSeek-Tempora [OSS]`
+- SignPath 项目：`DeepSeek-Tempora`
 - 项目状态：`VALID`
 - Repository URL：
   `https://github.com/esengine/DeepSeek-Reasonix.git`
@@ -88,7 +88,7 @@ SignPath 权限说明：
 
 1. 登录 SignPath。
 2. 进入 `Projects`。
-3. 打开 `DeepSeek-Reasonix`。
+3. 打开 `DeepSeek-Tempora`。
 4. 进入项目编辑或项目权限设置。
 5. 在 `Configurators` 中添加负责维护签名配置的用户或用户组。
 6. 保存。
@@ -106,11 +106,11 @@ SignPath 权限说明：
 - 仓库路径：
   `.signpath/artifact-configurations/windows-payload.xml`
 - 固定版本：
-  [windows-payload.xml@fe354e5](https://github.com/SivanCola/DeepSeek-Reasonix/blob/fe354e59a9a076930403b7d8aefb0bcd0b4e182a/.signpath/artifact-configurations/windows-payload.xml)
+  [windows-payload.xml@fe354e5](https://github.com/SivanCola/DeepSeek-Tempora/blob/fe354e59a9a076930403b7d8aefb0bcd0b4e182a/.signpath/artifact-configurations/windows-payload.xml)
 
 ### 5.2 导入步骤
 
-1. SignPath → `Projects` → `DeepSeek-Reasonix`。
+1. SignPath → `Projects` → `DeepSeek-Tempora`。
 2. 找到 `Artifact Configurations`。
 3. 点击 `Add`。
 4. 选择 `Custom`。
@@ -159,7 +159,7 @@ GitHub `upload-artifact` 提交给 SignPath 的产物是 ZIP，因此配置根�
 - 仓库路径：
   `.signpath/artifact-configurations/windows-installer-v2.xml`
 - 固定版本：
-  [windows-installer-v2.xml@fe354e5](https://github.com/SivanCola/DeepSeek-Reasonix/blob/fe354e59a9a076930403b7d8aefb0bcd0b4e182a/.signpath/artifact-configurations/windows-installer-v2.xml)
+  [windows-installer-v2.xml@fe354e5](https://github.com/SivanCola/DeepSeek-Tempora/blob/fe354e59a9a076930403b7d8aefb0bcd0b4e182a/.signpath/artifact-configurations/windows-installer-v2.xml)
 
 ### 6.2 导入步骤
 

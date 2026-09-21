@@ -1,11 +1,13 @@
-import { lazy, Suspense, useSyncExternalStore, type ComponentProps, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
+import { lazy, Suspense, useState, type ComponentProps, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
+import type { DockNavigation } from "./dockNavigation";
+import type { FileNavigationOwner } from "../lib/fileNavigationOwner";
+import { fileNavigationOwner } from "../lib/fileNavigationCommands";
 import type { Translator } from "../lib/i18n";
 import type { RightDockMode } from "../store/layout";
 import type { TabItem } from "../store/activityBar";
 import { useActivityBarStore } from "../store/activityBar";
 import { readWorkspaceTreeMemory, workspaceViewMemoryKey } from "../lib/workspaceViewMemory";
 import { useDockViewRequests } from "./useDockViewRequests";
-import { presentedFileRequestSnapshot, subscribePresentedFileRequest } from "../lib/presentedFileNavigation";
 
 // The tab strip, its drag state machine and the add menu are a deferred
 // surface: the dock is closed on most launches, so keep them out of the
@@ -24,10 +26,12 @@ const WorkspacePanel = lazy(async () => {
 });
 
 export type WorkspaceDockRegionProps = {
+  navigation?: DockNavigation;
+  /** Navigation state each dock instance reads; the runtime passes the one it holds. */
+  fileNavigation?: FileNavigationOwner;
   visible: boolean;
   overlay: boolean;
   mode: RightDockMode;
-  creation: boolean;
   showContext: boolean;
   t: Translator;
   /** Opens (or activates) the dock view a tab-picker entry stands for. */
@@ -47,36 +51,32 @@ export type WorkspaceDockRegionProps = {
   };
 };
 
-/** Shared workbench/creation dock; layout variants change data, not component identity. */
+/** The right-hand dock shared by every workspace tab. */
 export function WorkspaceDockRegion(props: WorkspaceDockRegionProps) {
-  const { visible, overlay, mode, creation, showContext, t } = props;
+  const { visible, overlay, mode, showContext, t } = props;
   const firstFileTabId = useActivityBarStore(state => state.tabs.find(tab => tab.type === "file")?.id);
   const loadedRoot = useActivityBarStore(state => state.workspaceRoot);
   const activeTabId = useActivityBarStore(state => state.activeTabId);
+  const tabs = useActivityBarStore(state => state.tabs);
+  const { fileNavigation: fileNavigationProp } = props;
+  // A standalone region keeps one instance for its whole life; the app shell
+  // always passes the instance the runtime holds.
+  const [fallbackFileNavigation] = useState(fileNavigationOwner);
+  const fileNavigation = fileNavigationProp ?? fallbackFileNavigation;
   const projectReady = loadedRoot === (props.workspaceRoot ?? props.workspace.cwd ?? "");
-  const presentedRequest = useSyncExternalStore(subscribePresentedFileRequest, presentedFileRequestSnapshot, presentedFileRequestSnapshot);
-  const presentedReveal = presentedRequest && presentedRequest.ref.tabId === props.workspace.tabId
-    ? {
-        id: presentedRequest.id,
-        path: presentedRequest.ref.path,
-        toolCallId: presentedRequest.ref.source === "presented" ? presentedRequest.ref.toolCallId : undefined,
-        source: presentedRequest.action === "source",
-        action: presentedRequest.action,
-      }
-    : null;
-  const incomingWorkspace = presentedReveal ? { ...props.workspace, revealPathRequest: presentedReveal } : props.workspace;
-  const requests = useDockViewRequests(props.workspaceKey, visible && projectReady ? activeTabId : null, incomingWorkspace);
+  const requests = useDockViewRequests(`${props.workspaceKey}::${props.workspace.tabId ?? ""}`, visible && projectReady ? activeTabId : null, props.workspace, props.navigation, tabs.map(tab => tab.id));
 
   const renderTab = (tab: TabItem): ReactNode => {
     if (!projectReady) return null;
     if (firstFileTabId) readWorkspaceTreeMemory(workspaceViewMemoryKey(props.workspaceKey, firstFileTabId, true));
     switch (tab.type) {
       case "context":
-        if (showContext && !creation) return <ContextPanel {...props.context} />;
+        if (showContext) return <ContextPanel {...props.context} />;
         return <WorkspacePanel key={`${props.workspaceKey}::${tab.id}`} {...props.workspace} {...requests}
+          dockTabId={tab.id} fileNavigation={fileNavigation}
           workspaceMemoryKey={workspaceViewMemoryKey(props.workspaceKey, tab.id)} workspaceMemoryVisitId={0} />;
       case "remote":
-        return <RemotePanel {...props.remote} />;
+        return <RemotePanel key={`${props.workspaceKey}::${props.workspace.tabId}::${tab.id}`} {...props.remote} tabId={props.workspace.tabId} dockTabId={tab.id} fileNavigation={fileNavigation} navigationSignal={requests.navigationSignal} />;
       case "browser":
         return <BrowserSurface surface="panel" taskId={props.workspace.tabId} />;
       default:
@@ -85,6 +85,8 @@ export function WorkspaceDockRegion(props: WorkspaceDockRegionProps) {
             key={`${props.workspaceKey}::${tab.id}`}
             {...props.workspace}
             {...requests}
+            dockTabId={tab.id}
+            fileNavigation={fileNavigation}
             workspaceMemoryKey={workspaceViewMemoryKey(props.workspaceKey, tab.id, tab.id === firstFileTabId)}
             workspaceMemoryVisitId={0}
             initialViewMode={tab.type === "changed" ? "changed" : "files"}

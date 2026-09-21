@@ -172,6 +172,7 @@ go build -trimpath -o "$contract_tool" .
 if ! git_in_root diff --exit-code -- desktop/frontend/src/generated >/dev/null; then
 	echo "desktop contract is stale - run 'cd desktop && go run . -emit-contract frontend/src/generated' and commit" >&2
 	git_in_root diff --stat -- desktop/frontend/src/generated >&2
+if ! diff -qr "$contract_snapshot/generated" frontend/src/generated; then
 	exit 1
 fi
 
@@ -188,6 +189,11 @@ fi
 # enable the in-app self-update path.
 service_ldflags="-X main.version=$VERSION -X main.channel=$CHANNEL $product_docs_ldflags"
 [ "$os" = "darwin" ] && [ "${HAS_APPLE_CERT:-}" = "true" ] && service_ldflags="$service_ldflags -X main.macSelfUpdate=true"
+# The Windows service must be a GUI-subsystem image: the shell spawns it with
+# --host-rpc over inherited pipes, so it never needs a console, and a CONSOLE
+# image makes Windows allocate a conhost window on every launch (the startup
+# "flash of black box" in #10148). -H is a Windows-only linker flag.
+[ "$os" = "windows" ] && service_ldflags="$service_ldflags -H windowsgui"
 
 # build_service compiles the Go desktop service (tempora-desktop). It stays
 # the active version entry the thin launcher starts: without --host-rpc it
@@ -374,13 +380,15 @@ windows)
 
 	# First NSIS pass: regenerate this release's uninstaller. A stale preserved
 	# uninstaller must never enter the signing payload.
+	# Compile only the shared uninstall section here; compressing the entire
+	# Electron payload just to discard this installer costs another five minutes.
 	rm -f "$installer_dir/tempora-uninstall.exe"
 	find "$ROOT/desktop/build/bin" -maxdepth 1 -type f -name '*installer*.exe' -delete
 	arch_binary_define="ARG_TEMPORA_AMD64_BINARY"
 	[ "$arch" = arm64 ] && arch_binary_define="ARG_TEMPORA_ARM64_BINARY"
 	(
 		cd "$installer_dir"
-		makensis "-D${arch_binary_define}=$installer_dir/$BINNAME.exe" project.nsi
+		makensis -DARG_TEMPORA_UNINSTALLER_ONLY "-D${arch_binary_define}=$installer_dir/$BINNAME.exe" project.nsi
 	)
 	[ -s "$installer_dir/tempora-uninstall.exe" ] || {
 		# Defender/MSYS intermittently deny process spawn; one makensis retry

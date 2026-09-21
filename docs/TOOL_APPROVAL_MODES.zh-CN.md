@@ -11,7 +11,7 @@ Tempora 的桌面端、CLI、Serve、ACP、机器人、自动任务和子代理�
 - **协作方式**（普通 / 计划 / 目标）决定 Tempora 怎么推进任务。没有自动任务模式或可选质量底线；验证义务由真实工具动作、项目规则、任务风险和用户显式要求共同建立。
 - **权限预设**决定强制执行的文件系统与进程边界，以及何时请求精确授权。
 
-macOS 使用 Seatbelt，Linux 使用 bubblewrap。Windows 使用受限令牌、ACL 隔离的私有临时目录和 Job Object，界面会将其标为部分强制。受限模式所需的沙箱无法启动时，Tempora 会失败关闭，不会提示用户关闭沙箱后重试。
+macOS 使用 Seatbelt，Linux 使用 bubblewrap；这两个平台上受限模式所需的沙箱无法启动时，Tempora 会失败关闭，不会提示用户关闭沙箱后重试。Windows 没有 OS 级 Shell 沙箱：受限模式仍约束 Tempora 文件工具并请求精确授权，但 Shell 命令以当前系统账户运行。
 
 ## 授权范围
 
@@ -36,7 +36,7 @@ tempora --permission-mode danger-full-access
 tempora run --permission-mode workspace-write "运行测试"
 ```
 
-交互式 CLI 中，`Shift+Tab` 按“仅可查看 → 工作区内修改 → 计划”循环；完全权限必须显式选择。旧配置会保守迁移：`ask` 映射为仅可查看，`auto` 和 `yolo` 映射为工作区内修改，旧值不会开启完全权限。
+交互式 CLI 中，`Shift+Tab` 按“仅可查看 → 工作区内修改 → YOLO → 计划”循环，`Ctrl+Y` 可直接切换 YOLO。两个快捷键进入 YOLO 时都会设置规范权限值 `danger-full-access`。旧配置仍保守迁移：`ask` 映射为仅可查看，`auto` 和 `yolo` 映射为工作区内修改，旧值不会开启完全权限。
 
 ## 远程兼容
 

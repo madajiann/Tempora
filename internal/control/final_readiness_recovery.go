@@ -42,9 +42,15 @@ func (c *Controller) RunFinalReadinessRecoveryWithAdmission(ctx context.Context,
 // SubmitFinalReadinessRecovery retains the asynchronous symbol for old clients
 // and emits the stable retirement error through the ordinary turn path.
 func (c *Controller) SubmitFinalReadinessRecovery(display, input string) {
-	c.runGuarded(func(ctx context.Context) error {
+	c.submissions.mu.Lock()
+	defer c.releaseSubmissionAdmission()
+	c.submitFinalReadinessRecoveryLocked(display, input, turnAdmission{})
+}
+
+func (c *Controller) submitFinalReadinessRecoveryLocked(display, input string, admission turnAdmission) {
+	c.runGuardedWithAdmission(func(ctx context.Context) error {
 		return ErrNoFinalReadinessRecovery
-	})
+	}, admission)
 }
 
 // SubmitDeliveryRecovery preserves the v1.25 desktop/API symbol.
@@ -52,7 +58,7 @@ func (c *Controller) SubmitDeliveryRecovery(display, input string) {
 	c.SubmitFinalReadinessRecovery(display, input)
 }
 
-func (c *Controller) submitFinalReadinessCommand(trimmed, display string) bool {
+func (c *Controller) submitFinalReadinessCommand(trimmed, display string, admission turnAdmission) bool {
 	prompt, ok := ParseFinalReadinessRecoveryCommand(trimmed)
 	if !ok {
 		return false
@@ -60,6 +66,6 @@ func (c *Controller) submitFinalReadinessCommand(trimmed, display string) bool {
 	if strings.TrimSpace(display) == "" {
 		display = trimmed
 	}
-	c.SubmitFinalReadinessRecovery(display, prompt)
+	c.submitFinalReadinessRecoveryLocked(display, prompt, admission)
 	return true
 }

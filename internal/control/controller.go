@@ -52,6 +52,7 @@ import (
 	"tempora/internal/nilutil"
 	"tempora/internal/permission"
 	"tempora/internal/permissionpreset"
+	"tempora/internal/persistentshell"
 	"tempora/internal/plugin"
 	"tempora/internal/provider"
 	"tempora/internal/sandbox"
@@ -100,12 +101,14 @@ var errNoSessionPath = errors.New("session has content but no session path; conv
 // Controller drives one chat session. Construct with New; drive with the command
 // methods; observe through the Sink passed in Options.
 type Controller struct {
-	runtimeState controllerRuntimeState
+	lifecycleDiagnostics lifecycleDiagnosticBuffer
+	runtimeState         controllerRuntimeState
 	controllerPromptRouting
-	runner       agent.Runner
-	executor     *agent.Agent
-	guardianSess *guardian.Session // nil when guardian is disabled
-	guardianPath string            // persisted guardian session file ("" when disabled)
+	authentication authenticationGate
+	runner         agent.Runner
+	executor       *agent.Agent
+	guardianSess   *guardian.Session // nil when guardian is disabled
+	guardianPath   string            // persisted guardian session file ("" when disabled)
 	// taskBudget is the configured spend gate, as passed at construction.
 	taskBudget agent.TaskBudget
 	// goalTokenBudget bounds an unattended Goal loop; 0 leaves it unbounded.
@@ -135,11 +138,12 @@ type Controller struct {
 	modelCapabilityResolver func(*config.ProviderEntry) config.ResolvedModelCapability
 	frozenImageInput        *bool
 	imageCapabilityChanged  func() bool
-	modelSettings           controllerModelSettings
-	prompt                  controllerPromptState
-	pinnedContextLoader     PinnedContextLoader
-	sessionContextStatic    sessioncontext.Sections
-	sessionDir              string
+	controllerAttachmentState
+	modelSettings        controllerModelSettings
+	prompt               controllerPromptState
+	pinnedContextLoader  PinnedContextLoader
+	sessionContextStatic sessioncontext.Sections
+	sessionDir           string
 	controllerSessionBinding
 	// managedSessionEvents is set for hosts that publish controllers only after
 	// a session-lease handoff. An unpublished replacement may read the shared
@@ -176,15 +180,20 @@ type Controller struct {
 	// Zero uses the documented 15 second boundary.
 	testCancelGrace time.Duration
 
-	shell                             sandbox.Shell                    // interpreter for user-invoked "!" commands; zero = auto
-	startedOnce                       bool                             // guards the one-shot SessionStart hook on first turn
-	closeOnce                         sync.Once                        // makes close idempotent under racing teardown paths
+	shell                             sandbox.Shell // interpreter for user-invoked "!" commands; zero = auto
+	startedOnce                       bool          // guards the one-shot SessionStart hook on first turn
+	closeOnce                         sync.Once     // makes close idempotent under racing teardown paths
+	closeFinalizeOnce                 sync.Once     // releases persistence/resources only after the terminal boundary
+	closeFinalized                    chan struct{} // closes after every controller-owned resource has been released
+	closeFireSessionEnd               bool
+	closeJobsMode                     closeJobsMode
 	onRemember                        func(rule string) RememberResult // set via Options; invoked when user picks "always allow"
 	onRememberPlanModeReadOnlyCommand func(prefix string) PlanModeReadOnlyCommandTrustResult
 	writeAccess                       controllerWriteAccess
 	sessionRecoveryMeta               func(SessionRecoveryRequest) agent.BranchMeta
 	onSessionRecovered                func(SessionRecoveryInfo) error
 	onSessionTransition               func(SessionTransitionInfo) error
+	onSessionRotation                 func(context.Context, SessionRotationRequest) (SessionRotationPlan, error)
 
 	// balanceURL/balanceKey target the active provider's optional wallet-balance
 	// endpoint (empty when the provider declares none). Captured at build so a
@@ -307,23 +316,20 @@ type Controller struct {
 
 	// mu guards the run state; every critical section under it is short and
 	// non-blocking.
-	mu                sync.Mutex
-	cancel            context.CancelFunc
-	activeDone        chan struct{}
-	running           bool
-	finishing         bool // TurnDone is still being delivered; park a replacement turn
-	finishingBoundary turnFinishingBoundary
-	canceling         bool
+	mu sync.Mutex
+	// turns is the sole execution authority: phase, current cancel/done/token,
+	// and the FIFO pending queue.
+	turns turnLoop
+	// executionGeneration is the Runtime BindExecution generation for this
+	// controller. Unbind uses the exact value so a rebuilt controller cannot
+	// clear the replacement's control.
+	executionGeneration atomic.Uint64
 	// closed marks the controller as terminally torn down (close() ran). It
 	// seals turn admission: without it, a submit arriving AFTER close cleared
 	// the parked queue — but while a still-running turn's TurnDone delivery
 	// was in flight — would park again and then start against freed resources
 	// when the window closed.
 	closed bool
-	// parkedTurns holds turn bodies that arrived during the finishing window,
-	// FIFO. finishGuardedTurn starts the oldest one as it closes the window
-	// (see runGuarded/finishGuardedTurn); close() discards any remainder.
-	parkedTurns []func(ctx context.Context) error
 	// rotating is set under mu while NewSession/ClearSession swap the executor
 	// session out. Checking running once and then swapping later leaves a
 	// TOCTOU window: a turn can start (running=false at check time) during the
@@ -340,7 +346,8 @@ type Controller struct {
 	// sessionTemp owns the logical-session private temporary directory shared
 	// by Bash calls. Retained for this Controller's lifetime; rotated on
 	// /new, /clear, resume of another session, and branch switches.
-	sessionTemp *sessiontemp.Manager
+	sessionTemp     *sessiontemp.Manager
+	persistentShell *persistentshell.Manager
 	// snapshotMu serializes the whole save/recovery handoff for this controller.
 	// Agent-level path locks protect individual files, but recovery also moves
 	// controller-owned state (sessionPath, guardianPath, checkpoints, rewrite
@@ -353,9 +360,10 @@ type Controller struct {
 	// recoverInterruptedTurn or maybeColdResumePrune) while holding it.
 	snapshotMu sync.Mutex
 	// turn counts model turns this session, passed to hooks in their payload.
-	turn       int
-	turnEvents turnEventState
-	liveness   turnLiveness
+	turn        int
+	turnEvents  turnEventState
+	submissions submissionIdentityState
+	liveness    turnLiveness
 
 	displayRecorder func(content, display string)
 
@@ -409,8 +417,6 @@ type controllerSessionBinding struct {
 	sessionBinding   *session.ClientBinding
 	exclusiveSession bool
 	v3BindingMu      sync.RWMutex
-	v3ActivityMu     sync.Mutex
-	v3Activity       *session.Activity
 }
 
 type controllerPromptRouting struct {
@@ -531,9 +537,14 @@ type externalFolderToolRefs interface {
 // lets the controller mint and rotate session files; Host/Commands are surfaced
 // to frontends that resolve MCP prompts and slash commands.
 type Options struct {
-	Runner   agent.Runner
-	Executor *agent.Agent
-	Guardian *guardian.Session
+	ImageRouteConfig *config.Config
+	Runner           agent.Runner
+	Executor         *agent.Agent
+	// Authentication is the frozen runtime credential snapshot's initial
+	// admission state. An empty value remains Ready for source compatibility.
+	Authentication         AuthenticationState
+	AuthenticationForModel func(string) AuthenticationState
+	Guardian               *guardian.Session
 	// RecoveryHeadless is decoded for source compatibility and ignored. Auto
 	// Guard cannot be re-enabled through Controller options.
 	RecoveryHeadless bool
@@ -697,6 +708,11 @@ type Options struct {
 	// OnSessionTransition transfers write ownership before an intentional
 	// fork, branch, or switch publishes a different Session.
 	OnSessionTransition func(SessionTransitionInfo) error
+	// OnSessionRotation lets an identity-owning host durably reserve a fresh
+	// SessionID before /new or /clear publishes it. When installed, the host
+	// also owns clear archival; the controller never permanently deletes the
+	// source session.
+	OnSessionRotation func(context.Context, SessionRotationRequest) (SessionRotationPlan, error)
 	// ApprovalTimeout bounds how long a tool-approval or ask prompt blocks waiting
 	// for a user decision. Zero (default) waits forever — right for an interactive
 	// terminal. Bot/headless frontends set a positive value so an unanswered
@@ -722,6 +738,11 @@ type Options struct {
 	// Controller. Hot rebuilds pass the previous Controller's Manager so the
 	// temporary directory survives model/settings swaps.
 	SessionTemp *sessiontemp.Manager
+	// PersistentShell is the session-scoped PTY used by ordinary foreground
+	// bash. Nil creates a fresh Manager owned by this Controller. Hot rebuilds
+	// pass the previous Controller's Manager so cwd and exported environment
+	// survive model/settings swaps.
+	PersistentShell *persistentshell.Manager
 }
 
 // New builds a Controller. A nil Sink becomes event.Discard; unless the caller
@@ -732,6 +753,13 @@ func controllerSessionTemp(existing *sessiontemp.Manager) *sessiontemp.Manager {
 		return existing
 	}
 	return sessiontemp.New()
+}
+
+func controllerPersistentShell(existing *persistentshell.Manager) *persistentshell.Manager {
+	if existing != nil {
+		return existing
+	}
+	return persistentshell.New()
 }
 
 func New(opts Options) *Controller {
@@ -756,6 +784,7 @@ func New(opts Options) *Controller {
 	}
 	sessionRuntime, sessionBinding := bindInitialSessionRuntime(opts)
 	c := &Controller{
+		authentication:                    newAuthenticationGate(opts.Authentication, opts.ModelRef),
 		taskBudget:                        opts.TaskBudget,
 		goalTokenBudget:                   opts.GoalTokenBudget,
 		goalTokenLimit:                    opts.GoalTokenBudget,
@@ -804,6 +833,7 @@ func New(opts Options) *Controller {
 		sessionRecoveryMeta:               opts.SessionRecoveryMeta,
 		onSessionRecovered:                opts.OnSessionRecovered,
 		onSessionTransition:               opts.OnSessionTransition,
+		onSessionRotation:                 opts.OnSessionRotation,
 		balanceURL:                        opts.BalanceURL,
 		balanceKey:                        opts.BalanceKey,
 		balanceClient:                     opts.BalanceClient,
@@ -821,12 +851,22 @@ func New(opts Options) *Controller {
 		runtimeOwner:                      runtimeOwner,
 		goalDriverControl:                 goalDriverControl{ctx: goalDriverCtx, cancel: goalDriverCancel},
 		approval:                          newApprovalManager(opts.Policy, ToolApprovalAsk, opts.ApprovalTimeout),
+		turns:                             turnLoop{phase: session.RuntimeIdle},
+		closeFinalized:                    make(chan struct{}),
 	}
+	c.authentication.initialForModel = opts.AuthenticationForModel
 	c.initializeOwnedResources(opts)
+	c.bindAttachmentService()
+	if opts.ImageRouteConfig != nil {
+		c.imageRoutesOnce.Do(func() { c.captureImageRoutes(opts.ImageRouteConfig) })
+	}
 	return c
 }
 
 func (c *Controller) initializeOwnedResources(opts Options) {
+	if c.executor != nil {
+		c.executor.SetImageRequestResolver(c)
+	}
 	c.goalUsageTee.setLifecycleUsageRecorder(c.recordGoalLifecycleUsage)
 	c.installGoalLifecycle(opts.SessionRuntime)
 	c.managedSessionEvents.Store(opts.OnSessionTransition != nil)
@@ -836,6 +876,8 @@ func (c *Controller) initializeOwnedResources(opts Options) {
 	// owner reference without racing a replacement Controller.
 	c.sessionTemp = controllerSessionTemp(opts.SessionTemp)
 	c.sessionTemp.Retain()
+	c.persistentShell = controllerPersistentShell(opts.PersistentShell)
+	c.persistentShell.Retain()
 	if strings.TrimSpace(opts.WorkspaceRoot) != "" {
 		c.legacyResearchArchive = legacyResearchArchive{store: autoresearch.NewStore(opts.WorkspaceRoot)}
 	}
@@ -857,6 +899,10 @@ func (c *Controller) initializeOwnedResources(opts Options) {
 	if runner, ok := c.runner.(interface{ SetSink(event.Sink) }); ok {
 		runner.SetSink(c.sink)
 	}
+	// Establish mutation authority before any constructor-time session seed.
+	// A hot-rebuild candidate sharing an already-bound Runtime remains at
+	// generation zero and can restore from the projection without writing it.
+	c.bindExecutionControl()
 	if c.executor != nil {
 		c.executor.SetSink(c.sink)
 		c.executor.SetSessionCheckpointer(c)
@@ -1133,188 +1179,15 @@ func (c *Controller) rebindCheckpoints(sessionPath string) {
 
 // commands (frontend → controller)
 
-// spawnGuardedTurn launches an admitted turn body plus its autosave companion.
-// The caller must already have claimed admission (running=true) under c.mu.
-func (c *Controller) spawnGuardedTurn(ctx context.Context, cancel context.CancelFunc, body func(ctx context.Context) error, goalRound *goalRoundReservation) {
-	ctx, completion := withGuardedTurnCompletion(ctx)
-	runtimeCtx, runtimeActivity, runtimeErr := c.beginSessionRuntimeActivity(ctx, "turn")
-	if runtimeErr != nil {
-		go func() {
-			defer cancel()
-			c.finishGuardedTurn(runtimeErr, completion)
-			c.finishGoalRoundActivity(goalRound)
-		}()
-		return
-	}
-	ctx = runtimeCtx
-	body = c.prepareTurnAdmissionWithGoalRound(body, goalRound)
-	c.liveness.reset(time.Now())
-	c.autosaveWG.Go(func() {
-		c.autosaveWhileRunning(ctx)
-	})
-	go func() {
-		defer cancel()
-		defer func() {
-			c.finishSessionRuntimeActivity(runtimeActivity)
-			c.finishGoalRoundActivity(goalRound)
-			c.kickGoalDriver()
-		}()
-		defer func() {
-			if r := recover(); r != nil {
-				err := fmt.Errorf("internal error: %v", r)
-				goalRound.setResult(err, false)
-				c.finishGuardedTurn(err, completion)
-			}
-		}()
-		err := body(ctx)
-		if goalRound != nil {
-			goalRound.setResult(err, errors.Is(ctx.Err(), context.Canceled) && c.CancelRequested())
-		}
-		c.finishGuardedTurn(explainError(err), completion)
-	}()
-}
-
-func (c *Controller) cancellationGrace() time.Duration {
-	if c != nil && c.testCancelGrace > 0 {
-		return c.testCancelGrace
-	}
-	return 15 * time.Second
-}
-
-// finishGuardedTurn keeps admission closed while TurnDone is delivered. The
-// sink fan-out may detach per-turn transports; allowing a replacement turn in
-// after running=false but before that fan-out completed let the old completion
-// clear or inherit the replacement turn's transport.
-//
-// When the window closes, the oldest parked turn (if any) is started under the
-// SAME critical section that clears finishing: opening the gate first and then
-// re-admitting would let an unrelated submit slip in ahead and bounce the
-// parked turn back to a drop. Remaining parked turns drain one per
-// finishGuardedTurn, preserving FIFO order. Rotation cannot interleave here:
-// beginRotation refuses while running or finishing, and the drain flips
-// finishing directly into running.
-func (c *Controller) finishGuardedTurn(err error, completion *guardedTurnCompletion) {
-	c.memory.clearAutoRemember()
-	c.mu.Lock()
-	cancelRequested := c.canceling
-	c.running = false
-	if c.activeDone != nil {
-		close(c.activeDone)
-		c.activeDone = nil
-	}
-	// A live controller keeps admission closed until TurnDone fan-out finishes.
-	// Close has already sealed admission permanently, so a late completion must
-	// not resurrect a finishing state after teardown.
-	c.finishing = !c.closed
-	c.finishingBoundary.begin(c.finishing)
-	c.cancel = nil
-	// Keep cancelling visible through TurnDone fan-out; clearing it here creates
-	// a finishing-only window before Stop reaches its durable terminal event.
-	// A closed controller has no live surface and may clear immediately.
-	if c.closed {
-		c.canceling = false
-	}
-	c.mu.Unlock()
-
-	c.refreshRuntimeState(event.Event{})
-	defer func() {
-		c.mu.Lock()
-		c.finishing = false
-		c.canceling = false
-		c.finishingBoundary.end()
-		if c.closed {
-			c.mu.Unlock()
-			c.refreshRuntimeState(event.Event{})
-			return
-		}
-		// Preserve queued input after an uncooperative activity, but do not run it
-		// in a process whose previous effects can no longer be proven.
-		if ledger := c.turnEventLedger(); ledger != nil && ledger.CurrentStatus() == event.TurnRecoveryRequired {
-			c.mu.Unlock()
-			c.refreshRuntimeState(event.Event{})
-			return
-		}
-		if len(c.parkedTurns) == 0 {
-			c.mu.Unlock()
-			// No parked compatibility body: admit the next durable inbox item.
-			c.maybeDispatchInbox()
-			c.refreshRuntimeState(event.Event{})
-			return
-		}
-		next := c.parkedTurns[0]
-		c.parkedTurns = c.parkedTurns[1:]
-		ctx, cancel := context.WithCancel(extension.ContextWithRuntimeOwner(context.Background(), c.runtimeOwner))
-		c.cancel = cancel
-		c.activeDone = make(chan struct{})
-		c.running = true
-		c.canceling = false
-		c.mu.Unlock()
-		c.spawnGuardedTurn(ctx, cancel, next, nil)
-		c.refreshRuntimeState(event.Event{})
-	}()
-	c.inbox.mu.Lock()
-	// Prefer a single representative id for the wire event (first active).
-	// Full multi-item ack happens in onInboxTurnDone via activeItemIDs.
-	activeInboxID := ""
-	for id := range c.inbox.activeItemIDs {
-		activeInboxID = id
-		break
-	}
-	c.inbox.mu.Unlock()
-	done := event.Event{
-		Kind:           event.TurnDone,
-		Err:            err,
-		Cancelled:      cancelRequested,
-		Outcome:        turnOutcome(err),
-		CheckpointTurn: c.validatedCheckpointTurn(completion),
-		Receipt:        c.executor.CompletionReceipt(),
-		ItemID:         activeInboxID,
-	}
-	if done.CheckpointTurn != nil {
-		changes := completion.checkpoint.store.FreezeTurnChanges(*done.CheckpointTurn)
-		if done.Receipt == nil && (len(changes.Files) > 0 || len(changes.Reasons) > 0) {
-			done.Receipt = &event.CompletionReceipt{AssessmentKind: "facts", Verdict: "unknown"}
-		}
-		if done.Receipt != nil {
-			// Detach the executor's receipt before adding host-owned file facts.
-			receipt := *done.Receipt
-			receipt.Diff = changes.Summary()
-			receipt.Interrupted = cancelRequested
-			done.Receipt = &receipt
-		}
-	}
-	done.Receipt = bindCompletionLogSources(done.Receipt, c.History())
-	done = c.applyTurnDoneProtocol(done, cancelRequested)
-	c.applyToolRecoveryTurnStatus(&done, completion)
-	var readErr *agent.IncompleteReadError
-	if errors.As(err, &readErr) {
-		done.ReadPause = readErr.Pause
-	}
-	done.Diagnostic = provider.DiagnoseFailure(err)
-	done.Detail = provider.FailureDiagnosticDetail(done.Diagnostic)
-	if !cancelRequested {
-		done.ProtocolRecovery = c.executor.PendingProtocolRecovery()
-	}
-	var readinessErr *agent.FinalReadinessError
-	if errors.As(err, &readinessErr) {
-		done.Readiness = &event.FinalReadiness{Attempts: readinessErr.Attempts, Missing: append([]string(nil), readinessErr.Missing...)}
-	}
-	// Ack active durable items before exposing TurnDone. Frontends commonly
-	// refresh the inbox from that event and must not observe already-consumed
-	// steers in the completed turn. Dispatch still waits for finishing to clear.
-	c.onInboxTurnDone()
-	c.sink.Emit(done)
-}
-
-// Send starts a turn with an uncomposed message. The controller applies
-// plan-mode, memory, and background-job framing inside the async turn path.
 func (c *Controller) Send(input string) {
 	c.SendWithRaw(input, input)
 }
 
 // SendWithRaw starts a turn with separate model input and raw prompt text.
 func (c *Controller) SendWithRaw(input, raw string) {
-	c.runGuarded(func(ctx context.Context) error { return c.runGoalLoopWithRaw(ctx, input, raw) })
+	_, _ = c.submitIdentifiedWithSetup(SubmissionRequest{Input: input, Display: raw}, nil, func(admission turnAdmission) {
+		c.runGuardedWithAdmission(func(ctx context.Context) error { return c.runGoalLoopWithRaw(ctx, input, raw) }, admission)
+	})
 }
 
 // planApprovalTool is the Tool name on the ApprovalRequest the controller emits
@@ -1363,20 +1236,6 @@ func (c *Controller) runTurn(ctx context.Context, input string) error {
 	return c.runGoalLoopWithRaw(ctx, input, input)
 }
 
-// RunTurn executes one foreground turn synchronously through the same lifecycle
-// used by interactive frontends: transient memory/background-job
-// composition, checkpoints, hooks, and plan approval. It is for transports that
-// need a blocking request/response boundary, such as ACP session/prompt.
-func (c *Controller) RunTurn(ctx context.Context, input string) error {
-	err := c.runSynchronousTurn(ctx, nil, func(runCtx context.Context) error {
-		return c.runTurn(runCtx, input)
-	})
-	if err != nil {
-		return err
-	}
-	return c.waitForGoalTerminal(ctx)
-}
-
 func (c *Controller) runTurnWithRaw(ctx context.Context, input, raw string) error {
 	return c.runTurnWithRawDisplay(ctx, input, raw, "")
 }
@@ -1410,16 +1269,16 @@ func (c *Controller) runTurnWithRawDisplay(ctx context.Context, input, raw, disp
 	return newTurnOrchestrator(c).runTurnWithRawDisplay(ctx, input, raw, display)
 }
 
-func (c *Controller) runSubagentSkillSlash(sk skill.Skill, task, raw, display string) {
+func (c *Controller) runSubagentSkillSlash(sk skill.Skill, task, raw, display string, admission turnAdmission) {
 	sk = c.skills.prepare(sk)
-	c.runGuarded(func(ctx context.Context) error {
+	c.runGuardedWithAdmission(func(ctx context.Context) error {
 		planMode := c.PlanMode()
 		runner := c.skillRunner
 		if runner == nil {
 			return fmt.Errorf("subagent skill runner is unavailable for /%s", sk.Name)
 		}
 		return newTurnOrchestrator(c).runSubagentSkillGoalLoop(ctx, sk, task, raw, display, runner, planMode)
-	})
+	}, admission)
 }
 
 func (c *Controller) stopGoal(status string) {
@@ -1458,53 +1317,6 @@ func (c *Controller) SubmitHTTP(input string) {
 	c.submitHTTP(input, "")
 }
 
-// SubmitHTTPFormat is SubmitHTTP with an optional structured-output format
-// ("json_object") applied to the turn's completion requests. Empty format
-// behaves exactly like SubmitHTTP. A format attached to a slash command,
-// or other non-turn input is discarded; @reference turns preserve it because
-// the format is bound to every submitted turn rather than a global slot.
-func (c *Controller) SubmitHTTPFormat(input, format string) {
-	// format 绑定到本次提交的 turn（随请求参数传递），不再写入 Controller
-	// 全局一次性槽——评审 #7234 第 2 点：全局槽存在跨请求串用的逻辑竞态
-	// （后提交的 JSON 请求先写槽，更早的普通请求先启动消费掉）。
-	f := strings.TrimSpace(format)
-	if f != "" && isNonTurnHTTPInput(input) {
-		f = "" // 非 turn 输入（slash 命令/! 前缀）不携带 format
-	}
-	// @ 引用 turn（FileRefLine/SlashPathLineRef 等）同样绑定 format——
-	// runRefTurnWithFormat 族 wrapper 注入 ctx（review fix7234and7168：
-	// format 是每个被接纳 turn 的属性，统一架构）。
-	c.submitHTTPWithFormat(input, "", f)
-}
-
-// isNonTurnHTTPInput reports inputs that never reach the agent turn loop, so a
-// structured-output request attached to them would otherwise leak into the
-// next real turn (the format slot is consumed only by runGoalLoopWithRawDisplay).
-func isNonTurnHTTPInput(input string) bool {
-	trimmed := strings.TrimSpace(input)
-	if trimmed == "" {
-		return true
-	}
-	// Memory quick-add / remember shortcuts and goal commands bypass turns.
-	if _, ok := MemoryQuickAddNote(trimmed); ok {
-		return true
-	}
-	if _, ok := RememberCommandNote(trimmed); ok {
-		return true
-	}
-	// "!" shell commands are rejected by submitHTTP before the turn loop
-	// (403 over HTTP); a format attached to them would never be consumed.
-	if strings.HasPrefix(trimmed, "!") {
-		return true
-	}
-	// Slash commands are management verbs (/compact /new /clear /model ...)
-	// or notices, not completion turns.
-	if strings.HasPrefix(trimmed, "/") {
-		return true
-	}
-	return false
-}
-
 // SubmitDisplay runs input as a turn while remembering the user-facing display
 // text for transcript replay when controller-side composition expands input.
 func (c *Controller) SubmitDisplay(display, input string) {
@@ -1519,8 +1331,14 @@ func (c *Controller) SubmitInvocationDisplay(display, input string, invocations 
 }
 
 func (c *Controller) submitInvocations(input, display string, requests []InvocationRequest) {
+	_, _ = c.submitIdentifiedWithSetup(SubmissionRequest{Input: input, Display: display, Invocations: requests}, nil, func(admission turnAdmission) {
+		c.submitInvocationsLocked(input, display, requests, admission)
+	})
+}
+
+func (c *Controller) submitInvocationsLocked(input, display string, requests []InvocationRequest, admission turnAdmission) {
 	if len(requests) == 0 {
-		c.SubmitDisplay(display, input)
+		c.submitLocked(input, display, "", admission)
 		return
 	}
 	prepared, err := c.prepareInvocationTurn(input, requests)
@@ -1528,9 +1346,9 @@ func (c *Controller) submitInvocations(input, display string, requests []Invocat
 		c.notice(err.Error())
 		return
 	}
-	c.runGuarded(func(ctx context.Context) error {
+	c.runGuardedWithAdmission(func(ctx context.Context) error {
 		return c.runPreparedInvocationTurn(ctx, prepared, input, input, display, nil)
-	})
+	}, admission)
 }
 
 type preparedInvocationTurn struct {
@@ -1599,6 +1417,7 @@ func (c *Controller) runPreparedInvocationTurn(
 		display,
 		runner,
 		c.PlanMode(),
+		frozenImages,
 	)
 }
 
@@ -1613,10 +1432,24 @@ func (c *Controller) SubmitEditedDisplay(display, input, original string) {
 // commands. It still resolves references, so callers can submit trusted
 // user-authored prompt text without expanding the command surface.
 func (c *Controller) SubmitUserTurn(input, display string) {
-	c.runRefTurn(input, display)
+	_, _ = c.submitIdentifiedWithSetup(SubmissionRequest{Input: input, Display: display}, nil, func(admission turnAdmission) {
+		c.runRefTurnWithAdmission(input, display, admission)
+	})
 }
 
 func (c *Controller) submit(input, display, editedOriginal string) {
+	if isSessionManagementSubmission(input) {
+		c.submissions.mu.Lock()
+		defer c.releaseSubmissionAdmission()
+		c.submitLocked(input, display, editedOriginal, turnAdmission{})
+		return
+	}
+	_, _ = c.submitIdentifiedWithSetup(SubmissionRequest{Input: input, Display: display, Original: editedOriginal}, nil, func(admission turnAdmission) {
+		c.submitLocked(input, display, editedOriginal, admission)
+	})
+}
+
+func (c *Controller) submitLocked(input, display, editedOriginal string, admission turnAdmission) {
 	trimmed := strings.TrimSpace(input)
 	if note, ok := MemoryQuickAddNote(trimmed); ok {
 		c.rememberProjectNote(note)
@@ -1626,14 +1459,14 @@ func (c *Controller) submit(input, display, editedOriginal string) {
 		c.rememberProjectNote(note)
 		return
 	}
-	if c.applyGoalCommand(trimmed, display) {
+	if c.applyGoalCommandWithAdmission(trimmed, display, admission) {
 		return
 	}
 	if strings.HasPrefix(trimmed, "!") {
 		c.RunShell(trimmed[1:])
 		return
 	}
-	c.submitCommandOrTurn(trimmed, input, display, false, editedOriginal, "")
+	c.submitCommandOrTurn(trimmed, input, display, false, editedOriginal, "", admission)
 }
 
 func (c *Controller) submitHTTP(input, display string) {
@@ -1641,6 +1474,18 @@ func (c *Controller) submitHTTP(input, display string) {
 }
 
 func (c *Controller) submitHTTPWithFormat(input, display, format string) {
+	if isSessionManagementSubmission(input) {
+		c.submissions.mu.Lock()
+		defer c.releaseSubmissionAdmission()
+		c.submitHTTPWithFormatLocked(input, display, format, turnAdmission{})
+		return
+	}
+	_, _ = c.submitIdentifiedWithSetup(SubmissionRequest{Input: input, Display: display, HTTP: true, Format: format}, nil, func(admission turnAdmission) {
+		c.submitHTTPWithFormatLocked(input, display, format, admission)
+	})
+}
+
+func (c *Controller) submitHTTPWithFormatLocked(input, display, format string, admission turnAdmission) {
 	trimmed := strings.TrimSpace(input)
 	if note, ok := MemoryQuickAddNote(trimmed); ok {
 		c.rememberProjectNote(note)
@@ -1650,50 +1495,50 @@ func (c *Controller) submitHTTPWithFormat(input, display, format string) {
 		c.rememberProjectNote(note)
 		return
 	}
-	if c.applyGoalCommand(trimmed, display) {
+	if c.applyGoalCommandWithAdmission(trimmed, display, admission) {
 		return
 	}
 	if strings.HasPrefix(trimmed, "!") {
 		c.notice("shell commands are unavailable from this frontend")
 		return
 	}
-	c.submitCommandOrTurn(trimmed, input, display, true, "", format)
+	c.submitCommandOrTurn(trimmed, input, display, true, "", format, admission)
 }
 
-func (c *Controller) submitCommandOrTurnReady(trimmed, input, display string, scopedRefsOnly bool, editedOriginal, format string) {
+func (c *Controller) submitCommandOrTurnReady(trimmed, input, display string, scopedRefsOnly bool, editedOriginal, format string, admission turnAdmission) {
 	runRefTurn := func(input, display string) {
-		c.runRefTurnWithFormat(input, display, format)
+		c.runRefTurnWithFormat(input, display, format, admission)
 	}
 	runRefTurnWithRefs := func(input, refLine, display string) {
-		c.runRefTurnWithRefsFormat(input, refLine, display, format)
+		c.runRefTurnWithRefsFormat(input, refLine, display, format, admission)
 	}
 	runGoalLoop := func(ctx context.Context, input, raw, display string) error {
 		return c.runGoalLoopWithRawDisplay(c.withTurnFormat(ctx, format), input, raw, display)
 	}
 	if scopedRefsOnly {
 		runRefTurn = func(input, display string) {
-			c.runScopedRefTurnWithFormat(input, display, format)
+			c.runScopedRefTurnWithFormat(input, display, format, admission)
 		}
 		runRefTurnWithRefs = func(input, refLine, display string) {
-			c.runScopedRefTurnWithRefsFormat(input, refLine, display, format)
+			c.runScopedRefTurnWithRefsFormat(input, refLine, display, format, admission)
 		}
 	}
 	if strings.TrimSpace(editedOriginal) != "" {
 		runRefTurn = func(input, display string) {
-			c.runEditedRefTurnWithFormat(input, display, editedOriginal, format)
+			c.runEditedRefTurnWithFormat(input, display, editedOriginal, format, admission)
 		}
 		runRefTurnWithRefs = func(input, refLine, display string) {
-			c.runEditedRefTurnWithRefsFormat(input, refLine, display, editedOriginal, format)
+			c.runEditedRefTurnWithRefsFormat(input, refLine, display, editedOriginal, format, admission)
 		}
 		runGoalLoop = func(ctx context.Context, input, raw, display string) error {
 			return c.runEditedGoalLoopWithRawDisplay(ctx, input, raw, display, editedOriginal)
 		}
 	}
 	if id, guidance, ok := ParseProtocolRecoveryCommand(trimmed); ok {
-		c.SubmitProtocolRecovery(id, guidance)
+		c.submitProtocolRecoveryLocked(id, guidance, admission)
 		return
 	}
-	if c.submitFinalReadinessCommand(trimmed, display) {
+	if c.submitFinalReadinessCommand(trimmed, display, admission) {
 		return
 	}
 	switch {
@@ -1715,7 +1560,7 @@ func (c *Controller) submitCommandOrTurnReady(trimmed, input, display string, sc
 	case trimmed == "/clear":
 		c.runSessionVerb(c.ClearSession, "context cleared", "clear context failed: ")
 	case strings.HasPrefix(trimmed, "/mcp__"):
-		c.runGuarded(func(ctx context.Context) error {
+		c.runGuardedWithAdmission(func(ctx context.Context) error {
 			sent, found, err := c.MCPPrompt(ctx, trimmed)
 			if err != nil {
 				return err
@@ -1725,7 +1570,7 @@ func (c *Controller) submitCommandOrTurnReady(trimmed, input, display string, sc
 				return nil
 			}
 			return runGoalLoop(ctx, sent, sent, display)
-		})
+		}, admission)
 	case SlashCodeCommentLine(trimmed):
 		// Slash-prefixed code comments are prompt text, not slash commands.
 		runRefTurn(input, display)
@@ -1785,7 +1630,7 @@ func (c *Controller) submitCommandOrTurnReady(trimmed, input, display string, sc
 			c.applyPlanExec(trimmed, display)
 			return
 		case "/prometheus":
-			c.applyPrometheus(trimmed, display)
+			c.applyPrometheus(trimmed, display, admission)
 			return
 		}
 		if c.managementNotice(trimmed) {
@@ -1802,21 +1647,21 @@ func (c *Controller) submitCommandOrTurnReady(trimmed, input, display string, sc
 				}
 				return
 			}
-			c.runGuarded(func(ctx context.Context) error {
+			c.runGuardedWithAdmission(func(ctx context.Context) error {
 				sent, err := docsCommandPrompt(ctx, query)
 				if err != nil {
 					return fmt.Errorf("docs: %w", err)
 				}
 				return runGoalLoop(ctx, sent, sent, display)
-			})
+			}, admission)
 			return
 		}
 		// A custom command wins over a skill of the same name; both resolve to a
 		// turn. Built-ins and their explicit Tempora namespace are handled above.
 		if sent, ok := c.CustomCommand(trimmed); ok {
-			c.runGuarded(func(ctx context.Context) error {
+			c.runGuardedWithAdmission(func(ctx context.Context) error {
 				return runGoalLoop(ctx, sent, sent, display)
-			})
+			}, admission)
 			return
 		}
 		if sk, task, ok := c.resolveSkillInvocation(trimmed); ok {
@@ -1825,13 +1670,13 @@ func (c *Controller) submitCommandOrTurnReady(trimmed, input, display string, sc
 					c.notice("usage: /" + sk.Name + " <task>")
 					return
 				}
-				c.runSubagentSkillSlash(sk, task, trimmed, display)
+				c.runSubagentSkillSlash(sk, task, trimmed, display, admission)
 				return
 			}
 			sent := c.skills.render(sk, task)
-			c.runGuarded(func(ctx context.Context) error {
+			c.runGuardedWithAdmission(func(ctx context.Context) error {
 				return runGoalLoop(ctx, sent, sent, display)
-			})
+			}, admission)
 			return
 		}
 		// Unknown slash input is prose more often than a typo ("/etc/hosts
@@ -1868,7 +1713,7 @@ const prometheusPrompt = "You are Prometheus, a strategic planner. Interview the
 
 // applyPrometheus starts an interactive planning interview, inspired by OMO's
 // Prometheus agent. It enters goal mode with a structured interview prompt.
-func (c *Controller) applyPrometheus(input, display string) {
+func (c *Controller) applyPrometheus(input, display string, admission turnAdmission) {
 	args := strings.TrimSpace(strings.TrimPrefix(input, "/prometheus"))
 	if args == "" || args == "--strict" {
 		c.notice("usage: /prometheus <your task description>")
@@ -1885,9 +1730,9 @@ func (c *Controller) applyPrometheus(input, display string) {
 	c.GoalStrict(strict)
 	c.notice("prometheus: starting planning interview")
 	if c.runner != nil {
-		c.runGuarded(func(ctx context.Context) error {
+		c.runGuardedWithAdmission(func(ctx context.Context) error {
 			return c.runGoalLoopWithRawDisplay(ctx, prompt, prompt, display)
-		})
+		}, admission)
 	}
 }
 
@@ -1915,12 +1760,16 @@ func shellCommandPreview(command string) string {
 // lock with model turns — only one can run at a time. User-invoked "!" commands
 // run without the OS sandbox (the user typed the command explicitly).
 func (c *Controller) RunShell(command string) {
+	c.runShell(command, turnAdmission{})
+}
+
+func (c *Controller) runShell(command string, admission turnAdmission) {
 	command = strings.TrimSpace(command)
 	if command == "" {
 		c.notice(i18n.M.ShellExecEmpty)
 		return
 	}
-	c.runGuarded(func(ctx context.Context) error {
+	c.runGuardedWithAdmission(func(ctx context.Context) error {
 		sh := c.shell
 		if sh.Path == "" {
 			sh = sandbox.ResolveShell("", "", nil)
@@ -1934,12 +1783,16 @@ func (c *Controller) RunShell(command string) {
 		id := "shell-" + string(preview)
 		diagnosticPreview := shellCommandPreview(command)
 		desc := shellrun.DescriptorFromShell(sh)
+		toolName := "bash"
+		if sh.Kind == sandbox.ShellPowerShell {
+			toolName = "pwsh"
+		}
 
 		if err := event.EmitChecked(c.sink, event.Event{
 			Kind: event.ToolDispatch,
 			Tool: event.Tool{
 				ID:   id,
-				Name: "bash",
+				Name: toolName,
 				Args: fmt.Sprintf(`{"command":%q}`, command),
 				Execution: &event.ShellExecution{
 					Kind: desc.Kind, Shell: desc.Shell, ShellVersion: desc.ShellVersion,
@@ -2016,81 +1869,90 @@ func (c *Controller) RunShell(command string) {
 			},
 		})
 		return nil
-	})
+	}, admission)
 }
 
 // runRefTurn resolves a line's @references into a context block and starts a
 // turn with it prepended (or the raw line when nothing resolved).
 func (c *Controller) runRefTurn(input, display string) {
-	c.runRefTurnWithRefs(input, input, display)
+	c.runRefTurnWithAdmission(input, display, turnAdmission{})
+}
+
+func (c *Controller) runRefTurnWithAdmission(input, display string, admission turnAdmission) {
+	c.runRefTurnWithRefs(input, input, display, admission)
 }
 
 // runRefTurnWithFormat runs a reference turn with a structured-output
 // format bound to its context (symmetric with runGoalLoop's withTurnFormat
 // injection — format is a property of every accepted turn, not just the
 // plain-goal path; review #7234 binds format to the accepted turn).
-func (c *Controller) runRefTurnWithFormat(input, display, format string) {
-	c.runGuarded(func(ctx context.Context) error {
-		return c.runRefTurnWithResolverSync(c.withTurnFormat(ctx, format), input, input, display, "", c.ResolveRefs)
-	})
+func (c *Controller) runRefTurnWithFormat(input, display, format string, admission turnAdmission) {
+	c.runPreparedRefTurn(input, input, display, "", c.resolveUnscopedRefsForTurn, func(ctx context.Context) context.Context {
+		return c.withTurnFormat(ctx, format)
+	}, admission)
 }
 
-func (c *Controller) runScopedRefTurnWithFormat(input, display, format string) {
-	c.runGuarded(func(ctx context.Context) error {
-		return c.runRefTurnWithResolverSync(c.withTurnFormat(ctx, format), input, input, display, "", c.ResolveScopedRefs)
-	})
+func (c *Controller) runScopedRefTurnWithFormat(input, display, format string, admission turnAdmission) {
+	c.runPreparedRefTurn(input, input, display, "", c.resolveScopedRefsForTurn, func(ctx context.Context) context.Context {
+		return c.withTurnFormat(ctx, format)
+	}, admission)
 }
 
-func (c *Controller) runRefTurnWithRefsFormat(input, refLine, display, format string) {
-	c.runGuarded(func(ctx context.Context) error {
-		return c.runRefTurnWithResolverSync(c.withTurnFormat(ctx, format), input, refLine, display, "", c.ResolveRefs)
-	})
+func (c *Controller) runRefTurnWithRefsFormat(input, refLine, display, format string, admission turnAdmission) {
+	c.runPreparedRefTurn(input, refLine, display, "", c.resolveUnscopedRefsForTurn, func(ctx context.Context) context.Context {
+		return c.withTurnFormat(ctx, format)
+	}, admission)
 }
 
-func (c *Controller) runScopedRefTurnWithRefsFormat(input, refLine, display, format string) {
-	c.runGuarded(func(ctx context.Context) error {
-		return c.runRefTurnWithResolverSync(c.withTurnFormat(ctx, format), input, refLine, display, "", c.ResolveScopedRefs)
-	})
+func (c *Controller) runScopedRefTurnWithRefsFormat(input, refLine, display, format string, admission turnAdmission) {
+	c.runPreparedRefTurn(input, refLine, display, "", c.resolveScopedRefsForTurn, func(ctx context.Context) context.Context {
+		return c.withTurnFormat(ctx, format)
+	}, admission)
 }
 
-func (c *Controller) runEditedRefTurnWithFormat(input, display, original, format string) {
-	c.runGuarded(func(ctx context.Context) error {
-		return c.runRefTurnWithResolverSync(c.withTurnFormat(ctx, format), input, input, display, original, c.ResolveRefs)
-	})
+func (c *Controller) runEditedRefTurnWithFormat(input, display, original, format string, admission turnAdmission) {
+	c.runPreparedRefTurn(input, input, display, original, c.resolveUnscopedRefsForTurn, func(ctx context.Context) context.Context {
+		return c.withTurnFormat(ctx, format)
+	}, admission)
 }
 
-func (c *Controller) runEditedRefTurnWithRefsFormat(input, refLine, display, original, format string) {
-	c.runGuarded(func(ctx context.Context) error {
-		return c.runRefTurnWithResolverSync(c.withTurnFormat(ctx, format), input, refLine, display, original, c.ResolveRefs)
-	})
+func (c *Controller) runEditedRefTurnWithRefsFormat(input, refLine, display, original, format string, admission turnAdmission) {
+	c.runPreparedRefTurn(input, refLine, display, original, c.resolveUnscopedRefsForTurn, func(ctx context.Context) context.Context {
+		return c.withTurnFormat(ctx, format)
+	}, admission)
 }
 
 // runRefTurnWithRefs resolves references from refLine while preserving input as
 // the user's actual prompt text. This lets compiler diagnostics such as
 // "/path/File.kt:12: error" attach @/path/File.kt without rewriting the error.
-func (c *Controller) runRefTurnWithRefs(input, refLine, display string) {
-	c.runRefTurnWithResolver(input, refLine, display, c.ResolveRefs)
+func (c *Controller) runRefTurnWithRefs(input, refLine, display string, admission turnAdmission) {
+	c.runRefTurnWithResolver(input, refLine, display, c.resolveUnscopedRefsForTurn, admission)
 }
 
-func (c *Controller) runRefTurnWithResolver(input, refLine, display string, resolve func(context.Context, string) (string, []string)) {
-	c.runGuarded(func(ctx context.Context) error {
-		return c.runRefTurnWithResolverSync(ctx, input, refLine, display, "", resolve)
-	})
+func (c *Controller) runRefTurnWithResolver(input, refLine, display string, resolve func(context.Context, string) resolvedReferences, admission turnAdmission) {
+	c.runPreparedRefTurn(input, refLine, display, "", resolve, func(ctx context.Context) context.Context { return ctx }, admission)
 }
 
-func (c *Controller) runRefTurnWithResolverSync(ctx context.Context, input, refLine, display, original string, resolve func(context.Context, string) (string, []string)) error {
-	block, errs := resolve(ctx, refLine)
-	for _, e := range errs {
+func (c *Controller) runRefTurnWithResolverSync(ctx context.Context, input, refLine, display, original string, resolve func(context.Context, string) resolvedReferences) error {
+	resolved := resolve(ctx, refLine)
+	return c.runResolvedRefTurnSync(ctx, input, display, original, resolved)
+}
+
+func (c *Controller) runResolvedRefTurnSync(ctx context.Context, input, display, original string, resolved resolvedReferences) error {
+	if len(resolved.imageErrs) > 0 {
+		return ImageReferenceFailures(resolved.imageErrs)
+	}
+	for _, e := range resolved.errs {
 		c.notice(e)
 	}
 	sent := input
-	if block != "" {
-		sent = "Referenced context:\n\n" + block + "\n\n" + input
+	if resolved.block != "" {
+		sent = "Referenced context:\n\n" + resolved.block + "\n\n" + input
 	}
 	if strings.TrimSpace(original) != "" {
-		return c.runEditedGoalLoopWithImageRefsRawDisplay(ctx, sent, input, refLine, display, original)
+		return c.runEditedGoalLoopWithFrozenImagesRawDisplay(ctx, sent, input, display, original, resolved.images)
 	}
-	return c.runGoalLoopWithImageRefsRawDisplay(ctx, sent, input, refLine, display)
+	return c.runGoalLoopWithFrozenImagesRawDisplay(ctx, sent, input, display, resolved.images)
 }
 
 // notice emits an informational Notice event.
@@ -2158,51 +2020,6 @@ func (c *Controller) runReady(ctx context.Context, input string) (err error) {
 	return err
 }
 
-// RunSubagentProfile executes one named runAs=subagent skill synchronously and
-// returns only its final answer. It is the headless CLI counterpart to explicit
-// slash invocation: the child keeps an isolated session, while the caller owns
-// stdout rendering and exit status. readOnly selects the preview-safe runner
-// used by `tempora subagent try`.
-func (c *Controller) RunSubagentProfile(ctx context.Context, name, task string, readOnly bool) (string, error) {
-	name = strings.TrimSpace(name)
-	task = strings.TrimSpace(task)
-	if name == "" {
-		return "", fmt.Errorf("subagent name is required")
-	}
-	if task == "" {
-		return "", fmt.Errorf("subagent task is required")
-	}
-	sk, ok := c.skills.bySlashName(name)
-	if !ok {
-		return "", fmt.Errorf("unknown or disabled subagent profile %q", name)
-	}
-	if sk.RunAs != skill.RunSubagent {
-		return "", fmt.Errorf("skill %q is not runAs=subagent", name)
-	}
-	sk = c.skills.prepare(sk)
-	runner := c.skillRunner
-	if readOnly {
-		runner = c.readOnlySkillRunner
-	}
-	if runner == nil {
-		return "", fmt.Errorf("subagent skill runner is unavailable for %q", name)
-	}
-
-	c.maybeSessionStart(ctx)
-	parentSession := c.parentSessionID()
-	ctx = agent.WithParentSession(ctx, parentSession)
-	ctx = jobs.WithSession(ctx, parentSession)
-	ctx = c.withTurnImages(ctx, task)
-	ctx = agent.WithResponseLanguagePreference(ctx, c.responseLanguage)
-	ctx = agent.WithReasoningLanguagePreference(ctx, c.reasoningLanguage)
-	ctx = agent.WithSubagentDepth(ctx, 0)
-	answer, err := runner(ctx, sk, task, skill.SubagentRunOptions{HostInitiated: true})
-	if err != nil {
-		return "", err
-	}
-	return tool.GuardSubagentHostDecisionText(answer), nil
-}
-
 // beginRotation claims the session-rotation gate. It fails if a turn is running
 // or another rotation is already in progress, so the caller holds exclusive
 // rights to swap the executor session from the check here through endRotation.
@@ -2212,7 +2029,7 @@ func (c *Controller) RunSubagentProfile(ctx context.Context, name, task string, 
 func (c *Controller) beginRotation() error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.running || c.finishing {
+	if c.bodyActiveLocked() || c.finalizingLocked() {
 		return errTurnRunningRotation
 	}
 	if c.rotating {
@@ -2226,7 +2043,7 @@ func (c *Controller) beginRotation() error {
 func (c *Controller) CancelRequested() bool {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	return c.canceling
+	return c.cancelRequestedLocked()
 }
 
 // PendingPrompt reports whether the current turn is blocked waiting for a user
@@ -2501,7 +2318,7 @@ func (c *Controller) refreshInteractiveGate() {
 func (c *Controller) TrySteer(text string) bool {
 	c.mu.Lock()
 	exec := c.executor
-	running := c.running
+	running := c.bodyActiveLocked()
 	c.mu.Unlock()
 	return running && exec != nil && exec.Steer(text)
 }
@@ -2605,7 +2422,7 @@ func (c *Controller) answerQuestionCheckedLocked(id string, answers []event.AskA
 		// back to the model and trusting it not to ask again (#6869).
 		if !askAnswersHaveSelection(answers) {
 			c.mu.Lock()
-			activeTurn := c.cancel != nil
+			activeTurn := c.turns.cancel != nil
 			c.mu.Unlock()
 			if activeTurn {
 				c.cancelLocked()
@@ -2756,21 +2573,6 @@ func (c *Controller) SetAgentPreset(preset string) {
 // AgentPreset returns the fixed compatibility label.
 func (c *Controller) AgentPreset() string {
 	return string(agentpreset.Standard)
-}
-
-func (c *Controller) applyPlanMode(v bool) {
-	c.mu.Lock()
-	c.sessionSettings.planMode = v
-	c.mu.Unlock()
-	if setter, ok := c.runner.(interface{ SetPlanMode(bool) }); ok {
-		setter.SetPlanMode(v)
-	} else if c.executor != nil {
-		c.executor.SetPlanMode(v)
-	}
-	payload, _ := json.Marshal(map[string]any{"enabled": v})
-	if err := c.appendDomainState("plan/state", payload, "mode"); err != nil {
-		slog.Warn("controller: append plan mode event", "err", err)
-	}
 }
 
 // SetResponseLanguage updates the final-answer language preference for
@@ -3103,6 +2905,10 @@ func (c *Controller) GoalStatus() string {
 // Compact runs one compaction pass on the executor's session on demand.
 // instructions is optional `/compact <focus>` guidance steering what to keep.
 func (c *Controller) Compact(ctx context.Context, instructions string) error {
+	ctx = c.withAuthentication(ctx)
+	if err := c.authentication.admissionError(); err != nil {
+		return err
+	}
 	if c.executor == nil {
 		return nil
 	}
@@ -3115,7 +2921,9 @@ func (c *Controller) Compact(ctx context.Context, instructions string) error {
 		return err
 	}
 	defer c.endRotation()
-	return c.executor.CompactNow(ctx, instructions)
+	err := c.executor.CompactNow(ctx, instructions)
+	c.authentication.recordFailure(err, c.ModelRef())
+	return err
 }
 
 // maybeSessionStart fires the SessionStart hook exactly once per session, lazily
@@ -3212,117 +3020,6 @@ func (c *Controller) NewSession() error {
 	c.clearSessionWriteAccess()
 	if seedErr != nil {
 		return fmt.Errorf("seed new session events: %w", seedErr)
-	}
-	return nil
-}
-
-// ClearSession discards the current conversation without preserving it in
-// resume/history, then rotates to a clean session carrying the same base system
-// prompt and no pinned context.
-func (c *Controller) ClearSession() error {
-	if c.executor == nil {
-		return nil
-	}
-	// Same rotation gate as NewSession: hold it across the whole
-	// destroy-then-swap so a turn cannot start during the sequence and have its
-	// live session replaced.
-	if err := c.beginRotation(); err != nil {
-		if errors.Is(err, errTurnRunningRotation) {
-			return fmt.Errorf("cannot clear while a turn is running: %w", err)
-		}
-		return err
-	}
-	defer c.endRotation()
-	if c.sessionEngineEnabled() {
-		return c.rotateExclusiveSession(true)
-	}
-	c.mu.Lock()
-	oldPath := c.sessionPath
-	c.mu.Unlock()
-	preMarkedCleanup := c.hasUnfinishedSessionJobs(oldPath)
-	if preMarkedCleanup {
-		if err := agent.MarkCleanupPending(oldPath, "clear"); err != nil {
-			return err
-		}
-	}
-	// Retire the old recovery state before deleting its artifacts. Async gate
-	// snapshots are path-bound, so wait for every already-scheduled old-path
-	// write; otherwise one can recreate the sidecar after removeSessionArtifacts.
-	c.loadRecoveryState("")
-	c.flushRecoveryPersistence(oldPath)
-	// session.rotate: the session_policy owner rules on the rotation before any
-	// artifact is destroyed, so its failure (required-class) aborts the clear
-	// with the old session fully intact. SessionPath is the file being rotated
-	// away from; the fresh path arrives with the session.start event below.
-	if err := c.extensionSessionPhase(context.Background(), extension.PointSessionRotate, dispatch.PhaseRotate, oldPath); err != nil {
-		return err
-	}
-	// Hold snapshotMu from artifact removal through the swap: a save slipping
-	// in between would resurrect the just-removed transcript, and one that
-	// overlapped the swap could pair the old path with the fresh session.
-	c.snapshotMu.Lock()
-	destroy := c.BeginDestroySession(oldPath)
-	if !destroy.Async {
-		if err := removeSessionArtifacts(oldPath); err != nil {
-			destroy.Finish()
-			c.snapshotMu.Unlock()
-			return err
-		}
-		destroy.Finish()
-	}
-	freshPath := oldPath
-	if c.sessionDir != "" {
-		freshPath = agent.NewSessionPath(c.sessionDir, c.label)
-	}
-	freshSession := agent.NewSession(c.basePrompt())
-	commitTransition, err := c.prepareSessionTransition(freshPath, "clear", freshSession)
-	if err != nil {
-		if destroy.Async {
-			destroy.Finish()
-		}
-		c.snapshotMu.Unlock()
-		return fmt.Errorf("bind cleared session: %w", err)
-	}
-	c.hooks.SessionEnd(context.Background(), "clear")
-	c.extensionSessionEvent(extension.PointSessionEnd, dispatch.PhaseEnd, oldPath)
-	commitTransition.publish()
-	c.bindExecutorProjection(c.SessionPath(), false)
-	if c.guardianSess != nil {
-		c.guardianSess.Reset()
-	}
-	c.ResetPlannerSession()
-	c.rebindCheckpoints(freshPath)
-	seedErr := c.seedSessionEventsFromExecutor("session-clear")
-	c.resetRecoveryForNewSession(freshPath)
-	c.rotateSessionTemp()
-	c.snapshotMu.Unlock()
-	c.rebindInbox()
-	// Same contract as NewSession: the fresh session starts with no active goal.
-	c.ClearGoal()
-	c.mu.Lock()
-	c.startedOnce = true
-	c.mu.Unlock()
-	c.hooks.SetSessionID(c.parentSessionID())
-	c.enqueueHookContexts(c.hooks.SessionStart(context.Background(), "clear"))
-	c.extensionSessionEvent(extension.PointSessionStart, dispatch.PhaseStart, c.SessionPath())
-	c.clearSessionWriteAccess()
-	if destroy.Async {
-		go func() {
-			result := destroy.Wait()
-			if result.HasTimedOut() && destroy.WaitAll != nil {
-				if err := agent.MarkCleanupPending(oldPath, "clear"); err != nil {
-					c.sink.Emit(event.Event{Kind: event.Notice, Level: event.LevelWarn, Text: "mark cleanup pending failed: " + err.Error()})
-				}
-				destroy.WaitAll()
-			}
-			if err := removeSessionArtifacts(oldPath); err != nil {
-				c.sink.Emit(event.Event{Kind: event.Notice, Level: event.LevelWarn, Text: "clear session cleanup failed: " + err.Error()})
-			}
-			destroy.Finish()
-		}()
-	}
-	if seedErr != nil {
-		return fmt.Errorf("seed cleared session events: %w", seedErr)
 	}
 	return nil
 }
@@ -3445,6 +3142,10 @@ func (c *Controller) SummarizeUpTo(ctx context.Context, turn int) error {
 }
 
 func (c *Controller) summarizeAt(ctx context.Context, turn int, from bool) error {
+	ctx = c.withAuthentication(ctx)
+	if err := c.authentication.admissionError(); err != nil {
+		return err
+	}
 	if c.executor == nil {
 		return c.rewindFail(fmt.Errorf("checkpoints unavailable"))
 	}
@@ -3468,6 +3169,7 @@ func (c *Controller) summarizeAt(ctx context.Context, turn int, from bool) error
 	} else {
 		err = c.executor.SummarizeUpTo(ctx, boundary)
 	}
+	c.authentication.recordFailure(err, c.ModelRef())
 	if err != nil {
 		return c.rewindFail(err)
 	}
@@ -4070,6 +3772,9 @@ func (c *Controller) stripTurnMessagesAfter(idx int) {
 	}
 	msgs := c.executor.Session().Snapshot()
 	if len(msgs) <= idx {
+		// Compaction may have removed the entire synthetic workset. The
+		// explicit turn identities still need retraction from display history.
+		c.replaceSessionAfterCancel(msgs)
 		return
 	}
 	c.replaceSessionAfterCancel(msgs[:idx])
@@ -4105,118 +3810,11 @@ func (c *Controller) stripCancelledVisibleTurnMessagesAfterWithFallbackAt(idx in
 	if c.executor == nil {
 		return
 	}
-	msgs := c.executor.Session().Snapshot()
-	if start, ok := resolveInterruptedTurnStart(msgs, idx, true, startedAt, fallback); ok {
-		idx = start
+	before := c.executor.Session().Snapshot()
+	next := planCancelledMessages(before, idx, fallback, startedAt, c.executor.CanReplayAssistantMessage, c.ledgerTailEvidence())
+	if next != nil {
+		c.replaceSessionAfterCancelFrom(before, next)
 	}
-	if idx < 0 {
-		idx = 0
-	}
-	if idx > len(msgs) {
-		idx = len(msgs)
-	}
-	next := append([]provider.Message{}, msgs[:idx]...)
-	keptUser := false
-	userEnd := idx
-	for i, m := range msgs[idx:] {
-		if !agent.IsUserAuthoredTurnMessage(m) {
-			continue
-		}
-		m.Content = StripComposePrefixes(m.Content)
-		next = append(next, m)
-		keptUser = true
-		userEnd = idx + i + 1
-		break
-	}
-	if !keptUser && agent.IsUserAuthoredTurnMessage(fallback) {
-		fallback.Content = StripComposePrefixes(fallback.Content)
-		if strings.TrimSpace(fallback.Content) != "" {
-			fallback.Images = append([]string(nil), fallback.Images...)
-			next = append(next, fallback)
-			keptUser = true
-			userEnd = idx
-		}
-	}
-	if !keptUser && len(msgs) <= idx {
-		return
-	}
-	recovery := &provider.InterruptedTurnRecovery{Pending: true}
-	localIndexes := make([]int, 0, 1)
-	for i := userEnd; i < len(msgs); {
-		m := msgs[i]
-		if m.LocalOnly {
-			m.Role = provider.RoleTool
-			m.ToolCallID = provider.LocalOnlyToolID
-			m.Name = provider.LocalOnlyToolName
-			previousRecovery := m.InterruptedTurn
-			m.InterruptedTurn = nil
-			next = append(next, m)
-			localIndexes = append(localIndexes, len(next)-1)
-			recovery.DroppedPartialText = recovery.DroppedPartialText || strings.TrimSpace(m.Content) != ""
-			recovery.DroppedPartialReasoning = recovery.DroppedPartialReasoning || strings.TrimSpace(m.ReasoningContent) != ""
-			if previousRecovery != nil {
-				recovery.CompletedTools = append(recovery.CompletedTools, previousRecovery.CompletedTools...)
-				recovery.InterruptedTools = append(recovery.InterruptedTools, previousRecovery.InterruptedTools...)
-				recovery.NotStartedTools = append(recovery.NotStartedTools, previousRecovery.NotStartedTools...)
-				recovery.UnknownTools = append(recovery.UnknownTools, previousRecovery.UnknownTools...)
-			} else {
-				for _, call := range m.ToolCalls {
-					provider.RecordToolRecovery(recovery, interruptedToolSummary(call), provider.ToolRunUnknown)
-				}
-			}
-			i++
-			continue
-		}
-		// Auto-compaction can install a digest between the pinned current user
-		// message and its recent tool tail. It summarizes pre-turn/current work
-		// that is no longer present verbatim, so keep it provider-visible rather
-		// than silently dropping context during recovery.
-		if agent.IsCompactionSummary(m) {
-			next = append(next, m)
-			i++
-			continue
-		}
-		if m.Role == provider.RoleAssistant {
-			recordInterruptedAssistantRecovery(recovery, msgs, i, c.ledgerTailEvidence())
-		}
-		if end, ok := completeToolTurnEnd(msgs, i); ok && c.executor.CanReplayAssistantMessage(m) {
-			next = append(next, msgs[i:end]...)
-			i = end
-			continue
-		}
-		switch m.Role {
-		case provider.RoleAssistant:
-			local := m
-			local.Role = provider.RoleTool
-			local.LocalOnly = true
-			local.ToolCallID = provider.LocalOnlyToolID
-			local.Name = provider.LocalOnlyToolName
-			local.InterruptedTurn = nil
-			next = append(next, local)
-			localIndexes = append(localIndexes, len(next)-1)
-			recovery.DroppedPartialText = recovery.DroppedPartialText || strings.TrimSpace(local.Content) != ""
-			recovery.DroppedPartialReasoning = recovery.DroppedPartialReasoning || strings.TrimSpace(local.ReasoningContent) != ""
-		case provider.RoleTool:
-			local := m
-			local.LocalOnly = true
-			local.ToolCalls = []provider.ToolCall{{ID: m.ToolCallID, Name: m.Name}}
-			local.ToolCallID = provider.LocalOnlyToolID
-			local.Name = provider.LocalOnlyToolName
-			next = append(next, local)
-			localIndexes = append(localIndexes, len(next)-1)
-		}
-		i++
-	}
-	if len(localIndexes) == 0 {
-		next = append(next, provider.Message{
-			Role: provider.RoleTool, ToolCallID: provider.LocalOnlyToolID,
-			Name: provider.LocalOnlyToolName, LocalOnly: true,
-		})
-		localIndexes = append(localIndexes, len(next)-1)
-	}
-	c.applyLedgerRecoveryFacts(recovery)
-	next[localIndexes[len(localIndexes)-1]].InterruptedTurn = recovery
-	c.replaceSessionAfterCancel(next)
 }
 
 func (c *Controller) inFlightTurnStartedAt() time.Time {
@@ -4365,18 +3963,20 @@ func interruptedToolSummary(call provider.ToolCall) provider.InterruptedToolSumm
 }
 
 func (c *Controller) replaceSessionAfterCancel(msgs []provider.Message) {
+	if c.executor == nil {
+		return
+	}
+	c.replaceSessionAfterCancelFromScoped(c.executor.Session().Snapshot(), msgs, true)
+}
+
+func (c *Controller) replaceLegacySessionAfterCancelLocked(msgs []provider.Message) {
 	// The whole cleanup is a save/recovery handoff like snapshot's: hold
 	// snapshotMu from the in-memory truncation onward. Truncating outside the
 	// lock would let an in-flight save capture the shortened transcript, read
 	// the longer partial autosave on disk as a stale-prefix conflict, and
 	// adopt it back into the executor — silently undoing the cancel cleanup
 	// before the flush below could persist it.
-	c.snapshotMu.Lock()
-	defer c.snapshotMu.Unlock()
 	c.executor.Session().Replace(append([]provider.Message(nil), msgs...))
-	if err := c.replaceSessionEventProjection(context.Background(), "cancel-or-recovery-rewrite", msgs); err != nil {
-		slog.Warn("controller: record cancel/recovery transcript rewrite", "err", err)
-	}
 	// The mid-turn autosave may have already written a partial transcript to
 	// disk. snapshotActivityIfChanged skips the write when messageCount()
 	// returns to startMessages, so flush the cleaned transcript here. SaveRewrite
@@ -5219,20 +4819,6 @@ func (c *Controller) ImageCapabilityChanged() bool {
 	return c.imageCapabilityChanged != nil && c.imageCapabilityChanged()
 }
 
-// ModelSettingsState compares this immutable runtime with current disk config.
-// It is intentionally separate from provider-visible messages and metadata.
-func (c *Controller) ModelSettingsState() (applied, desired string, err error) {
-	if c.modelSettings.current == nil {
-		return "", "", nil
-	}
-	desired, err = c.modelSettings.current()
-	return c.modelSettings.revision, desired, err
-}
-
-// ModelSettingsSourceRevision identifies an immutable Desktop resolver bundle.
-// It is transport bookkeeping only, never part of the conversation.
-func (c *Controller) ModelSettingsSourceRevision() string { return c.modelSettings.sourceRevision }
-
 // SessionAuthorizations snapshots this controller's same-session tool
 // grants ("Allow for this session") and Plan-mode read-only command trust,
 // for carrying into a replacement controller across a rebuild — see
@@ -5258,8 +4844,13 @@ func (c *Controller) ReleaseResources() {
 // Close stops plugin subprocesses and releases resources. A session that ever
 // started fires SessionEnd so a teardown hook runs.
 func (c *Controller) Close() {
+	c.recordLifecycle("close", "controller_close", "", 0, "")
 	c.close(true, closeJobsWithGrace)
 }
+
+// Closed is signalled after teardown has released all Controller-owned stores.
+// Close itself only requests teardown when a turn is still finalizing.
+func (c *Controller) Closed() <-chan struct{} { return c.closeFinalized }
 
 // CloseAfterDestroy releases controller resources after the caller has already
 // begun session-specific job teardown. It avoids a second synchronous job grace
@@ -5283,29 +4874,42 @@ func (c *Controller) close(fireSessionEnd bool, jobsMode closeJobsMode) {
 	// SessionEnd hooks or re-run cleanup. The first caller's jobsMode wins.
 	c.closeOnce.Do(func() {
 		c.mu.Lock()
-		started := c.startedOnce
-		cancel := c.cancel
+		cancel := c.turns.cancel
+		done := c.turns.done
+		// A phase marker alone is not a live turn: recovery may retain one after
+		// cancel/done ownership has gone. Only a live body or terminal fanout
+		// defers final resource release.
+		turnActive := done != nil || c.finalizingLocked() || c.turns.recoveryFanout
 		// Seal turn admission and drop anything already parked: a parked turn
 		// must not start against a controller that is being torn down, and
 		// without the closed flag a submit landing after this critical
 		// section (while a running turn's TurnDone delivery is still in
 		// flight) would park again and start after teardown.
 		c.closed = true
-		c.parkedTurns = nil
-		// A finishing-only controller no longer needs the delivery gate because
-		// closed seals every admission path. Keep running truthful until the
-		// foreground goroutine actually exits; clearing it here would report idle
-		// while tools and prompt waiters were still live.
-		c.finishing = false
-		c.finishingBoundary.end()
+		c.closeFireSessionEnd = fireSessionEnd
+		c.closeJobsMode = jobsMode
+		c.turns.pending = nil
+		c.turns.wake = false
 		if cancel != nil {
-			c.canceling = true
+			c.turns.cancelRequested = true
+			if c.turns.phase == session.RuntimeRunning {
+				c.turns.phase = session.RuntimeCancelling
+				c.noteExecutionLocked(session.RuntimeCancelling, "cancelling")
+			}
+		} else {
+			c.turns.cancelRequested = false
+		}
+		if !turnActive {
+			c.turns.phase = session.RuntimeClosed
+			c.turns.finishingBound.end()
+			c.turns.finishingBound.endIdle()
 		}
 		c.mu.Unlock()
 		if cancel != nil {
 			// Signal the owned turn before prompt bookkeeping or callbacks. A
 			// stalled registry/adapter must never delay Stop during shutdown.
 			cancel()
+			c.startCancellationWatchdog(done)
 			c.promptOwner.CancelAll()
 			c.approval.clearAll()
 		} else {
@@ -5314,6 +4918,25 @@ func (c *Controller) close(fireSessionEnd bool, jobsMode closeJobsMode) {
 		if c.goalDriverControl.cancel != nil {
 			c.goalDriverControl.cancel()
 		}
+		if !turnActive {
+			c.finalizeControllerClose()
+		}
+	})
+}
+
+// finalizeControllerClose releases stores and process resources only after an
+// active turn has published its terminal boundary. Closing the ledger or the
+// session binding earlier makes the final TurnDone impossible to accept.
+func (c *Controller) finalizeControllerClose() {
+	c.closeFinalizeOnce.Do(func() {
+		if c.closeFinalized != nil {
+			defer close(c.closeFinalized)
+		}
+		c.mu.Lock()
+		started := c.startedOnce
+		fireSessionEnd := c.closeFireSessionEnd
+		jobsMode := c.closeJobsMode
+		c.mu.Unlock()
 		// Goal-driver workers may be inside the pre-admission durability
 		// checkpoint. Join them before closing the v3 writer so teardown cannot
 		// race a late Flush or recreate files under a test/session directory.
@@ -5350,6 +4973,12 @@ func (c *Controller) close(fireSessionEnd bool, jobsMode closeJobsMode) {
 				slog.Warn("controller: close turn event ledger", "err", err)
 			}
 		}
+		c.turnEvents.commitMu.Lock()
+		if pending := c.turnEvents.pendingExecutionCommit; pending != nil {
+			pending.Release()
+			c.turnEvents.pendingExecutionCommit = nil
+		}
+		c.turnEvents.commitMu.Unlock()
 		service, runtime, exclusive := c.v3Binding()
 		if exclusive && runtime != nil {
 			c.releaseSessionRuntimeBinding(service)
@@ -5375,6 +5004,9 @@ func (c *Controller) close(fireSessionEnd bool, jobsMode closeJobsMode) {
 		if c.sessionTemp != nil {
 			c.sessionTemp.Release()
 		}
+		if c.persistentShell != nil {
+			c.persistentShell.Release()
+		}
 	})
 }
 
@@ -5393,10 +5025,25 @@ func (c *Controller) SessionTemp() *sessiontemp.Manager {
 // session cannot see the previous session's temporary files. In-flight command
 // leases keep the old generation alive until they release.
 func (c *Controller) rotateSessionTemp() {
-	if c == nil || c.sessionTemp == nil {
+	if c == nil {
 		return
 	}
-	c.sessionTemp.Rotate()
+	if c.sessionTemp != nil {
+		c.sessionTemp.Rotate()
+	}
+	if c.persistentShell != nil {
+		c.persistentShell.Rotate()
+	}
+}
+
+// PersistentShell returns the session-scoped PTY manager. Hot rebuilds pass
+// this to the replacement Controller so shell state survives model/settings
+// swaps. Nil only when the Controller was constructed without one.
+func (c *Controller) PersistentShell() *persistentshell.Manager {
+	if c == nil {
+		return nil
+	}
+	return c.persistentShell
 }
 
 // Jobs returns the still-running background jobs for the status bar (nil when
@@ -5414,6 +5061,14 @@ func (c *Controller) KillJob(id string) bool {
 		return false
 	}
 	return c.jobs.Kill(id)
+}
+
+// TaskRuntimeOwnerID identifies the recorder that admitted this runtime's jobs.
+func (c *Controller) TaskRuntimeOwnerID() string {
+	if c.jobs == nil {
+		return ""
+	}
+	return c.jobs.TaskRuntimeOwnerID()
 }
 
 // CancelJob stops one background job owned by this controller's session.

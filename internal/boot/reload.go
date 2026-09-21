@@ -10,6 +10,7 @@ import (
 	"tempora/internal/control"
 	"tempora/internal/extension"
 	"tempora/internal/provider"
+	"tempora/internal/session"
 )
 
 // RebuildFrom is Rebuild using previous BuildResult for incremental sidecars
@@ -64,10 +65,11 @@ func RebuildFrom(ctx context.Context, previous *BuildResult, opts Options) (*Bui
 //     InheritLifecycleFrom.
 //
 // Left to the frontend (Rebuild deliberately does not do these):
-//   - swapping its controller pointer and closing old AFTER a successful
-//     swap — old's controller and the old BuildResult.Runtime set stay the
-//     caller's to release (CloseIfGeneration guards against closing a newer
-//     runtime's resources);
+//   - atomically activating the replacement with
+//     control.ActivateControllerReplacement while swapping its controller
+//     pointer, then closing old AFTER the successful swap — old's controller
+//     and the old BuildResult.Runtime set stay the caller's to release
+//     (CloseIfGeneration guards against closing a newer runtime's resources);
 //   - re-installing the interactive approval gate (EnableInteractiveApproval)
 //     and re-binding approval/ask channels to the new controller;
 //   - persisting the migrated transcript (Controller.Snapshot) when the swap
@@ -105,6 +107,9 @@ func rebuildWithPrevious(ctx context.Context, old *control.Controller, previous 
 	// model/settings hot rebuilds do not wipe temporary files mid-session.
 	if opts.SessionTemp == nil {
 		opts.SessionTemp = old.SessionTemp()
+	}
+	if opts.PersistentShell == nil {
+		opts.PersistentShell = old.PersistentShell()
 	}
 
 	home := config.TemporaHomeDir()
@@ -157,7 +162,7 @@ func rebuildWithPrevious(ctx context.Context, old *control.Controller, previous 
 	}
 	attachPlanAndStatus(res, fromGraph, toGraph, opts.Generation, previousSnapshot)
 
-	if err := migrateRuntimeState(res.Controller, old, m); err != nil {
+	if err := migrateRuntimeState(res.Controller, old, m, opts.SessionCreateOptions); err != nil {
 		// Fail-atomic: release the replacement; old keeps serving.
 		// Activation never reached Active publish.
 		if res.Snapshot != nil {
@@ -202,7 +207,7 @@ type runtimeMigration struct {
 // migrateRuntimeState applies the captured state to the freshly built
 // controller. Every step today is an infallible public control call; the
 // error return is the fail-atomic seam for steps that gain failure modes.
-func migrateRuntimeState(ctrl, old *control.Controller, m runtimeMigration) error {
+func migrateRuntimeState(ctrl, old *control.Controller, m runtimeMigration, createOptions session.CreateOptions) error {
 	carried := spliceFreshSystemPrompt(m.carried, ctrl.History())
 	if ctrl.UsesExclusiveSession() {
 		if _, _, ok := ctrl.SessionBinding(); ok {
@@ -211,7 +216,7 @@ func migrateRuntimeState(ctrl, old *control.Controller, m runtimeMigration) erro
 			}
 		} else if m.prevPath != "" {
 			path := agent.ContinueSessionPath(m.prevPath, ctrl.SessionDir(), ctrl.Label())
-			if _, err := ctrl.ContinueLegacySessionForRebuild(context.Background(), path, ""); err != nil {
+			if _, err := ctrl.ContinueLegacySessionForRebuildWithOptions(context.Background(), path, "", createOptions); err != nil {
 				return err
 			}
 			if err := ctrl.AdoptRebuiltModelContext(carried); err != nil {

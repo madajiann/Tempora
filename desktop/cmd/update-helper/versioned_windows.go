@@ -19,8 +19,8 @@ import (
 // staged NSIS payload whose signed manifest names every member:
 //
 //	InstallRoot/
-//	  tempora-launcher.exe
-//	  Tempora.exe              (launcher alias when present or portable)
+//	  Tempora.exe              (canonical GUI entry)
+//	  tempora-launcher.exe     (only when preserving an existing entry)
 //	  tempora-cli.exe          (small CLI entry)
 //	  current.json
 //	  versions/<version>/
@@ -91,12 +91,10 @@ func activateVersionedWindowsFromStaging(claimed *repair.UpdateTransaction, stag
 		CheckProcesses: func() error { return desktopinstance.CheckInstallVacant(installRoot, config.TemporaHomeDir()) },
 		Members:        members,
 		RequiredNames:  versionNames,
-		RootMembers: []installlayout.Member{
-			{Name: "tempora-launcher.exe", Path: launcherSrc, Mode: 0o700},
-			{Name: "Tempora.exe", Path: launcherSrc, Mode: 0o700},
-			{Name: "tempora-cli.exe", Path: cliSrc, Mode: 0o700},
+		WindowsRootEntries: &installlayout.WindowsRootEntrySources{
+			LauncherPath: launcherSrc,
+			CLIEntryPath: cliSrc,
 		},
-		RequiredRootNames: []string{"tempora-launcher.exe", "Tempora.exe", "tempora-cli.exe"},
 	}); err != nil {
 		return err
 	}

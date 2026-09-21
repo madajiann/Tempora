@@ -1,10 +1,10 @@
 import { useEffect, useRef, type Dispatch, type RefObject, type SetStateAction } from "react";
-import { app, onProjectTreeChanged } from "../lib/bridge";
+import { app, onProjectTreeChanged, onTabMeta } from "../lib/bridge";
 import { useCommittedCommand } from "../lib/useCommittedCommand";
 import { activeTabMirror } from "./activeTabMirror";
 import { asArray } from "../lib/array";
 import { createBoundedRefreshCoordinator, sameTabMetaLists, seedActiveTabMetaList, shouldRefreshTabMetaForEvent, TAB_META_MAX_IN_FLIGHT } from "../lib/tabMetaRefresh";
-import { clearAttentionChimeKeys, playAttentionChime, playSuccessChime, shouldPlayAttentionChimeForEvent } from "../lib/sound";
+import { useRuntimeNotifications } from "./useRuntimeNotifications";
 import { composerProfileFromTab, defaultComposerProfile, patchComposerProfile, resolvePlanRestoreTabId, shouldRestoreUserPlanModeForProfile, updateUserPlanModeIntent, type ComposerProfile, type UserPlanModeIntents } from "../lib/composerProfile";
 import { useRemoteTabOpened } from "../lib/useRemoteTabOpened";
 import { recordFrontendDiagnostic } from "../lib/frontendDiagnosticBridge";
@@ -42,7 +42,7 @@ export type RuntimeEventHandlersInput = {
  */
 export function useRuntimeEventHandlers(input: RuntimeEventHandlersInput) {
   const { activeTabId, workspaceScopeKey, setProjectRevision } = input;
-  const attentionChimeEvents = useRef(new Set<string>());
+  const { handleNotification, resetLegacyAttention } = useRuntimeNotifications(activeTabId);
   const tabMetaRefreshCoordinatorRef = useRef<ReturnType<typeof createBoundedRefreshCoordinator<TabMeta[]>> | null>(null);
   if (!tabMetaRefreshCoordinatorRef.current) {
     tabMetaRefreshCoordinatorRef.current = createBoundedRefreshCoordinator<TabMeta[]>(TAB_META_MAX_IN_FLIGHT);
@@ -66,6 +66,9 @@ export function useRuntimeEventHandlers(input: RuntimeEventHandlersInput) {
     input.setTabMetas((current) => seedActiveTabMetaList(current, tab));
     input.setTabOrderIds((current) => current.includes(tab.id) ? current : [...current, tab.id]);
   });
+  // Authentication changes belong to the current backend generation. Refresh
+  // the registry rather than granting a local, tab-id-only send bypass.
+  useEffect(() => onTabMeta(() => { void refreshTabMetas(undefined, { afterMutation: true }); }), [refreshTabMetas]);
   const updateRemoteTabMeta = useCommittedCommand((tab: TabMeta): void => {
     input.setTabMetas((current) => current.map((existing) => existing.id === tab.id
       ? { ...existing, ...tab, active: existing.active }
@@ -82,9 +85,8 @@ export function useRuntimeEventHandlers(input: RuntimeEventHandlersInput) {
     if (event.kind === "turn_done") {
       input.setDockRefreshKey((value) => value + 1);
       input.setProjectRevision((value) => value + 1);
-      if (!event.err) playSuccessChime();
     }
-    if (shouldPlayAttentionChimeForEvent(event, attentionChimeEvents.current)) playAttentionChime();
+    handleNotification(event);
     if (shouldRefreshTabMetaForEvent(event.kind)) void refreshTabMetas(undefined, { afterMutation: true });
     if (event.kind !== "turn_done") return;
     const turnTabId = resolvePlanRestoreTabId(event.tabId, activeTabMirror().current);
@@ -109,7 +111,7 @@ export function useRuntimeEventHandlers(input: RuntimeEventHandlersInput) {
 
   const handleRuntimeReady = useCommittedCommand<RuntimeReadyListener>((readyTabId) => {
     recordFrontendDiagnostic("runtime", "runtime.ready", { ready: true, hasActiveTab: Boolean(readyTabId) });
-    clearAttentionChimeKeys(attentionChimeEvents.current, readyTabId);
+    resetLegacyAttention(readyTabId);
     void refreshTabMetas();
     if (!readyTabId || readyTabId === input.workspaceScopeActiveTabRef.current) {
       input.setWorkspaceControllerEpoch((value) => value + 1);
@@ -118,7 +120,7 @@ export function useRuntimeEventHandlers(input: RuntimeEventHandlersInput) {
 
   const handleRuntimeRebuilt = useCommittedCommand<RuntimeRebuiltListener>((rebuiltTabId) => {
     recordFrontendDiagnostic("runtime", "runtime.rebuilt", { ready: true, hasActiveTab: Boolean(rebuiltTabId) });
-    clearAttentionChimeKeys(attentionChimeEvents.current, rebuiltTabId);
+    resetLegacyAttention(rebuiltTabId);
     if (!rebuiltTabId || rebuiltTabId === input.workspaceScopeActiveTabRef.current) {
       input.setWorkspaceControllerEpoch((value) => value + 1);
     }

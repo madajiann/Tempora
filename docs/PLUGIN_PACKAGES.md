@@ -262,7 +262,7 @@ Native Tempora extensions use the exact v2 `apiVersion`:
 
 ```json
 {
-  "apiVersion": "reasonix.io/plugin/v2",
+  "apiVersion": "tempora.io/plugin/v2",
   "name": "example",
   "version": "1.0.0",
   "description": "Example extension",
@@ -300,7 +300,7 @@ Native Tempora extensions use the exact v2 `apiVersion`:
 Parsing rules:
 
 - Native `tempora-plugin.json` manifests must declare the exact
-  `reasonix.io/plugin/v2` value. v1 and missing versions are rejected; there
+  `tempora.io/plugin/v2` value. v1 and missing versions are rejected; there
   is no v1 dual-read or automatic migration path.
 - v2 is strict: any unknown field — at the root or nested under
   `contributes`/`runtime` — is an error naming the field path, so typos fail
@@ -310,7 +310,7 @@ Parsing rules:
   native manifest. Host-specific sidecars such as a root `CLAUDE.md`,
   `hooks/hooks.json`, `.claude/settings.json`, or `.mcp.json` are not imported
   implicitly.
-- Minor aliases (`reasonix.io/plugin/v2.0`, `v2.1`, …) and unknown major
+- Minor aliases (`tempora.io/plugin/v2.0`, `v2.1`, …) and unknown major
   versions are rejected.
 - `requires` and `provides` declare dependency constraints and the capability
   ceiling enforced against the Sidecar handshake.

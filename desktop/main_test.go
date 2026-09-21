@@ -2,9 +2,13 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
+
+	"tempora/internal/skill/skillwatch"
+	"tempora/internal/testenv"
 )
 
 // TestLifecycleDiagnosticsUsePreShellOwnershipGate pins the ordering that keeps
@@ -15,7 +19,7 @@ func TestLifecycleDiagnosticsUsePreShellOwnershipGate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	beforeServe, _, ok := strings.Cut(string(source), "server.Serve(appCtx)")
+	beforeServe, _, ok := strings.Cut(string(source), "server.Serve(")
 	if !ok {
 		t.Fatal("host_rpc.go no longer contains the host RPC serve boundary")
 	}
@@ -41,6 +45,11 @@ func TestLifecycleDiagnosticsUsePreShellOwnershipGate(t *testing.T) {
 // this, tests that persist desktop state, sessions, cache, or CLI-style config
 // can leak into the developer's real Tempora directories.
 func TestMain(m *testing.M) {
+	// The watcher helper re-executes os.Executable(), which here is this test
+	// binary: serve the pipe instead of re-running the suite.
+	if skillwatch.MaybeRunHelper() {
+		return
+	}
 	dir, err := os.MkdirTemp("", "tempora-desktop-test")
 	if err != nil {
 		os.Exit(1)
@@ -63,6 +72,12 @@ func TestMain(m *testing.M) {
 	// precedence.
 	runtimeEventsEmitFallback = func(context.Context, string, ...any) {}
 	code := m.Run()
+	// Fixtures build an App without shutdownBody, which is what releases the
+	// cached session services. Their state lives under the scratch home removed
+	// below, not a per-test t.TempDir, so this is debt, not a cleanup failure.
+	if note := testenv.ReportLeakedFileLocks(); note != "" {
+		fmt.Fprintln(os.Stderr, note)
+	}
 	os.RemoveAll(dir)
 	os.Exit(code)
 }

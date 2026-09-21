@@ -5,7 +5,7 @@
 
 ## 1. 一句话现状
 
-**Tempora v0.1.0 完整可用**：DeepSeek-Reasonix 全量 fork + 品牌更名 + 智谱 GLM 出厂接入 + 双击即装的 exe 安装器（20.3MB）。**已推送 GitHub：https://github.com/madajiann/Tempora（Private，分支 main，完整历史 6,958+ 提交）**。
+**Tempora v0.1.0 完整可用**：DeepSeek-Tempora 全量 fork + 品牌更名 + 智谱 GLM 出厂接入 + 双击即装的 exe 安装器（20.3MB）。**已推送 GitHub：https://github.com/madajiann/Tempora（Private，分支 main，完整历史 6,958+ 提交）**。
 
 ## 2. 当前产物与安装状态
 
@@ -38,7 +38,7 @@ G:\Tempora\
 │   ├── sdk\go\                        ← 扩展 SDK（嵌套模块 tempora/sdk/go）
 │   ├── tools\windowsinstaller\        ← 安装器源码（嵌套模块，内嵌 payload）
 │   └── install.cmd / install.ps1      ← 脚本安装备选（无安装包时用）
-└── reference\DeepSeek-Reasonix\  ← 上游原版克隆（只读参考，勿改）
+└── reference\DeepSeek-Tempora\  ← 上游原版克隆（只读参考，勿改）
 ```
 
 ## 4. 环境信息（本机）
@@ -123,6 +123,6 @@ go test ./internal/...                            # 测试（desktop、sdk/go �
 03e2ba2 Add Windows setup exe installer + GitHub onboarding guide
 7669b0c Docs: record final verification results in HANDOFF/WORKLOG
 e2b270c Fix rebrand-length test fixtures, add GLM family grouping, refresh golden baseline
-279165a Tempora v0.1.0: fork DeepSeek-Reasonix, full rebrand + Zhipu GLM
+279165a Tempora v0.1.0: fork DeepSeek-Tempora, full rebrand + Zhipu GLM
 036c7c5 (上游基线) docs(release): 准备 v1.38.7 中英更新日志 #10151
 ```

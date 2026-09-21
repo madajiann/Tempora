@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"tempora/internal/config"
+	"tempora/internal/localeenv"
 	"tempora/internal/secrets"
 )
 
@@ -257,7 +258,7 @@ func (a *App) terminalTargetForTab(tabID string, requireWritable bool) (terminal
 		return terminalTarget{}, errTerminalStaleTab
 	}
 	root := tab.WorkspaceRoot
-	readOnly := tab.ReadOnly
+	readOnly := terminalReadOnlyForTab(tab)
 	a.mu.RUnlock()
 
 	if requireWritable && readOnly {
@@ -283,7 +284,7 @@ func (a *App) revalidateTerminalTarget(target terminalTarget, requireWritable bo
 	a.mu.RLock()
 	tab := a.tabByIDLocked(target.tabID)
 	valid := tab != nil && a.activeTabID == target.tabID
-	readOnly := valid && tab.ReadOnly
+	readOnly := valid && terminalReadOnlyForTab(tab)
 	root := ""
 	if valid {
 		root = tab.WorkspaceRoot
@@ -468,6 +469,7 @@ func commandForShellPath(path, label string) terminalCommand {
 }
 
 func terminalEnvironment(base []string) []string {
+	base = localeenv.DefaultUTF8(base)
 	env := make([]string, 0, len(base)+2)
 	for _, item := range base {
 		key, _, ok := strings.Cut(item, "=")

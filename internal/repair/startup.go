@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"tempora/internal/config"
-	"tempora/internal/filelock"
+	filelock "tempora/internal/identitylock"
 )
 
 // StartupState is the legacy startup-state.json shape written by v1.18-v1.19.

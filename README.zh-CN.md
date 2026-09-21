@@ -4,7 +4,7 @@
 
 <p align="center">
   <strong>Tempora</strong> — 一个为长时间自主任务而生的编码 agent。Fork 自
-  <a href="https://github.com/esengine/DeepSeek-Reasonix">DeepSeek-Reasonix</a>（MIT），开箱即用 DeepSeek + 智谱 GLM 双通道。
+  <a href="https://github.com/esengine/DeepSeek-Reasonix">DeepSeek-Tempora</a>（MIT），开箱即用 DeepSeek + 智谱 GLM 双通道。
 </p>
 
 <p align="center">
@@ -81,8 +81,8 @@ tempora doctor                           # 环境自检
 
 ## 许可证
 
-MIT。本项目为 DeepSeek-Reasonix 的 fork，上游版权与许可见 [LICENSE](LICENSE) 与 [NOTICE.md](NOTICE.md)。
+MIT。本项目为 DeepSeek-Tempora 的 fork，上游版权与许可见 [LICENSE](LICENSE) 与 [NOTICE.md](NOTICE.md)。
 
 ## 致谢
 
-感谢 [esengine](https://github.com/esengine) 与 DeepSeek-Reasonix 的全部贡献者 —— Tempora 站在他们的肩膀上。
+感谢 [esengine](https://github.com/esengine) 与 DeepSeek-Tempora 的全部贡献者 —— Tempora 站在他们的肩膀上。

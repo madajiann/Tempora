@@ -110,7 +110,7 @@ func TestWindowsInstallerScriptWaitsBeforeCopyingExecutable(t *testing.T) {
 		`LangString temporaUpdateSubtitle ${LANG_TRADCHINESE} "正在安裝已驗證的更新，完成後 Tempora 將自動重新啟動。"`,
 		"Function tempora.waitForExecutableUnlock",
 		`FileOpen $1 "$INSTDIR\${PRODUCT_EXECUTABLE}" a`,
-		`FileOpen $1 "$INSTDIR\versions\v${INFO_PRODUCTVERSION}\${PRODUCT_EXECUTABLE}" a`,
+		`FileOpen $1 "$INSTDIR\versions\${TEMPORA_VERSION_TAG}\${PRODUCT_EXECUTABLE}" a`,
 		`FileOpen $1 "$INSTDIR\${TEMPORA_GUARD}" a`,
 		`FileOpen $1 "$INSTDIR\${TEMPORA_LAUNCHER}" a`,
 		`FileOpen $1 "$INSTDIR\${TEMPORA_CLI}" a`,

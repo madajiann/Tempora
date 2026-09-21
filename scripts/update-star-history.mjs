@@ -26,7 +26,7 @@ async function requestPage(url, token, fetchImpl) {
         headers: {
           Accept: 'application/vnd.github.star+json',
           Authorization: `Bearer ${token}`,
-          'User-Agent': 'DeepSeek-Reasonix-star-history-updater',
+          'User-Agent': 'DeepSeek-Tempora-star-history-updater',
           'X-GitHub-Api-Version': API_VERSION,
         },
         signal: AbortSignal.timeout(30_000),

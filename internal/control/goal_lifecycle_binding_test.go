@@ -67,6 +67,7 @@ func TestExclusiveControllerLoadsGoalFromV3Projection(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), session.CreateOptions{SessionID: "goal-session"})
 	if err != nil {
 		t.Fatal(err)
@@ -76,7 +77,7 @@ func TestExclusiveControllerLoadsGoalFromV3Projection(t *testing.T) {
 		t.Fatal(err)
 	}
 	exec := agent.New(nil, tool.NewRegistry(), agent.NewSession("system"), agent.Options{}, event.Discard)
-	c := New(Options{Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
+	c := newOwnedTestController(t, Options{Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
 	t.Cleanup(func() { c.Close() })
 	view, loadErr := c.goalLifecycleView()
 	if loadErr != nil {
@@ -92,6 +93,7 @@ func TestColdRestoredGoalComposeIncludesRecoverableGoalContext(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), session.CreateOptions{SessionID: "goal-recovery-context"})
 	if err != nil {
 		t.Fatal(err)
@@ -101,7 +103,7 @@ func TestColdRestoredGoalComposeIncludesRecoverableGoalContext(t *testing.T) {
 		t.Fatal(err)
 	}
 	exec := agent.New(nil, tool.NewRegistry(), agent.NewSession("system"), agent.Options{}, event.Discard)
-	c := New(Options{Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
+	c := newOwnedTestController(t, Options{Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
 	t.Cleanup(c.Close)
 
 	composed := c.Compose("continue")
@@ -117,23 +119,24 @@ func TestGoalLifecycleMutationAppendsToActiveV3Session(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), session.CreateOptions{SessionID: "goal-mutation"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	exec := agent.New(nil, tool.NewRegistry(), agent.NewSession("system"), agent.Options{}, event.Discard)
-	c := New(Options{Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
+	c := newOwnedTestController(t, Options{Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
 	t.Cleanup(func() { c.Close() })
-	ctx, activity, err := c.beginSessionRuntimeActivity(t.Context(), "turn")
-	if err != nil {
-		t.Fatal(err)
-	}
+	c.mu.Lock()
+	c.turns.phase = session.RuntimeRunning
+	c.noteExecutionLocked(session.RuntimeRunning, "turn")
+	c.mu.Unlock()
 	snapshot := runtime.Snapshot()
 	authority := tool.GoalAuthority{
 		Source: tool.GoalSourceDirectHuman, SessionID: runtime.Ref().SessionID,
 		RuntimeEpoch: snapshot.Epoch, ActivityID: snapshot.ActivityRevision,
 	}
-	created, err := c.CreateGoal(ctx, goaldomain.CreateRequest{Objective: "ship"}, authority)
+	created, err := c.CreateGoal(t.Context(), goaldomain.CreateRequest{Objective: "ship"}, authority)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -148,7 +151,10 @@ func TestGoalLifecycleMutationAppendsToActiveV3Session(t *testing.T) {
 	if err != nil || loaded.Get() == nil || loaded.Get().ID != created.ID {
 		t.Fatalf("projected goal = %+v, err = %v", loaded.Get(), err)
 	}
-	c.finishSessionRuntimeActivity(activity)
+	c.mu.Lock()
+	c.turns.phase = session.RuntimeIdle
+	c.noteExecutionLocked(session.RuntimeIdle, "")
+	c.mu.Unlock()
 }
 
 func TestGoalLifecycleMutationRejectsStaleRuntimeAuthority(t *testing.T) {
@@ -156,12 +162,13 @@ func TestGoalLifecycleMutationRejectsStaleRuntimeAuthority(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), session.CreateOptions{SessionID: "goal-stale"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	exec := agent.New(nil, tool.NewRegistry(), agent.NewSession("system"), agent.Options{}, event.Discard)
-	c := New(Options{Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
+	c := newOwnedTestController(t, Options{Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
 	t.Cleanup(func() { c.Close() })
 	_, err = c.CreateGoal(t.Context(), goaldomain.CreateRequest{Objective: "ship"}, tool.GoalAuthority{
 		Source: tool.GoalSourceDirectHuman, SessionID: "another-session", RuntimeEpoch: "old", ActivityID: 1,
@@ -179,30 +186,36 @@ func TestModelCannotResumeUserPausedGoal(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), session.CreateOptions{SessionID: "goal-paused"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	exec := agent.New(nil, tool.NewRegistry(), agent.NewSession("system"), agent.Options{}, event.Discard)
-	c := New(Options{Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
+	c := newOwnedTestController(t, Options{Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
 	t.Cleanup(c.Close)
-	ctx, activity, err := c.beginSessionRuntimeActivity(t.Context(), "turn")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer c.finishSessionRuntimeActivity(activity)
+	c.mu.Lock()
+	c.turns.phase = session.RuntimeRunning
+	c.noteExecutionLocked(session.RuntimeRunning, "turn")
+	c.mu.Unlock()
+	defer func() {
+		c.mu.Lock()
+		c.turns.phase = session.RuntimeIdle
+		c.noteExecutionLocked(session.RuntimeIdle, "")
+		c.mu.Unlock()
+	}()
 	snapshot := runtime.Snapshot()
 	authority := tool.GoalAuthority{Source: tool.GoalSourceDirectHuman, SessionID: runtime.Ref().SessionID,
 		RuntimeEpoch: snapshot.Epoch, ActivityID: snapshot.ActivityRevision}
-	created, err := c.CreateGoal(ctx, goaldomain.CreateRequest{Objective: "stay paused"}, authority)
+	created, err := c.CreateGoal(t.Context(), goaldomain.CreateRequest{Objective: "stay paused"}, authority)
 	if err != nil {
 		t.Fatal(err)
 	}
-	paused, err := c.UpdateGoal(ctx, tool.GoalUpdateRequest{Ref: created.Ref(), Action: tool.GoalActionPause}, authority)
+	paused, err := c.UpdateGoal(t.Context(), tool.GoalUpdateRequest{Ref: created.Ref(), Action: tool.GoalActionPause}, authority)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = c.UpdateGoal(ctx, tool.GoalUpdateRequest{Ref: paused.Ref(), Action: tool.GoalActionResume}, authority)
+	_, err = c.UpdateGoal(t.Context(), tool.GoalUpdateRequest{Ref: paused.Ref(), Action: tool.GoalActionResume}, authority)
 	if goaldomain.ErrorCodeOf(err) != goaldomain.ErrUserAuthorityRequired {
 		t.Fatalf("model resume error = %v", err)
 	}

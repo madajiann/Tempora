@@ -1,6 +1,7 @@
 package control
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -16,13 +17,14 @@ func TestInheritLifecycleCarriesLiveGoalStateAcrossSameRuntimeRebuild(t *testing
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), session.CreateOptions{SessionID: "goal-rebuild"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	newController := func() *Controller {
 		exec := agent.New(nil, tool.NewRegistry(), agent.NewSession("system"), agent.Options{}, event.Discard)
-		return New(Options{Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true, GoalTokenBudget: 1000})
+		return newOwnedTestController(t, Options{Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true, GoalTokenBudget: 1000})
 	}
 	old := newController()
 	t.Cleanup(old.ReleaseResources)
@@ -59,13 +61,14 @@ func TestInheritLifecycleRejectsActiveGoalDriverReservation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), session.CreateOptions{SessionID: "goal-rebuild-busy"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	newController := func() *Controller {
 		exec := agent.New(nil, tool.NewRegistry(), agent.NewSession("system"), agent.Options{}, event.Discard)
-		return New(Options{Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
+		return newOwnedTestController(t, Options{Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
 	}
 	old := newController()
 	replacement := newController()
@@ -90,12 +93,13 @@ func TestEditGoalDurablePreservesIdentityAndAdmittedRounds(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = service.CloseAll(context.Background()) })
 	runtime, err := service.Create(t.Context(), session.CreateOptions{SessionID: "goal-edit"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	exec := agent.New(nil, tool.NewRegistry(), agent.NewSession("system"), agent.Options{}, event.Discard)
-	c := New(Options{Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
+	c := newOwnedTestController(t, Options{Executor: exec, Sink: event.Discard, SessionService: service, SessionRuntime: runtime, ExclusiveSession: true})
 	t.Cleanup(c.ReleaseResources)
 	if err := c.SetGoalDurable("original objective"); err != nil {
 		t.Fatal(err)

@@ -4,7 +4,7 @@
 
 ## 23:5x 调研阶段
 
-- 用户提供项目信息（github.com/esengine/DeepSeek-Reasonix / reasonix.io / MIT / npm i -g tempora），工作目录 G:\Tempora 为空。
+- 用户提供项目信息（github.com/esengine/DeepSeek-Reasonix / tempora.io / MIT / npm i -g tempora），工作目录 G:\Tempora 为空。
 - 核实真实性：GitHub API（35,503 stars、Go、MIT）、官网、DeepSeek 官方文档集成页均存在。
 - **教训**：我曾擅自开始装 Node/npm tempora，被用户纠正——不确定时先问。用户已自行安装 tempora。
 
@@ -24,7 +24,7 @@
 ## 00:4x–00:5x 全量改名（核心工程）
 
 - 文件重命名 26 项：`cmd/tempora*`→`cmd/tempora*`、`TEMPORA.md`→`TEMPORA.md`、`.tempora/`→`.tempora/`、npm/skill/linux 图标/benchmarks fixtures 等。
-- 内容替换（带保护顺序）：先保护 `DeepSeek-Reasonix`（上游名）→ `TEMPORA/Tempora/tempora` → `TEMPORA/Tempora/tempora` → 还原上游名到历史/出处文件。
+- 内容替换（带保护顺序）：先保护 `DeepSeek-Tempora`（上游名）→ `TEMPORA/Tempora/tempora` → `TEMPORA/Tempora/tempora` → 还原上游名到历史/出处文件。
 - 人工复核处理：
   - CLI 升级器 `ghOwner/ghRepo`、`internal/releaseasset`、`.goreleaser.yaml`、`.github/workflows/*`、signpath 契约、npm 元数据 → 占位仓库 **tempora-dev/Tempora**（防回装上游 + 等用户建仓）
   - 遥测/崩溃/下载域名 → `*.tempora.io` 占位死域（静默失败，零外泄）
@@ -68,7 +68,7 @@
   2. `TestRenderMCPManagerDetailCompactsConfigPath`：改名把夹具路径缩短 1 字符（63→62），
      恰好不再触发 62 宽压缩阈值 → 夹具目录改为 `tempora-dev` 恢复超长路径语义。
   3. `TestStatusFooterStacksGitAndTelemetry...`：同因，夹具仓库名改短后单行放得下不再折行 →
-     改用与上游等长的 `Tempora-Workspace`（17 字符 = DeepSeek-Reasonix 长度）。
+     改用与上游等长的 `Tempora-Workspace`（17 字符 = DeepSeek-Tempora 长度）。
 - 三个测试复跑 PASS；完整 internal/cli 包复跑确认中。
 
 ## 12:0x–12:5x 安装器 exe + 体积优化 + GitHub 指南（用户晨间反馈的三件事）
@@ -97,7 +97,7 @@
 03e2ba2 Add Windows setup exe installer + GitHub onboarding guide
 7669b0c Docs: record final verification results in HANDOFF/WORKLOG
 e2b270c Fix rebrand-length test fixtures, add GLM family grouping, refresh golden baseline
-279165a Tempora v0.1.0: fork DeepSeek-Reasonix, full rebrand + Zhipu GLM
+279165a Tempora v0.1.0: fork DeepSeek-Tempora, full rebrand + Zhipu GLM
 036c7c5 (上游基线)
 ```
 

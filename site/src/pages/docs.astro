@@ -232,7 +232,7 @@ DEEPSEEK_API_KEY=sk-...</div>
       </div>
       <p><span class="l-en">The repository includes a complete starter with its manifest, Go Sidecar, build commands, linked installation, reload loop, and visible input rewrite:</span><span class="l-zh">仓库提供了完整 starter，包含 Manifest、Go Sidecar、构建命令、链接安装、重载循环与可观察的输入改写：</span></p>
       <div class="codeblock">git clone https://github.com/esengine/DeepSeek-Reasonix.git
-cd DeepSeek-Reasonix/sdk/go/examples/starterextension
+cd DeepSeek-Tempora/sdk/go/examples/starterextension
 go build -o bin/starter-extension.exe .
 plugin_root="$(pwd -P)"
 tempora plugin install "$plugin_root" --dry-run
@@ -272,7 +272,7 @@ tempora acp --model &lt;name&gt; <span class="c"># choose the startup model</spa
           <p><span class="l-en">When advertised by the client, file operations use unsaved editor buffers and foreground commands run in a client-owned terminal.</span><span class="l-zh">客户端声明相关能力后，文件操作会经过编辑器未保存的 buffer，前台命令则在客户端持有的 terminal 中运行。</span></p>
         </div>
       </div>
-      <p><span class="l-en">Tempora also advertises the vendor method <code>_reasonix.io/session/steer</code> through <code>agentCapabilities._meta</code>. A host may call it while <code>session/prompt</code> is active to queue user guidance for the next safe model boundary without cancelling the turn. Clients must discover the method first and treat <code>InvalidRequest</code> as not queued.</span><span class="l-zh">Tempora 还会通过 <code>agentCapabilities._meta</code> 声明厂商方法 <code>_reasonix.io/session/steer</code>。Host 可在 <code>session/prompt</code> 活动期间调用它，把用户引导排入下一个安全模型边界，而无需取消当前回合。客户端必须先发现该方法，并把 <code>InvalidRequest</code> 视为“未入队”。</span></p>
+      <p><span class="l-en">Tempora also advertises the vendor method <code>_tempora.io/session/steer</code> through <code>agentCapabilities._meta</code>. A host may call it while <code>session/prompt</code> is active to queue user guidance for the next safe model boundary without cancelling the turn. Clients must discover the method first and treat <code>InvalidRequest</code> as not queued.</span><span class="l-zh">Tempora 还会通过 <code>agentCapabilities._meta</code> 声明厂商方法 <code>_tempora.io/session/steer</code>。Host 可在 <code>session/prompt</code> 活动期间调用它，把用户引导排入下一个安全模型边界，而无需取消当前回合。客户端必须先发现该方法，并把 <code>InvalidRequest</code> 视为“未入队”。</span></p>
       <div class="callout"><span class="ico">i</span><span><span class="l-en">ACP steering is a namespaced ACP v1 extension, not a core <code>session/steer</code> method and not the unreleased ACP v2 <code>session/inject</code> proposal. See the <a href={`${repo}/blob/main-v2/docs/ACP.md`}>complete ACP integration guide</a> for lifecycle methods, capability negotiation, MCP transport shapes, compatibility, errors, and a client checklist.</span><span class="l-zh">ACP 回合中引导是带命名空间的 ACP v1 扩展，不是核心 <code>session/steer</code> 方法，也不是尚未发布的 ACP v2 <code>session/inject</code> 提案。生命周期方法、能力协商、MCP transport 结构、兼容性、错误处理和客户端检查清单见<a href={`${repo}/blob/main-v2/docs/ACP.zh-CN.md`}>完整 ACP 接入文档</a>。</span></span></div>
 
       <h2 id="memory"><span class="l-en">Memory &amp; rewind</span><span class="l-zh">记忆与回退</span></h2>
@@ -411,7 +411,7 @@ call_timeout_seconds = 600</div>
         <a href={repo}>GitHub</a>
         <a href={`${base}/docs/`}><span class="l-en">Docs</span><span class="l-zh">文档</span></a>
         <a href={`${base}/#start`}><span class="l-en">Install</span><span class="l-zh">安装</span></a>
-        <a href="https://crash.reasonix.io/stats" rel="nofollow"><span class="l-en">Stats</span><span class="l-zh">统计</span></a>
+        <a href="https://crash.tempora.io/stats" rel="nofollow"><span class="l-en">Stats</span><span class="l-zh">统计</span></a>
       </nav>
     </div>
   </footer>

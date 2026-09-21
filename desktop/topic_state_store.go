@@ -17,8 +17,8 @@ import (
 
 	"tempora/internal/agent"
 	"tempora/internal/config"
-	"tempora/internal/filelock"
 	"tempora/internal/fileutil"
+	filelock "tempora/internal/identitylock"
 	"tempora/internal/topicstate"
 )
 

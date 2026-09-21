@@ -1,10 +1,13 @@
+import { verifyRemoteSubmissionLifecycle, verifyRemoteSubmissionTabIsolation } from "./helpers/remoteSubmissionLifecycle";
 import React, { act } from "react";
 import { RemoteNavigationHarness } from "./helpers/RemoteNavigationHarness";
-import { JSDOM } from "jsdom";
+import { installRemoteSurfaceDom } from "./helpers/remoteSurfaceDom";
 import type { AppBindings } from "../lib/bridge";
 import type { TabMeta } from "../lib/types";
 import type { RemoteSessionApi } from "../lib/useRemoteSession";
 import { installDesktopHostStub } from "./desktopHostStub";
+import { makeExactRemoteInteractionBindings, runLegacyRemoteCapabilityScenario, runRemoteExtensionFormScenarios } from "../test-support/remoteInteractionScenarios";
+import { installRemoteTranscriptFixture } from "./helpers/remoteTranscriptFixture";
 
 let passed = 0, failed = 0;
 function ok(value: boolean, label: string) {
@@ -13,47 +16,12 @@ function ok(value: boolean, label: string) {
   else failed += 1;
 }
 console.log("\nRemote session surface + hook");
-const dom = new JSDOM("<!doctype html><html><body><div id=\"root\"></div></body></html>", {
-  pretendToBeVisual: true,
-  url: "http://localhost/",
-});
-(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-globalThis.window = dom.window as unknown as Window & typeof globalThis;
-globalThis.document = dom.window.document;
-Object.defineProperty(globalThis, "navigator", { configurable: true, value: dom.window.navigator });
-globalThis.Node = dom.window.Node;
-globalThis.Element = dom.window.Element;
-globalThis.HTMLElement = dom.window.HTMLElement;
-globalThis.Event = dom.window.Event;
-globalThis.KeyboardEvent = dom.window.KeyboardEvent;
-globalThis.localStorage = dom.window.localStorage;
-globalThis.getComputedStyle = dom.window.getComputedStyle.bind(dom.window) as typeof getComputedStyle;
-const elementProto = dom.window.HTMLElement.prototype;
-Object.defineProperty(elementProto, "attachEvent", { configurable: true, value: () => {} });
-Object.defineProperty(elementProto, "offsetHeight", {
-  configurable: true,
-  get(this: HTMLElement) { return this.classList.contains("transcript") ? 800 : 40; },
-});
-Object.defineProperty(elementProto, "offsetWidth", { configurable: true, get: () => 800 });
-Object.defineProperty(elementProto, "clientHeight", {
-  configurable: true,
-  get(this: HTMLElement) { return this.classList.contains("transcript") ? 800 : 40; },
-});
-Object.defineProperty(elementProto, "clientWidth", { configurable: true, get: () => 800 });
-(elementProto as unknown as { scrollTo: (arg?: number | ScrollToOptions) => void }).scrollTo = function (
-  this: HTMLElement,
-  arg?: number | ScrollToOptions,
-) {
-  this.scrollTop = typeof arg === "number" ? arg : arg?.top ?? this.scrollTop;
-};
-// Transcript calls global rAF; jsdom exposes it only on the visual window.
-globalThis.requestAnimationFrame = dom.window.requestAnimationFrame?.bind(dom.window) ?? ((cb: FrameRequestCallback) => setTimeout(() => cb(Date.now()), 16) as unknown as number);
-globalThis.cancelAnimationFrame = dom.window.cancelAnimationFrame?.bind(dom.window) ?? ((handle: number) => clearTimeout(handle));
-Object.defineProperty(elementProto, "detachEvent", { configurable: true, value: () => {} });
+const dom = installRemoteSurfaceDom();
 
 const tape: string[] = [];
 let failApproval = false;
 let failOpen = false;
+let submitError: Error | undefined;
 let failHydration = true;
 let statusGoalStatus: "stopped" | "complete" = "stopped";
 let statusQualityFloor: "standard" | "delivery" = "standard";
@@ -65,6 +33,8 @@ let blockApproval = false;
 let releaseApproval: (() => void) | undefined;
 let blockAnswer = false, failAnswer = false;
 let releaseAnswer: (() => void) | undefined;
+let blockExtensionForm = false;
+let releaseExtensionForm: (() => void) | undefined;
 let resolveRaceSnapshot: ((value: { history: unknown[]; status: unknown }) => void) | undefined;
 const resolveStateRaceSnapshots: Array<(value: { history: unknown[]; status: unknown }) => void> = [];
 let rotationSnapshotCalls = 0;
@@ -150,6 +120,7 @@ const desktopStub = installDesktopHostStub(({ main: { App: {
   async ReplayRemoteTabPrompts(tabId: string) { tape.push(`replay-prompts:${tabId}`); return replayedPrompts; },
   async SubmitRemoteTab(tabId: string, text: string) {
     tape.push(`submit:${tabId}:${text}`);
+    if (submitError) throw submitError;
   },
   async CancelRemoteTab(tabId: string) {
     tape.push(`cancel:${tabId}`);
@@ -188,6 +159,11 @@ const desktopStub = installDesktopHostStub(({ main: { App: {
   async CancelRemoteTabJobs(tabId: string, jobIds: string[]) {
     tape.push(`cancel-jobs:${tabId}:${jobIds.join(",")}`);
   },
+  ...makeExactRemoteInteractionBindings({ tape, failApproval: () => failApproval, failAnswer: () => failAnswer,
+    waitApproval: () => blockApproval ? new Promise<void>((resolve) => { releaseApproval = resolve; }) : Promise.resolve(),
+    waitAnswer: () => blockAnswer ? new Promise<void>((resolve) => { releaseAnswer = resolve; }) : Promise.resolve(),
+    waitForm: () => blockExtensionForm ? new Promise<void>((resolve) => { releaseExtensionForm = resolve; }) : Promise.resolve(),
+    resolved: (tabId, promptId, turnId) => desktopStub.emit(`remote-tab:${tabId}:event`, { kind: "prompt_answered", itemId: promptId, turnId }) }),
   async ApproveRemoteTab(tabId: string, callId: string, decision: string) {
     tape.push(`approve:${tabId}:${callId}:${decision}`);
 		if (failApproval) throw new Error("tunnel write failed");
@@ -208,19 +184,42 @@ const desktopStub = installDesktopHostStub(({ main: { App: {
     if (failOpen) throw new Error("reconnect failed");
     return { ...remoteTab, remote: { hostId, workspace } };
   },
+  async ForkTargetsRemoteTab(tabId: string) {
+    tape.push(`fork-targets:${tabId}`);
+    return { targets: [], verifiable: false };
+  },
+  async CreateForkRemoteTab(tabId: string, target: { turnId: string; sourceSessionId: string; boundarySequence: number }) {
+    tape.push(`fork-create:${tabId}:${target.turnId}:${target.sourceSessionId}:${target.boundarySequence}`);
+    return { opened: true, sessionId: "child-remote-1", operationId: "operation-remote-1" };
+  },
+  async AcknowledgeForkOperation(tabId: string, operationId: string) { tape.push(`fork-ack:${tabId}:${operationId}`); },
   async SetActiveTab(tabID: string) {
     tape.push(`setActive:${tabID}`);
+  },
+  // The pre-activation history prime reads the canonical window through the
+  // remote binding. Answer like a serve whose tab has not attached yet, so
+  // the prime stays inert here and cannot consume the RemoteTabSnapshot
+  // deferreds the hydration race and rotation scenarios count.
+  async RemoteSessionHistoryWindowForTab(tabID: string) {
+    tape.push(`window:${tabID}`);
+    throw new Error("remote tab is not attached");
   },
 } as Partial<AppBindings> as AppBindings } }).main.App);
 
 const __emitMockRemoteTab = (tabId: string, channel: "state" | "event", payload: unknown) => desktopStub.emit(`remote-tab:${tabId}:${channel}`, payload);
-const [{ createRoot }, { RemoteSessionSurface }, { LocaleProvider }, { useRemoteSession }, { remoteRuntimeCommand }] = await Promise.all([
+installRemoteTranscriptFixture(desktopStub.commands);
+const [{ createRoot }, { RemoteSessionSurface }, { LocaleProvider }, { useRemoteSession }, { remoteRuntimeCommand }, { setTranscriptBindingIdentity }] = await Promise.all([
   import("react-dom/client"),
   import("../components/RemoteSessionSurface"),
   import("../lib/i18n"),
   import("../lib/useRemoteSession"),
   import("../lib/useRemoteComposerIntegration"),
+  import("../lib/canonicalTranscriptBackend"),
 ]);
+// Production resolves remote tabs through the controller's meta; this harness
+// mounts the hook without a controller, so bind canonical reads to the remote
+// bridge the way the app does for every remote tab.
+setTranscriptBindingIdentity(() => "remote");
 
 const remoteTab: TabMeta = {
   id: "tab-remote-1",
@@ -235,6 +234,10 @@ const remoteTab: TabMeta = {
   mode: "normal",
   active: true,
   cwd: "~/app",
+  sessionId: "remote-session-1",
+  sessionGeneration: 0,
+  interactionTargetSupported: true,
+  extensionFormInstanceSupported: true,
   remote: { hostId: "gpu-box", workspace: "~/app" },
 };
 
@@ -281,7 +284,7 @@ ok(document.body.textContent?.includes("thinking hard") === true, "reasoning ren
   });
   ok(tape.filter((entry) => entry.startsWith("snapshot:")).length > snapshotsBefore, "a ready transition re-syncs the snapshot (session reset / reconnect path)");
 }
-ok(!document.body.textContent?.includes("streaming answer"), "the re-synced snapshot replaces the old session content")
+ok(document.body.textContent?.includes("streaming answer") === true, "same-session reconnect restores the active prefix")
 
 await act(async () => {
   const statusBefore = tape.filter((entry) => entry === "status:tab-remote-1").length;
@@ -291,7 +294,7 @@ await act(async () => {
 });
 
 await act(async () => {
-  __emitMockRemoteTab("tab-remote-1", "event", { kind: "approval_request", approval: { id: "call-9", tool: "bash", subject: "rm -rf /tmp/junk" } });
+  __emitMockRemoteTab("tab-remote-1", "event", { kind: "approval_request", turnId: "turn-main", runtimeEpoch: "runtime-main", approval: { id: "call-9", tool: "bash", subject: "rm -rf /tmp/junk" } });
   await flush();
 });
 {
@@ -315,7 +318,7 @@ await act(async () => {
 
 await act(async () => {
 	__emitMockRemoteTab("tab-remote-1", "event", {
-		kind: "approval_request",
+		kind: "approval_request", turnId: "turn-main", runtimeEpoch: "runtime-main",
 		approval: { id: "plan-remote", tool: "exit_plan_mode", subject: "Plan ready" },
 	});
 	await flush();
@@ -330,8 +333,9 @@ await act(async () => {
 	await act(async () => {
 		const input = planDialog?.querySelector<HTMLTextAreaElement>(".plan-revision__input");
 		if (input) {
-			Object.getOwnPropertyDescriptor(dom.window.HTMLTextAreaElement.prototype, "value")?.set?.call(input, "cover the rollback path");
-			input.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
+			const propsKey = Object.keys(input).find((key) => key.startsWith("__reactProps"));
+			const props = propsKey ? (input as unknown as Record<string, { onChange?: (event: { target: { value: string } }) => void }>)[propsKey] : undefined;
+			props?.onChange?.({ target: { value: "cover the rollback path" } });
 		}
 		await flush();
 	});
@@ -347,7 +351,7 @@ await act(async () => {
 
 await act(async () => {
 	failApproval = true;
-	__emitMockRemoteTab("tab-remote-1", "event", { kind: "approval_request", approval: { id: "call-fail", tool: "bash", subject: "keep this prompt" } });
+	__emitMockRemoteTab("tab-remote-1", "event", { kind: "approval_request", turnId: "turn-main", runtimeEpoch: "runtime-main", approval: { id: "call-fail", tool: "bash", subject: "keep this prompt" } });
 	await flush();
 });
 {
@@ -368,7 +372,7 @@ await act(async () => {
 }
 
 await act(async () => {
-  __emitMockRemoteTab("tab-remote-1", "event", { kind: "ask_request", ask: { id: "ask-7", questions: [{ id: "q1", prompt: "Deploy now?", options: [{ label: "yes" }, { label: "no" }] }] } });
+  __emitMockRemoteTab("tab-remote-1", "event", { kind: "ask_request", turnId: "turn-main", runtimeEpoch: "runtime-main", ask: { id: "ask-7", questions: [{ id: "q1", prompt: "Deploy now?", options: [{ label: "yes" }, { label: "no" }] }] } });
   await flush();
 });
 {
@@ -388,7 +392,7 @@ await act(async () => {
 }
 
 await act(async () => {
-  __emitMockRemoteTab("tab-remote-1", "event", { kind: "ask_request", ask: { id: "ask-custom", questions: [{ id: "q-custom", prompt: "Where?", options: [{ label: "staging" }] }] } });
+  __emitMockRemoteTab("tab-remote-1", "event", { kind: "ask_request", turnId: "turn-main", runtimeEpoch: "runtime-main", ask: { id: "ask-custom", questions: [{ id: "q-custom", prompt: "Where?", options: [{ label: "staging" }] }] } });
   await flush();
 });
 await act(async () => {
@@ -407,30 +411,11 @@ await act(async () => {
   [...document.querySelectorAll<HTMLButtonElement>("button")].find((button) => button.textContent?.trim() === "Submit")?.click();
   await flush();
 });
-ok(tape.includes('answer:tab-remote-1:ask-custom:[{"QuestionID":"q-custom","Selected":["canary"]}]'),
-  "custom AskCard text serializes as the remote question selection");
+ok(tape.includes('answer:tab-remote-1:ask-custom:[{"questionId":"q-custom","selected":["canary"]}]'),
+  "custom AskCard text serializes as the exact remote question selection");
 
-await act(async () => {
-  __emitMockRemoteTab("tab-remote-1", "event", {
-    kind: "extension_surface",
-    extension: {
-      pluginId: "remote-plugin", surfaceId: "setup", kind: "form",
-      form: { title: "Remote setup", fields: [{ key: "region", label: "Region", kind: "input", required: true, default: "us-west" }] },
-    },
-  });
-  await flush();
-});
-{
-  const form = document.querySelector(".extension-form");
-  ok(Boolean(form) && document.body.textContent?.includes("Remote setup") === true, "remote extension form renders on the shared surface");
-  await act(async () => {
-    form?.closest(".prompt-shelf")?.querySelector<HTMLButtonElement>(".decision-confirm-bar__confirm")?.click();
-    await flush();
-  });
-  ok(tape.includes('extension-form:tab-remote-1:remote-plugin:setup:{"region":"us-west"}'),
-    "remote extension form submits through the Serve proxy");
-  ok(!document.querySelector(".extension-form"), "remote extension form clears after an accepted submission");
-}
+await runRemoteExtensionFormScenarios({ emit: __emitMockRemoteTab, flush, ok, tape,
+  blockForm: (blocked) => { blockExtensionForm = blocked; }, releaseForm: () => releaseExtensionForm?.() });
 
 await act(async () => {
   __emitMockRemoteTab("tab-remote-1", "event", { kind: "text", text: "retain this partial answer across disconnect" });
@@ -468,11 +453,14 @@ await act(async () => {
 await act(async () => { __emitMockRemoteTab("tab-remote-1", "state", { state: "disconnected" }); await flush(); });
 {
   ok(!document.querySelector(".remote-surface--disconnected"), "live disconnected events do not render the placeholder");
-  ok(Boolean(document.querySelector(".session-recovery[role=status]")), "live disconnected events show connecting instead");
-  ok(tape.includes("setActive:tab-remote-1"), "live disconnected events trigger backend revival");
+  ok(document.body.textContent?.includes("retain this partial answer across disconnect") === true, "live disconnection preserves the transcript");
+  ok(!tape.includes("setActive:tab-remote-1"), "live disconnection does not automatically revive or resubmit work");
 }
 
 await act(async () => root.unmount());
+
+await runLegacyRemoteCapabilityScenario({ baseTab: remoteTab, emit: __emitMockRemoteTab, flush, ok, tape,
+  render: (targetRoot, tab) => targetRoot.render(<LocaleProvider><RemoteSurfaceHarness tab={tab} /></LocaleProvider>) });
 
 let restoredShellProbe: RemoteSessionApi | undefined;
 function RestoredShellProbe() { restoredShellProbe = useRemoteSession("tab-restored-shell", "disconnected"); return null; }
@@ -508,14 +496,17 @@ ok(remoteRuntimeCommand("/branch experiment")?.rehydrate === true && remoteRunti
   && remoteRuntimeCommand("/compact preserve tests")?.method === "compact",
   "session-changing management commands request authoritative rehydration");
 statusPendingPrompt = true; replayedPrompts = [{ kind: "approval_request", approval: { id: "recovered-prompt", tool: "bash", subject: "replayed after drop" } }];
-await act(async () => { await probe?.runManagementCommand("/context"); await flush(); });
-ok(tape.includes("replay-prompts:tab-remote-2") && probe?.transcript.approval?.id === "recovered-prompt", "pending status recovers an SSE-dropped prompt through Serve");
+await act(async () => {
+  __emitMockRemoteTab("tab-remote-2", "event", replayedPrompts[0]);
+  await probe?.runManagementCommand("/context"); await flush();
+});
+ok(!tape.includes("replay-prompts:tab-remote-2") && probe?.transcript.approval?.id === "recovered-prompt", "Follow delivers pending prompts without legacy replay");
 await act(async () => { await probe?.approve("recovered-prompt", "deny"); await flush(); }); statusPendingPrompt = false; replayedPrompts = [];
 let remoteLiveNotifications = 0;
 const unsubscribeRemoteLive = probe?.liveStore.subscribe("tab-remote-2", () => { remoteLiveNotifications += 1; });
 await act(async () => {
 	__emitMockRemoteTab("tab-remote-2", "event", { kind: "turn_started", turnStartedAt: 1234 });
-	__emitMockRemoteTab("tab-remote-2", "event", { kind: "text", text: "remote live ticker" });
+	__emitMockRemoteTab("tab-remote-2", "event", { kind: "text", messageId: "remote-answer", text: "remote live ticker" });
 	await flush();
 });
 ok(probe?.liveStore.getSnapshot("tab-remote-2")?.text === "remote live ticker" && remoteLiveNotifications > 0,
@@ -525,13 +516,14 @@ const turnDoneGeneration = probe?.surfaceGeneration;
 statusGoalStatus = "complete";
 snapshotHistory = [{ role: "user", content: "server-side prompt" }, { role: "assistant", content: "reconciled final answer" }];
 await act(async () => {
+  __emitMockRemoteTab("tab-remote-2", "event", { kind: "message", messageId: "remote-answer", text: "reconciled final answer" });
   __emitMockRemoteTab("tab-remote-2", "event", { kind: "turn_done" });
   await flush();
 });
 ok(probe?.composerProfile?.goalStatus === "complete" && probe.surfaceGeneration === turnDoneGeneration,
   "turn_done refreshes goal status without replacing the transcript surface");
 ok(probe?.transcript.items.some((item) => item.kind === "assistant" && item.text === "reconciled final answer") === true,
-  "turn_done reconciles durable history after dropped Serve frames");
+  "committed result survives turn_done without a history rebase");
 
 await act(async () => {
   __emitMockRemoteTab("tab-remote-2", "event", { kind: "approval_request", approval: { id: "approval-old", tool: "bash", subject: "old" } });
@@ -567,7 +559,8 @@ await act(async () => {
 blockAnswer = false;
 ok(probe?.transcript.ask?.id === "ask-next", "an answered ask cannot clear the next prompt");
 await act(async () => { await probe?.submit("run tests"); await flush(); });
-ok(Boolean(probe?.transcript.items.some((item) => item.kind === "user" && item.text === "run tests")), "submit adds the optimistic user bubble through the shared reducer");
+ok(Boolean(Object.values(probe?.transcript.localSubmissions ?? {}).some((submission) => submission.text === "run tests")), "submit adds the optimistic user bubble through the shared reducer");
+await verifyRemoteSubmissionLifecycle(() => probe, error => { submitError = error; }, tape, flush, ok);
 await act(async () => { await probe?.runManagementCommand("/context"); await flush(); });
 ok(tape.includes("submit:tab-remote-2:/context") && tape.includes("status:tab-remote-2"),
   "management commands dispatch without conversational admission and refresh status");
@@ -590,7 +583,8 @@ await act(async () => {
   await probe?.approve("call-1", "allow");
   await probe?.answer("ask-1", [{ QuestionID: "q1", Selected: ["yes"] }]);
   await probe?.rewind(3, "code");
-  await probe?.rewind(3, "fork");
+  await probe?.forkTurn({ sourceSessionId: "parent-remote-1", sessionGeneration: 1, turnId: "turn-3", boundarySequence: 9,
+    turnNumber: 3, status: "committed", available: true });
   await probe?.rewind(3, "summ-from");
   await probe?.rewind(3, "summ-upto");
   await flush();
@@ -619,7 +613,6 @@ for (const want of [
   "approve:tab-remote-2:call-1:allow",
 	'answer:tab-remote-2:ask-1:[{"QuestionID":"q1","Selected":["yes"]}]',
   "rewind:tab-remote-2:3:code",
-  "fork:tab-remote-2:3:",
   "summarize:tab-remote-2:3:from",
   "summarize:tab-remote-2:3:upto",
   "model:tab-remote-2:remote/new-model",
@@ -632,6 +625,11 @@ for (const want of [
 ]) {
   ok(tape.includes(want), `command forwarded: ${want}`);
 }
+ok(tape.some((entry) => entry.startsWith("fork-create:tab-remote-2:turn-3:")),
+  "remote forking creates the child through the create-only endpoint");
+ok(!tape.some((entry) => entry.startsWith("fork:tab-remote-2")),
+  "remote forking never reaches the route that switches the parent session");
+await verifyRemoteSubmissionTabIsolation(() => probe, tabId => probeRoot.render(<LocaleProvider><HookProbe tabId={tabId} /></LocaleProvider>), flush, ok);
 await act(async () => {
   probeRoot.render(<LocaleProvider><HookProbe tabId="tab-pending-model" /></LocaleProvider>);
   await Promise.resolve();
@@ -656,21 +654,7 @@ ok(fallbackProbe?.hydrated === true && fallbackProbe.composerProfile?.collaborat
   "missing aggregate status is fetched before the remote composer becomes ready");
 await act(async () => fallbackRoot.unmount());
 
-let toolProbe: RemoteSessionApi | undefined;
-function ToolProbe() {
-  toolProbe = useRemoteSession("tab-tool-history");
-  return null;
-}
-const toolRoot = createRoot(document.createElement("div"));
-await act(async () => {
-  toolRoot.render(<LocaleProvider><ToolProbe /></LocaleProvider>);
-  await flush();
-});
-const remoteTool = toolProbe?.transcript.items.find((item) => item.kind === "tool" && item.id === "remote-tool");
-ok(remoteTool?.kind === "tool" && remoteTool.args.includes("go test ./...")
-  && remoteTool.output === "remote tool output" && remoteTool.dataArchived !== true,
-  "remote history retains expandable tool args and output without a local rehydrate endpoint");
-await act(async () => toolRoot.unmount());
+await (await import("./helpers/remoteHistoryProjectionCases")).runRemoteToolHistoryCase({ ok, flush });
 
 let failureProbe: RemoteSessionApi | undefined;
 function FailureProbe() {
@@ -763,6 +747,10 @@ await act(async () => {
 	__emitMockRemoteTab("tab-reconcile-rotation", "state", { state: "ready" });
 	await flush();
 });
+await act(async () => {
+  __emitMockRemoteTab("tab-reconcile-rotation", "state", { state: "ready" });
+  await flush();
+});
 ok(rotationProbe?.transcript.items.some((item) => item.kind === "assistant" && item.text === "fresh rotated session") === true,
 	"ready-to-ready rotation hydrates the adopted session while old reconciliation is pending");
 await act(async () => { __emitMockRemoteTab("tab-reconcile-rotation", "event", { kind: "turn_started" }); __emitMockRemoteTab("tab-reconcile-rotation", "event", { kind: "turn_done" }); await Promise.resolve(); });
@@ -773,27 +761,12 @@ await act(async () => {
 	});
 	await flush();
 });
-ok(rotationProbe?.transcript.items.some((item) => item.kind === "assistant" && item.text === "fresh reconciled turn") === true
+ok(rotationProbe?.transcript.items.some((item) => item.kind === "assistant" && item.text === "fresh rotated session") === true
 	&& !rotationProbe.transcript.items.some((item) => item.kind === "assistant" && item.text === "stale previous session"),
 	"session generation fence rejects stale history and hands reconciliation to the new generation");
 await act(async () => rotationRoot.unmount());
 
-// Pending prompt frames retained by Desktop are replayed by the next snapshot,
-// which restores decisions missed while the tab had no frontend listener.
-let replayProbe: RemoteSessionApi | undefined;
-function ReplayProbe() { replayProbe = useRemoteSession("tab-replay"); return null; }
-const replayRoot = createRoot(document.createElement("div"));
-await act(async () => {
-	replayRoot.render(<LocaleProvider><ReplayProbe /></LocaleProvider>);
-	await flush();
-});
-ok(replayProbe?.transcript.approval?.id === "replayed-approval", "snapshot replays a prompt emitted while the remote tab was inactive");
-ok(replayProbe?.transcript.extensionForm?.pluginId === "replayed-plugin" && replayProbe.transcript.extensionForm.surfaceId === "replayed-form", "snapshot replays an extension form emitted while the remote tab was inactive");
-await act(async () => { replayProbe?.drainApprovals(["different-approval"]); await flush(); });
-ok(replayProbe?.transcript.approval?.id === "replayed-approval", "a remote mode transaction preserves approvals it did not drain");
-await act(async () => { replayProbe?.drainApprovals(["replayed-approval"]); await flush(); });
-ok(replayProbe?.transcript.approval === undefined, "a remote mode transaction clears the exact approval it auto-allowed");
-await act(async () => replayRoot.unmount());
+await (await import("./helpers/remoteHistoryProjectionCases")).runRemotePendingPromptReplayCase({ ok, flush });
 await (await import("./helpers/remoteRuntimeReconciliationCases")).runRemoteRuntimeCases({ commands: desktopStub.commands as unknown as AppBindings, emitRemote: __emitMockRemoteTab, remoteTab, ok, tape, flush, setSnapshotHistory: value => { snapshotHistory = value; } });
 dom.window.close();
 process.stdout.write(`\n${passed} passed, ${failed} failed\n`);

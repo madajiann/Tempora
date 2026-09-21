@@ -23,8 +23,10 @@ Ordinary requests always enter the executor. There is no automatic simple /
 light / full task mode to pick. The dedicated planner runs only for an
 explicit Plan, an approval boundary, or Goal start.
 
-Running `tempora` without a subcommand starts the interactive terminal UI. Use
-`tempora setup` first when no provider is configured.
+Running `tempora` without a subcommand starts the interactive terminal UI. If
+the selected connection has no credential, the local connection picker opens
+instead of sending a request. History and local commands remain available while
+authentication is incomplete.
 
 | Flag | Purpose |
 | --- | --- |
@@ -38,7 +40,7 @@ Running `tempora` without a subcommand starts the interactive terminal UI. Use
 | `--copy` | Continue in a writable copy of the resumed session. |
 | `--allowed-tools RULES` | Add session-only permission allow rules. Repeatable; `--allowedTools` is an alias. |
 | `--permission-mode MODE` | Start with a specific permission posture. |
-| `--dangerously-skip-permissions` | Start with `danger-full-access`; this must be selected explicitly. |
+| `--dangerously-skip-permissions` | Deprecated compatibility flag; migrates conservatively to `workspace-write`. Use `--permission-mode danger-full-access` for YOLO. |
 
 Flags may appear before or after the prompt where applicable.
 
@@ -80,12 +82,28 @@ or CLI changes are retained, while an overlapping change is reported as a
 conflict instead of being overwritten.
 
 Provider definitions contain only the `api_key_env` variable name. Key values
-are stored in the shared Tempora home `.env`, even with `--local`. When a
-variable name is already used by another provider, setup asks whether to share
-that credential; choose a different variable name when the providers use
-different keys. Providers added or removed through setup are also added to or
-removed from desktop provider access, so the same models are available in the
-desktop app.
+are stored in the shared Tempora home `.env`, even with `--local`. Adding,
+replacing, or explicitly clearing a key creates a fresh private credential slot
+and atomically switches only the selected connection to it. Existing fixed
+variables remain readable and migrate only when that connection is edited.
+
+Inside the TUI, `/setup` opens the same connection flow and `/auth` is an alias.
+The key field is masked; press `Ctrl+T` to test the draft connection, Enter to
+save, or Escape to cancel. `/?` is an alias for `/help`. Authentication that is
+not ready never turns ordinary input into a provider request.
+
+```sh
+tempora doctor credentials
+tempora doctor credentials --json
+tempora doctor credentials --probe
+tempora doctor credentials --repair --dry-run
+tempora doctor credentials --repair
+```
+
+The default diagnostic is read-only. `--probe` tests temporary create and
+atomic rename without replacing `.env`. Repair is limited to a current-user-
+owned regular file inside Tempora home; it does not take ownership, remove deny
+rules, grant `Everyone`, follow links/reparse points, or kill a file holder.
 
 ### Configure fee display currency
 
@@ -262,7 +280,12 @@ Diagnose with `tempora doctor billing`.
 
 Execution failures use `subtype: "error_during_execution"` and
 `is_error: true`. Structured modes keep runtime errors in JSON instead of also
-printing a duplicate human-readable error.
+printing a duplicate human-readable error. Authentication failures also include
+optional `error_code`, `authentication_status`, and `recovery_actions` fields.
+The same fields appear on the final `run_done` record from `--events-jsonl`.
+For example, a missing key reports `missing_credential` and actions such as
+`configure_credentials`, `select_model`, and `diagnose_credentials`; no model
+request is made.
 
 The completion validator has been removed. A clean model stop without tool
 calls ends the turn directly; a response with tools continues through the tool
@@ -416,7 +439,8 @@ single-key shortcuts.
 | `Enter` | Select the highlighted row. |
 | `Esc` | Cancel the current picker or approval. |
 | `y` / `a` / `n`, number keys | Allow once, allow the displayed scope for this session, or deny. |
-| `Shift+Tab` | Toggle the Plan collaboration workflow. |
+| `Shift+Tab` | Cycle Read only → Workspace write → YOLO → Plan. |
+| `Ctrl+Y` | Toggle YOLO; the runtime permission preset is `danger-full-access`. |
 
 The responsive footer keeps interaction state on the left and, when space
 allows, places model and effort on the right. Its second row shows
@@ -459,6 +483,7 @@ the displayed list matches the commands the TUI accepts.
 | `/model` | Search configured models and switch the active model. |
 | `/provider` | Choose a provider, then choose one of its configured models. |
 | `/resume` | Search recent sessions and switch to one. |
+| `/takeover` | Take over the last refused session (or a listed entry) from the resident serve: this CLI becomes the writer and remote viewers become read-only spectators until they reclaim. After a desktop reclaim it re-takes the remembered session directly; a session no runtime holds any more is simply resumed. |
 | `/status` | Show model, effort, cache, Git, background jobs, and balance details. |
 | `/theme [auto\|light\|dark\|style]` | View or change the CLI background mode and accent palette. |
 | `/currency [auto\|CNY\|USD]` | View or change the user-global fee display currency and refresh the runtime. |

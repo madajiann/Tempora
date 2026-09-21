@@ -4,10 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
+	"os"
 	"path/filepath"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"tempora/internal/agent"
+	"tempora/internal/event"
+	"tempora/internal/transcript"
 )
 
 // SessionRef is the only execution identity used by the linear session
@@ -31,6 +37,7 @@ var (
 	ErrRuntimeRetiring   = errors.New("session runtime is retiring")
 	ErrRecoveryRequired  = errors.New("session runtime requires recovery")
 	ErrStaleActivity     = errors.New("session activity no longer owns commit authority")
+	ErrStaleExecution    = errors.New("session execution generation no longer owns commit authority")
 )
 
 type RuntimePhase string
@@ -39,6 +46,7 @@ const (
 	RuntimeIdle             RuntimePhase = "idle"
 	RuntimeRunning          RuntimePhase = "running"
 	RuntimeCancelling       RuntimePhase = "cancelling"
+	RuntimeFinalizing       RuntimePhase = "finalizing"
 	RuntimeRecoveryRequired RuntimePhase = "recovery_required"
 	RuntimeClosed           RuntimePhase = "closed"
 )
@@ -60,50 +68,88 @@ type CancelReceipt struct {
 	Phase            RuntimePhase `json:"phase"`
 }
 
-// Runtime is the sole owner of a live Session and its write handle. It owns
-// transient activity and cancellation; persisted running events never create
-// a Runtime after process restart.
+// Runtime is the sole owner of a live Session and its write handle. Execution
+// lifecycle lives in the bound turn-loop; persisted running events never
+// create a Runtime after process restart.
 type Runtime struct {
-	ref     SessionRef
-	epoch   string
-	session *Session
-	owner   *Service
+	transcript *transcript.Projection
+	ref        SessionRef
+	epoch      string
+	session    *Session
+	owner      *Service
 	// instance stamps the publish grant so a delayed owner can prove it still
 	// refers to the exact instance it published.
 	instance string
 
-	mu         sync.Mutex
-	phase      RuntimePhase
-	activity   string
-	revision   atomic.Uint64
-	activityID uint64
-	current    atomic.Pointer[Activity]
-	closeDone  chan struct{}
-	closeErr   error
+	mu       sync.Mutex
+	phase    RuntimePhase
+	activity string
+	revision atomic.Uint64
+	// execution is the generation-scoped turn-loop. Cancel loads it without
+	// taking mu so Stop never waits on a commit or persistence lock.
+	execution atomic.Pointer[executionBinding]
+	bindGen   atomic.Uint64
+	canceling atomic.Bool
+	closeDone chan struct{}
+	closeErr  error
 }
 
-// Activity is a generation-bound permit. Agent and tool work commit business
-// events through it so a cancelled or replaced activity cannot publish a late
-// result into the session. Diagnostic logging uses a separate non-business
-// channel and does not regain this permit.
-type Activity struct {
-	runtime       *Runtime
-	id            uint64
-	name          string
-	cancel        context.CancelFunc
-	stopped       atomic.Bool
-	done          chan struct{}
-	doneOnce      sync.Once
-	superviseOnce sync.Once
-	// commitGate fences the final eligibility check and the in-memory commit
-	// against cancellation without making Cancel wait for a storage lock.
-	commitGate sync.RWMutex
+func newRuntime(ref SessionRef, session *Session) (*Runtime, error) {
+	runtime, err := initializeRuntime(ref, session)
+	// Logging can perform I/O; release the session lock before emitting.
+	var diagnostic *TranscriptInitializationError
+	if errors.As(err, &diagnostic) {
+		slog.Error("session transcript initialization failed", "diagnostic", diagnostic)
+	}
+	return runtime, err
 }
 
-func newRuntime(ref SessionRef, session *Session) *Runtime {
+func initializeRuntime(ref SessionRef, session *Session) (*Runtime, error) {
+	session.mu.Lock()
+	defer session.mu.Unlock()
 	runtime := &Runtime{ref: ref, epoch: randomID(), session: session, phase: RuntimeIdle}
+	baseline := session.recentMessages
+	if len(baseline) == 0 {
+		baseline = session.projection.Messages
+	}
+	totalMessages := len(baseline)
+	if len(baseline) > 96 {
+		baseline = baseline[len(baseline)-96:]
+	}
+	projection, err := transcript.NewProjection(transcript.Identity{SessionID: ref.SessionID, RuntimeEpoch: runtime.epoch}, session.transcriptRows(baseline), session.next-1)
+	if err != nil {
+		return nil, &TranscriptInitializationError{sessionID: ref.SessionID, covered: session.next - 1,
+			messageCount: len(baseline), totalMessages: totalMessages, cause: err}
+	}
+	runtime.transcript = projection
+	durable := uint64(0)
+	if session.binding != nil {
+		durable, _, _ = session.binding.progress()
+	}
+	restored := transcript.Runtime{TurnID: session.projection.TurnID, Status: session.projection.TurnStatus, FinalMessageID: session.projection.CurrentTurnMessageID}
+	if receipt, ok := session.projection.Submissions.byTurn[session.id+"\x00"+restored.TurnID]; ok {
+		restored.SubmissionID = receipt.SubmissionID
+	}
+	restored.SamplingCount, restored.ToolCount = len(session.projection.CurrentAttempts), len(session.projection.CurrentCalls)
+	if restored.TurnID != "" && !restored.Status.Terminal() {
+		// A persisted open turn is recovery evidence, not a running model.
+		restored.Status = event.TurnRecoveryRequired
+	}
+	if restored.TurnID == "" && len(session.projection.Turns) > 0 {
+		last := session.projection.Turns[len(session.projection.Turns)-1]
+		restored.TurnID, restored.FinalMessageID = last.TurnID, last.MessageID
+		restored.DurationMs = last.DurationMs
+		restored.SamplingCount, restored.ToolCount = last.SamplingCount, last.ToolCount
+	}
+	for _, message := range baseline {
+		if message.ID == restored.FinalMessageID {
+			restored.DurationMs = max(restored.DurationMs, message.WorkDurationMs)
+		}
+	}
+	runtime.transcript.RestoreRuntime(restored, durable)
+	session.transcript = runtime.transcript
 	runtime.revision.Store(1)
-	return runtime
+	return runtime, nil
 }
 
 func (r *Runtime) Ref() SessionRef { return r.ref }
@@ -133,7 +179,7 @@ func (r *Runtime) ExecutionSnapshot() RuntimeSnapshot {
 func (r *Runtime) activitySnapshot() RuntimeSnapshot {
 	r.mu.Lock()
 	phase := r.phase
-	if current := r.current.Load(); current != nil && current.stopped.Load() && phase == RuntimeRunning {
+	if r.canceling.Load() && phase == RuntimeRunning {
 		phase = RuntimeCancelling
 	}
 	state := RuntimeSnapshot{Ref: r.ref, Epoch: r.epoch, ActivityRevision: r.revision.Load(), Phase: phase, Activity: r.activity}
@@ -141,182 +187,35 @@ func (r *Runtime) activitySnapshot() RuntimeSnapshot {
 	return state
 }
 
-// BeginActivity establishes cancellation ownership before any turn event or
-// downstream work starts. finish only affects the exact activity generation.
-func (r *Runtime) BeginActivity(parent context.Context, name string) (context.Context, func(error), error) {
-	ctx, activity, err := r.BeginOwnedActivity(parent, name)
-	if err != nil {
-		return nil, nil, err
-	}
-	return ctx, activity.Finish, nil
-}
-
-func (r *Runtime) BeginOwnedActivity(parent context.Context, name string) (context.Context, *Activity, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	if r.phase == RuntimeRecoveryRequired {
-		return nil, nil, ErrRecoveryRequired
-	}
-	if r.phase == RuntimeClosed {
-		return nil, nil, osClosedError()
-	}
-	if r.phase != RuntimeIdle {
-		return nil, nil, ErrRuntimeBusy
-	}
-	if parent == nil {
-		parent = context.Background()
-	}
-	ctx, cancel := context.WithCancel(parent)
-	r.phase, r.activity = RuntimeRunning, name
-	r.activityID++
-	r.revision.Add(1)
-	activity := &Activity{runtime: r, id: r.activityID, name: name, cancel: cancel, done: make(chan struct{})}
-	r.current.Store(activity)
-	return ctx, activity, nil
-}
-
-func (a *Activity) AppendBatch(ctx context.Context, operationID string, events []Event) (Commit, error) {
-	return a.Append(ctx, Batch{OperationID: operationID, Events: events})
-}
-
-// Append preserves the complete logical batch, including its turn identity,
-// while fencing the commit against the exact activity generation.
-//
-// Validation and hashing run outside the runtime lock so they can never delay
-// cancellation. Only the final eligibility check and the in-memory commit hold
-// the activity commit gate; the physical write-behind is asynchronous.
-func (a *Activity) Append(ctx context.Context, batch Batch) (Commit, error) {
-	if a == nil || a.runtime == nil {
-		return Commit{}, ErrStaleActivity
-	}
-	if a.stopped.Load() {
-		return Commit{}, ErrStaleActivity
-	}
-	if err := ctx.Err(); err != nil {
-		return Commit{}, err
-	}
-	runtime := a.runtime
-	prepared, err := runtime.session.PrepareBatchContext(ctx, batch.OperationID, batch)
-	if err != nil {
-		return Commit{}, err
-	}
-	defer prepared.Release()
-	a.commitGate.RLock()
-	defer a.commitGate.RUnlock()
-	runtime.mu.Lock()
-	if runtime.current.Load() != a || runtime.activityID != a.id {
-		runtime.mu.Unlock()
-		return Commit{}, ErrStaleActivity
-	}
-	if a.stopped.Load() && !activityClosureBatch(batch) {
-		runtime.mu.Unlock()
-		return Commit{}, ErrStaleActivity
-	}
-	if runtime.phase != RuntimeRunning && runtime.phase != RuntimeCancelling {
-		runtime.mu.Unlock()
-		return Commit{}, ErrStaleActivity
-	}
-	runtime.mu.Unlock()
-	return runtime.session.CommitPrepared(prepared)
-}
-
-func activityClosureBatch(batch Batch) bool {
-	if len(batch.Events) == 0 {
-		return false
-	}
-	for _, event := range batch.Events {
-		switch event.Kind {
-		case "turn/end", "interaction/resolved", "runtime/recovery", "assistant/attempt", "diagnostic":
-		default:
+// Cancel forwards Stop to the bound turn-loop without taking the runtime
+// mutex. An unbound runtime is already idle.
+func (r *Runtime) Cancel() bool {
+	for {
+		exec := r.loadExecution()
+		if exec == nil || exec.control == nil {
 			return false
 		}
-	}
-	return true
-}
-
-func (a *Activity) Finish(_ error) {
-	if a == nil || a.runtime == nil {
-		return
-	}
-	a.doneOnce.Do(func() { close(a.done) })
-	runtime := a.runtime
-	a.stop()
-	runtime.mu.Lock()
-	if runtime.current.Load() != a || runtime.activityID != a.id || (runtime.phase != RuntimeRunning && runtime.phase != RuntimeCancelling) {
-		runtime.mu.Unlock()
-		return
-	}
-	runtime.current.Store(nil)
-	runtime.activity = ""
-	runtime.phase = RuntimeIdle
-	runtime.revision.Add(1)
-	owner := runtime.owner
-	runtime.mu.Unlock()
-	if owner != nil {
-		_ = owner.closeIfUnbound(context.Background(), runtime)
-	}
-}
-
-func (a *Activity) stop() bool {
-	if a == nil || !a.stopped.CompareAndSwap(false, true) {
-		return false
-	}
-	a.cancel()
-	a.runtime.revision.Add(1)
-	return true
-}
-
-// superviseCancellation belongs to the activity rather than any client. This
-// preserves recovery isolation when Stop arrives through Serve or another
-// host entry point without a live UI controller.
-func (a *Activity) superviseCancellation() {
-	if a == nil || a.runtime == nil {
-		return
-	}
-	a.superviseOnce.Do(func() {
-		go func() {
-			timer := time.NewTimer(15 * time.Second)
-			defer timer.Stop()
-			select {
-			case <-a.done:
-				return
-			case <-timer.C:
+		if !exec.control.Cancel() {
+			// A host cutover may linearize while Cancel is inside the outgoing
+			// loop. Retry only when ownership actually changed; a stable owner
+			// rejecting Cancel remains a normal idle result.
+			if r.loadExecution() != exec {
+				continue
 			}
-			a.runtime.requireRecoveryFor(a)
-		}()
-	})
-}
-
-// Cancel reaches the immutable activity permit without acquiring the runtime
-// mutex. A commit may be blocked below that mutex or in a persistence adapter;
-// neither is allowed to delay delivery of the cancellation signal.
-func (r *Runtime) Cancel() bool {
-	activity := r.current.Load()
-	if activity == nil {
-		return false
-	}
-	activity.stop()
-	activity.superviseCancellation()
-	if r.mu.TryLock() {
-		defer r.mu.Unlock()
-		if r.current.Load() == activity && r.phase == RuntimeRunning {
-			r.phase = RuntimeCancelling
+			return false
 		}
+		break
+	}
+	r.canceling.Store(true)
+	if r.mu.TryLock() {
+		if r.phase == RuntimeRunning {
+			r.phase = RuntimeCancelling
+			r.activity = "cancelling"
+			r.revision.Add(1)
+		}
+		r.mu.Unlock()
 	}
 	return true
-}
-
-func (r *Runtime) requireRecoveryFor(activity *Activity) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	if r.current.Load() != activity || r.activityID != activity.id || !activity.stopped.Load() {
-		return
-	}
-	r.current.Store(nil)
-	r.activityID++
-	r.phase = RuntimeRecoveryRequired
-	r.activity = activity.name
-	r.revision.Add(1)
 }
 
 func (r *Runtime) RequireRecovery(activity string) {
@@ -325,51 +224,9 @@ func (r *Runtime) RequireRecovery(activity string) {
 	if r.phase == RuntimeClosed {
 		return
 	}
-	if current := r.current.Swap(nil); current != nil {
-		current.stop()
-	}
-	r.activityID++
 	r.phase = RuntimeRecoveryRequired
 	r.activity = activity
 	r.revision.Add(1)
-}
-
-// RecordRecovery appends terminal recovery facts after RequireRecovery has
-// revoked the activity permit. It cannot be used by a stale worker to publish
-// a tool result or another business-state transition.
-func (r *Runtime) RecordRecovery(ctx context.Context, batch Batch) (Commit, error) {
-	r.mu.Lock()
-	if r.phase != RuntimeRecoveryRequired || !recoveryClosureBatch(batch) {
-		r.mu.Unlock()
-		return Commit{}, ErrStaleActivity
-	}
-	r.mu.Unlock()
-	if err := ctx.Err(); err != nil {
-		return Commit{}, err
-	}
-	prepared, err := r.session.PrepareBatchContext(ctx, batch.OperationID, batch)
-	if err != nil {
-		return Commit{}, err
-	}
-	defer prepared.Release()
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	if r.phase != RuntimeRecoveryRequired || !recoveryClosureBatch(batch) {
-		return Commit{}, ErrStaleActivity
-	}
-	return r.session.CommitPrepared(prepared)
-}
-
-func recoveryClosureBatch(batch Batch) bool {
-	if !activityClosureBatch(batch) {
-		return false
-	}
-	for _, event := range batch.Events {
-		if event.Kind == "runtime/recovery" {
-			return true
-		}
-	}
-	return false
 }
 
 func (r *Runtime) close(ctx context.Context) error {
@@ -380,18 +237,18 @@ func (r *Runtime) close(ctx context.Context) error {
 		<-done
 		return r.closeErr
 	}
-	if r.phase == RuntimeRunning || r.phase == RuntimeCancelling || r.phase == RuntimeRecoveryRequired {
+	if r.phase.busy() && r.loadExecution() != nil {
 		r.mu.Unlock()
 		return ErrRuntimeBusy
 	}
 	// Seal admission in the same critical section as the idle check. The
 	// irreversible close has one uncancellable result for every caller.
 	r.closeDone = make(chan struct{})
-	r.current.Store(nil)
 	r.phase = RuntimeClosed
 	r.activity = ""
 	r.revision.Add(1)
 	r.mu.Unlock()
+	r.transcript.CloseFollowers()
 	r.closeErr = r.session.close(context.Background())
 	close(r.closeDone)
 	return r.closeErr
@@ -413,6 +270,13 @@ type Service struct {
 	bindings   map[*Runtime]int
 	retiring   map[*Runtime]chan struct{}
 	retireIdle map[*Runtime]bool
+	idleTimers map[*Runtime]*time.Timer
+	idleWeight map[*Runtime]int64
+	idleOrder  map[*Runtime]uint64
+	idleUsed   int64
+	idleClock  uint64
+	idleBudget int64
+	idleTTL    time.Duration
 	query      *Query
 	revision   atomic.Uint64
 }
@@ -480,11 +344,17 @@ func (s *Service) ContinueLegacy(ctx context.Context, sourcePath, headID string)
 // instead of letting a caller accidentally resume whichever source it opened
 // first.
 func (s *Service) ContinueImported(ctx context.Context, sourcePath, headID string) (*Runtime, ImportResult, error) {
+	return s.ContinueImportedWithHeader(ctx, sourcePath, headID, CreateOptions{})
+}
+
+// ContinueImportedWithHeader publishes Desktop ownership in the same atomic
+// directory publication as the imported history.
+func (s *Service) ContinueImportedWithHeader(ctx context.Context, sourcePath, headID string, options CreateOptions) (*Runtime, ImportResult, error) {
 	filesystem, ok := s.persistence.(*FilesystemPersistence)
 	if !ok {
 		return nil, ImportResult{}, errors.New("session: persistence does not support imported sessions")
 	}
-	result, err := importSourceForLegacy(ctx, sourcePath, filesystem.Root, headID)
+	result, err := importSourceForLegacyWithHeader(ctx, sourcePath, filesystem.Root, headID, options)
 	if err != nil {
 		return nil, result, err
 	}
@@ -507,6 +377,42 @@ func (s *Service) ContinuePrototype(ctx context.Context, sourceDir string) (*Run
 	return runtime, result, err
 }
 
+// ContinueImportedFrom resolves legacy history against its original paired
+// store while publishing only into this service's separate staging root.
+func (s *Service) ContinueImportedFrom(ctx context.Context, sourcePath, sourceRoot, headID string) (*Runtime, ImportResult, error) {
+	return s.ContinueImportedSource(ctx, sourcePath, filepath.Join(sourceRoot, agent.BranchID(sourcePath)), headID)
+}
+
+// ContinueImportedSource accepts a provenance-linked directory whose identity
+// may have changed when a legacy head was previously converted.
+func (s *Service) ContinueImportedSource(ctx context.Context, sourcePath, sourceDir, headID string) (*Runtime, ImportResult, error) {
+	filesystem, ok := s.persistence.(*FilesystemPersistence)
+	if !ok {
+		return nil, ImportResult{}, errors.New("session: persistence does not support imported sessions")
+	}
+	result, err := importSourceForLegacyAt(ctx, sourcePath, sourceDir, filesystem.Root, headID, CreateOptions{})
+	if err != nil {
+		return nil, result, err
+	}
+	sourceRoot := filepath.Dir(sourceDir)
+	if result.Kind == "final" && filepath.Clean(sourceRoot) != filepath.Clean(filesystem.Root) {
+		tmp, err := os.MkdirTemp("", "tempora-canonical-stage-")
+		if err != nil {
+			return nil, result, err
+		}
+		defer os.RemoveAll(tmp)
+		bundle := filepath.Join(tmp, "bundle")
+		if err := NewFilesystemPersistence(sourceRoot).exportCold(ctx, result.TargetID, bundle); err != nil {
+			return nil, result, err
+		}
+		if _, err := s.Import(ctx, bundle); err != nil {
+			return nil, result, err
+		}
+	}
+	runtime, err := s.openRuntime(ctx, SessionRef{HostID: s.hostID, SessionID: result.TargetID})
+	return runtime, result, err
+}
+
 // ContinueStoredPreview upgrades a pre-ownership linear store selected by its
 // former session id. The old directory remains read-only; execution resumes on
 // the deterministic final-codec identity returned here.
@@ -522,11 +428,7 @@ func (s *Service) ContinueStoredPreview(ctx context.Context, sessionID string) (
 	if err != nil {
 		return nil, PrototypeImportResult{}, err
 	}
-	frozen, err := freezePairedPreview(ctx, sourceDir)
-	if err != nil {
-		return nil, PrototypeImportResult{}, err
-	}
-	result, err := importFrozenPreview(ctx, frozen, filesystem.Root)
+	result, err := ImportStoredPreview(ctx, sourceDir, filesystem.Root)
 	if err != nil {
 		return nil, result, err
 	}
@@ -609,6 +511,14 @@ func (s *Service) Close(ctx context.Context, ref SessionRef) error {
 // instance grant. A delayed old disposer must never close its same-ID
 // successor, and a client-bound runtime is never torn down underneath it.
 func (s *Service) closeOwned(ctx context.Context, runtime *Runtime, instance string) error {
+	return s.closeRuntime(ctx, runtime, instance, false)
+}
+
+// closeRuntime adds the terminal variant Shutdown needs. Refusing a bound
+// runtime is right while the process keeps running, but at shutdown it would
+// strand the writer lease and recovery handles for the process lifetime, so
+// the final teardown releases them and still reports the leaked binding.
+func (s *Service) closeRuntime(ctx context.Context, runtime *Runtime, instance string, terminal bool) error {
 	if runtime == nil {
 		return ErrSessionNotRunning
 	}
@@ -618,22 +528,30 @@ func (s *Service) closeOwned(ctx context.Context, runtime *Runtime, instance str
 	if instance != "" && runtime.instance != instance {
 		return ErrSessionNotRunning
 	}
+	var leaked error
 	s.mu.Lock()
+	if timer := s.idleTimers[runtime]; timer != nil {
+		s.removeIdleCacheLocked(runtime, true)
+	}
 	if s.bindings[runtime] != 0 {
-		s.mu.Unlock()
-		return ErrRuntimeBound
+		if !terminal {
+			s.mu.Unlock()
+			return ErrRuntimeBound
+		}
+		delete(s.bindings, runtime)
+		leaked = fmt.Errorf("%w: %s", ErrRuntimeBound, runtime.ref.SessionID)
 	}
 	if s.active[runtime.ref] != runtime {
 		s.mu.Unlock()
-		return runtime.close(ctx)
+		return errors.Join(leaked, runtime.close(ctx))
 	}
 	if done := s.retiring[runtime]; done != nil {
 		s.mu.Unlock()
 		select {
 		case <-done:
-			return runtime.close(ctx)
+			return errors.Join(leaked, runtime.close(ctx))
 		case <-ctx.Done():
-			return ctx.Err()
+			return errors.Join(leaked, ctx.Err())
 		}
 	}
 	done := make(chan struct{})
@@ -645,12 +563,13 @@ func (s *Service) closeOwned(ctx context.Context, runtime *Runtime, instance str
 	if !errors.Is(err, ErrRuntimeBusy) && s.active[runtime.ref] == runtime {
 		delete(s.active, runtime.ref)
 		delete(s.retireIdle, runtime)
+		s.removeIdleCacheLocked(runtime, true)
 		s.closed[runtime.ref] = err
 		s.revision.Add(1)
 	}
 	close(done)
 	s.mu.Unlock()
-	return err
+	return errors.Join(leaked, err)
 }
 
 // Detach removes a runtime only if it is still the exact published instance.
@@ -664,6 +583,9 @@ func (s *Service) Detach(runtime *Runtime) bool {
 	if s.active[runtime.ref] != runtime {
 		return false
 	}
+	if timer := s.idleTimers[runtime]; timer != nil {
+		s.removeIdleCacheLocked(runtime, true)
+	}
 	delete(s.active, runtime.ref)
 	s.revision.Add(1)
 	return true
@@ -672,6 +594,20 @@ func (s *Service) Detach(runtime *Runtime) bool {
 type ObserveResult struct {
 	Runtime *RuntimeSnapshot `json:"runtime,omitempty"`
 	Events  EventPage        `json:"events"`
+}
+
+// SessionDir resolves the on-disk directory of a final-format identity
+// without opening it. Hosts use it to probe writer occupancy for takeover
+// flows; the writer lease itself is never taken here.
+func (s *Service) SessionDir(ctx context.Context, ref SessionRef) (string, error) {
+	if err := ref.validate(s.hostID); err != nil {
+		return "", err
+	}
+	info, err := s.persistence.Stat(ctx, ref.SessionID)
+	if err != nil {
+		return "", err
+	}
+	return info.Path, nil
 }
 
 func (s *Service) Observe(ctx context.Context, ref SessionRef, cursor uint64, limit int) (ObserveResult, error) {

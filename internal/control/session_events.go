@@ -147,6 +147,7 @@ func (c *Controller) releaseLegacyEventStoreForImport(ctx context.Context) (func
 	release := c.turnEvents.v3Release
 	c.turnEvents.v3 = nil
 	c.turnEvents.v3Path = ""
+	c.turnEvents.v3Runtime = nil
 	c.turnEvents.v3Release = nil
 	c.turnEvents.mu.Unlock()
 	var err error
@@ -274,11 +275,24 @@ func (c *Controller) replaceSessionModelContext(ctx context.Context, messages []
 	}
 	digest := sha256.Sum256(payload)
 	c.turnEvents.commitMu.Lock()
-	_, err = c.appendSessionBatch(ctx, store, session.Batch{
+	batch := session.Batch{
 		OperationID: fmt.Sprintf("model-context:%x", digest[:16]),
 		TurnID:      snapshot.Projection.TurnID,
 		Events:      events,
-	})
+	}
+	_, runtime, exclusive := c.v3Binding()
+	if exclusive && runtime != nil && runtime.Session() == store && !runtime.OwnsExecution(c.ExecutionGeneration()) {
+		prepared, prepareErr := store.PrepareBatchContext(ctx, batch.OperationID, batch)
+		if prepareErr == nil {
+			if previous := c.turnEvents.pendingExecutionCommit; previous != nil {
+				previous.Release()
+			}
+			c.turnEvents.pendingExecutionCommit = &prepared
+		}
+		err = prepareErr
+	} else {
+		_, err = c.appendSessionBatch(ctx, store, batch)
+	}
 	c.turnEvents.commitMu.Unlock()
 	if err != nil {
 		return err
@@ -333,7 +347,7 @@ func (c *Controller) sessionEventStore() *session.Session {
 // until the tab's final lease handoff succeeds.
 func (c *Controller) sessionEventCommitAllowed() bool {
 	if _, runtime, _ := c.v3Binding(); runtime != nil {
-		return true
+		return runtime.OwnsExecution(c.ExecutionGeneration())
 	}
 	if c == nil || !c.managedSessionEvents.Load() {
 		return true
@@ -379,23 +393,51 @@ func (c *Controller) appendSessionEventLocked(ctx context.Context, e event.Event
 		}
 		return nil
 	}
-	projection := store.ExecutionSnapshot().Projection
+	snapshot := store.ExecutionSnapshot()
+	projection := snapshot.Projection
 	if projection.Recovery != nil && projection.Recovery.State == "recovery_required" && e.Kind != event.TurnDone {
-		// The cancelled activity no longer owns business-state mutation. Its
-		// eventual return is observed by the runtime watchdog; late semantic
-		// output must never reactivate tools, interactions, Goal, or Todo.
+		// Recovery has sealed business-state mutation. The watchdog observes
+		// the uncooperative worker; late semantic output must never reactivate
+		// tools, interactions, Goal, or Todo.
 		return nil
 	}
-	events, err := c.v3EventsFor(e, projection)
+	if e.TurnID == "" {
+		if _, turnID, active := c.currentTurnToken(); active {
+			e.TurnID = turnID
+		}
+		if e.TurnID == "" {
+			if ledger := c.turnEventLedger(); ledger != nil {
+				e.TurnID = ledger.ActiveTurnID()
+			}
+		}
+		if e.TurnID == "" {
+			e.TurnID = projection.TurnID
+		}
+	}
+	events, err := c.sessionEventsFor(e, projection)
 	if err != nil || len(events) == 0 {
 		return err
 	}
-	op := fmt.Sprintf("runtime:%s:%d:%d", e.TurnID, e.Sequence, e.Kind)
+	if e.Kind == event.TurnDone {
+		if err := c.appendTerminationLocked(ctx, e, store, events); err != nil {
+			return fmt.Errorf("%w: %w", turnevent.ErrTurnLedgerUnavailable, err)
+		}
+		return nil
+	}
+	op := fmt.Sprintf("runtime:%s:%d:%d", e.TurnID, snapshot.EventSequence+1, e.Kind)
 	_, err = c.appendSessionBatch(ctx, store, session.Batch{OperationID: op, TurnID: e.TurnID, Events: events})
 	if err != nil {
 		return fmt.Errorf("%w: %w", turnevent.ErrTurnLedgerUnavailable, err)
 	}
+	c.noteCommittedMessagesLocked(events)
 	return nil
+}
+
+func (c *Controller) sessionEventsFor(e event.Event, projection session.Projection) ([]session.Event, error) {
+	if e.Kind == event.Notice {
+		return mcpDisplayNoticeEvents(e)
+	}
+	return c.v3EventsFor(e, projection)
 }
 
 func (c *Controller) v3EventsFor(e event.Event, projection session.Projection) ([]session.Event, error) {
@@ -408,6 +450,7 @@ func (c *Controller) v3EventsFor(e event.Event, projection session.Projection) (
 			return nil, err
 		}
 		out = append(out, session.Event{Kind: "turn/start", Payload: payload})
+		out = c.appendSubmissionEvent(out, e.TurnID)
 		if e.DomainKind != "" {
 			if e.DomainKind != "goal/state" || len(e.DomainPayload) == 0 {
 				return nil, fmt.Errorf("unsupported turn admission domain event %q", e.DomainKind)
@@ -502,30 +545,14 @@ func (c *Controller) v3EventsFor(e event.Event, projection session.Projection) (
 			out = append(out, session.Event{Kind: "runtime/recovery", Payload: payload})
 		}
 	case event.CompactionDone:
-		// An empty summary denotes an aborted pass and must not replace the
-		// provider projection. Successful passes record the exact installed view.
-		if strings.TrimSpace(e.Compaction.Summary) != "" && c.executor != nil {
-			payload, err := makePayload(map[string]any{
-				"messages": c.executor.ModelHistorySnapshot(),
-				"trigger":  e.Compaction.Trigger,
-			})
-			if err != nil {
-				return nil, err
-			}
-			out = append(out, session.Event{Kind: "compaction", Payload: payload})
-		}
+		// Context-maintenance commits persist their exact model projection before
+		// this notification is emitted. CompactionDone is presentation-only.
 	case event.TurnDone:
 		interactionState := "unavailable"
 		if e.Cancelled || e.Status == event.TurnInterrupted {
 			interactionState = "cancelled"
 		}
-		for id := range projection.Interactions {
-			interactionPayload, marshalErr := makePayload(map[string]any{"id": id, "state": interactionState})
-			if marshalErr != nil {
-				return nil, marshalErr
-			}
-			out = append(out, session.Event{Kind: "interaction/resolved", Payload: interactionPayload})
-		}
+		out = append(out, session.ClosureEvents(projection, interactionState, "turn ended before recording a result")...)
 		if e.Recovery != nil && e.Recovery.State == "recovery_required" {
 			recoveryPayload, marshalErr := makePayload(e.Recovery)
 			if marshalErr != nil {
@@ -587,6 +614,9 @@ func (c *Controller) RecordSessionMessages(ctx context.Context, reason string, m
 	}
 	c.turnEvents.commitMu.Lock()
 	defer c.turnEvents.commitMu.Unlock()
+	if !c.messageCommitAllowedLocked(ctx, store) {
+		return nil
+	}
 	events := make([]session.Event, 0, len(messages))
 	for _, message := range messages {
 		if strings.TrimSpace(message.ID) == "" {
@@ -601,7 +631,64 @@ func (c *Controller) RecordSessionMessages(ctx context.Context, reason string, m
 	snapshot := store.ExecutionSnapshot()
 	op := fmt.Sprintf("messages:%s:%d", reason, snapshot.EventSequence+1)
 	_, err := c.appendSessionBatch(ctx, store, session.Batch{OperationID: op, TurnID: snapshot.Projection.TurnID, Events: events})
+	if err == nil {
+		c.noteCommittedMessagesLocked(events)
+	}
 	return err
+}
+
+// RecordSessionModelContext implements agent.SessionModelContextRecorder. It
+// persists the exact provider-visible projection without mutating the Agent or
+// the canonical history. A successful return means the accepted commit is on
+// stable storage through its final sequence.
+func (c *Controller) RecordSessionModelContext(ctx context.Context, request agent.SessionModelContextCommit) (agent.SessionModelContextCommitResult, error) {
+	var result agent.SessionModelContextCommitResult
+	if !c.sessionEventCommitAllowed() {
+		return result, session.ErrStaleExecution
+	}
+	store := c.sessionEventStore()
+	if store == nil {
+		return result, nil
+	}
+	operationID := strings.TrimSpace(request.OperationID)
+	if operationID == "" {
+		return result, errors.New("record session model context: missing operation id")
+	}
+	modelMessages := provider.ModelMessages(request.Messages)
+	if modelMessages == nil {
+		modelMessages = []provider.Message{}
+	}
+	payload, err := json.Marshal(map[string]any{
+		"messages": modelMessages,
+		"reason":   strings.TrimSpace(request.Reason),
+	})
+	if err != nil {
+		return result, err
+	}
+
+	c.turnEvents.commitMu.Lock()
+	if !c.messageCommitAllowedLocked(ctx, store) {
+		c.turnEvents.commitMu.Unlock()
+		return result, session.ErrStaleExecution
+	}
+	commit, err := c.appendSessionBatch(ctx, store, session.Batch{
+		OperationID: "model-context-maintenance:" + operationID,
+		Events:      []session.Event{{Kind: "model/context-replace", Payload: payload}},
+	})
+	c.turnEvents.commitMu.Unlock()
+	if err != nil {
+		return result, err
+	}
+	result.Accepted = true
+	receipt, err := store.Flush(ctx)
+	if err != nil {
+		return result, err
+	}
+	if receipt.DurableSequence < commit.LastSequence() {
+		return result, fmt.Errorf("record session model context: durable sequence %d is before commit %d", receipt.DurableSequence, commit.LastSequence())
+	}
+	result.Durable = true
+	return result, nil
 }
 
 // RecordSessionMessageUpsert records one explicit stable-message mutation.
@@ -625,6 +712,9 @@ func (c *Controller) RecordSessionMessageUpsert(ctx context.Context, reason stri
 	}
 	c.turnEvents.commitMu.Lock()
 	defer c.turnEvents.commitMu.Unlock()
+	if !c.messageCommitAllowedLocked(ctx, store) {
+		return nil
+	}
 	snapshot := store.ExecutionSnapshot()
 	op := fmt.Sprintf("message-upsert:%s:%s:%d", reason, message.ID, snapshot.EventSequence+1)
 	_, err = c.appendSessionBatch(ctx, store, session.Batch{OperationID: op, TurnID: snapshot.Projection.TurnID, Events: []session.Event{{Kind: "message/upsert", Payload: payload}}})
@@ -683,6 +773,9 @@ func (c *Controller) appendDomainState(kind string, payload json.RawMessage, rea
 	}
 	c.turnEvents.commitMu.Lock()
 	defer c.turnEvents.commitMu.Unlock()
+	if !c.messageCommitAllowedLocked(context.Background(), store) {
+		return nil
+	}
 	snapshot := store.ExecutionSnapshot()
 	op := fmt.Sprintf("domain:%s:%s:%d", kind, reason, snapshot.EventSequence+1)
 	_, err := c.appendSessionBatch(context.Background(), store, session.Batch{OperationID: op, TurnID: snapshot.Projection.TurnID, Events: []session.Event{{Kind: kind, Payload: append(json.RawMessage(nil), payload...)}}})

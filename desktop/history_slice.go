@@ -302,24 +302,17 @@ func (a *App) HistorySliceForTab(tabID string, req HistorySliceRequest) HistoryS
 	a.mu.RLock()
 	tab := a.tabByIDLocked(tabID)
 	var ctrl control.SessionAPI
-	var sessionDir, sessionPath string
+	var sessionDir, sessionPath, sessionID string
 	if tab != nil {
 		ctrl = tab.Ctrl
 		sessionDir = tabSessionDir(tab)
 		sessionPath = tab.currentSessionPath()
+		sessionID = strings.TrimSpace(tab.SessionID)
 	}
 	a.mu.RUnlock()
 
 	if ctrl == nil {
-		if strings.TrimSpace(sessionPath) == "" {
-			return failedHistorySlice("session path unavailable before controller ready")
-		}
-		slice, err := a.coldHistorySlice(sessionDir, sessionPath, req)
-		if err != nil {
-			slog.Debug("desktop: cold history slice failed", "path", sessionPath, "err", err)
-			return failedHistorySlice(err.Error())
-		}
-		return slice
+		return a.historySliceBeforeController(tabID, sessionDir, sessionPath, sessionID, req)
 	}
 	if identity, ok := ctrl.(control.IdentityLifecycle); ok && identity.UsesExclusiveSession() {
 		ref, bound := identity.SessionRef()
@@ -1193,13 +1186,17 @@ func (a *App) HistoryContentForTab(tabID string, ref HistoryContentRef, chunkInd
 	a.mu.RLock()
 	tab := a.tabByIDLocked(tabID)
 	var ctrl control.SessionAPI
-	var sessionDir, sessionPath string
+	var sessionDir, sessionPath, sessionID string
 	if tab != nil {
 		ctrl = tab.Ctrl
 		sessionDir = tabSessionDir(tab)
 		sessionPath = tab.currentSessionPath()
+		sessionID = strings.TrimSpace(tab.SessionID)
 	}
 	a.mu.RUnlock()
+	if ctrl == nil && sessionID != "" {
+		return a.canonicalHistoryContentBeforeController(tabID, sessionDir, sessionPath, sessionID, msgIndex, sub, ref, chunkIndex, out)
+	}
 	if ctrl != nil {
 		if identity, ok := ctrl.(control.IdentityLifecycle); ok && identity.UsesExclusiveSession() {
 			sessionRef, bound := identity.SessionRef()
@@ -1235,8 +1232,8 @@ func (a *App) HistoryContentForTab(tabID string, ref HistoryContentRef, chunkInd
 		out.Done = true
 		return out
 	}
-	sessionID := strings.TrimSuffix(filepath.Base(sessionPath), ".jsonl")
-	if entryIDSession(ref.EntryID) != sessionID {
+	resolvedSessionID := strings.TrimSuffix(filepath.Base(sessionPath), ".jsonl")
+	if entryIDSession(ref.EntryID) != resolvedSessionID {
 		out.Stale = true
 		return out
 	}
@@ -1274,6 +1271,74 @@ func (a *App) HistoryContentForTab(tabID string, ref HistoryContentRef, chunkInd
 	out.Data = data
 	out.Done = chunkIndex >= chunks-1
 	return out
+}
+
+// HistoryContentForTarget re-resolves one compatibility-history content
+// capability against the explicit durable target. It never consults the
+// selected tab or creates a controller.
+func (a *App) HistoryContentForTarget(selector SessionSelector, ref HistoryContentRef, chunkIndex int) (HistoryContentChunk, error) {
+	out := HistoryContentChunk{EntryID: ref.EntryID, Field: ref.Field, Chunk: max(chunkIndex, 0)}
+	target, err := a.resolveSessionTargetWithArchived(selector, true)
+	if err != nil {
+		return out, err
+	}
+	msgIndex, sub, legacyRow, ok := parseHistoryEntryID(ref.EntryID)
+	if !ok {
+		out.Done = true
+		return out, nil
+	}
+	if target.SessionRef.SessionID != "" {
+		if entryIDSession(ref.EntryID) != target.SessionRef.SessionID {
+			out.Stale = true
+			return out, nil
+		}
+		src, sourceErr := canonicalHistorySliceSource(a.desktopSessionService("").Query(), target.SessionRef)
+		if sourceErr != nil || !src.identityMatches(ref.Revision, ref.RevKnown, ref.Digest) {
+			out.Stale = true
+			return out, nil
+		}
+		value, found, stale := a.historyFieldValueForSource(
+			src,
+			msgIndex,
+			sub,
+			ref,
+			sessionDisplayResolver("", target.SessionPath),
+			nil,
+			nil,
+		)
+		if stale || !found || len(value) != ref.Size {
+			out.Stale = true
+			return out, nil
+		}
+		out.Data, out.Chunks = historyContentChunkAt(value, chunkIndex)
+		out.Done = chunkIndex >= out.Chunks-1
+		return out, nil
+	}
+	sessionDir, sessionPath, pathErr := a.sessionDirForPath(target.SessionPath)
+	if pathErr != nil {
+		return out, newSessionOperationError(sessionOperationTargetNotFound, "The session no longer exists.")
+	}
+	if entryIDSession(ref.EntryID) != strings.TrimSuffix(filepath.Base(sessionPath), ".jsonl") {
+		out.Stale = true
+		return out, nil
+	}
+	var (
+		value string
+		found bool
+		stale bool
+	)
+	if legacyRow >= 0 {
+		value, found = a.legacyHistoryFieldValue(sessionPath, sessionDir, legacyRow, ref)
+	} else {
+		value, found, stale = a.coldHistoryFieldValue(sessionDir, sessionPath, msgIndex, sub, ref)
+	}
+	if stale || !found || len(value) != ref.Size {
+		out.Stale = true
+		return out, nil
+	}
+	out.Data, out.Chunks = historyContentChunkAt(value, chunkIndex)
+	out.Done = chunkIndex >= out.Chunks-1
+	return out, nil
 }
 
 // parseHistoryEntryID parses s<id>:r<epoch>:m<msgIndex>:o<sub> and the legacy
