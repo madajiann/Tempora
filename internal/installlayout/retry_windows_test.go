@@ -34,7 +34,7 @@ func TestRetryTransientRecoversFromScannerLocks(t *testing.T) {
 	if err != nil || attempts != 4 || len(*delays) != 3 {
 		t.Fatalf("attempts=%d delays=%v err=%v", attempts, *delays, err)
 	}
-	if (*delays)[0] != 250*time.Millisecond || (*delays)[2] != 750*time.Millisecond {
+	if (*delays)[0] != 400*time.Millisecond || (*delays)[2] != 1200*time.Millisecond {
 		t.Fatalf("backoff must grow linearly: %v", *delays)
 	}
 }

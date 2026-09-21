@@ -5,10 +5,14 @@ import (
 	"time"
 )
 
-const transientRetryAttempts = 10
+const transientRetryAttempts = 15
 
 // transientRetryDelay is a test seam; production backs off linearly to
-// about eleven seconds, well inside the activation lock timeout.
+// about forty seconds. The old ~11s budget lost two real activation races
+// to Defender holding a freshly extracted 155MB staging directory
+// (update-helper.log 2026-09-19 11:08/11:32: rename .staging -> versions:
+// Access is denied, succeeded only on a manual third attempt). AV holds on
+// large fresh payloads routinely exceed 11s; 42s rides them out.
 var transientRetryDelay = time.Sleep
 
 // retryTransient repeats op while it fails with a Windows sharing, lock, or
@@ -21,7 +25,7 @@ func retryTransient(op func() error) error {
 		if err == nil || !transientFileError(err) || attempt == transientRetryAttempts {
 			return err
 		}
-		transientRetryDelay(time.Duration(attempt) * 250 * time.Millisecond)
+		transientRetryDelay(time.Duration(attempt) * 400 * time.Millisecond)
 	}
 	return err
 }

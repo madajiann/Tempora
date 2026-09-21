@@ -15,7 +15,14 @@ import (
 
 const gracefulTimeout = 20 * time.Second
 const terminateTimeout = 10 * time.Second
-const startupTimeout = 30 * time.Second
+
+// startupTimeout is the readiness budget for a fresh launch. 30s was a false
+// failure on post-update cold starts: Defender/AV scans the freshly extracted
+// tempora-desktop.exe + Electron payload on first exec, and update-helper.log
+// recorded four real "startup was not verified within 30 seconds" events
+// (2026-09-18/19) that later succeeded unchanged. 90s covers the scan while
+// the Lifecycle=="failed" fast-fail path still aborts immediately.
+const startupTimeout = 90 * time.Second
 
 func closeProcesses(list []*process) {
 	for _, p := range list {
@@ -267,7 +274,7 @@ func verify(root, profile, expected string) error {
 			return outcome(StartupFailed, "Tempora startup failed; use the recovery window or desktop-shell/logs")
 		}
 		if time.Now().After(deadline) {
-			return outcome(StartupFailed, "startup was not verified within 30 seconds; inspect desktop-shell/logs")
+			return outcome(StartupFailed, "startup was not verified within %d seconds; inspect desktop-shell/logs", int(startupTimeout/time.Second))
 		}
 		time.Sleep(200 * time.Millisecond)
 	}
