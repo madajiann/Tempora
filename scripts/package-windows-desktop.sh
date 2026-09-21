@@ -136,12 +136,15 @@ dist_installer="$DIST/${APPNAME}-windows-${arch}-installer.exe"
 dist_portable="$DIST/${APPNAME}-windows-${arch}.zip"
 cp "$installer" "$dist_installer"
 
-portable_staging=$(mktemp -d)
+# v0.1.4: pin the staging dir to the user-local temp directory (NTFS C:)
+# instead of TMPDIR — TMPDIR once resolved to G:/tmp where files written
+# from bash were not readable by native node right after (build lock).
+tmp_base="${LOCALAPPDATA:-C:/Windows/Temp}"
+tmp_base="${tmp_base//\\//}"
+portable_staging=$(mktemp -d "$tmp_base/mktemp.XXXXXXXX")
 cleanup() {
-	tmp_root="${TMPDIR:-/tmp}"
-	tmp_root="${tmp_root%/}"
 	case "$portable_staging" in
-	"$tmp_root"/* | /tmp/*) rm -rf -- "$portable_staging" ;;
+	"$tmp_base"/mktemp.* | /tmp/*) rm -rf -- "$portable_staging" ;;
 	*) echo "refusing to clean unexpected portable staging directory: $portable_staging" >&2 ;;
 	esac
 }
