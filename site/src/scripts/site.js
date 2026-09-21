@@ -240,7 +240,7 @@ import { initMobileNav } from "./mobile-nav.js";
 
   /* public official releases */
   const releaseModels = { desktop: null, cli: null };
-  const releasesPage = "https://github.com/esengine/DeepSeek-Reasonix/releases";
+  const releasesPage = "https://github.com/madajiann/Tempora/releases";
   const reflectPaneURL = (surface) => {
     const nextURL = downloadURLForPane(window.location.href, surface, "");
     if (nextURL) window.history.replaceState(null, "", nextURL);

@@ -100,13 +100,6 @@ func assertTemporaGreen(t *testing.T, name string, colorValue color.Color) {
 	}
 }
 
-func near(got, want uint8, tolerance uint8) bool {
-	if got > want {
-		return got-want <= tolerance
-	}
-	return want-got <= tolerance
-}
-
 func alphaBounds(img image.Image) image.Rectangle {
 	bounds := img.Bounds()
 	visible := image.Rectangle{}

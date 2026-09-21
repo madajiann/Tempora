@@ -232,7 +232,7 @@ func replaceFile(path string, data []byte, mode os.FileMode) error {
 	// Windows: Defender keeps a scan handle open on freshly written executables,
 	// making the final rename fail with ACCESS_DENIED for a while. Retry to let
 	// the scan finish instead of failing the whole build.
-	for attempt := 0; attempt < 40; attempt++ {
+	for range 40 {
 		if err = os.Rename(tempName, path); err == nil {
 			return nil
 		}

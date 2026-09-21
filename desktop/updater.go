@@ -750,10 +750,7 @@ const downloadStallPoll = 10 * time.Second
 // retryBackoff is the pause before the Nth retry; a package var so tests shrink it.
 // Exponential with a cap so a flapping route gets progressively longer breaths.
 var retryBackoff = func(attempt int) time.Duration {
-	shift := attempt - 1
-	if shift > 3 {
-		shift = 3
-	}
+	shift := min(attempt-1, 3)
 	return time.Duration(1<<shift) * time.Second
 }
 

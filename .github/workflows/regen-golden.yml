@@ -1,0 +1,35 @@
+name: Regenerate Linux golden baseline
+
+# One-off maintenance: the fork's system content diverges from upstream
+# (branding/telemetry), so the committed Linux golden baseline must be
+# regenerated on a real Linux host. Dispatch this after landing content
+# changes, review the golden diff, and let CI re-verify.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  regen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Regenerate golden baseline (Linux/bash variant)
+        env:
+          TEMPORA_UPDATE_GOLDEN: "1"
+        run: go test ./internal/boot/ -run TestGoldenBaselineNoExtensions -count=1 -v
+      - name: Commit regenerated golden
+        run: |
+          git config user.name "tempora-golden-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add internal/boot/testdata/golden
+          if git diff --cached --quiet; then
+            echo "golden already up to date"
+            exit 0
+          fi
+          git commit -m "test(boot): regenerate Linux golden baseline (fork system content)"
+          git push

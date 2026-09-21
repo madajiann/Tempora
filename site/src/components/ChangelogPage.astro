@@ -11,7 +11,7 @@ const { release, releases, canonical } = Astro.props as {
   canonical?: string;
 };
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const repo = 'https://github.com/esengine/DeepSeek-Reasonix';
+const repo = 'https://github.com/madajiann/Tempora';
 const prHref = (ref: number) => `${repo}/pull/${ref}`;
 
 const isPreview = release.channel === 'prerelease';

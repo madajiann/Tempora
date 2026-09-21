@@ -1441,12 +1441,9 @@ func TestConfigureKeys(t *testing.T) {
 }
 
 // TestConfigureKeysReusesExistingEnv covers the "user already typed the key
-// in the URL-fetch flow, don't ask again" path. When the env var is set
-// (either from .env or from a prior os.Setenv in the wizard), configureKeys
-// must NOT consume from the input stream — otherwise the user's next typed
-// line bleeds into the next provider's prompt. It also must include the
-// existing value in envLines so the value is re-pinned into .env on
-// re-runs of setup.
+// in the URL-fetch flow" path: with the env var preset, configureKeys must
+// not consume from the input stream and must re-pin the existing value into
+// .env via envLines.
 func TestConfigureKeysReusesExistingEnv(t *testing.T) {
 	t.Setenv("DEEPSEEK_API_KEY", "preset-ds-key")
 

@@ -153,7 +153,7 @@ export function cliReleaseModel(releases, requestedChannel) {
   if (!parsed) return null;
   const assets = releaseAssetMap(release);
   if (!assets) return null;
-  const releaseURL = `https://github.com/esengine/DeepSeek-Reasonix/releases/tag/${parsed.tag}`;
+  const releaseURL = `https://github.com/madajiann/Tempora/releases/tag/${parsed.tag}`;
   const exactChangelogURL = `https://tempora.io/changelog/${parsed.tag}/`;
   const changelogURL = release.release_notes_url === exactChangelogURL
     ? exactChangelogURL
@@ -172,8 +172,8 @@ function desktopAssetBases(parsed) {
   const tag = `desktop-${parsed.tag}`;
   return [
     `https://dl.tempora.io/${tag}/`,
-    `https://github.com/esengine/DeepSeek-Reasonix/releases/download/${tag}/`,
-    `https://github.com/esengine/DeepSeek-Reasonix/releases/download/${parsed.tag}/`,
+    `https://github.com/madajiann/Tempora/releases/download/${tag}/`,
+    `https://github.com/madajiann/Tempora/releases/download/${parsed.tag}/`,
   ];
 }
 
@@ -263,7 +263,7 @@ export function desktopGitHubReleaseModel(release) {
     seen.add(name);
     const rawURL = typeof asset?.browser_download_url === "string" ? asset.browser_download_url : "";
     const url = safeHTTPSURL(rawURL);
-    const expected = `https://github.com/esengine/DeepSeek-Reasonix/releases/download/${tag}/${name}`;
+    const expected = `https://github.com/madajiann/Tempora/releases/download/${tag}/${name}`;
     if (
       !url ||
       url.href !== rawURL ||

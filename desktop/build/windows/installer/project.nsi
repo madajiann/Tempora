@@ -33,7 +33,8 @@ SetCompressorDictSize 32
 !define REQUEST_EXECUTION_LEVEL "user"
 
 ####
-## Product identity (generated; provides INFO_* defines and TEMPORA_VERSION_TAG).
+## Product identity. TEMPORA_VERSION_TAG is the release/install identity;
+## INFO_PRODUCTVERSION is numeric metadata only.
 ####
 !if /FileExists "tempora_project.nsh"
 !include "tempora_project.nsh"
@@ -147,8 +148,8 @@ VIFileVersion    "${INFO_PRODUCTVERSION}.0"
 
 VIAddVersionKey "CompanyName"     "${INFO_COMPANYNAME}"
 VIAddVersionKey "FileDescription" "${INFO_PRODUCTNAME} Installer"
-VIAddVersionKey "ProductVersion"  "${INFO_PRODUCTVERSION}"
-VIAddVersionKey "FileVersion"     "${INFO_PRODUCTVERSION}"
+VIAddVersionKey "ProductVersion"  "${TEMPORA_DISPLAY_VERSION}"
+VIAddVersionKey "FileVersion"     "${TEMPORA_DISPLAY_VERSION}"
 VIAddVersionKey "LegalCopyright"  "${INFO_COPYRIGHT}"
 VIAddVersionKey "ProductName"     "${INFO_PRODUCTNAME}"
 
@@ -233,7 +234,7 @@ ShowInstDetails show # This will always show the installation details.
 
     WriteRegStr HKCU "${UNINST_KEY}" "Publisher" "${INFO_COMPANYNAME}"
     WriteRegStr HKCU "${UNINST_KEY}" "DisplayName" "${INFO_PRODUCTNAME}"
-    WriteRegStr HKCU "${UNINST_KEY}" "DisplayVersion" "${INFO_PRODUCTVERSION}"
+    WriteRegStr HKCU "${UNINST_KEY}" "DisplayVersion" "${TEMPORA_DISPLAY_VERSION}"
     !if /FileExists "${TEMPORA_LAUNCHER}"
     WriteRegStr HKCU "${UNINST_KEY}" "DisplayIcon" "$INSTDIR\${TEMPORA_LAUNCHER}"
     !else
@@ -426,9 +427,9 @@ tempora_unlock_check:
 tempora_unlock_stable_locked:
    StrCpy $2 1
 tempora_unlock_versioned:
-   IfFileExists "$INSTDIR\versions\v${INFO_PRODUCTVERSION}\${PRODUCT_EXECUTABLE}" 0 tempora_unlock_guard
+   IfFileExists "$INSTDIR\versions\${TEMPORA_VERSION_TAG}\${PRODUCT_EXECUTABLE}" 0 tempora_unlock_guard
    ClearErrors
-   FileOpen $1 "$INSTDIR\versions\v${INFO_PRODUCTVERSION}\${PRODUCT_EXECUTABLE}" a
+   FileOpen $1 "$INSTDIR\versions\${TEMPORA_VERSION_TAG}\${PRODUCT_EXECUTABLE}" a
    IfErrors tempora_unlock_versioned_locked
    FileClose $1
    Goto tempora_unlock_guard
@@ -488,13 +489,18 @@ tempora_unlock_ok:
 FunctionEnd
 
 
+!ifdef ARG_TEMPORA_UNINSTALLER_ONLY
+Section
+    WriteUninstaller "$INSTDIR\uninstall.exe"
+SectionEnd
+!else
 Section
     !insertmacro tempora.setShellContext
 
     ; /TEMPORASTAGE=1: flat executables plus the Electron app/ tree for
     ; 1.18–1.19.1 helpers (and the new helper's staging extract). Do not write
     ; shortcuts/uninstaller.
-    ; Normal install: versioned-v1 layout under versions/v${INFO_PRODUCTVERSION}/
+    ; Normal install: versioned-v1 layout under versions/${TEMPORA_VERSION_TAG}/
     ; with a permanent thin launcher at InstallRoot. Guard is only present in
     ; STAGE payloads (as the one-shot legacy migrator) and is not persisted on
     ; a normal install.
@@ -534,7 +540,7 @@ tempora_normal_install:
     ; automatic updates instead of writing live files or current.json in place.
     System::Call 'kernel32::GetCurrentProcessId() i .R8'
     CreateDirectory "$INSTDIR\versions"
-    StrCpy $R9 "$INSTDIR\versions\.installer-v${INFO_PRODUCTVERSION}-$R8"
+    StrCpy $R9 "$INSTDIR\versions\.installer-${TEMPORA_VERSION_TAG}-$R8"
     RMDir /r "$R9"
     CreateDirectory "$R9"
     SetOutPath "$R9"
@@ -564,7 +570,7 @@ tempora_normal_install:
     IfSilent +2 0
     StrCpy $R7 "--interactive-recovery"
 tempora_layout_activate:
-    nsExec::ExecToLog /OEM '"$PLUGINSDIR\${TEMPORA_LAYOUT_INSTALLER}" --install-root "$INSTDIR" --version "v${INFO_PRODUCTVERSION}" --activate-staging "$R9" --no-relaunch $R7'
+    nsExec::ExecToLog /OEM '"$PLUGINSDIR\${TEMPORA_LAYOUT_INSTALLER}" --install-root "$INSTDIR" --version "${TEMPORA_VERSION_TAG}" --activate-staging "$R9" --no-relaunch $R7'
     Pop $0
     StrCmp $0 "0" tempora_layout_activated
     DetailPrint "Tempora layout activation failed with exit code $0; the previous version remains active."
@@ -618,8 +624,8 @@ tempora_layout_activated:
         DetailPrint "Warning: shortcut identity repair failed ($0); the next normal launch will retry."
     ${EndIf}
     !else
-    CreateShortcut "$SMPROGRAMS\${INFO_PRODUCTNAME}.lnk" "$INSTDIR\versions\v${INFO_PRODUCTVERSION}\${PRODUCT_EXECUTABLE}"
-    CreateShortCut "$DESKTOP\${INFO_PRODUCTNAME}.lnk" "$INSTDIR\versions\v${INFO_PRODUCTVERSION}\${PRODUCT_EXECUTABLE}"
+    CreateShortcut "$SMPROGRAMS\${INFO_PRODUCTNAME}.lnk" "$INSTDIR\versions\${TEMPORA_VERSION_TAG}\${PRODUCT_EXECUTABLE}"
+    CreateShortCut "$DESKTOP\${INFO_PRODUCTNAME}.lnk" "$INSTDIR\versions\${TEMPORA_VERSION_TAG}\${PRODUCT_EXECUTABLE}"
     !endif
 
     !insertmacro tempora.associateFiles
@@ -629,6 +635,7 @@ tempora_layout_activated:
 
 tempora_section_done:
 SectionEnd
+!endif
 
 Section "uninstall"
     !insertmacro tempora.setShellContext
