@@ -22529,7 +22529,10 @@ body > .mermaid-diagram--fullscreen {
   align-items: center;
   gap: 6px;
   position: relative;
-  --tempora-draggable: no-drag;
+  /* No no-drag here: the container is not a control, and its gaps used to
+     erase a ~300px drag dead zone at the right end of the bar. Buttons keep
+     their own no-drag via `.topicbar button`; transient popovers opt out
+     below (.taskmonitor-popover) and dropdown menus carry their own. */
 }
 
 .topicbar__actions > .tooltip-trigger {
@@ -25829,7 +25832,7 @@ body > .mermaid-diagram--fullscreen {
 }
 
 .topicbar__title-row h1 {
-  max-width: 100%;
+  max-width: 40%;
   font-size: 14.5px;
   font-weight: 660;
 }
@@ -26529,7 +26532,7 @@ body > .mermaid-diagram--fullscreen {
 }
 
 :root[data-theme-style] .topicbar__title-row h1 {
-  max-width: 100%;
+  max-width: 40%;
   font-size: 14.5px;
   font-weight: 660;
 }
@@ -36451,7 +36454,7 @@ body > .mermaid-diagram--fullscreen {
   background: var(--bg-elev-2);
 }
 /* Task Monitor panel. The Codex-style popover keeps the chat composer clear. */
-.taskmonitor-popover { position:absolute; top:calc(100% + 8px); right:0; width:min(440px, calc(100vw - 32px)); max-height:min(72vh, 680px); z-index:var(--z-dock); border:1px solid var(--border,#333); border-radius:10px; background:var(--overlay-surface-bg, var(--bg,#111)); box-shadow:0 14px 36px rgba(0,0,0,.42); overflow:hidden; }
+.taskmonitor-popover { position:absolute; top:calc(100% + 8px); right:0; width:min(440px, calc(100vw - 32px)); max-height:min(72vh, 680px); z-index:var(--z-dock); border:1px solid var(--border,#333); border-radius:10px; background:var(--overlay-surface-bg, var(--bg,#111)); box-shadow:0 14px 36px rgba(0,0,0,.42); overflow:hidden; --tempora-draggable: no-drag; }
 .taskmonitor { background:var(--bg,#111); }
 .taskmonitor--popover { max-height:inherit; background:transparent; }
 .taskmonitor__head { display:flex; align-items:center; gap:6px; width:100%; padding:8px 12px; font-size:13px; }

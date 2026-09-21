@@ -374,8 +374,14 @@ ok(
 ok(
   finalDeclaration(".topicbar", "--tempora-draggable") === "drag" &&
     finalDeclaration(".topicbar button", "--tempora-draggable") === "no-drag" &&
-    finalDeclaration(".topicbar__actions", "--tempora-draggable") === "no-drag",
-  "the shell bar is the window drag surface and opts its controls out",
+    finalDeclaration(".topicbar__actions", "--tempora-draggable") === undefined &&
+    finalDeclaration(".taskmonitor-popover", "--tempora-draggable") === "no-drag",
+  "the shell bar is the window drag surface; its container gaps stay draggable while controls and popovers opt out",
+);
+
+ok(
+  finalDeclaration(".topicbar__title-row h1", "max-width") === "40%",
+  "a long session title cannot span the whole bar: the middle keeps a wide drag surface",
 );
 
 ok(
