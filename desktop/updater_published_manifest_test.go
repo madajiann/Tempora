@@ -1,15 +1,8 @@
 package main
 
-// Release-gate test: validate a published latest.json with the exact same code
-// path the desktop updater uses at runtime. Feed it a file path via
-// TEMPORA_MANIFEST_CHECK (defaults to dist/latest.json if present).
-// Run: go test ./ -run TestPublishedManifestPassesUpdaterValidation -v
-//
-// This exists because v0.1.2 shipped with asset URLs pinned to the
-// desktop-v0.1.0 tag while the manifest version was v0.1.2; the updater's
-// desktopAssetBases check rejected the whole manifest and every client showed
-// "update: invalid stable version" with no version to update to. This test
-// makes that class of mistake fail the release instead of the users.
+// Release-gate test: validate a published latest.json through the exact code path
+// the desktop updater uses at runtime (TEMPORA_MANIFEST_CHECK, default dist/latest.json);
+// born from v0.1.2 shipping manifest URLs pinned to the wrong tag — fail the release, not users.
 
 import (
 	"encoding/json"

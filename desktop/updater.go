@@ -33,9 +33,8 @@ import (
 )
 
 // updater.go is the transport-free core of the desktop auto-updater: manifest
-// fetch, version comparison, signed download, and per-platform apply/relaunch. It
-// has no shell dependency so the logic is unit-tested directly; updater_app.go is
-// the thin bridge binding that wires these into App methods and progress events.
+// fetch, version comparison, signed download, and per-platform apply/relaunch. No
+// shell dependency; updater_app.go is the thin bridge wiring it into App methods.
 
 // Manifest endpoints — R2 CDN first (fast, especially in CN), then the crash
 // worker release gateway, then GitHub as the stable channel's last resort. The
@@ -280,10 +279,9 @@ func desktopAssetBases(selected, version string, allowLegacyPreview bool) []stri
 	_ = allowLegacyPreview
 	tag := desktopReleaseTag(selected, version)
 	return []string{
-		// First-party mirror first: the mirror manifest points its assets at
-		// the mirror so CN users without a proxy can download. GitHub bases
-		// accept the GitHub-hosted manifest. All assets of one manifest must
-		// still share a single base (mixed bases are rejected below).
+		// First-party mirror first: the mirror manifest points its assets at the
+		// mirror so CN users without a proxy can download. All assets of one
+		// manifest must share a single base (mixed bases are rejected below).
 		fmt.Sprintf("%s/releases/download/%s/", mirrorBase, tag),
 		fmt.Sprintf("%s/releases/download/%s/", mirrorBase, version),
 		fmt.Sprintf("https://github.com/madajiann/Tempora/releases/download/%s/", tag),
@@ -338,9 +336,8 @@ func validateDesktopManifest(selected string, m *update.Manifest) error {
 		return fmt.Errorf("%s manifest has invalid download page %q", selected, m.DownloadPage)
 	}
 	// Historical manifests either omitted website downloads or carried only the
-	// Universal DMG and Windows portable ZIP. New manifests add both native-arch
-	// DMGs. Seeing either new key switches validation to the complete new set so a
-	// partially published architecture matrix cannot reach the website.
+	// Universal DMG and Windows portable ZIP; new manifests add both native-arch
+	// DMGs. Either new key switches validation to the complete new set.
 	legacyManifest := m.Downloads == nil
 	requiredAssets := append([]requiredDesktopAsset(nil), requiredDesktopUpdaterAssets...)
 	if !legacyManifest {
@@ -956,10 +953,9 @@ func downloadInto(ctx context.Context, c *http.Client, selected, url string, exp
 	body := io.LimitReader(resp.Body, limit)
 	pr := &progressReader{r: body, received: have, lastEmit: have, total: *total, onProgress: onProgress}
 	pr.lastRead.Store(time.Now().UnixNano())
-	// Stall watchdog: a proxy or TLS connection can hang mid-body with no
-	// error and no bytes. Closing the response body from the watchdog forces
-	// the blocked read to fail; the error is transient, so the retry loop
-	// resumes from the bytes already buffered via a Range request.
+	// Stall watchdog: a proxy or TLS connection can hang mid-body with no error
+	// and no bytes. Closing the body forces the blocked read to fail; the error
+	// is transient, so the retry loop resumes via a Range request.
 	watchDone := make(chan struct{})
 	defer close(watchDone)
 	go func() {
