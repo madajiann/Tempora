@@ -43,11 +43,11 @@ homebrew_casks:
     # longer drags brew along — a stable `v*` cask can ship while npm stays on rc.
     skip_upload: "auto"
     repository:
-      owner: esengine
+      owner: madajiann
       name: homebrew-tempora
       branch: main
       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
-    homepage: "https://github.com/esengine/DeepSeek-Reasonix"
+    homepage: "https://github.com/madajiann/Tempora"
     description: "Cache-first DeepSeek coding agent for the terminal."
     commit_author:
       name: tempora
