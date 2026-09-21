@@ -43,10 +43,27 @@ in the `tempora setup` wizard.
 
 ### Build (Go 1.26+)
 
+#### CLI
+
+The CLI build requires **Go 1.26+**. The module pins a `toolchain` directive;
+keep `GOTOOLCHAIN=auto` so Go downloads the pinned toolchain, or install it.
+
 ```bash
 go build -o bin/tempora.exe ./cmd/tempora     # Windows
 go build -o bin/tempora ./cmd/tempora         # Linux / macOS
 ```
+
+#### Desktop
+
+The desktop build additionally requires **Node 24+ and pnpm 10**
+(`npm install -g pnpm@10`) for the frontend and the Electron shell:
+
+```bash
+scripts/desktop-build.sh darwin/arm64 v0.0.0-dev   # one platform per run
+```
+
+No platform webview dependencies are needed — the shell ships its own
+Chromium. See the [desktop build guide](desktop/README.md#prerequisites).
 
 ### Install (Windows)
 

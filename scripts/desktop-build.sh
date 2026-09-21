@@ -153,28 +153,30 @@ numver="${VERSION#v}"; numver="${numver%%-*}"
 # Regenerate the desktop host contract and fail on drift: the packaged shell
 # embeds desktopContract.json, so a stale frontend/src/generated would ship a
 # shell/service protocol mismatch. CI's desktop-prepare job runs the same check.
-# Build to a stable path instead of `go run`: MSYS/Defender hosts intermittently
-# deny the unlink of go run's temp binary and abort the whole build.
+# A retry loop rides out MSYS/Defender hosts that intermittently deny exec of
+# go run's freshly compiled temp binary.
 echo "==> desktop host contract drift check"
-contract_tool="$ROOT/desktop/build/bin/tempora-contract-tool.exe"
-mkdir -p "$(dirname "$contract_tool")"
-go build -trimpath -o "$contract_tool" .
-"$contract_tool" -emit-contract frontend/src/generated || {
-	# Defender/MSYS intermittently deny exec of a freshly written exe; retry.
-	emit_ok=false
-	for _retry in 1 2 3 4 5; do
-		echo "contract tool exec denied (attempt $_retry), retrying in 3s" >&2
-		sleep 3
-		if "$contract_tool" -emit-contract frontend/src/generated; then emit_ok=true; break; fi
-	done
-	$emit_ok || exit 1
-}
-if ! git_in_root diff --exit-code -- desktop/frontend/src/generated >/dev/null; then
-	echo "desktop contract is stale - run 'cd desktop && go run . -emit-contract frontend/src/generated' and commit" >&2
-	git_in_root diff --stat -- desktop/frontend/src/generated >&2
-if ! diff -qr "$contract_snapshot/generated" frontend/src/generated; then
+contract_snapshot=$(mktemp -d)
+cp -R frontend/src/generated "$contract_snapshot/generated"
+# Defender/MSYS intermittently deny exec of go run's freshly compiled temp
+# binary; retry a few times before giving up.
+emit_ok=false
+for _retry in 1 2 3 4 5; do
+	if go run . -emit-contract frontend/src/generated; then emit_ok=true; break; fi
+	echo "contract emit denied (attempt $_retry), retrying in 3s" >&2
+	sleep 3
+done
+if [ "$emit_ok" != true ]; then
+	rm -rf "$contract_snapshot"
+	echo "contract generation failed after retries" >&2
 	exit 1
 fi
+if ! diff -qr "$contract_snapshot/generated" frontend/src/generated; then
+	rm -rf "$contract_snapshot"
+	echo "desktop contract is stale - review the regenerated frontend/src/generated files" >&2
+	exit 1
+fi
+rm -rf "$contract_snapshot"
 
 # The packaging script drives the frontend (build:electron) and shell builds
 # through pnpm; make sure the workspace dependencies (Electron, the packager)
@@ -219,7 +221,7 @@ build_service() {
 # threaded through TEMPORA_CHANNEL.
 package_shell() {
 	echo "==> package Electron shell ($PLATFORM)"
-	TEMPORA_COMMIT="$GIT_COMMIT" TEMPORA_BUILD_TIME="$BUILD_TIME_UTC" \
+	TEMPORA_COMMIT="$SOURCE_SHA" TEMPORA_BUILD_TIME="$BUILD_TIME_UTC" \
 		node "$ROOT/desktop/packaging/package.mjs" "$PLATFORM" "$VERSION" "$CHANNEL"
 }
 
