@@ -20,6 +20,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"golang.org/x/mod/semver"
@@ -736,10 +737,28 @@ func readVerifiedCachedUpdateForChannel(selected string) (*cachedUpdate, []byte,
 // reset, read timeout, gateway 5xx) is retried before the update gives up. CN IPv6
 // routes to Cloudflare reset mid-transfer often enough that a retry or two usually
 // completes the download instead of surfacing a "forcibly closed" error.
-const downloadAttempts = 3
+// Six attempts (with Range resume between them) ride out the long proxy
+// outages seen on CN networks where three left a long transfer half-done and
+// the user had to start over from the UI.
+const downloadAttempts = 6
+
+// downloadStallTimeout aborts an attempt whose body stops delivering bytes for
+// this long (a hung proxy/TLS connection), so the retry loop can resume from
+// the received prefix instead of blocking forever.
+const downloadStallTimeout = 45 * time.Second
+
+// downloadStallPoll is how often the stall watchdog checks body progress.
+const downloadStallPoll = 10 * time.Second
 
 // retryBackoff is the pause before the Nth retry; a package var so tests shrink it.
-var retryBackoff = func(attempt int) time.Duration { return time.Duration(attempt) * 500 * time.Millisecond }
+// Exponential with a cap so a flapping route gets progressively longer breaths.
+var retryBackoff = func(attempt int) time.Duration {
+	shift := attempt - 1
+	if shift > 3 {
+		shift = 3
+	}
+	return time.Duration(1<<shift) * time.Second
+}
 
 // retryTransient runs attempt 1..downloadAttempts of fetch, pausing between tries,
 // until one succeeds. fetch receives the 1-based attempt number so a caller can
@@ -936,6 +955,28 @@ func downloadInto(ctx context.Context, c *http.Client, selected, url string, exp
 	}
 	body := io.LimitReader(resp.Body, limit)
 	pr := &progressReader{r: body, received: have, lastEmit: have, total: *total, onProgress: onProgress}
+	pr.lastRead.Store(time.Now().UnixNano())
+	// Stall watchdog: a proxy or TLS connection can hang mid-body with no
+	// error and no bytes. Closing the response body from the watchdog forces
+	// the blocked read to fail; the error is transient, so the retry loop
+	// resumes from the bytes already buffered via a Range request.
+	watchDone := make(chan struct{})
+	defer close(watchDone)
+	go func() {
+		ticker := time.NewTicker(downloadStallPoll)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-watchDone:
+				return
+			case <-ticker.C:
+				if time.Since(time.Unix(0, pr.lastRead.Load())) > downloadStallTimeout {
+					resp.Body.Close()
+					return
+				}
+			}
+		}
+	}()
 	_, err = io.Copy(buf, pr)
 	if err == nil && expectedSize > 0 && int64(buf.Len()) > expectedSize {
 		return fmt.Errorf("update: downloaded size exceeds manifest: got at least %d want %d", buf.Len(), expectedSize)
@@ -967,12 +1008,14 @@ type progressReader struct {
 	received   int64
 	total      int64
 	lastEmit   int64
+	lastRead   atomic.Int64 // unix nanos of the last byte that arrived; watched by downloadInto's stall watchdog
 	onProgress func(received, total int64)
 }
 
 func (p *progressReader) Read(b []byte) (int, error) {
 	n, err := p.r.Read(b)
 	p.received += int64(n)
+	p.lastRead.Store(time.Now().UnixNano())
 	// Emit roughly every 256 KiB, and always on the final read (io.EOF).
 	if p.onProgress != nil && (p.received-p.lastEmit >= 256<<10 || err == io.EOF) {
 		p.lastEmit = p.received
