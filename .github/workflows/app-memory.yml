@@ -2,9 +2,9 @@ name: App memory screening
 
 on:
   pull_request:
-    branches: [main-v2]
+    branches: [main]
   push:
-    branches: [main-v2]
+    branches: [main]
   schedule:
     - cron: "17 3 * * *"
   workflow_dispatch:
