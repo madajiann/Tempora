@@ -1,10 +1,10 @@
 package main
 
 import (
-	"tempora/internal/agent"
-	"tempora/internal/sessioncatalog"
 	"sort"
 	"strings"
+	"tempora/internal/agent"
+	"tempora/internal/sessioncatalog"
 )
 
 // projectNodesFromCatalogTopic expands every ordinary, independently

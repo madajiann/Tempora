@@ -60,7 +60,7 @@ type Options struct {
 type installSourceTool struct {
 	root         string
 	home         string
-	temporaHome string
+	temporaHome  string
 	httpClient   *http.Client
 	connectMCP   MCPConnector
 	onDisconnect OnDisconnectFunc
@@ -111,7 +111,7 @@ func NewTool(opts Options) tool.Tool {
 	return &installSourceTool{
 		root:         root,
 		home:         home,
-		temporaHome: temporaHome,
+		temporaHome:  temporaHome,
 		httpClient:   client,
 		connectMCP:   opts.ConnectMCP,
 		onDisconnect: opts.OnDisconnect,

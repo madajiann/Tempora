@@ -2,8 +2,8 @@ package control
 
 import (
 	"context"
-	"tempora/internal/attachment"
 	"strings"
+	"tempora/internal/attachment"
 
 	"tempora/internal/sessioninbox"
 )

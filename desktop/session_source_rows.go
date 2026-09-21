@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
+	"sync"
 	"tempora/desktop/internal/workspacestate"
 	"tempora/internal/agent"
-	"sync"
 )
 
 type sourceHeadObservation struct {

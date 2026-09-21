@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"tempora/internal/event"
 	"slices"
 	"strings"
+	"tempora/internal/event"
 	"testing"
 
 	"tempora/internal/provider"

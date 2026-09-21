@@ -7,8 +7,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"tempora/internal/sessionexport"
 	"strings"
+	"tempora/internal/sessionexport"
 
 	"tempora/internal/fileutil"
 )

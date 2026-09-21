@@ -3,9 +3,9 @@ package agent
 import (
 	"context"
 	"errors"
+	"strings"
 	"tempora/internal/event"
 	"tempora/internal/provider"
-	"strings"
 )
 
 func (a *Agent) recordInterruptedDisplay(text, reasoning string, calls []provider.ToolCall, pending bool, terminalErr error, workDurationMs int64, messageIDs ...string) {

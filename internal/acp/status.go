@@ -20,8 +20,8 @@ import (
 
 const (
 	temporaStatusSchemaVersion = 1
-	sessionStatusMethod         = "_tempora.io/session/status"
-	sessionStatusUpdateMethod   = "_tempora.io/session/status_update"
+	sessionStatusMethod        = "_tempora.io/session/status"
+	sessionStatusUpdateMethod  = "_tempora.io/session/status_update"
 )
 
 // TemporaSchemaCapability advertises one versioned vendor extension in
@@ -116,19 +116,19 @@ type TemporaSessionStatus struct {
 	Mode             string                           `json:"mode"`
 	WorkMode         string                           `json:"workMode"`
 	PlannerMode      string                           `json:"plannerMode"`
-	Goal             TemporaStatusGoal               `json:"goal"`
+	Goal             TemporaStatusGoal                `json:"goal"`
 	Phase            string                           `json:"phase"`
-	TurnOutcome      TemporaTurnOutcome              `json:"turnOutcome"`
-	FinalReadiness   TemporaFinalReadiness           `json:"finalReadiness"`
+	TurnOutcome      TemporaTurnOutcome               `json:"turnOutcome"`
+	FinalReadiness   TemporaFinalReadiness            `json:"finalReadiness"`
 	Sandbox          SessionSandboxState              `json:"sandbox"`
-	Usage            TemporaStatusUsage              `json:"usage"`
+	Usage            TemporaStatusUsage               `json:"usage"`
 }
 
 type TemporaStatusUpdate struct {
-	SchemaVersion int                   `json:"schemaVersion"`
-	Sequence      uint64                `json:"sequence"`
-	SessionID     string                `json:"sessionId"`
-	Event         string                `json:"event"`
+	SchemaVersion int                  `json:"schemaVersion"`
+	Sequence      uint64               `json:"sequence"`
+	SessionID     string               `json:"sessionId"`
+	Event         string               `json:"event"`
 	Status        TemporaSessionStatus `json:"status"`
 }
 
@@ -425,8 +425,8 @@ type persistedStatusTelemetry struct {
 	Sequence       uint64                    `json:"sequence"`
 	State          string                    `json:"state"`
 	Phase          string                    `json:"phase"`
-	TurnOutcome    TemporaTurnOutcome       `json:"turnOutcome"`
-	FinalReadiness TemporaFinalReadiness    `json:"finalReadiness"`
+	TurnOutcome    TemporaTurnOutcome        `json:"turnOutcome"`
+	FinalReadiness TemporaFinalReadiness     `json:"finalReadiness"`
 	TurnUsage      persistedUsageAccumulator `json:"turnUsage"`
 	Cumulative     persistedUsageAccumulator `json:"cumulative"`
 	GoalOverride   string                    `json:"goalOverride,omitempty"`

@@ -10,10 +10,10 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"tempora/internal/provider"
-	"tempora/internal/session"
 	"slices"
 	"strings"
+	"tempora/internal/provider"
+	"tempora/internal/session"
 	"testing"
 )
 

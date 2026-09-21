@@ -31,10 +31,10 @@ var (
 )
 
 const (
-	payloadName    = "tempora.exe"
-	appDirName     = "tempora"
-	wndBroadcast   = 0xFFFF // HWND_BROADCAST
-	msgSettingChg  = 0x001A // WM_SETTINGCHANGE
+	payloadName     = "tempora.exe"
+	appDirName      = "tempora"
+	wndBroadcast    = 0xFFFF // HWND_BROADCAST
+	msgSettingChg   = 0x001A // WM_SETTINGCHANGE
 	smtoAbortIfHung = 0x0002
 )
 

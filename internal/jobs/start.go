@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 	"tempora/internal/event"
 	"tempora/internal/nilutil"
-	"strings"
 )
 
 // StartForSession launches a job owned by parentSession. Session-scoped readers

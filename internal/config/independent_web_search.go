@@ -2,9 +2,9 @@ package config
 
 import (
 	"fmt"
-	"tempora/internal/provider"
 	"slices"
 	"strings"
+	"tempora/internal/provider"
 )
 
 // IsOfficialDeepSeekSearchEndpoint also recognizes Chat Completions accounts:

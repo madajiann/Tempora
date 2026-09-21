@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"tempora/internal/provider"
 	"strings"
+	"tempora/internal/provider"
 	"testing"
 )
 

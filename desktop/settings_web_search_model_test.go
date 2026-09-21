@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"tempora/internal/config"
 	"strings"
+	"tempora/internal/config"
 	"testing"
 )
 

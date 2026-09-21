@@ -4,9 +4,9 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"tempora/internal/config"
 	"tempora/internal/event"
-	"strings"
 	"testing"
 )
 

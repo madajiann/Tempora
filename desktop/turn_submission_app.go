@@ -2,9 +2,9 @@ package main
 
 import (
 	"errors"
+	"strings"
 	"tempora/internal/control"
 	"tempora/internal/event"
-	"strings"
 )
 
 func (a *App) knownSubmission(tabID string, req control.SubmissionRequest) (bool, error) {

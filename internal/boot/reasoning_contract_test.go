@@ -2,10 +2,10 @@ package boot
 
 import (
 	"errors"
+	"reflect"
 	"tempora/internal/config"
 	"tempora/internal/netclient"
 	"tempora/internal/provider"
-	"reflect"
 	"testing"
 )
 

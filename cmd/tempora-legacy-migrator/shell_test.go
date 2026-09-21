@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 	"path/filepath"
-	"tempora/internal/installlayout"
 	"runtime"
+	"tempora/internal/installlayout"
 	"testing"
 )
 

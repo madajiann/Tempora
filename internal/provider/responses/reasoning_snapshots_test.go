@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"tempora/internal/provider"
 	"reflect"
 	"strings"
+	"tempora/internal/provider"
 	"testing"
 )
 

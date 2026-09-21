@@ -3,11 +3,11 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"tempora/internal/agent"
 	"tempora/internal/config"
 	"tempora/internal/provider"
 	"tempora/internal/session"
-	"strings"
 	"testing"
 	"time"
 )

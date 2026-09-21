@@ -282,8 +282,8 @@ func collectCommands(root string, disp func(string) string) (AssetReport, []Issu
 func collectHooks(root, home, temporaHome string, cfg *config.Config, disp func(string) string) (HookReport, []Issue) {
 	var issues []Issue
 	insp := hook.Inspect(hook.LoadOptions{
-		ProjectRoot:     root,
-		HomeDir:         home,
+		ProjectRoot:    root,
+		HomeDir:        home,
 		TemporaHomeDir: temporaHome,
 	})
 	runtimeOptions := hook.RuntimeOptions{}

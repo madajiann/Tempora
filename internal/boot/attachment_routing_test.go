@@ -8,12 +8,12 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
+	"sync/atomic"
 	"tempora/internal/config"
 	"tempora/internal/event"
 	"tempora/internal/plugin"
 	"tempora/internal/provider"
-	"strings"
-	"sync/atomic"
 	"testing"
 )
 

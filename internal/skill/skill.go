@@ -138,7 +138,7 @@ func IsValidName(name string) bool { return config.IsValidSkillName(name) }
 // config.TemporaHomeDir(), or HomeDir/.tempora when HomeDir is explicitly set.
 type Options struct {
 	HomeDir          string
-	TemporaHomeDir  string
+	TemporaHomeDir   string
 	ProjectRoot      string
 	CustomPaths      []string
 	PluginPaths      map[string][]string // canonical custom root -> installed plugin package names
@@ -164,7 +164,7 @@ type Options struct {
 // Store resolves skills across the configured roots.
 type Store struct {
 	homeDir           string
-	temporaHomeDir   string
+	temporaHomeDir    string
 	projectRoot       string
 	customPaths       []string
 	pluginPaths       map[string][]string
@@ -261,7 +261,7 @@ func New(opts Options) *Store {
 	}
 	return &Store{
 		homeDir:          home,
-		temporaHomeDir:  temporaHome,
+		temporaHomeDir:   temporaHome,
 		projectRoot:      root,
 		customPaths:      custom,
 		pluginPaths:      pluginPaths,

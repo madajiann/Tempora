@@ -2,9 +2,9 @@ package cli
 
 import (
 	"fmt"
+	"strings"
 	"tempora/internal/event"
 	"tempora/internal/i18n"
-	"strings"
 	"time"
 )
 

@@ -3,8 +3,8 @@ package cli
 import (
 	"encoding/json"
 	"path/filepath"
-	"tempora/internal/pluginpkg"
 	"strings"
+	"tempora/internal/pluginpkg"
 	"testing"
 )
 

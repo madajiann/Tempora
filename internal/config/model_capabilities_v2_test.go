@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"tempora/internal/provider"
 	"reflect"
 	"runtime"
 	"sync"
+	"tempora/internal/provider"
 	"testing"
 	"time"
 )

@@ -3,8 +3,8 @@ package agent
 import (
 	"context"
 	"net/http"
-	"tempora/internal/provider"
 	"strings"
+	"tempora/internal/provider"
 	"testing"
 )
 

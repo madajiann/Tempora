@@ -2,9 +2,9 @@ package serve
 
 import (
 	"net/http"
+	"strings"
 	"tempora/internal/control"
 	"tempora/internal/provider"
-	"strings"
 )
 
 func (s *Server) submit(w http.ResponseWriter, r *http.Request) {

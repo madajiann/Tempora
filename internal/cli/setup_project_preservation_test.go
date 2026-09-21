@@ -3,8 +3,8 @@ package cli
 import (
 	"os"
 	"path/filepath"
-	"tempora/internal/config"
 	"strings"
+	"tempora/internal/config"
 	"testing"
 )
 

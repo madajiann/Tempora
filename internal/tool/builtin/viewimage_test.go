@@ -9,8 +9,8 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
-	"tempora/internal/tool"
 	"strings"
+	"tempora/internal/tool"
 	"testing"
 )
 

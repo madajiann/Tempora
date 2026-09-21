@@ -1,9 +1,9 @@
 package control
 
 import (
+	"strings"
 	"tempora/internal/agent"
 	"tempora/internal/provider"
-	"strings"
 	"time"
 )
 

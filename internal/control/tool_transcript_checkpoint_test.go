@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"path/filepath"
+	"strings"
 	"tempora/internal/agent"
 	"tempora/internal/agent/testutil"
 	"tempora/internal/event"
 	"tempora/internal/provider"
 	"tempora/internal/tool"
-	"strings"
 	"testing"
 	"time"
 )

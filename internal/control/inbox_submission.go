@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"maps"
+	"strings"
 	"tempora/internal/agent"
 	"tempora/internal/sessioninbox"
-	"strings"
 )
 
 // EnqueueInbox durably queues an instruction. Only returns a receipt after

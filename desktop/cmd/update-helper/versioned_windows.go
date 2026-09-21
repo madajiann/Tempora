@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"tempora/internal/config"
 	"tempora/internal/desktopinstance"
-	"strings"
 
 	"tempora/desktop/internal/update"
 	"tempora/internal/installlayout"

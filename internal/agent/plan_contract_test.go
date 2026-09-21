@@ -2,11 +2,11 @@ package agent
 
 import (
 	"context"
+	"reflect"
 	"tempora/internal/event"
 	"tempora/internal/plancontract"
 	"tempora/internal/provider"
 	"tempora/internal/tool"
-	"reflect"
 	"testing"
 )
 

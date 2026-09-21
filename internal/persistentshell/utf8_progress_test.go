@@ -2,8 +2,8 @@ package persistentshell
 
 import (
 	"encoding/json"
-	"tempora/internal/shellrun"
 	"strings"
+	"tempora/internal/shellrun"
 	"testing"
 	"unicode/utf8"
 )

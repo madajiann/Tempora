@@ -2,10 +2,10 @@ package completion
 
 import (
 	"path/filepath"
-	"tempora/internal/evidence"
 	"reflect"
 	"runtime"
 	"strings"
+	"tempora/internal/evidence"
 	"testing"
 )
 

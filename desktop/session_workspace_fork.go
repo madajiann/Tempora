@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"errors"
-	"tempora/desktop/internal/workspacestate"
-	"tempora/internal/session"
 	"slices"
 	"strings"
+	"tempora/desktop/internal/workspacestate"
+	"tempora/internal/session"
 )
 
 func (a *App) ForkSession(ref session.SessionRef, turnBoundary string) (session.SessionRef, error) {

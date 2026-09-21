@@ -6,12 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"strings"
 	"tempora/internal/agent"
 	"tempora/internal/event"
 	"tempora/internal/session"
 	"tempora/internal/tool"
 	"tempora/internal/transcript"
-	"strings"
 	"testing"
 )
 

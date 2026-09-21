@@ -1,8 +1,8 @@
 package cli
 
 import (
-	"tempora/internal/event"
 	"strings"
+	"tempora/internal/event"
 	"testing"
 )
 

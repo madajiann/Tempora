@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"sort"
+	"strings"
 	"tempora/internal/control"
 	"tempora/internal/event"
 	"tempora/internal/sessioncatalog"
-	"sort"
-	"strings"
 	"time"
 )
 

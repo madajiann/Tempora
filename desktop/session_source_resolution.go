@@ -3,9 +3,9 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"tempora/internal/agent"
 	"tempora/internal/session"
-	"strings"
 )
 
 func (a *App) resolveSourceSessionTarget(selector SessionSelector, allowArchived bool) (SessionTarget, error) {

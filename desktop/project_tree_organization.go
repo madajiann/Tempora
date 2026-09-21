@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"tempora/desktop/internal/workspacestate"
 	"strings"
+	"tempora/desktop/internal/workspacestate"
 	"unicode/utf8"
 )
 

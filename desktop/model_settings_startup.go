@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"errors"
+	"strings"
 	"tempora/internal/agent"
 	"tempora/internal/boot"
 	"tempora/internal/control"
-	"strings"
 )
 
 // Runtime settings belong to the runtime owner, including a detached owner.

@@ -2,10 +2,10 @@ package cli
 
 import (
 	"encoding/json"
+	"strings"
 	"tempora/internal/event"
 	"tempora/internal/i18n"
 	"tempora/internal/provider"
-	"strings"
 )
 
 func (m *chatTUI) rememberSearchResult(t event.Tool) {

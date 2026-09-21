@@ -145,7 +145,7 @@ func TestLinuxBootstrapMatchesPackagedLayouts(t *testing.T) {
 	for exe, want := range map[string]string{
 		"/opt/tempora/tempora-desktop":                  "/opt/tempora/app/Tempora",
 		"/opt/tempora/versions/v1.39.0/tempora-desktop": "/opt/tempora/versions/v1.39.0/app/Tempora",
-		"/usr/bin/tempora-desktop":                       "/usr/lib/tempora/app/Tempora",
+		"/usr/bin/tempora-desktop":                      "/usr/lib/tempora/app/Tempora",
 	} {
 		if got := shellPathForExecutable(exe, "linux"); got != want {
 			t.Errorf("%s: got %s want %s", exe, got, want)

@@ -1,9 +1,9 @@
 package responses
 
 import (
-	"tempora/internal/provider"
 	"slices"
 	"strings"
+	"tempora/internal/provider"
 )
 
 // RequiresToolCallReasoning tells the agent to preserve stateless vendors'

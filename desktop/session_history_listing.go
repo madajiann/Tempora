@@ -1,9 +1,9 @@
 package main
 
 import (
+	"sort"
 	"tempora/internal/config"
 	"tempora/internal/sessioncatalog"
-	"sort"
 )
 
 // ListSessions returns the saved sessions newest-first for the history panel,

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"tempora/internal/config"
 	"strings"
+	"tempora/internal/config"
 )
 
 // SetCloseBehavior updates desktop-only window close behavior without rebuilding

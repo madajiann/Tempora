@@ -3,9 +3,9 @@ package control
 import (
 	"context"
 	"path/filepath"
-	"tempora/internal/attachment"
 	"slices"
 	"strings"
+	"tempora/internal/attachment"
 )
 
 func submissionSourceFailure(item SubmissionAttachment, index int, err error) []ImageReferenceFailure {

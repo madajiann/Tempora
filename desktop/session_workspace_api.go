@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"tempora/desktop/internal/workspacestate"
-	"tempora/internal/agent"
-	"tempora/internal/session"
 	"reflect"
 	"strconv"
 	"strings"
+	"tempora/desktop/internal/workspacestate"
+	"tempora/internal/agent"
+	"tempora/internal/session"
 	"time"
 )
 

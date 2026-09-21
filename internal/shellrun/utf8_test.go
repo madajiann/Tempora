@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"os/exec"
-	"tempora/internal/proc"
 	"strings"
 	"sync"
+	"tempora/internal/proc"
 	"testing"
 	"unicode/utf8"
 )

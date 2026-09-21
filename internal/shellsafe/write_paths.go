@@ -2,8 +2,8 @@ package shellsafe
 
 import (
 	"mvdan.cc/sh/v3/syntax"
-	"tempora/internal/shellparse"
 	"strings"
+	"tempora/internal/shellparse"
 )
 
 // StaticWritePaths proves the complete write surface of a deliberately small

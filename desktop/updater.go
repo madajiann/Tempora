@@ -44,9 +44,9 @@ import (
 // gateway still avoids GitHub's repository-wide /releases/latest shortcut so the
 // app is not coupled to GitHub's homepage badge semantics.
 const (
-	githubRepoBase             = "https://github.com/madajiann/Tempora"
-	downloadPageURL            = "https://github.com/madajiann/Tempora/releases/latest"
-	manifestDownloadPageURL    = "https://github.com/madajiann/Tempora/releases/latest"
+	githubRepoBase          = "https://github.com/madajiann/Tempora"
+	downloadPageURL         = "https://github.com/madajiann/Tempora/releases/latest"
+	manifestDownloadPageURL = "https://github.com/madajiann/Tempora/releases/latest"
 	// mirrorBase is the fork operator's first-party mirror (China-reachable,
 	// plain static hosting). It is tried before GitHub because GitHub release
 	// assets are unreachable for many CN users without a proxy; GitHub stays

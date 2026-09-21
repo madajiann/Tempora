@@ -1,10 +1,10 @@
 package agent
 
 import (
+	"reflect"
 	"tempora/internal/event"
 	"tempora/internal/evidence"
 	"tempora/internal/tool"
-	"reflect"
 	"testing"
 )
 

@@ -3,8 +3,8 @@ package agent
 import (
 	"context"
 	"encoding/json"
-	"tempora/internal/event"
 	"strings"
+	"tempora/internal/event"
 	"testing"
 
 	"tempora/internal/provider"

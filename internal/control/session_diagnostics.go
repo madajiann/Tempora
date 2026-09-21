@@ -1,8 +1,8 @@
 package control
 
 import (
-	"tempora/internal/event"
 	"sync"
+	"tempora/internal/event"
 	"time"
 )
 

@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"tempora/internal/provider"
 	"strings"
+	"tempora/internal/provider"
 	"testing"
 )
 

@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
-	"tempora/internal/provider"
 	"sync/atomic"
+	"tempora/internal/provider"
 	"testing"
 	"time"
 )

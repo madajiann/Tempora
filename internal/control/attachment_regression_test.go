@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"path/filepath"
+	"strings"
+	"sync"
 	"tempora/internal/agent"
 	"tempora/internal/attachment"
 	"tempora/internal/config"
@@ -11,8 +13,6 @@ import (
 	"tempora/internal/provider"
 	"tempora/internal/sessioninbox"
 	"tempora/internal/tool"
-	"strings"
-	"sync"
 	"testing"
 	"time"
 )

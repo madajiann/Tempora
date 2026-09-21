@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"tempora/internal/agent"
 	"tempora/internal/event"
 	"tempora/internal/provider"
-	"strings"
 )
 
 func historyLocalOnlyRows(m provider.Message) ([]HistoryMessage, bool) {

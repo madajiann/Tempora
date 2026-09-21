@@ -4,8 +4,8 @@ package notify
 
 import (
 	"os/exec"
-	"tempora/internal/secrets"
 	"strings"
+	"tempora/internal/secrets"
 )
 
 // PlatformSender delivers notifications through the host OS.

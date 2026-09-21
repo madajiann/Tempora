@@ -1,8 +1,8 @@
 package main
 
 import (
-	"tempora/internal/session"
 	"strconv"
+	"tempora/internal/session"
 )
 
 // SessionActivityBaseline is an explicit owner observation. Query.Stat validates

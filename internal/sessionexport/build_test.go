@@ -8,11 +8,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"tempora/internal/attachment"
 	"tempora/internal/provider"
 	"tempora/internal/session"
 	"tempora/internal/sessioncontent"
-	"strings"
 	"testing"
 )
 

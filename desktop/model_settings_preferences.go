@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"tempora/internal/agent"
 	"tempora/internal/config"
-	"strings"
 )
 
 func setDefaultModelConfig(c *config.Config, ref string) error {

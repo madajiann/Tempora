@@ -3,9 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 	"tempora/desktop/internal/workspacestate"
 	"tempora/internal/config"
-	"slices"
 )
 
 // Organization belongs to the existing desktop remote-settings owner. Reads

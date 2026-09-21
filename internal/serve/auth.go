@@ -40,9 +40,9 @@ const (
 )
 
 const (
-	cookieToken     = "tempora_token"    // holds the token for token mode
-	cookieSession   = "tempora_session"  // holds the HMAC-signed session for password mode
-	cookieRedirect  = "tempora_redirect" // temporary: where to go after login
+	cookieToken     = "tempora_token"     // holds the token for token mode
+	cookieSession   = "tempora_session"   // holds the HMAC-signed session for password mode
+	cookieRedirect  = "tempora_redirect"  // temporary: where to go after login
 	tokenByteLen    = 32                  // 256-bit random token
 	sessionDuration = 30 * 24 * time.Hour // how long a password session lasts
 	bcryptCost      = 12                  // bcrypt cost factor

@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	DocsSlashName         = "docs"
+	DocsSlashName        = "docs"
 	TemporaDocsSlashName = "tempora:docs"
 )
 

@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"path/filepath"
+	"strings"
+	"sync/atomic"
 	"tempora/internal/agent/testutil"
 	"tempora/internal/event"
 	"tempora/internal/provider"
 	"tempora/internal/tool"
-	"strings"
-	"sync/atomic"
 	"testing"
 )
 

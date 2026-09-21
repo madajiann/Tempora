@@ -2,8 +2,8 @@ package main
 
 import (
 	"errors"
-	"tempora/internal/session"
 	"strings"
+	"tempora/internal/session"
 )
 
 // DeleteSession is the legacy archive RPC. Canonical content and legacy

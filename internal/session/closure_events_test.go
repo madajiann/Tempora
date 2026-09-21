@@ -3,8 +3,8 @@ package session
 import (
 	"bytes"
 	"encoding/json"
-	"tempora/internal/provider"
 	"reflect"
+	"tempora/internal/provider"
 	"testing"
 )
 

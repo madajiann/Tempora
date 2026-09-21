@@ -1,8 +1,8 @@
 package agent
 
 import (
-	"tempora/internal/provider"
 	"strings"
+	"tempora/internal/provider"
 )
 
 // ToolRecoveryStatistics counts evidence retained in the current session, not

@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"tempora/internal/sessioncatalog"
 	"sort"
 	"strconv"
 	"strings"
+	"tempora/internal/sessioncatalog"
 )
 
 func (a *App) catalogSessionOrderedPage(catalog *sessioncatalog.Catalog, req ProjectTopicPageRequest) (ProjectTopicPage, error) {

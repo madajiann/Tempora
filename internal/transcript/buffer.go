@@ -2,11 +2,11 @@ package transcript
 
 import (
 	"fmt"
+	"slices"
+	"strings"
 	"tempora/internal/event"
 	"tempora/internal/eventwire"
 	"tempora/internal/provider"
-	"slices"
-	"strings"
 )
 
 // displayTextAccumulator retains provider chunks without repeatedly copying

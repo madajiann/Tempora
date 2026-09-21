@@ -2,8 +2,8 @@ package agent
 
 import (
 	"encoding/json"
-	"tempora/internal/provider"
 	"strings"
+	"tempora/internal/provider"
 )
 
 type reasoningStreamMeta struct {

@@ -5,11 +5,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"strings"
+	"sync"
 	"tempora/internal/config"
 	"tempora/internal/control"
 	"tempora/internal/event"
-	"strings"
-	"sync"
 	"testing"
 	"time"
 )

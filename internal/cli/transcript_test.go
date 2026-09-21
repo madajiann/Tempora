@@ -3,8 +3,8 @@ package cli
 import (
 	"encoding/json"
 	"errors"
-	"tempora/internal/i18n"
 	"strings"
+	"tempora/internal/i18n"
 	"testing"
 
 	"github.com/charmbracelet/colorprofile"

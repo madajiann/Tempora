@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"net/url"
-	"tempora/internal/session"
 	"strings"
+	"tempora/internal/session"
 )
 
 // Topic-only navigation remains a compatibility entrypoint. It may create an
