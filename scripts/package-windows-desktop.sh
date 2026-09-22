@@ -191,8 +191,9 @@ EOF
 #   2. archive with bounded retries and reject a truncated archive.
 warm_staged_binaries() {
 	local dir="$1" attempts="${2:-30}" delay="${3:-2}"
-	local pending round
-	for round in $(seq 1 "$attempts"); do
+	local pending round f
+	# C-style loop: no dependency on seq (Git Bash tooling is unreliable here).
+	for ((round = 1; round <= attempts; round++)); do
 		pending=0
 		while IFS= read -r -d '' f; do
 			# A failed probe read means a scanner still holds the file.
@@ -211,9 +212,20 @@ warm_staged_binaries() {
 	return 1
 }
 
-# A partially written archive lacks the end-of-central-directory record.
+# A partially written archive lacks the end-of-central-directory record. Fails
+# open: if the probe tools are unavailable, do not block a perfectly good file.
 archive_looks_complete() {
-	tail -c 64 "$1" 2>/dev/null | od -An -tx1 2>/dev/null | tr -d ' \n' | grep -qi '504b0506'
+	local hex
+	command -v tail >/dev/null 2>&1 || return 0
+	command -v od >/dev/null 2>&1 || return 0
+	command -v tr >/dev/null 2>&1 || return 0
+	# Assign first: piping straight into `grep -q` trips `set -o pipefail` via
+	# SIGPIPE and would look like a truncated archive.
+	hex=$(tail -c 64 "$1" 2>/dev/null | od -An -tx1 2>/dev/null | tr -d ' \n')
+	case "$hex" in
+	*504b0506*) return 0 ;;
+	esac
+	return 1
 }
 
 warm_staged_binaries "$portable_staging" || true
@@ -227,10 +239,10 @@ if command -v powershell.exe >/dev/null 2>&1; then
 		portable_staging_win="$(cygpath -w "$portable_staging")"
 		dist_portable_win="$(cygpath -w "$dist_portable")"
 	fi
-	for attempt in $(seq 1 "$archive_attempts"); do
+	for ((attempt = 1; attempt <= archive_attempts; attempt++)); do
 		rm -f -- "$dist_portable"
-		# PowerShell reports non-terminating archive errors without a failing
-		# exit status, so success is judged by the artifact, not the exit code.
+		# The archiver reports non-terminating errors without a failing exit
+		# status, so success is judged by the artifact, not the exit code.
 		powershell.exe -NoProfile -Command \
 			"Compress-Archive -CompressionLevel Optimal -Force -Path '$portable_staging_win\\*' -DestinationPath '$dist_portable_win'" || true
 		if [ -s "$dist_portable" ] && archive_looks_complete "$dist_portable"; then
@@ -249,7 +261,7 @@ if [ "$archive_ok" = "0" ] && command -v zip >/dev/null 2>&1; then
 	# also the fallback when Compress-Archive keeps losing the AV race.
 	# zip updates an existing archive and otherwise retains previous version
 	# directories. Always assemble a fresh distributable from this payload.
-	for attempt in $(seq 1 "$archive_attempts"); do
+	for ((attempt = 1; attempt <= archive_attempts; attempt++)); do
 		rm -f -- "$dist_portable"
 		(
 			cd "$portable_staging"
