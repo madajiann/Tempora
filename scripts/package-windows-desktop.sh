@@ -179,6 +179,47 @@ cat >"$portable_staging/current.json" <<EOF
 EOF
 "$ROOT/scripts/verify-windows-portable.sh" "$portable_staging" canonical "$PAYLOAD/$LAUNCHERNAME.exe"
 
+# --- local-build AV-race hardening (v0.1.4) -----------------------------------
+# Tencent PC Manager (QQPCMgr RTP) opens every freshly written PE file to scan
+# it and holds that handle for seconds. The staged copies above are only
+# milliseconds old when the archiver reads them, so the archiver loses the race
+# ("the file is in use by another process") and Compress-Archive aborts without
+# writing any archive at all -> verify.mjs then dies on a missing file. This is
+# local-toolchain behaviour and does not affect CI. Two mitigations, both local:
+#   1. warm_staged_binaries: probe-read every staged PE until the scanner has
+#      released it, turning an unpredictable race into an explicit bounded wait.
+#   2. archive with bounded retries and reject a truncated archive.
+warm_staged_binaries() {
+	local dir="$1" attempts="${2:-30}" delay="${3:-2}"
+	local pending round
+	for round in $(seq 1 "$attempts"); do
+		pending=0
+		while IFS= read -r -d '' f; do
+			# A failed probe read means a scanner still holds the file.
+			if ! head -c 1 "$f" >/dev/null 2>&1; then
+				pending=$((pending + 1))
+			fi
+		done < <(find "$dir" -type f \( -iname '*.exe' -o -iname '*.dll' -o -iname '*.node' \) -print0 2>/dev/null)
+		if [ "$pending" = "0" ]; then
+			[ "$round" != "1" ] && echo "==> staged binaries unlocked after $round probe round(s)" >&2
+			return 0
+		fi
+		echo "==> $pending staged binaries still locked by a scanner; waiting ${delay}s (round $round/$attempts)" >&2
+		sleep "$delay"
+	done
+	echo "==> staged binaries still locked after $((attempts * delay))s; the archive step may fail" >&2
+	return 1
+}
+
+# A partially written archive lacks the end-of-central-directory record.
+archive_looks_complete() {
+	tail -c 64 "$1" 2>/dev/null | od -An -tx1 2>/dev/null | tr -d ' \n' | grep -qi '504b0506'
+}
+
+warm_staged_binaries "$portable_staging" || true
+
+archive_attempts="${TEMPORA_ARCHIVE_ATTEMPTS:-4}"
+archive_ok=0
 if command -v powershell.exe >/dev/null 2>&1; then
 	portable_staging_win="$portable_staging"
 	dist_portable_win="$dist_portable"
@@ -186,22 +227,47 @@ if command -v powershell.exe >/dev/null 2>&1; then
 		portable_staging_win="$(cygpath -w "$portable_staging")"
 		dist_portable_win="$(cygpath -w "$dist_portable")"
 	fi
-	powershell.exe -NoProfile -Command \
-		"Compress-Archive -CompressionLevel Optimal -Force -Path '$portable_staging_win\\*' -DestinationPath '$dist_portable_win'"
-elif command -v zip >/dev/null 2>&1; then
+	for attempt in $(seq 1 "$archive_attempts"); do
+		rm -f -- "$dist_portable"
+		# PowerShell reports non-terminating archive errors without a failing
+		# exit status, so success is judged by the artifact, not the exit code.
+		powershell.exe -NoProfile -Command \
+			"Compress-Archive -CompressionLevel Optimal -Force -Path '$portable_staging_win\\*' -DestinationPath '$dist_portable_win'" || true
+		if [ -s "$dist_portable" ] && archive_looks_complete "$dist_portable"; then
+			archive_ok=1
+			break
+		fi
+		echo "==> Compress-Archive attempt $attempt/$archive_attempts produced no usable archive; retrying after a settle wait" >&2
+		warm_staged_binaries "$portable_staging" 5 2 || true
+		sleep 8
+	done
+fi
+
+if [ "$archive_ok" = "0" ] && command -v zip >/dev/null 2>&1; then
 	# macOS/Linux cross-builds do not ship powershell.exe; the portable layout
-	# is ordinary ZIP data, so use the host zip utility in that case.
+	# is ordinary ZIP data, so use the host zip utility in that case. zip is
+	# also the fallback when Compress-Archive keeps losing the AV race.
 	# zip updates an existing archive and otherwise retains previous version
 	# directories. Always assemble a fresh distributable from this payload.
-	rm -f -- "$dist_portable"
-	(
-		cd "$portable_staging"
-		zip -q -9 -r "$dist_portable" .
-	)
-else
-	echo "neither powershell.exe nor zip is available to create the Windows portable archive" >&2
-	exit 1
+	for attempt in $(seq 1 "$archive_attempts"); do
+		rm -f -- "$dist_portable"
+		(
+			cd "$portable_staging"
+			zip -q -9 -r "$dist_portable" .
+		) || true
+		if [ -s "$dist_portable" ] && archive_looks_complete "$dist_portable"; then
+			archive_ok=1
+			break
+		fi
+		echo "==> zip attempt $attempt/$archive_attempts produced no usable archive; retrying after a settle wait" >&2
+		sleep 8
+	done
 fi
+
+[ "$archive_ok" = "1" ] || {
+	echo "failed to create the Windows portable archive: $dist_portable" >&2
+	exit 1
+}
 
 # The second SignPath request signs the outer installer only after verifying
 # these already-signed payload files (flat executables plus the app/ tree).
