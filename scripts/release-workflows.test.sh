@@ -1786,4 +1786,52 @@ grep -Fq 'tempora/internal/productdocs.linkedVersion=${binaryVersion}' "$repo_ro
 grep -Fq 'product_docs_ldflags="-X tempora/internal/productdocs.linkedVersion=$VERSION' \
 	"$repo_root/scripts/desktop-build.sh"
 
+# The embedded payload manifest is the update helper's activation identity check:
+# it compares manifest.version against the pending update version and refuses to
+# install on any mismatch. v0.1.4 shipped an installer whose embedded manifest
+# declared v0.1.3, so every client downloaded the update, failed activation with
+# "Windows payload manifest identity does not match the pending update", stayed on
+# the old build, and was told to update forever.
+# Two guards keep that from recurring: the local build must regenerate the signed
+# manifest from $VERSION, and packaging must fail closed when a manifest is
+# present but disagrees with the version being packaged.
+grep -Fq 'go run ./cmd/sign windows-payload "$payload_dir" "$VERSION"' \
+	"$repo_root/scripts/desktop-build.sh"
+grep -Fq 'go run ./cmd/sign sign "$payload_dir/tempora-payload.json"' \
+	"$repo_root/scripts/desktop-build.sh"
+grep -Fq 'Windows payload manifest version mismatch' \
+	"$repo_root/scripts/package-windows-desktop.sh"
+
+# Exercise the gate against a synthetic payload so the failure mode is proven,
+# not just asserted. v0.1.3's manifest packaged as v0.1.4 must be rejected.
+gate_root="$(mktemp -d "${TMPDIR:-/tmp}/tempora-payload-gate-test.XXXXXX")"
+case "$gate_root" in
+*/tempora-payload-gate-test.*) ;;
+*) echo "refusing to use unexpected gate test directory: $gate_root" >&2; exit 1 ;;
+esac
+cleanup_gate() { rm -rf -- "$gate_root"; }
+trap 'cleanup_gate; cleanup' EXIT
+
+gate_payload="$gate_root/payload"
+mkdir -p "$gate_payload"
+printf 'sig' >"$gate_payload/tempora-payload.json.minisig"
+printf '{"schemaVersion":2,"version":"v0.1.3","files":[]}' >"$gate_payload/tempora-payload.json"
+
+# Reject a stale manifest.
+if VERSION=v0.1.4 "$repo_root/scripts/package-windows-desktop.sh" amd64 "$gate_payload" \
+	>"$gate_root/reject.log" 2>&1; then
+	echo "packaging accepted a stale payload manifest (v0.1.3 packaged as v0.1.4)" >&2
+	exit 1
+fi
+grep -Fq 'Windows payload manifest version mismatch' "$gate_root/reject.log"
+
+# Accept the matching manifest, and normalise an unprefixed version.
+printf '{"schemaVersion":2,"version":"v0.1.4","files":[]}' >"$gate_payload/tempora-payload.json"
+if VERSION=0.1.4 "$repo_root/scripts/package-windows-desktop.sh" amd64 "$gate_payload" \
+	>"$gate_root/accept.log" 2>&1; then
+	echo "expected packaging to continue past the version gate" >&2
+	exit 1
+fi
+! grep -Fq 'Windows payload manifest version mismatch' "$gate_root/accept.log"
+
 echo "release workflow contract tests: PASS"

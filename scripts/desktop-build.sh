@@ -417,6 +417,24 @@ windows)
 	# signing-files.txt enumerates every PE file (flat payload + app tree); the
 	# SignPath artifact configuration and the Authenticode verifier consume it.
 	node "$ROOT/desktop/packaging/signing-files.mjs" "$payload_dir"
+
+	# The local (non-SignPath) path MUST regenerate the signed payload manifest.
+	# The release workflow does this in finalize-windows-signed-candidate.sh, but
+	# a local build used to skip it entirely: package-windows-desktop.sh then
+	# copied whatever stale tempora-payload.json happened to survive in the build
+	# tree from an earlier version. That ships an installer whose embedded payload
+	# identity says the OLD version, so the client's updater rejects the download
+	# ("Windows payload manifest identity does not match the pending update"),
+	# activation never happens, and users are told to update forever.
+	# v0.1.4 shipped v0.1.3's manifest this way via the 12:15 local build.
+	# Always regenerate from $VERSION, then sign it with the release key.
+	(
+		cd "$ROOT/desktop"
+		go run ./cmd/sign windows-payload "$payload_dir" "$VERSION"
+		go run ./cmd/sign sign "$payload_dir/tempora-payload.json"
+		go run ./cmd/sign verify "$payload_dir/tempora-payload.json"
+	)
+
 	VERSION="$VERSION" "$ROOT/scripts/package-windows-desktop.sh" "$arch" "$payload_dir"
 	node "$ROOT/desktop/packaging/verify.mjs" "$ROOT/dist/${APPNAME}-windows-${arch}.zip" --kind windows-portable-zip
 	;;

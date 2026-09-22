@@ -88,6 +88,29 @@ if [ "${TEMPORA_REQUIRE_PAYLOAD_MANIFEST:-0}" = "1" ] && [ "$manifest_present" !
 	exit 1
 fi
 
+# The embedded payload manifest is the updater's identity check: on activation the
+# client compares its "version" against the pending update's version and refuses
+# to install on any mismatch. A stale manifest from an earlier build therefore
+# ships an installer that downloads fine but can never activate, leaving users on
+# the old build while being told to update forever (v0.1.4 shipped v0.1.3's).
+# Fail closed whenever a manifest is present but disagrees with the version we
+# are packaging. Empty VERSION keeps older callers working.
+if [ "$manifest_present" = "1" ] && [ -n "${VERSION:-}" ]; then
+	manifest_version=$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+		"$PAYLOAD/$PAYLOAD_MANIFEST" | head -n 1 | tr -d '\r')
+	expected_version="$VERSION"
+	case "$expected_version" in
+	v*) ;;
+	*) expected_version="v${expected_version}" ;;
+	esac
+	if [ "$manifest_version" != "$expected_version" ]; then
+		echo "Windows payload manifest version mismatch: manifest declares '$manifest_version', packaging '$expected_version'." >&2
+		echo "A stale $PAYLOAD_MANIFEST would break self-update for every client; refusing to package." >&2
+		echo "Regenerate it from the packaging source (go run ./cmd/sign windows-payload <dir> <version>)." >&2
+		exit 1
+	fi
+fi
+
 # Replace every source consumed by project.nsi before compiling the installer.
 # Copying preserves the Authenticode certificate table returned by SignPath.
 cp "$PAYLOAD/$BINNAME.exe" "$INSTALLER_DIR/$BINNAME.exe"

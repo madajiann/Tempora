@@ -246,7 +246,12 @@ function useUpdaterInternal(): Updater {
     });
   }, []);
 
-  const check = useCallback(async () => {
+  // quiet=true is used by the automatic background check on startup/focus. A
+  // transient failure there (manifest fetch racing the desktop bridge's first
+  // seconds, a 15s HTTP timeout, a flaky network) is NOT actionable and must
+  // not paint a red error banner over a cold boot — the next scheduled refresh
+  // retries. Errors from an explicit user-initiated check still surface.
+  const check = useCallback(async (quiet = false) => {
     // A newer check may supersede an in-flight check (and historically may
     // interrupt apply). Discard owns exclusive recovery work and must not be
     // epoch-stolen by Check/Retry while AbandonPendingUpdate is outstanding.
@@ -272,6 +277,11 @@ function useUpdaterInternal(): Updater {
       operation.expectedVersion = info.latest;
       operationRef.current = { ...operation, kind: "ready" };
       if (info.err) {
+        if (quiet) {
+          // Stay silent: leave the banner absent instead of flashing an error.
+          setStatus({ kind: "upToDate", current: info.current });
+          return;
+        }
         setStatus(updateError(info.err, info));
         return;
       }
@@ -283,6 +293,10 @@ function useUpdaterInternal(): Updater {
     } catch (e) {
       if (!isCurrentOperation(operation)) return;
       completeOperation(operation);
+      if (quiet) {
+        setStatus({ kind: "upToDate", current: "" });
+        return;
+      }
       setStatus(updateError(errMsg(e)));
     }
   }, [beginOperation, completeOperation, isCurrentOperation]);
@@ -290,7 +304,8 @@ function useUpdaterInternal(): Updater {
   const refresh = useCallback(async () => {
     if (isBusyOperation(operationRef.current.kind)) return;
     if (!automaticUpdateCheckDue()) return;
-    await check();
+    // Automatic path: a transient boot/network failure stays off-screen.
+    await check(true);
   }, [check]);
 
   const apply = useCallback((info: UpdateInfo) => {
