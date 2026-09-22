@@ -4829,7 +4829,7 @@ func (a *App) RemoveWorkspace(dir string) error {
 		}
 		if len(a.tabs) == 0 {
 			fallback = a.createTabEntry("global", globalTabWorkspaceRoot(), "")
-			fallback.TopicTitle = "Global"
+			fallback.TopicTitle = "全局（Global）"
 			fallback.sink = &tabEventSink{tabID: fallback.ID, app: a, ctx: a.ctx}
 			a.tabs[fallback.ID] = fallback
 			a.tabOrder = append(a.tabOrder, fallback.ID)

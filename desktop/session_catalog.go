@@ -338,7 +338,7 @@ func (a *App) syncSessionCatalogMetadata(ctx context.Context, catalog *sessionca
 		Scope: "global", Title: strings.TrimSpace(f.GlobalTitle), Color: normalizeProjectColor(f.GlobalColor),
 	}}
 	if projects[0].Title == "" {
-		projects[0].Title = "Global"
+		projects[0].Title = "全局（Global）"
 	}
 	topics := []sessioncatalog.TopicMetadata{}
 	appendTopics := func(scope, root string, ids, pinnedIDs []string, manualOrder bool) {
@@ -595,7 +595,7 @@ func (a *App) GetProjectTreeSnapshot() ProjectTreeSnapshot {
 	if strings.TrimSpace(f.GlobalTitle) != "" || len(f.GlobalTopics) > 0 || len(f.Projects) == 0 {
 		label := strings.TrimSpace(f.GlobalTitle)
 		if label == "" {
-			label = "Global"
+			label = "全局（Global）"
 		}
 		projects = append(projects, ProjectNode{
 			Key: "global_folder", Kind: "global_folder", Label: label,

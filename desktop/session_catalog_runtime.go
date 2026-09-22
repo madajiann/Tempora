@@ -708,7 +708,7 @@ func (a *App) ListProjectTree() []ProjectNode {
 		f := loadProjectsFile()
 		label := strings.TrimSpace(f.GlobalTitle)
 		if label == "" {
-			label = "Global"
+			label = "全局（Global）"
 		}
 		snapshot.Projects = append(snapshot.Projects, ProjectNode{
 			Key: "global_folder", Kind: "global_folder", Label: label,

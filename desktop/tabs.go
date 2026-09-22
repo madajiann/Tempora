@@ -5452,7 +5452,7 @@ func globalProjectTitle() string {
 	if title := strings.TrimSpace(loadProjectsFile().GlobalTitle); title != "" {
 		return title
 	}
-	return "Global"
+	return "全局（Global）"
 }
 
 func addProject(root, title string) error {
@@ -5770,7 +5770,7 @@ func topicTitleForTab(scope, workspaceRoot, topicID string) string {
 		return title
 	}
 	if scope == "global" {
-		return "Global"
+		return "全局（Global）"
 	}
 	return defaultTopicTitle
 }
