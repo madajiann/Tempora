@@ -28,6 +28,36 @@ import {
 import { verifyFrontendArtifact } from "../frontend/scripts/artifact-identity.mjs";
 
 const desktop = dirname(dirname(fileURLToPath(import.meta.url)));
+
+// Real-time antivirus scanning keeps handles on freshly written files for a few
+// seconds. Renaming a just-packaged app tree (thousands of files) into place can
+// therefore fail with EPERM/EACCES/EBUSY on Windows even though nothing in the
+// build is wrong. Retry with a bounded wait instead of failing the release.
+function sleepSync(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+function renameTreeWithRetry(src, dst, attempts = 6, delayMs = 3000) {
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      renameSync(src, dst);
+      return;
+    } catch (error) {
+      const code = error && error.code;
+      // Only these three mean "something else currently holds a handle"; every
+      // other failure is a real build error and must surface immediately.
+      if (code !== "EPERM" && code !== "EACCES" && code !== "EBUSY") throw error;
+      lastError = error;
+      if (attempt === attempts) break;
+      console.warn(`retry ${attempt}/${attempts}: rename ${code}, waiting ${delayMs}ms for the scanner to release handles`);
+      sleepSync(delayMs);
+      // A partially created destination blocks the next attempt; clear it first.
+      rmSync(dst, { recursive: true, force: true });
+    }
+  }
+  throw lastError;
+}
 const repo = dirname(desktop);
 const [spec, version, channel = "stable"] = process.argv.slice(2);
 if (!spec || !version) {
@@ -191,7 +221,7 @@ try {
   const [finalPath] = await packager(options);
   mkdirSync(outDir, { recursive: true });
   const bundle = target.os === "darwin" ? join(outDir, `${PRODUCT.name}.app`) : join(outDir, "app");
-  renameSync(target.os === "darwin" ? join(finalPath, `${PRODUCT.name}.app`) : finalPath, bundle);
+  renameTreeWithRetry(target.os === "darwin" ? join(finalPath, `${PRODUCT.name}.app`) : finalPath, bundle);
   // The packager stages the app tree in a mkdtemp directory (0700) and renames
   // it into place; dpkg installs that mode as root:root, hiding app/ from users.
   if (target.os !== "darwin") chmodSync(bundle, 0o755);
