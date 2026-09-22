@@ -2769,10 +2769,28 @@ export function useController() {
       };
 
       const modern = !skipHistory;
-      const snapshotLoaded = modern ? await loadTimed("transcript follow", async () => {
-        await startTranscriptFollow(tabId, sessionPath);
-        return true;
-      }) : false;
+      const attemptTranscriptFollow = async (): Promise<boolean> => {
+        const loaded = await loadTimed("transcript follow", async () => {
+          await startTranscriptFollow(tabId, sessionPath);
+          return true;
+        });
+        return loaded === true;
+      };
+      let snapshotLoaded = modern ? await attemptTranscriptFollow() : false;
+      if (modern && snapshotLoaded !== true && reason === "startup") {
+        // When the window opens the sidecar may still be booting: the first
+        // follow fails within milliseconds, yet the same load succeeds once
+        // the service is up tens of seconds later. Retry quietly instead of
+        // flashing a scary "history failed" banner that recovers on its own.
+        // The hydrate placeholder (not an error banner) stays visible, and the
+        // banner below only appears if every retry is exhausted.
+        const retryDeadline = Date.now() + 60_000;
+        while (snapshotLoaded !== true && Date.now() < retryDeadline) {
+          await new Promise<void>((resolve) => window.setTimeout(resolve, 2_000));
+          if (!stillCurrent()) return;
+          snapshotLoaded = await attemptTranscriptFollow();
+        }
+      }
       if (!stillCurrent()) return;
       if (!skipHistory && snapshotLoaded !== true) {
         const error = t("history.failedLoadHistory");

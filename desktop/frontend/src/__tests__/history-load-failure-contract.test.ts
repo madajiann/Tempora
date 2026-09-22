@@ -21,6 +21,12 @@ assert.match(controller, /retrySessionHistory/, "retry path is exported");
 assert.match(controller, /startTranscriptFollow/, "retry establishes an authoritative Follow snapshot");
 assert.match(
   controller,
+  /snapshotLoaded !== true && reason === "startup"/,
+  "startup hydration retries quietly instead of flashing the failure banner",
+);
+assert.match(controller, /retryDeadline/, "startup quiet-retry window is bounded");
+assert.match(
+  controller,
   /loadSessionDataForTab\(tabId, false, "startup", \{ preserveCachedHistory: true \}\)/,
   "failed clear keeps the visible transcript instead of a resident snapshot",
 );
