@@ -1,0 +1,22 @@
+[package]
+name = "tempora-shell"
+version = "0.1.0"
+description = "Tempora lightweight Reasonix shell"
+edition = "2021"
+rust-version = "1.77.2"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+# 修复：schemars 以 default-features=false 引入 indexmap 1.9，导致 IndexMap
+# 失去默认泛型参数（无 std 分支）而编译失败。这里显式补 std 恢复该默认值。
+indexmap = { version = "1.9", features = ["std", "serde-1"] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

@@ -1,0 +1,21 @@
+# ===== 临时工作文件（下划线前缀）=====
+_*
+_chromeprof*/
+
+# ===== 构建产物 =====
+build/
+shell/src-tauri/target/
+app/frontend/node_modules/
+app/frontend/dist/
+
+# ===== 大体积非源码 =====
+reference/
+tools/
+
+# ===== 可执行文件 / 安装包（发布走 GitHub Release）=====
+*.exe
+*.ttf
+
+# ===== 系统文件 =====
+Thumbs.db
+desktop.ini
