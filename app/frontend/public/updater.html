@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tempora 更新</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Microsoft YaHei UI", "PingFang SC", sans-serif;
+    background: transparent;
+    overflow: hidden;
+    user-select: none;
+  }
+  .card {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(160deg, #fdfefc 0%, #f2f8f3 100%);
+    border: 1px solid #d8e6da;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(20, 80, 50, 0.18);
+    padding: 14px 16px 12px;
+    animation: pop .22s ease-out;
+  }
+  @keyframes pop { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+  .head { display: flex; align-items: center; gap: 10px; }
+  .logo {
+    width: 34px; height: 34px; border-radius: 9px; flex: none;
+    background: linear-gradient(145deg, #2fa471, #157a4e);
+    color: #fff; font-weight: 700; font-size: 20px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .title { font-size: 14px; font-weight: 700; color: #1c3a2a; flex: 1; }
+  .close {
+    width: 26px; height: 26px; border: none; border-radius: 7px; cursor: pointer;
+    background: transparent; color: #6b8577; font-size: 15px; line-height: 1;
+  }
+  .close:hover { background: #e3ede6; color: #244433; }
+  .body { flex: 1; margin-top: 10px; min-height: 0; display: flex; flex-direction: column; }
+  .msg { font-size: 12.5px; color: #38564a; line-height: 1.55; }
+  .ver { color: #157a4e; font-weight: 700; }
+  .notes {
+    margin-top: 8px; flex: 1; overflow-y: auto; font-size: 11.5px; color: #55705f;
+    line-height: 1.6; white-space: pre-wrap; background: #ffffffcc;
+    border: 1px solid #e2ece5; border-radius: 8px; padding: 8px 10px;
+  }
+  .notes:empty { display: none; }
+  .bar-wrap { margin-top: 10px; display: none; }
+  .bar-track { height: 6px; border-radius: 3px; background: #dfeae2; overflow: hidden; }
+  .bar-fill { height: 100%; width: 0%; border-radius: 3px; background: linear-gradient(90deg, #2fa471, #1c8f5d); transition: width .2s; }
+  .bar-text { font-size: 11px; color: #55705f; margin-top: 4px; text-align: right; }
+  .foot { margin-top: 10px; display: flex; gap: 8px; justify-content: flex-end; }
+  button.act {
+    border: none; border-radius: 8px; padding: 7px 18px; font-size: 12.5px; cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-primary { background: linear-gradient(145deg, #2fa471, #157a4e); color: #fff; font-weight: 600; }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-primary:disabled { opacity: .55; cursor: default; }
+  .btn-ghost { background: transparent; color: #55705f; }
+  .btn-ghost:hover { background: #e3ede6; }
+  .spin {
+    width: 16px; height: 16px; border: 2px solid #cfe0d4; border-top-color: #157a4e;
+    border-radius: 50%; animation: sp .8s linear infinite; margin-top: 14px;
+  }
+  @keyframes sp { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="head" data-tauri-drag-region>
+    <div class="logo">T</div>
+    <div class="title" id="title" data-tauri-drag-region>Tempora 更新</div>
+    <button class="close" id="closeBtn" title="关闭">✕</button>
+  </div>
+  <div class="body">
+    <div id="state" style="display:flex;flex-direction:column;flex:1;">
+      <div class="spin"></div>
+      <div class="msg" style="margin-top:8px;">正在检查更新…</div>
+    </div>
+    <div class="notes" id="notes"></div>
+    <div class="bar-wrap" id="barWrap">
+      <div class="bar-track"><div class="bar-fill" id="barFill"></div></div>
+      <div class="bar-text" id="barText">0%</div>
+    </div>
+  </div>
+  <div class="foot" id="foot" style="display:none;">
+    <button class="act btn-ghost" id="laterBtn">稍后</button>
+    <button class="act btn-primary" id="installBtn">立即更新</button>
+  </div>
+</div>
+<script>
+(function () {
+  var tauri = window.__TAURI__ || {};
+  var el = function (id) { return document.getElementById(id); };
+  var stateEl = el('state'), notesEl = el('notes'), barWrap = el('barWrap'),
+      barFill = el('barFill'), barText = el('barText'), foot = el('foot'),
+      installBtn = el('installBtn'), titleEl = el('title');
+
+  function renderState(html) { stateEl.style.display = 'block'; stateEl.innerHTML = html; foot.style.display = 'none'; }
+  function hideState() { stateEl.style.display = 'none'; }
+
+  el('closeBtn').onclick = function () { window.__TAURI__.window.getCurrentWindow().close(); };
+  el('laterBtn').onclick = function () { window.__TAURI__.window.getCurrentWindow().close(); };
+
+  var current = null;
+
+  function showLatest() {
+    renderState('<div class="msg">当前已是最新版本 <span class="ver">v' + current + '</span>，无需更新。</div>');
+    foot.style.display = 'flex';
+    installBtn.textContent = '好的';
+    installBtn.onclick = function () { window.__TAURI__.window.getCurrentWindow().close(); };
+    setTimeout(function () { window.__TAURI__.window.getCurrentWindow().close(); }, 2500);
+  }
+
+  function showAvailable(update) {
+    hideState();
+    titleEl.textContent = '发现新版本 v' + update.version;
+    notesEl.textContent = (update.body || '').trim();
+    foot.style.display = 'flex';
+    installBtn.textContent = '立即更新';
+    installBtn.disabled = false;
+    installBtn.onclick = function () { doInstall(update); };
+  }
+
+  function doInstall(update) {
+    installBtn.disabled = true;
+    installBtn.textContent = '下载中…';
+    barWrap.style.display = 'block';
+    var loaded = 0, total = 0;
+    update.downloadAndInstall(function (ev) {
+      if (ev.event === 'Started') {
+        total = ev.data.contentLength || 0;
+        installBtn.textContent = '下载中…';
+      } else if (ev.event === 'Progress') {
+        loaded += ev.data.chunkLength;
+        var pct = total > 0 ? Math.min(100, Math.round(loaded / total * 100)) : 0;
+        barFill.style.width = pct + '%';
+        barText.textContent = pct + '%' + (total > 0 ? '  (' + (loaded / 1048576).toFixed(1) + ' / ' + (total / 1048576).toFixed(1) + ' MB)' : '');
+      } else if (ev.event === 'Finished') {
+        barFill.style.width = '100%';
+        barText.textContent = '100%';
+        installBtn.textContent = '正在安装…';
+        setTimeout(function () {
+          renderState('<div class="msg">更新完成，应用将自动重启…</div>');
+          setTimeout(function () { window.__TAURI__.process.relaunch(); }, 1200);
+        }, 400);
+      }
+    }).catch(function (e) {
+      renderState('<div class="msg">更新失败：' + String(e).slice(0, 160) + '</div>');
+      foot.style.display = 'flex';
+      installBtn.textContent = '重试';
+      installBtn.disabled = false;
+      installBtn.onclick = function () { showAvailable(update); };
+    });
+  }
+
+  async function run() {
+    try {
+      current = await tauri.app.getVersion();
+      var update = await tauri.updater.check();
+      if (update) { showAvailable(update); } else { showLatest(); }
+    } catch (e) {
+      renderState('<div class="msg">检查更新失败：' + String(e).slice(0, 160) + '</div>');
+      foot.style.display = 'flex';
+      installBtn.textContent = '好的';
+      installBtn.onclick = function () { window.__TAURI__.window.getCurrentWindow().close(); };
+    }
+  }
+  run();
+})();
+</script>
+</body>
+</html>
