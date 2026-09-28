@@ -1,11 +1,11 @@
 {
-  "version": "0.1.12",
-  "notes": "修复新会话默认工作区落在 C://Windows//System32 的问题：内核拉起方式导致工作目录继承异常，现在默认回退到用户主目录；同时壳启动内核时显式指定工作目录。",
-  "pub_date": "2026-09-28T12:45:19Z",
+  "version": "0.1.13",
+  "notes": "侧栏工作区修复：不再把 System32 和程序安装目录注册为工作区，历史脏项升级后自动消失。",
+  "pub_date": "2026-09-28T14:24:44Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFpaK3krMEVLdS9kVFRzRkMvbEVNZDRldDNraHVZQlJwOENvaDh3T1ZlbEF3YmxPcUdTOFVBSDlsYWhldElEc0Z5ODBlQ2FVa0RyZGhMRk95QjVqRWc4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNTk5MDE4CWZpbGU6VGVtcG9yYV8wLjEuMTJfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4xMgpPY3RPb2VaRUp5S0tySHNhUFRIQ0M2dFdaNmVDTjhVd3BlYnF5K0ZSTFpVMTZJeUhzUzZZNnBaZGh0NFhYS3M4NmI0SlE0aDdaU3laWCt5dC9VeHhEUT09Cg==",
-      "url": "https://api.github.com/repos/madajiann/Tempora/releases/assets/595379305"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFJkTHp5TktoRjN5NnlPMlNOeUZXaWZZK1pxVXVaVUJacDl3RXEvVFd2Mm9DWXNOY25OY0tuY3JrNFh1T2t0L05xU1RJSVRPMFgrdWhGRnNsc0kzTmc0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNjA1MDgxCWZpbGU6VGVtcG9yYV8wLjEuMTNfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4xMwpOUWdZS21BL0orTE9qa2dZRWdWb1F1ZzB0dlFwRXhaM3pJdm1PNTVRWUV4SlRTZC9BK1lwd0x1UWgvMm1HbTRGVWlPbDRuellVWXMybXBGTW5iL3lCQT09Cg==",
+      "url": "https://api.github.com/repos/madajiann/Tempora/releases/assets/595589716"
     }
   }
 }
