@@ -1,11 +1,11 @@
 {
-  "version": "0.1.13",
-  "notes": "侧栏工作区修复：不再把 System32 和程序安装目录注册为工作区，历史脏项升级后自动消失。",
-  "pub_date": "2026-09-28T14:24:44Z",
+  "version": "0.1.14",
+  "notes": "自动更新链路修复：更新清单改由官网（tempora.yomm.cc）下发，国内网络可直接收到更新提示，不再依赖被墙的公网端点。",
+  "pub_date": "2026-09-28T15:01:09Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFJkTHp5TktoRjN5NnlPMlNOeUZXaWZZK1pxVXVaVUJacDl3RXEvVFd2Mm9DWXNOY25OY0tuY3JrNFh1T2t0L05xU1RJSVRPMFgrdWhGRnNsc0kzTmc0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNjA1MDgxCWZpbGU6VGVtcG9yYV8wLjEuMTNfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4xMwpOUWdZS21BL0orTE9qa2dZRWdWb1F1ZzB0dlFwRXhaM3pJdm1PNTVRWUV4SlRTZC9BK1lwd0x1UWgvMm1HbTRGVWlPbDRuellVWXMybXBGTW5iL3lCQT09Cg==",
-      "url": "https://api.github.com/repos/madajiann/Tempora/releases/assets/595589716"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFIrTDhEdElXcHViT1pCV2Q0UlpzZEtOemM1RURZNGJYVWlyTGFjR2NiVWMrRGhDOW5CaVg4aTk0RTJlWFpRRWRjTlhCSU1qT2oyQ2hkRlh1RngwRFFVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNjA3MjgwCWZpbGU6VGVtcG9yYV8wLjEuMTRfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4xNApMbVp5bDVrOUVwQjRVZE5iTFJIbUNKTnFjTVJ0ZGZWZ1NXYmxidVFVNTUyVEMxaVdocE5pRmJRM3IxWFZlTDJyZGJ6ZW0zZVFpdjhRQ3Q2bkQ5Y0NCZz09Cg==",
+      "url": "https://api.github.com/repos/madajiann/Tempora/releases/assets/595669295"
     }
   }
 }
