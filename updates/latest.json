@@ -1,11 +1,11 @@
 {
-  "version": "0.1.8",
-  "notes": "修复启动瞬间闪一下「无法访问此网站」：主窗口改为加载壳自带的启动页，内核就绪后无缝接管；启动页与内核启动屏视觉连续，内核起得慢时显示「正在连接内核…」。",
-  "pub_date": "2026-09-28T04:39:41Z",
+  "version": "0.1.9",
+  "notes": "空状态页与运行状态的品牌字标由 R 改为带衬线装饰的 T；整体字体改用微软雅黑渲染中文，小字号清晰度明显提升。",
+  "pub_date": "2026-09-28T05:24:49Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOGRTOEdOeTAxdHdWWjh4R0pBRHR2UzF6OUIwcHZ4VU40ZFB6MFQ0MzlONHF6cDI1bTExNWxHdVZoVGVLNm1jOStjeWd3Tzl5azhzUE92QTNaQUdUcWc0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNTY5NTA4CWZpbGU6VGVtcG9yYV8wLjEuOF94NjQtc2V0dXAuZXhlCXZlcnNpb246MC4xLjgKRHM5eWhJN2JlWWozZTRVam9TSUtycWJ6YjhNc3ZBUzBqcFp3Zys0aS9vK2c5dUFROXRhVWszYTJ1L2tpc2NKT09lMklWV0JjZktpNmM3TnY5VFE5Q2c9PQo=",
-      "url": "https://api.github.com/repos/madajiann/Tempora/releases/assets/594484193"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOGRDLzBXbmxOVGlGLzVrTWtZQ011UWg5UWRyZW9QemZ2Ymk0azhmVXIwZERmb09COW4vUjZPNTlmZXZkNkszeXBOS1o3TUxPaS9pRkRTc082NXdodVFzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNTcyNjUxCWZpbGU6VGVtcG9yYV8wLjEuOV94NjQtc2V0dXAuZXhlCXZlcnNpb246MC4xLjkKcVJYQVViM2IyWHYrbnVxdEZTT0FyMjBDKzNDS0xkb0J3elYzcU5PcFJNRlM2ZzdhM1duZ3B1SUFLS3cwM1JYSFUxa092Y2NVclBMTTVkNS9NNTllQWc9PQo=",
+      "url": "https://api.github.com/repos/madajiann/Tempora/releases/assets/594574684"
     }
   }
 }
