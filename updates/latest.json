@@ -1,11 +1,11 @@
 {
-  "version": "0.1.10",
-  "notes": "权限菜单四个档位各自带上图标，并按放行等级递增区分（锁→问号→闪电→警示三角，配四格等级条）；输入框下方的 Agent 与权限控件、模式菜单、权限菜单字号整体放大，小字不再难认。",
-  "pub_date": "2026-09-28T06:09:16Z",
+  "version": "0.1.11",
+  "notes": "修复弹出菜单（Agent 模式、模型选择等）文字过小的问题：0.1.10 的放大规则被同文件更靠后的基础样式覆盖而未生效，本次从基础规则放大——菜单项标题 11→13px、描述 9→11px 且颜色加深，菜单标题栏同步放大。",
+  "pub_date": "2026-09-28T06:52:42Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFV3dllGaDBsREp5QUh3MVEzaVhXSFZGd0dLWWtVcUsrbHZqM1hYN2pQSjN5MzMxV1g3TVlvU2dnbnptUUlqVVhsb2xkRk92M0ROTngwN201QTQ3VXdJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNTc1Mjg4CWZpbGU6VGVtcG9yYV8wLjEuMTBfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4xMAp3VnozQ2Z3bEtRSFZSWnFSSEZwbFFVUkpnQmxxRVh2Z3RQQTgrT0oxU3pKb1RqR3J6ZG52K0pjYU9Ea2dpVFpzbitOQ3JQeFB5KzJWckJuMEgwbGlCdz09Cg==",
-      "url": "https://api.github.com/repos/madajiann/Tempora/releases/assets/594648900"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFNHTERhMkJNVkJzT01KZUxFVlVJbXAxYnM0SExMYW0yZStaK0NLWEtVaHFGYjN1c1Y5K0JlZ01sSFM3K04vUit2VndqV0djQ2g5Q3RvaUtPc1E1ZFFzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNTc3NzQ0CWZpbGU6VGVtcG9yYV8wLjEuMTFfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4xMQp6MUZYZ0hvcVkwNk92eENJNWdheEVDelpBcitvcVZwdGpoVmxRWWl4OVhFRW5ScUZkY3ozZDdKaWxyOU5yYkk4U05TZzAvMmtXY0RNK1ZYNFMyVkRCZz09Cg==",
+      "url": "https://api.github.com/repos/madajiann/Tempora/releases/assets/594723061"
     }
   }
 }
