@@ -1,11 +1,11 @@
 {
-  "version": "0.1.6",
-  "notes": "Tempora 0.1.6",
-  "pub_date": "2026-09-28T02:00:00Z",
+  "version": "0.1.7",
+  "notes": "0.1.7：品牌砖文字改为 empora；钱包金额字号加大到 12px；修复国内网络下检查更新一直失败（端点改用 raw.githubusercontent.com / jsDelivr，安装包走 api.github.com 资产端点）",
+  "pub_date": "2026-09-28T02:13:54Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFRtUjFkblNEN0cvcjFPSUluR285UG9rb05uRnl2QVRtNithcUFFZHZ3K3JULzJaNHhRNXh0Z2I4ampxT3RNV0hvWkorempJRW9DeW0zMzR5R2pXS1FZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNTA1NTI3CWZpbGU6VGVtcG9yYV8wLjEuNl94NjQtc2V0dXAuZXhlCXZlcnNpb246MC4xLjYKVzNQZk9RMjYxRENqSng2Ym02WkN6QmRjdDhvaTJvL3E2dHJIeWxaZnU3aTBTQlJSWml3bVhZYi93WjlwS2ZOZS9OMnBrRWp4L3VkUUtRU3BzTHQvQUE9PQo=",
-      "url": "https://api.github.com/repos/madajiann/Tempora/releases/assets/592708047"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFdYNE5LY1BoQko0Y0NreU5jU01Da3RWVnFxc010ZnJYeVhDK3g3UHpuS3RSRitpdmg1elpHTzFsZkkxK1VWMFJ0T280bU5TQnJ0TE1iN0tkS0dRZEFJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNTYwNjkxCWZpbGU6VGVtcG9yYV8wLjEuN194NjQtc2V0dXAuZXhlCXZlcnNpb246MC4xLjcKaGNyOHpuNTlaTExLWUhvQ2RSaXdzQ3NncE9EdEd1Szl3Z1VoZTdNZTBQTHlGa0V3alZXNDFEQ1ZQTFNLWDFiTkQwTU9uNmtJUTY0a3NYUFVjVERKQnc9PQo=",
+      "url": "https://api.github.com/repos/madajiann/Tempora/releases/assets/594239231"
     }
   }
 }
