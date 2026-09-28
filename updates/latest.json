@@ -1,11 +1,11 @@
 {
-  "version": "0.1.9",
-  "notes": "空状态页与运行状态的品牌字标由 R 改为带衬线装饰的 T；整体字体改用微软雅黑渲染中文，小字号清晰度明显提升。",
-  "pub_date": "2026-09-28T05:24:49Z",
+  "version": "0.1.10",
+  "notes": "权限菜单四个档位各自带上图标，并按放行等级递增区分（锁→问号→闪电→警示三角，配四格等级条）；输入框下方的 Agent 与权限控件、模式菜单、权限菜单字号整体放大，小字不再难认。",
+  "pub_date": "2026-09-28T06:09:16Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOGRDLzBXbmxOVGlGLzVrTWtZQ011UWg5UWRyZW9QemZ2Ymk0azhmVXIwZERmb09COW4vUjZPNTlmZXZkNkszeXBOS1o3TUxPaS9pRkRTc082NXdodVFzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNTcyNjUxCWZpbGU6VGVtcG9yYV8wLjEuOV94NjQtc2V0dXAuZXhlCXZlcnNpb246MC4xLjkKcVJYQVViM2IyWHYrbnVxdEZTT0FyMjBDKzNDS0xkb0J3elYzcU5PcFJNRlM2ZzdhM1duZ3B1SUFLS3cwM1JYSFUxa092Y2NVclBMTTVkNS9NNTllQWc9PQo=",
-      "url": "https://api.github.com/repos/madajiann/Tempora/releases/assets/594574684"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFV3dllGaDBsREp5QUh3MVEzaVhXSFZGd0dLWWtVcUsrbHZqM1hYN2pQSjN5MzMxV1g3TVlvU2dnbnptUUlqVVhsb2xkRk92M0ROTngwN201QTQ3VXdJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNTc1Mjg4CWZpbGU6VGVtcG9yYV8wLjEuMTBfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4xMAp3VnozQ2Z3bEtRSFZSWnFSSEZwbFFVUkpnQmxxRVh2Z3RQQTgrT0oxU3pKb1RqR3J6ZG52K0pjYU9Ea2dpVFpzbitOQ3JQeFB5KzJWckJuMEgwbGlCdz09Cg==",
+      "url": "https://api.github.com/repos/madajiann/Tempora/releases/assets/594648900"
     }
   }
 }
