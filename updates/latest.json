@@ -1,11 +1,11 @@
 {
-  "version": "0.1.14",
-  "notes": "自动更新链路修复：更新清单改由官网（tempora.yomm.cc）下发，国内网络可直接收到更新提示，不再依赖被墙的公网端点。",
-  "pub_date": "2026-09-28T15:01:09Z",
+  "version": "0.1.15",
+  "notes": "修复侧栏「这台机器」旁 +（添加项目）点下去不弹文件夹选择框的问题：内核改用原生 Windows 对话框，不再依赖被隐藏的 PowerShell 窗口。",
+  "pub_date": "2026-09-28T16:09:59Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFIrTDhEdElXcHViT1pCV2Q0UlpzZEtOemM1RURZNGJYVWlyTGFjR2NiVWMrRGhDOW5CaVg4aTk0RTJlWFpRRWRjTlhCSU1qT2oyQ2hkRlh1RngwRFFVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNjA3MjgwCWZpbGU6VGVtcG9yYV8wLjEuMTRfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4xNApMbVp5bDVrOUVwQjRVZE5iTFJIbUNKTnFjTVJ0ZGZWZ1NXYmxidVFVNTUyVEMxaVdocE5pRmJRM3IxWFZlTDJyZGJ6ZW0zZVFpdjhRQ3Q2bkQ5Y0NCZz09Cg==",
-      "url": "https://api.github.com/repos/madajiann/Tempora/releases/assets/595669295"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFUxbk0wdlZLSTd0RmtFc0xuU003SHBsaWx4bnBZd0NDTjR1bEdJNGNNT2d2NHZHcCtNVnZMOGd6VlVHTk5HQy9lQUt5cDhDRjFENGN2SlZ0SnhBOEFFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNjExNjA1CWZpbGU6VGVtcG9yYV8wLjEuMTVfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4xNQpWWXZtNDAwei85a0lOTldWSHlmaXZSZ0Q4QkxyRWJESmJuRjFrUmF1VUtIV01FYUNPNWNpeXdzamJHYmdZM0lZM3VuTVJSVjBiZzBybHRYMHNCNklCZz09Cg==",
+      "url": "https://api.github.com/repos/madajiann/Tempora/releases/assets/595817962"
     }
   }
 }
