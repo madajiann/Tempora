@@ -1,11 +1,11 @@
 {
-  "version": "0.1.11",
-  "notes": "修复弹出菜单（Agent 模式、模型选择等）文字过小的问题：0.1.10 的放大规则被同文件更靠后的基础样式覆盖而未生效，本次从基础规则放大——菜单项标题 11→13px、描述 9→11px 且颜色加深，菜单标题栏同步放大。",
-  "pub_date": "2026-09-28T06:52:42Z",
+  "version": "0.1.12",
+  "notes": "修复新会话默认工作区落在 C://Windows//System32 的问题：内核拉起方式导致工作目录继承异常，现在默认回退到用户主目录；同时壳启动内核时显式指定工作目录。",
+  "pub_date": "2026-09-28T12:45:19Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFNHTERhMkJNVkJzT01KZUxFVlVJbXAxYnM0SExMYW0yZStaK0NLWEtVaHFGYjN1c1Y5K0JlZ01sSFM3K04vUit2VndqV0djQ2g5Q3RvaUtPc1E1ZFFzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNTc3NzQ0CWZpbGU6VGVtcG9yYV8wLjEuMTFfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4xMQp6MUZYZ0hvcVkwNk92eENJNWdheEVDelpBcitvcVZwdGpoVmxRWWl4OVhFRW5ScUZkY3ozZDdKaWxyOU5yYkk4U05TZzAvMmtXY0RNK1ZYNFMyVkRCZz09Cg==",
-      "url": "https://api.github.com/repos/madajiann/Tempora/releases/assets/594723061"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFpaK3krMEVLdS9kVFRzRkMvbEVNZDRldDNraHVZQlJwOENvaDh3T1ZlbEF3YmxPcUdTOFVBSDlsYWhldElEc0Z5ODBlQ2FVa0RyZGhMRk95QjVqRWc4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNTk5MDE4CWZpbGU6VGVtcG9yYV8wLjEuMTJfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4xMgpPY3RPb2VaRUp5S0tySHNhUFRIQ0M2dFdaNmVDTjhVd3BlYnF5K0ZSTFpVMTZJeUhzUzZZNnBaZGh0NFhYS3M4NmI0SlE0aDdaU3laWCt5dC9VeHhEUT09Cg==",
+      "url": "https://api.github.com/repos/madajiann/Tempora/releases/assets/595379305"
     }
   }
 }
