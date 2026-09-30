@@ -1,6 +1,6 @@
 [package]
 name = "tempora-shell"
-version = "0.1.0"
+version = "0.1.16"
 description = "Tempora lightweight Reasonix shell"
 edition = "2021"
 rust-version = "1.77.2"
@@ -12,10 +12,15 @@ tauri-build = { version = "2", features = [] }
 indexmap = { version = "1.9", features = ["std", "serde-1"] }
 
 [dependencies]
-tauri = { version = "2", features = ["tray-icon"] }
+tauri = { version = "2", features = ["tray-icon", "image-png"] }
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
 serde_json = "1"
+# 原生文件夹选择对话框。之前「添加项目」走内核 POST /host/pick-folder，对话框由
+# 内核进程(tempora.exe)创建，与可见的 WebView2 窗口分属两个进程——Windows 前台
+# 锁让它永远卡在窗口背后，表现为「点了没反应」。这里让壳（与可见窗口同进程）自己
+# 打开对话框，创建在 UI 线程上，自然置顶到 Tempora 窗口前台。
+rfd = "=0.16.0"
 
 [profile.release]
 codegen-units = 1
