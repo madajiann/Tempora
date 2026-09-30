@@ -2,6 +2,9 @@
 _*
 _chromeprof*/
 
+# ===== 历史前端备份（本地留档，不入库）=====
+dist.old*/
+
 # ===== 构建产物 =====
 build/
 shell/src-tauri/target/
@@ -12,9 +15,26 @@ app/frontend/dist/
 reference/
 tools/
 
-# ===== 可执行文件 / 安装包（发布走 GitHub Release）=====
+# ===== 可执行文件 / 安装包 / 更新签名（发布走 GitHub Release）=====
 *.exe
 *.ttf
+*.zip
+*.sig
+*.nsis.zip
+*.bak-*
+
+# ===== 运营态发布 JSON（发布产物走 API 提交到 updates/，本地留档不入库）=====
+latest*.json
+SHA256SUMS*.txt
+*.key
+*.key.bak*
+*.pem
+.env
+.env.*
+!.env.example
+.tempora/
+token
+token.txt
 
 # ===== 系统文件 =====
 Thumbs.db
