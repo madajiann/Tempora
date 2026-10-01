@@ -81,6 +81,10 @@ def make_blob(content: bytes) -> str:
 
 def main():
     dry = "--dry-run" in sys.argv
+    since = None
+    for a in sys.argv[1:]:
+        if a.startswith("--since="):
+            since = a.split("=", 1)[1]
 
     # 1) 远端 main head
     st, ref = api("GET", f"/repos/{REPO}/git/ref/heads/{BRANCH}")
@@ -90,19 +94,30 @@ def main():
     remote_head = ref["object"]["sha"]
     print(f"远端 {BRANCH}: {remote_head[:10]}")
 
-    # 2) 找本地历史与远端的重合点作为 base
-    local_all = git("rev-list", "--all")[1].split()
+    # 2) 找 base。经 API 重建后远端 commit 的 sha 与本地不同，靠 sha 列表比对
+    #    认不出已推过的部分，所以优先用上次记录的断点（~/.tempora/last-pushed）。
+    last_file = os.path.expanduser("~/.tempora/last-pushed")
     base = None
-    for page in range(1, 4):
-        st, commits = api("GET", f"/repos/{REPO}/commits?sha={BRANCH}&per_page=100&page={page}")
-        if st != 200 or not isinstance(commits, list):
-            break
-        for c in commits:
-            if c["sha"] in local_all:
-                base = c["sha"]
+    if since:
+        base = since
+        print(f"使用 --since 指定基点: {base[:10]}")
+    elif os.path.exists(last_file):
+        cand = open(last_file, encoding="utf-8").read().strip()
+        if cand and git("cat-file", "-e", cand + "^{commit}")[0] == 0:
+            base = cand
+            print(f"使用上次断点: {base[:10]}")
+    if base is None:
+        local_all = git("rev-list", "--all")[1].split()
+        for page in range(1, 4):
+            st, commits = api("GET", f"/repos/{REPO}/commits?sha={BRANCH}&per_page=100&page={page}")
+            if st != 200 or not isinstance(commits, list):
                 break
-        if base:
-            break
+            for c in commits:
+                if c["sha"] in local_all:
+                    base = c["sha"]
+                    break
+            if base:
+                break
     if base is None:
         print("找不到与远端重合的本地 commit，无法增量推送")
         sys.exit(1)
@@ -166,7 +181,10 @@ def main():
     if st != 200:
         print(json.dumps(res, ensure_ascii=False)[:300])
         sys.exit(1)
-    print(f"推送完成，{BRANCH} -> {parent[:10]}")
+    # 记录断点：远端是重建后的 sha，本地原始 sha 无法从远端反查
+    with open(last_file, "w", encoding="utf-8") as f:
+        f.write(pending[-1])
+    print(f"推送完成，{BRANCH} -> {parent[:10]}（断点已记录 {pending[-1][:10]}）")
 
 
 def git_api_tree_of(commit_sha: str) -> str:
