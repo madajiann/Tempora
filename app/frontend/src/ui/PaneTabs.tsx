@@ -5,6 +5,7 @@ import { arrowTabs } from "./tablist";
 import { pinToViewport } from "./place";
 import { useMarker } from "./marker";
 import { useDismiss } from "./dismiss";
+import { useIme } from "./ime";
 
 export interface TabView {
   rt: RuntimeView;
@@ -33,6 +34,8 @@ export function PaneTabs({ tabs, active, showRoot, onFocus, onClose, onRename }:
   const [editing, setEditing] = useState("");
   // Enter commits and then blurs, and both would otherwise send the same name.
   const renamed = useRef<Record<string, string>>({});
+  // 页签重命名输入框同理：输入法用回车选词，不能算作提交
+  const ime = useIme();
   const rename = (rt: RuntimeView, was: string, raw: string) => {
     const next = raw.trim();
     if (!next || next === was || renamed.current[rt.id] === next) return;
@@ -173,7 +176,10 @@ export function PaneTabs({ tabs, active, showRoot, onFocus, onClose, onRename }:
               }}
               data-action-keydown="session.rename"
               data-target={rt.id}
+              onCompositionStart={ime.handlers.onCompositionStart}
+              onCompositionEnd={ime.handlers.onCompositionEnd}
               onKeyDown={(ev) => {
+                if (ime.isIme(ev)) return;
                 if (ev.key === "Enter") {
                   // The aimed-at commit; the blur it causes is guarded above.
                   rename(rt, title, ev.currentTarget.value);

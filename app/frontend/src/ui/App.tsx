@@ -302,12 +302,16 @@ export function App({ hub }: { hub: HubPort }) {
   }, [reloadRemotes]);
 
   const openPane = useCallback(
-    async (req: { root?: string; sessionPath?: string }) => {
+    async (req: { root?: string; sessionPath?: string; fresh?: boolean }) => {
       // Blank means never written to and not working: a new session mid-turn has
       // no path in a stale pane list yet, and taking it over would hide its run.
-      const blank = runtimes.find(
-        (rt) => !rt.sessionPath && !reportsRef.current[rt.id]?.status?.sessionPath && !runsRef.current[rt.id]?.live,
-      );
+      // fresh 表示「无论如何都开一条新会话」，不回收空白面板 —— 顶部「新建会话」
+      // 每次都真正多出一行，而不是只聚焦已有的空白面板。
+      const blank = req.fresh
+        ? undefined
+        : runtimes.find(
+            (rt) => !rt.sessionPath && !reportsRef.current[rt.id]?.status?.sessionPath && !runsRef.current[rt.id]?.live,
+          );
       // Asking for a new session when an unused one is already open in that
       // folder: it is the pane being asked for. Rebuilding it would cost a full
       // assembly to arrive back where we started.
@@ -374,6 +378,21 @@ export function App({ hub }: { hub: HubPort }) {
   );
 
   const adder = useAddWorkspace(hub, reloadTree, fail);
+  // 状态栏「目录」按钮：点击打开文件夹选择器，把当前面板切换到所选工作区。
+  // 与「添加项目」(adder.add) 解耦 —— 之前误用 adder.add，点一下展示出来的目录就会
+  // 又弹出「添加项目」选择器（看似「回到添加项目」）。这里只切换当前面板的工作目录，
+  // 不展开左侧导航、也不触发首启横幅。
+  const changeDir = useCallback((rt: RuntimeView, root: string) => {
+    void (async () => {
+      if (!root || root === rt.root) return;
+      try {
+        await hub.open({ root });
+        await reloadPanes();
+      } catch (e) {
+        fail(e);
+      }
+    })();
+  }, [hub, reloadPanes, fail]);
   // 每个窗口都有一个根 —— 没选过项目时那是它碰巧启动的地方。两者读起来一样，
   // 于是「从哪加项目」这句问题永远问不出口；只有内核说的 remembered 分得开。
   const [claimed, setClaimed] = useState(() => localStorage.getItem("rx-claim") === "off");
@@ -704,6 +723,7 @@ export function App({ hub }: { hub: HubPort }) {
                     localStorage.setItem("rx-claim", "off");
                     setClaimed(true);
                   }}
+                  onChangeDir={(root: string) => changeDir(rt, root)}
                   onSettings={(section) => section ? showPrefs(section) : showPrefs()}
                   theme={scheme}
                   dockW={dockW}
@@ -729,7 +749,7 @@ export function App({ hub }: { hub: HubPort }) {
                 ) : (
                   <>
                     <p className="h">{t("从左栏选择，或在当前文件夹新建")}</p>
-                    <button data-action="session.new" onClick={() => void openPane({ root: newSessionRoot }).catch(fail)}>{t("新建会话")}</button>
+                    <button data-action="session.new" onClick={() => void openPane({ root: newSessionRoot, fresh: true }).catch(fail)}>{t("新建会话")}</button>
                   </>
                 )}
               </div>
@@ -740,6 +760,8 @@ export function App({ hub }: { hub: HubPort }) {
         </div>
 
       </div>
+
+      <div className="studio-statusbar" id="studio-statusbar" aria-hidden="true" />
 
       {settings && activePort && (
         <Boundary fallback={<SettingsUnavailable onClose={hidePrefs} />}>

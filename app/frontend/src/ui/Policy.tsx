@@ -1,10 +1,10 @@
 import { useRef, useState } from "react";
 import { t } from "../i18n";
-import { StudioIcon } from "./StudioIcon";
 import { reason } from "../i18n/kernel";
 import type { AgentPort, ApprovalMode, SessionStatus } from "../port/port";
 import { useDismiss } from "./dismiss";
-import { APPROVALS, approvalName } from "./approvals";
+import { APPROVALS, APPROVAL_TIER, approvalName } from "./approvals";
+import { ApprovalIcon, ApprovalLevel } from "./ApprovalIcon";
 
 // Permission is one boundary, not a catch-all for every way a turn can run.
 // Work strategy and model effort live in their own controls beside this one.
@@ -45,6 +45,7 @@ export function Policy({ port, status, onChanged, onBoundary }: Props) {
       <button
         className="mode plain"
         data-action="chrome.policy"
+        data-tier={APPROVAL_TIER[apv]}
         data-risk={apv === "yolo" ? "" : undefined}
         aria-expanded={open}
         aria-label={`${t("执行权限")}：${label}`}
@@ -52,9 +53,7 @@ export function Policy({ port, status, onChanged, onBoundary }: Props) {
         onClick={() => setOpen((value) => !value)}
       >
         <span className="ic" aria-hidden="true">
-          {apv === "yolo"
-            ? <i className="polwarn"><StudioIcon name="warning" /></i>
-            : <svg viewBox="0 0 16 16"><path d="M8 2.2 13 4v3.5c0 3-1.8 5.1-5 6.3-3.2-1.2-5-3.3-5-6.3V4l5-1.8Z" /></svg>}
+          <ApprovalIcon mode={apv} />
         </span>
         <span className={apv === "yolo" ? "lb polrisk" : "lb"} data-display={label}>{label}</span>
         <span className="studio-control-chevron" aria-hidden="true">⌄</span>
@@ -69,13 +68,23 @@ export function Policy({ port, status, onChanged, onBoundary }: Props) {
                 className={`studio-permission-option${value === "yolo" ? " studio-permission-yolo" : ""}`}
                 data-action="tool-approval.mode"
                 data-value={value}
+                data-tier={APPROVAL_TIER[value]}
                 data-on={apv === value ? "" : undefined}
                 data-pending={asking === value ? "" : undefined}
                 aria-pressed={apv === value}
                 disabled={!!asking}
                 onClick={() => apply(value)}
               >
-                <span><b>{t(name)}</b><small>{t(note)}</small></span>
+                <span className="studio-permission-icon" aria-hidden="true">
+                  <ApprovalIcon mode={value} />
+                </span>
+                <span className="studio-permission-copy">
+                  <span className="studio-permission-title">
+                    <b>{t(name)}</b>
+                    <ApprovalLevel mode={value} />
+                  </span>
+                  <small>{t(note)}</small>
+                </span>
                 {apv === value && <span className="studio-permission-check" aria-hidden="true">✓</span>}
               </button>
             </div>

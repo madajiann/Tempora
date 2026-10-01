@@ -98,8 +98,8 @@ export function apply(look: Appearance | null, busy = false) {
 // A chosen family is a first choice, never the only one: a name that stops
 // resolving — an uninstalled font, a synced config from another machine —
 // must not take the interface's legibility with it.
-const FALLBACK_UI = `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei UI", "Noto Sans SC", Arial, sans-serif`;
-const FALLBACK_MONO = `ui-monospace, "Cascadia Code", "SF Mono", SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace`;
+const FALLBACK_UI = `"Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", "HarmonyOS Sans SC", "Source Han Sans SC", "Noto Sans SC", "PingFang SC", system-ui, sans-serif`;
+const FALLBACK_MONO = `"Cascadia Mono", "Cascadia Code", Consolas, "Microsoft YaHei UI", "Microsoft YaHei", ui-monospace, "SF Mono", Menlo, monospace`;
 
 function pct(v: number): number {
   if (!Number.isFinite(v)) return 50;

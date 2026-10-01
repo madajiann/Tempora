@@ -639,6 +639,7 @@ export function Composer({ port, status, running, quote, focus, onSubmit, onChan
             triggerAction="plan.mode"
             ariaPressed={status?.plan ?? false}
             place="bottom"
+            menuClassName="studio-mode-menu"
             title={t("工作模式")}
             current={status?.plan ? "plan" : "agent"}
             pending={busy["plan"]}

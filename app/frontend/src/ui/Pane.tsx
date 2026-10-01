@@ -1,11 +1,11 @@
 import { memo, useCallback, useEffect, useMemo, useReducer, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { money } from "../i18n/format";
+import { money, tokens } from "../i18n/format";
 import { reason } from "../i18n/kernel";
 import { t } from "../i18n";
 import { hasPendingDecision, posture, runState } from "./decisions";
 import { createPortal } from "react-dom";
 import { HttpError } from "../port/port";
-import type { AgentPort, Checkpoint, ContextBreakdown, JobEntry, McpEntry, SessionStatus, WorkspaceChanges } from "../port/port";
+import type { AgentPort, Checkpoint, CompactionSettings, ContextBreakdown, JobEntry, McpEntry, SessionStatus, WorkspaceChanges } from "../port/port";
 import type { RuntimeView } from "../port/hub";
 import type { TrajectoryRead } from "../port/wire";
 import { currentStep, fromHistory, initialState, localId, quoteAmount, reduce, stepDone, stepLabel } from "../state/session";
@@ -105,6 +105,8 @@ interface Props {
   needsProject: boolean;
   onOpenProject: () => void;
   onKeepHere: () => void;
+  // 状态栏「目录」按钮：点击打开选择器，把当前面板切到所选工作区（区别于添加项目）。
+  onChangeDir?: (root: string) => void;
   // A prop, not a document read: this pane is memoised past an attribute flip.
   theme: string;
   // Rides on `.app`: that is where the divider writes while a drag is in flight.
@@ -116,7 +118,17 @@ interface Props {
   alert?: ReactNode;
 }
 
-function PaneView({ port, rt, title, active, visible, sideHost, side, onFocus, onReport, onSessionChanged, pulse, findPulse, onSettings, needsProject, onOpenProject, onKeepHere, theme, dockW, onDockW, manualBrowser = false, onManualBrowser, alert }: Props) {
+// 底部状态栏用的一个小标签-数值块。键在左、值（粗体）在右，整体可横向滚动。
+function MeterStat({ k, v, title }: { k: string; v: ReactNode; title?: string }) {
+  return (
+    <span className="studio-meter-stat" title={title}>
+      <span className="k">{k}</span>
+      <b>{v}</b>
+    </span>
+  );
+}
+
+function PaneView({ port, rt, title, active, visible, sideHost, side, onFocus, onReport, onSessionChanged, pulse, findPulse, onSettings, needsProject, onOpenProject, onKeepHere, onChangeDir, theme, dockW, onDockW, manualBrowser = false, onManualBrowser, alert }: Props) {
   const [s, dispatch] = useReducer(reduce, initialState);
   const [traj, trajDispatch] = useReducer(reduceTraj, initialTraj);
   const [status, setStatus] = useState<SessionStatus | null>(null);
@@ -127,6 +139,20 @@ function PaneView({ port, rt, title, active, visible, sideHost, side, onFocus, o
   const [askFocus, setAskFocus] = useState(0);
   const [tree, setTree] = useState<WorkspaceChanges | null>(null);
   const [ctx, setCtx] = useState<ContextBreakdown | null>(null);
+  // 底部状态栏的「压缩阀值」需要它；一次性拉取，失败静默降级为「—」。
+  const [compaction, setCompaction] = useState<CompactionSettings | null>(null);
+  // 全窗口宽度的状态栏：活动面板把指标渲染进 App 里的 #studio-statusbar 节点，
+  // 不再贴在对话框底下。挂载后抓取该节点，再 portal 进去。
+  const [meterHost, setMeterHost] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    let live = true;
+    port.compaction().then((c) => live && setCompaction(c), () => {});
+    return () => { live = false; };
+  }, [port]);
+  // 全局状态栏节点由 App 渲染，提交后这里才能抓到。
+  useEffect(() => {
+    setMeterHost(document.getElementById("studio-statusbar"));
+  }, []);
   const [checkpoints, setCheckpoints] = useState<Checkpoint[]>([]);
   const [slots, setSlots] = useState<Record<string, string>>({});
   const pages = useBrowserTabs(port, s.browserTabsMoved);
@@ -501,6 +527,18 @@ function PaneView({ port, rt, title, active, visible, sideHost, side, onFocus, o
   const contextPercent = ctx && ctx.window > 0 ? Math.min(100, Math.round((ctx.used / ctx.window) * 100)) : null;
   const walletDisplay = wallet.kind === "read" ? wallet.reading.display : "";
 
+  // 底部状态栏补全所需的派生量（模型 / 目录 / 命中 / 吞吐 / 压缩阀值 / 金额）。
+  const modelLabel = status?.label ?? "—";
+  const dirName = rt.root.split(/[\\/]/).filter(Boolean).pop() || "—";
+  const hitTok = s.metrics.hit;
+  const missTok = s.metrics.miss;
+  const outTok = s.metrics.out;
+  const sessionTok = hitTok + missTok + outTok;
+  const turnTok = s.metrics.turn;
+  const turnCount = s.metrics.rounds.length;
+  const avgHit = cacheRate === null ? "—" : `${cacheRate}%`;
+  const compactDisplay = compaction ? tokens(compaction.soft_limit_tokens) : "—";
+
   // The chrome reads the focused pane. Reporting from an effect keeps it out of
   // render, where it would set state on the parent mid-paint.
   useEffect(() => {
@@ -690,7 +728,14 @@ function PaneView({ port, rt, title, active, visible, sideHost, side, onFocus, o
         </div>
         {alert && <div className="cmpalert">{alert}</div>}
         <Composer port={port} status={status} running={s.running} quote={quote} focus={askFocus} onSubmit={submit} onChanged={refreshStatus} onError={fail} onSettings={onSettings} changeCount={tree?.repo ? tree.changes.length : 0} pulse={pulse} />
-        <div className="studio-meterrail" ref={meterRef} aria-label={t("运行统计")}>
+        {active && meterHost && createPortal(
+          <div className="studio-meterrail" ref={meterRef} aria-label={t("运行统计")}>
+          <MeterStat k={t("模型")} v={modelLabel} title={status?.modelRef} />
+          {/* 目录做成可选择的：点击打开文件夹选择器，把当前面板切到所选工作区。
+              不再复用 adder.add()，避免每次都弹「添加项目」选择器。 */}
+          <button className="studio-meter-stat studio-meter-dir" type="button" title={t("点击切换工作区目录")} aria-label={t("切换工作区目录")} onClick={() => { void port.pickFolder().then((dir) => { if (dir) onChangeDir?.(dir); }); }}>
+            <span className="k">{t("目录")}</span><b>{dirName}</b>
+          </button>
           <div className="studio-speed-anchor">
             <button
               className="studio-meter-static studio-meter-speed"
@@ -713,9 +758,13 @@ function PaneView({ port, rt, title, active, visible, sideHost, side, onFocus, o
               <p>{t("当前速度按最近 4 秒流式文本估算；整轮平均使用服务商返回的输出 Token 除以模型回合耗时。")}</p>
             </div>
           </div>
-          <span className="studio-meter-static studio-meter-cache" title={cacheRate === null ? t("尚无缓存数据") : t("命中 {hit} · 未命中 {miss}", { hit: s.metrics.hit.toLocaleString(), miss: s.metrics.miss.toLocaleString() })}>
-            <span>{t("缓存")}</span><b>{cacheRate === null ? "—" : `${cacheRate}%`}</b>
-          </span>
+          <MeterStat k={t("本次命中")} v={tokens(hitTok)} title={t("缓存命中 tokens（本次会话累计）")} />
+          <MeterStat k={t("平均命中")} v={avgHit} title={t("命中率 = 命中 ÷（命中 + 未命中）")} />
+          <MeterStat k={t("会话tokens")} v={tokens(sessionTok)} title={t("命中 + 未命中 + 输出")} />
+          <MeterStat k={t("本次tokens")} v={tokens(turnTok)} title={t("本轮新增 tokens")} />
+          <MeterStat k={t("输出")} v={tokens(outTok)} />
+          <MeterStat k={t("缓存")} v={`${tokens(hitTok)} / ${tokens(missTok)}`} title={t("命中 / 未命中")} />
+          <MeterStat k={t("会话")} v={`${turnCount}`} title={t("本轮数")} />
           {ctx && ctx.window > 0 && (
             <div className="studio-context-anchor" data-open={meterOpen ? "" : undefined}>
               <button className="studio-meter-context" data-action="metrics.details" data-value="context" aria-expanded={meterOpen} aria-haspopup="dialog" aria-label={t("查看上下文与压缩")} onClick={() => setMeterOpen((open) => !open)}>
@@ -731,10 +780,17 @@ function PaneView({ port, rt, title, active, visible, sideHost, side, onFocus, o
               />
             </div>
           )}
-          {cost && <span className="studio-meter-cost"><span>{t("本轮")}</span><b>{cost}</b></span>}
-          {wallet.kind === "read" && <button className="studio-meter-wallet" data-action="settings.section" data-value="usage" aria-label={t("查看钱包余额")} onClick={() => onSettings("usage")}><StudioIcon name="wallet" /><b>{wallet.reading.display}</b></button>}
+          <MeterStat k={t("压缩阀值")} v={compactDisplay} title={t("上下文自动压缩的 tokens 阈值")} />
+          {cost && <MeterStat k={t("会话金额")} v={cost} title={t("本次会话累计花费")} />}
+          {wallet.kind === "read" && (
+            <button className="studio-meter-wallet" data-action="settings.section" data-value="usage" aria-label={t("查看钱包余额")} onClick={() => onSettings("usage")}>
+              <StudioIcon name="wallet" /><b>{wallet.reading.display}</b>
+            </button>
+          )}
           <DeckChips tasks={rail.tasks} jobs={jobs} open={deck} onOpen={setDeck} onCancelJob={(id) => port.cancelJob(id).then(refreshStatus, fail)} />
-        </div>
+          </div>,
+          meterHost,
+        )}
         {/* Below the box, under a ceiling of their own. Both arrive unbidden and
             both are dismissed one at a time, so nothing else bounds how many can
             be on screen at once. */}
