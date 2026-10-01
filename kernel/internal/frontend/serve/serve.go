@@ -504,6 +504,11 @@ func (s *Server) index(w http.ResponseWriter, r *http.Request) {
 		refuse(w, http.StatusNotFound, "page.not_built", "this kernel is serving no built interface", nil)
 		return
 	}
+	// The shell must never come from a cache: WebView2 heuristic-caches
+	// index.html (no Cache-Control means Last-Modified-based freshness), and a
+	// stale shell keeps referencing old hashed assets. Assets are
+	// content-hashed, so only the shell itself needs the bypass.
+	w.Header().Set("Cache-Control", "no-cache")
 	http.ServeFileFS(w, r, s.page, "index.html")
 }
 

@@ -218,10 +218,57 @@ func resolveWorkspaceRoot(explicit string) string {
 	if err != nil {
 		return ""
 	}
+	if inSystemRoot(wd) || inOwnInstallTree(wd) {
+		// 拉起方没给工作目录时（运行对话框、安装器完成后重启等），
+		// Windows 会把进程 cwd 落在 System32 —— 系统目录不该成为
+		// 默认工作区，退回用户主目录。Explorer 双击 exe 启动时 cwd
+		// 会落在 exe 所在目录，安装目录（D:\Tempora 之类）同样不该
+		// 成为默认工作区，一并退回。
+		if home, herr := os.UserHomeDir(); herr == nil {
+			wd = home
+		}
+	}
 	if root, ok := nearestGitRoot(wd); ok {
 		return root
 	}
 	return wd
+}
+
+// InSystemRoot 判断 dir 是否位于 %SystemRoot%（如 C:\Windows）之内。
+func InSystemRoot(dir string) bool { return inSystemRoot(dir) }
+
+// PathContains reports whether outer == inner or inner lies inside outer.
+func PathContains(outer, inner string) bool {
+	rel, err := filepath.Rel(filepath.Clean(outer), filepath.Clean(inner))
+	if err != nil {
+		return false
+	}
+	return rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
+}
+
+// inOwnInstallTree 判断 dir 是否与内核可执行文件所在安装目录重叠：
+// dir 就是安装目录、在它之内，或它是 dir 的祖先。双击启动时进程 cwd
+// 就是安装目录，这个目录不该被注册成工作区。
+func inOwnInstallTree(dir string) bool {
+	exe, err := os.Executable()
+	if err != nil {
+		return false
+	}
+	exeDir := filepath.Dir(exe)
+	return PathContains(dir, exeDir) || PathContains(exeDir, dir)
+}
+
+// inSystemRoot 判断 dir 是否位于 %SystemRoot%（如 C:\Windows）之内。
+func inSystemRoot(dir string) bool {
+	sysRoot := os.Getenv("SystemRoot")
+	if sysRoot == "" {
+		return false
+	}
+	rel, err := filepath.Rel(filepath.Clean(sysRoot), filepath.Clean(dir))
+	if err != nil {
+		return false
+	}
+	return rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
 }
 
 func normalizeAdditionalDirs(root string, dirs []string) ([]string, error) {

@@ -42,6 +42,12 @@ func workspacesPath() string {
 
 // Workspaces is the most-recent-first list of folders this frontend has opened.
 // Exported for the shell, which reopens the head of the list at launch.
+//
+// Illegitimate roots — system directories and the kernel's own install tree —
+// never come back: they were registered by launch paths that inherit a stray
+// working directory (run dialog, installer relaunch, Explorer double-click),
+// and the persisted list is rewritten without them, so a stale entry
+// disappears from the sidebar on the first read after an upgrade.
 func Workspaces() []string {
 	p := workspacesPath()
 	if p == "" {
@@ -57,22 +63,56 @@ func Workspaces() []string {
 	}
 	out := make([]string, 0, len(paths))
 	seen := map[string]bool{}
+	dropped := false
 	for _, path := range paths {
 		path = strings.TrimSpace(path)
 		if path == "" || seen[path] {
 			continue
 		}
+		if illegitimateWorkspaceRoot(path) {
+			dropped = true
+			continue
+		}
 		seen[path] = true
 		out = append(out, path)
 	}
+	if dropped {
+		// Self-heal: rewrite the remembered list without the strays, or every
+		// read would filter them again and the file would keep the garbage.
+		writeWorkspaces(out)
+	}
 	return out
+}
+
+// illegitimateWorkspaceRoot reports whether dir is a place a remembered
+// workspace can never come from: inside %SystemRoot% (a System32 cwd
+// inherited from a run dialog or an installer relaunch) or overlapping the
+// kernel binary's install tree (Explorer double-click launches with the cwd
+// set to the exe folder, which registered the install dir as a workspace).
+func illegitimateWorkspaceRoot(dir string) bool {
+	dir = strings.TrimSpace(dir)
+	if dir == "" {
+		return true
+	}
+	if boot.InSystemRoot(dir) {
+		return true
+	}
+	exe, err := os.Executable()
+	if err != nil {
+		return false
+	}
+	if abs, err := filepath.Abs(dir); err == nil {
+		dir = abs
+	}
+	exeDir := filepath.Dir(exe)
+	return boot.PathContains(dir, exeDir) || boot.PathContains(exeDir, dir)
 }
 
 // rememberWorkspace adds dir to the remembered list, newest first. A folder
 // already on the list keeps its position: the sidebar renders this order, and
 // re-sorting it on every open makes the tree jump under the pointer.
 func rememberWorkspace(dir string) {
-	if dir == "" {
+	if dir == "" || illegitimateWorkspaceRoot(dir) {
 		return
 	}
 	existing := Workspaces()

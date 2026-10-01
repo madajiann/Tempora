@@ -58,6 +58,11 @@ func withPage(kernel http.Handler, page fs.FS) http.Handler {
 			return
 		}
 		if st, err := fs.Stat(page, name); err == nil && !st.IsDir() {
+			// HTML shells are revalidated every time; content-hashed assets
+			// keep the FileServer's default caching.
+			if strings.HasSuffix(name, ".html") {
+				w.Header().Set("Cache-Control", "no-cache")
+			}
 			files.ServeHTTP(w, r)
 			return
 		}
