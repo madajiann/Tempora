@@ -42,3 +42,12 @@ token.txt
 # ===== 系统文件 =====
 Thumbs.db
 desktop.ini
+
+# ===== 调试截图 / 临时脚本（开发时抓图用，不入库）=====
+shell/src-tauri/shot*.png
+shell/src-tauri/shot*.py
+scripts/tray_icon_compare.png
+scripts/*.tmp
+scripts/*.tmp.*
+# 逐版本升级用的本地批处理，非产品代码
+update-to-*.bat

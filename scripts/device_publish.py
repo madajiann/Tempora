@@ -15,7 +15,17 @@
   5. 上传资产：安装包 / .sig / latest.json（走 S3 直传）
   6. 逐个端点读回验证
 
+注意（2026-10-01 实测）：Device Flow 用 gh CLI 的 OAuth App 拿到的是 `ghu_` 开头的
+**GitHub App token，没有仓库写权限** —— push / 建 release / 写文件一律 403
+"Resource not accessible by integration"（`GET /repos` 返回的 push=True 是误导）。
+这条脚本的取凭据部分只能用于只读场景；要发版请直接放一个 classic PAT（`ghp_`）
+到 ~/.tempora/token，然后从「创建 Release」那一步开始跑。
+
 用法:
+    # 已有 PAT（推荐，ghp_ 开头）放 ~/.tempora/token 后：
+    python scripts/device_publish.py --use-token <version>
+
+    # 或走 Device Flow（只能拿到只读 ghu_ token，发版别用）：
     python scripts/device_publish.py <device_code> <version>
 """
 import base64
@@ -35,16 +45,22 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def no_proxy_opener():
-    # 沙箱会注入代理，api.github.com 需要直连
+    # api.github.com 直连才通，必须绕开沙箱代理
     return urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
 
-def post(url, data, headers, timeout=60):
+def proxy_opener():
+    # github.com 域名沙箱外连不上，只能走沙箱注入的代理（默认 opener）
+    return urllib.request.build_opener()
+
+
+def post(url, data, headers, timeout=60, via_proxy=False):
     body = urllib.parse.urlencode(data).encode() if isinstance(data, dict) else data
     req = urllib.request.Request(url, data=body, method="POST")
     for k, v in headers.items():
         req.add_header(k, v)
-    return no_proxy_opener().open(req, timeout=timeout)
+    op = proxy_opener() if via_proxy else no_proxy_opener()
+    return op.open(req, timeout=timeout)
 
 
 def poll_token(device_code: str, timeout_sec=870):
@@ -61,6 +77,7 @@ def poll_token(device_code: str, timeout_sec=870):
                     "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
                 },
                 {"Accept": "application/json"},
+                via_proxy=True,  # github.com 只有走沙箱代理才通
             )
             d = json.loads(r.read().decode())
         except urllib.error.HTTPError as e:
@@ -154,23 +171,32 @@ def upload_asset(release_id, path, token):
 
 
 def main():
-    if len(sys.argv) < 3:
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    flags = [a for a in sys.argv[1:] if a.startswith("--")]
+    if len(args) < 1:
         print(__doc__)
         sys.exit(2)
-    device_code, version = sys.argv[1], sys.argv[2]
+    version = args[-1]
     tag = f"v{version}"
 
-    token = poll_token(device_code)
-    if not token:
-        sys.exit(1)
-    print(f"拿到凭据 {token[:8]}...", flush=True)
-
     tok_path = os.path.expanduser("~/.tempora/token")
-    os.makedirs(os.path.dirname(tok_path), exist_ok=True)
-    with open(tok_path, "w", encoding="utf-8") as f:
-        f.write(token)
-    os.chmod(tok_path, 0o600)
-    print(f"已写入 {tok_path}", flush=True)
+    if "--use-token" in flags or len(args) < 2:
+        # 已有 PAT：跳过 Device Flow，直接走发布
+        if not os.path.exists(tok_path):
+            print(f"缺凭据文件 {tok_path}")
+            sys.exit(1)
+        token = open(tok_path, encoding="utf-8").read().strip()
+        print(f"使用 {tok_path} 中的凭据 {token[:4]}...", flush=True)
+    else:
+        token = poll_token(args[0])
+        if not token:
+            sys.exit(1)
+        print(f"拿到凭据 {token[:8]}...", flush=True)
+        os.makedirs(os.path.dirname(tok_path), exist_ok=True)
+        with open(tok_path, "w", encoding="utf-8") as f:
+            f.write(token)
+        os.chmod(tok_path, 0o600)
+        print(f"已写入 {tok_path}", flush=True)
 
     # 1) push
     creds = base64.b64encode(f"madajiann:{token}".encode()).decode()
