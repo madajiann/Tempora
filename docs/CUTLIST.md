@@ -99,3 +99,134 @@
 2. **黑色控制台窗口** — 真凶：桌面快捷方式指向 `D:/Tempora/tempora-shell.exe`（旧编译 14,879,232 字节，PE subsystem=3 CONSOLE）。G 盘新版 (14,781,440, subsystem=2) 没同步过去。已把新壳覆盖 D 盘并验证 subsystem=2；G 盘壳 build.rs 此前已加 /SUBSYSTEM:WINDOWS 根修。
 3. **点关闭→托盘** — main.rs 原本 7 行无托盘。新增 `tray-icon` feature：左键显隐切换 / 右键菜单「显示主窗口」「退出 Tempora」/ `CloseRequested` 拦截 → `hide()`。关闭不再退出，托盘右键退出才是真退出。
 4. **安装包重打**：`G:/Tempora/Tempora_0.1.0_x64-setup.exe`（13,144,236 字节，含以上全部 + 装完自动跳完成页 hooks）。僵尸安装器 PID 46156 占锁导致首次 bundle 拒绝访问，Stop-Process 后用 tauri 自带 makensis 直打成功（exit=0）。
+
+## 2026-09-26 深夜：来户主「软件打开没有页面」
+1. **根因** — 壳 `main.rs` 从来不拉起内核：窗口 URL 恒为 `http://127.0.0.1:8787`，而内核 tempora.exe 靠人手启动。内核没起 → 8787 无监听 → 主窗口永远空白。（此前的"打不开"都不是壳坏了，是这个缺口。）
+2. **修复（内核托管）** — `main.rs` 新增：
+   - `ensure_kernel()`：`port_up(8787)` 不通时按候选顺序找内核（环境变量 `TEMPORA_KERNEL` → 壳同目录 `tempora.exe` → 同目录 `frontend-next/tempora.exe` → `%LOCALAPPDATA%\Tempora`、`%LOCALAPPDATA%\Programs\Tempora`），找到就 spawn，**必须带 `serve --addr 127.0.0.1:8787`**（内核是 CLI，裸跑会进 TUI 后退出），最多等 30 秒看端口是否顶起来。
+   - `boot_main_window()`：等端口就绪再 `eval("location.reload()")` + `show()`，避免用户看到加载失败的白窗；`tauri.conf.json` 主窗口改 `"visible": false`。
+   - 托盘「显示主窗口」发现内核不在会先救回来；托盘「退出」时 `take().kill()` 回收内核，不留孤儿进程。
+3. **部署配套** — D 盘运行目录补齐：`D:/Tempora/tempora.exe`（47.6MB）+ `D:/Tempora/frontend-next/dist`（前端产物），这样双击壳即有一条龙环境。
+4. **实测** — 双击壳 → 内核被自动拉起（8787 LISTENING，进程 tempora.exe），前端页面 200、`/rt/r1/*` 接口正常，主界面加载完成。
+5. **顺带修掉的重命名 IME bug（户主拍板后）** — 会话/页签重命名输入框的 Enter 分支没有 IME 守卫，中文输入法回车确认候选词会误提交并关闭输入框（上游 v1.39.1 的 #10836）。`ui/Workspaces.tsx`、`ui/PaneTabs.tsx` 接入 `ui/ime.ts` 的 `useIme`，并挂 `onCompositionStart/End`。
+6. **发版 0.1.1**（见 `docs/UPSTREAM_LOG.md`）。
+7. **遗留（已知，等户主定夺）** — tauri-cli 2.11.5 本机签名死锁，0.1.1 为**无签名模式**（`pubkey: ""`），自动更新暂不可用；包内功能不受影响。
+
+## 2026-09-27 凌晨：签名死锁攻克 + 0.1.2 带签名发版
+
+### 根因（三条硬证据）
+1. **坏密钥** — `@tauri-apps/cli@2.11.5` CHANGELOG 第 97 行（PR #15022）：
+   *"The keys generated during tauri were broken between v2.9.3 and v2.10.0, you'll need to regenerate them"*。
+   旧 `~/.tauri/tempora.key` 就出自那个窗口，2.11.5 解密必失败 —— 这就是之前 6 种姿势全挂的原因。
+2. **缺 `--ci`** — 同 CHANGELOG 第 1796 行：`--ci` 或 `CI` 环境变量存在且 `TAURI_KEY_PASSWORD` 为空时跳过密码提示。之前一直卡在 "Decrypting updater signing key" 就是在等密码输入。
+3. **pubkey 格式填错（最坑）** — `pubkey` 字段要填 `.pub` 文件的**原始 base64 串**，不是 `RW...` 那一行。
+   依据 `tauri-plugin-updater-2.10.1/src/updater.rs:1455`：`base64_to_string(pub_key)` 先 base64 解码**再要求 utf8**。
+   填 `RW...`（解码得 48 字节二进制）→ `failed to decode base64 pubkey: invalid utf-8 sequence of 1 bytes from index 3`。
+
+### 另两个坑
+- `TAURI_SIGNING_PRIVATE_KEY` 必须传私钥**内容**，传路径会被忽略（`TAURI_SIGNING_PRIVATE_KEY_PATH` 不认），报 `A public key has been found, but no private key`。
+- `--ci` 只能作命令行参数传，`CI=1` 会报 `invalid value '1' for '--ci'`（它只认 `true`/`false`）。
+
+### 操作记录
+```bash
+# 0) 旧密钥已备份
+cp ~/.tauri/tempora.key{,.bak-20260927}      # 要回退直接 cp 回去
+
+# 1) 生成新无密码密钥（2.11.5 没有 --wants-password 参数，不传 -p 即无密码）
+cd shell/src-tauri
+CI=1 cargo tauri signer generate -w "C:/Users/Administrator/.tauri/tempora.key" -f --ci
+
+# 2) 新 pubkey 写入 tauri.conf.json 的 plugins.updater.pubkey
+#    = cat ~/.tauri/tempora.key.pub 的整行 base64
+
+# 3) 带签名打包
+export TAURI_SIGNING_PRIVATE_KEY="$(cat C:/Users/Administrator/.tauri/tempora.key)"
+cargo tauri build --ci        # 约 6 分钟
+
+# 4) 发版（必须递增版本号，0.1.1 已发布且客户端已装，同版本 updater 会跳过）
+python scripts/release_updater.py --version 0.1.2 --notes "..."
+```
+
+### 结果
+- `v0.1.2` 已正式发布（draft=false / prerelease=false），资产三个：
+  `latest.json` 885B、`Tempora_0.1.2_x64-setup.exe` 13.79MB、`Tempora_0.1.2_x64-setup.exe.sig` 436B。
+- 安装包副本 `G:/Tempora/Tempora_0.1.2_x64-setup.exe`。
+- **自动更新恢复可用**，客户端刷新后应能收到更新提示。
+- ⚠️ 已装的 0.1.1 客户端 `pubkey` 为空（无签名），updater 会静默失败不提示 → 需手动重装 0.1.2 一次。
+
+---
+
+## 2026-09-27 上午：品牌残留 / 安装页多一步 / 弹控制台窗
+
+户主现场验收 0.1.2 时报三个问题，逐一查根因并修完，**0.1.3 已发布带签名**。
+
+### 1. 左上角 "R tempora" —— 两个 bug 叠加
+
+| 位置 | 问题 | 修复 |
+|---|---|---|
+| `app/frontend/src/ui/Onboarding.tsx:168` | 写死的 `<span ...>R</span>`，从 Reasonix 拷贝时漏改 | 改成 `T` |
+| `app/frontend/src/ui/Sidebar.tsx:168` | `reasoni<b>x</b> studio` 品牌字 | 改成 `tempora` |
+
+其余 `reasonix` 命中都是内部 API 字段名，用户不可见，不动。
+构建产物已验证：`onb-brandmark children:T`、侧栏 `tempora`。
+
+**另一半原因是图标文件**：`icons/icon.ico` 只有 **1 帧 256×256**，Windows 标题栏/任务栏/
+资源管理器要 16/24/32/48 这些小尺寸，取不到帧就回落到图标缓存里的旧 Reasonix 图标。
+用 PIL 重建为 7 帧（16~256 全齐，109,164 B），逐帧核对过文件头。
+
+> 户主那边若装完图标仍显示旧图，是 Windows 图标缓存：跑 `ie4uinit.exe -show` 或注销重登。
+
+### 2. 安装器装完还要点一次"下一步"
+
+tauri 模板 `crates/tauri-bundler/src/bundle/windows/nsis/installer.nsi` 原文：
+
+```nsis
+!define MUI_FINISHPAGE_NOAUTOCLOSE
+; Don't auto jump to finish page after installation page
+${If} $PassiveMode = 1
+  SetAutoClose true
+${EndIf}
+```
+
+**只有被动/静默模式才自动跳**，普通模式永远停在"下一步"。
+旧 `hooks.nsh` 用 `SendMessage WM_COMMAND` 模拟点按钮 —— 时机不对（Section 内按钮还写着
+"安装中"），完全没生效。
+
+修法：在 `nsis/hooks.nsh` 的 `NSIS_HOOK_POSTINSTALL` / `NSIS_HOOK_POSTUNINSTALL` 里
+无条件 `SetAutoClose true`（这个宏在 Section **外**执行，时机正确）。
+
+### 3. 打开软件弹"记事本"
+
+未复现 —— 启动壳后抓屏 + 枚举全部可见窗口，无 notepad 进程、无记事本窗口。
+全量搜过 `kernel/`（Go）与前端/Rust 源码，**无任何 notepad / ShellExecute / .txt 调用**
+（命中的全是 Go 测试里的字符串常量）。
+
+判定：这是 **Go 内核（控制台程序）被 Rust `Command::spawn` 拉起时 Windows 顺带开的
+conhost 窗口**，白底黑字像记事本。已在 `main.rs` 加 `.creation_flags(0x0800_0000)`
+（CREATE_NO_WINDOW）根治。
+
+### 顺带修的隐患
+
+`Command::spawn` 内核时未加 `CREATE_NO_WINDOW` → GUI 壳拉起控制台子程序会闪黑窗。已加。
+
+### 打包 & 发版（Rust 工具链已迁到 G 盘）
+
+```bash
+cargo --version                 # 1.98.1
+rustc --print sysroot           # G:\Rust工具\rustup\toolchains\stable-x86_64-pc-windows-msvc
+                                # C 盘 ~/.cargo 仍在，但 toolchain 实体已在 G 盘
+
+cd shell/src-tauri
+export TAURI_SIGNING_PRIVATE_KEY="$(cat C:/Users/Administrator/.tauri/tempora.key)"
+cargo tauri build --ci          # 8 分钟（rustup 换位置触发全量重编）
+
+cd ../..
+python scripts/release_updater.py --version 0.1.3 --notes "..."
+```
+
+### 结果
+- `v0.1.3` 已发布（draft=false / prerelease=false），资产三个：
+  `latest.json` 990B、`Tempora_0.1.3_x64-setup.exe` 13,795,204B、
+  `Tempora_0.1.3_x64-setup.exe.sig` 436B。
+- 安装包副本 `G:/Tempora/Tempora_0.1.3_x64-setup.exe`。
+- 自动更新链路完整可用（带签名 + pubkey 已填 base64 格式）。

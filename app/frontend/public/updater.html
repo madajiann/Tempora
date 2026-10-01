@@ -112,7 +112,6 @@
     foot.style.display = 'flex';
     installBtn.textContent = '好的';
     installBtn.onclick = function () { window.__TAURI__.window.getCurrentWindow().close(); };
-    setTimeout(function () { window.__TAURI__.window.getCurrentWindow().close(); }, 2500);
   }
 
   function showAvailable(update) {
@@ -142,11 +141,13 @@
       } else if (ev.event === 'Finished') {
         barFill.style.width = '100%';
         barText.textContent = '100%';
-        installBtn.textContent = '正在安装…';
-        setTimeout(function () {
-          renderState('<div class="msg">更新完成，应用将自动重启…</div>');
-          setTimeout(function () { window.__TAURI__.process.relaunch(); }, 1200);
-        }, 400);
+        // tauri 的 Windows 安装流程：Finished 后 Rust 侧解压安装器并启动
+        // NSIS（/P 进度条 /R 装完自动重启），随后主进程 exit(0)。
+        // 这里的 JS 很快就会被带走，只做提示，不要做 relaunch（跑不到）。
+        barWrap.style.display = 'none';
+        installBtn.style.display = 'none';
+        document.getElementById('laterBtn').style.display = 'none';
+        renderState('<div class="msg"><b>下载完成，正在安装…</b><br>安装窗口关闭后应用会自动重启到新版本。</div>');
       }
     }).catch(function (e) {
       renderState('<div class="msg">更新失败：' + String(e).slice(0, 160) + '</div>');

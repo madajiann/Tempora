@@ -4,9 +4,10 @@ import type { AccountState } from "../port/port";
 import type { HubPort, RuntimeView, TreeWorkspace } from "../port/hub";
 import type { RemoteHost } from "../port/remote";
 import type { Adder } from "./addws";
-import { AccountRow } from "./AccountRow";
+import { WorkspaceFoot } from "./WorkspaceFoot";
 import { RailSearch } from "./railsearch";
 import { RemoteHosts } from "./RemoteHosts";
+import { host, type UpdateStatus } from "../port/host";
 import { StudioIcon } from "./StudioIcon";
 import { Palette, type Command } from "./Palette";
 import { Workspaces } from "./Workspaces";
@@ -35,7 +36,7 @@ interface Props {
   readRemoteTree: (host: string) => Promise<void>;
   reloadTree: () => Promise<void>;
   adder: Adder;
-  onOpen: (req: { root?: string; sessionPath?: string }) => Promise<void>;
+  onOpen: (req: { root?: string; sessionPath?: string; fresh?: boolean }) => Promise<void>;
   onOpenRemote: (host: string, workspace?: string, sessionPath?: string) => Promise<void>;
   onFocusPane: (id: string) => void;
   onClosePanes: (ids: string[]) => Promise<void>;
@@ -108,7 +109,7 @@ export function Sidebar({
   const commands = useMemo<Command[]>(
     () => [
       { id: "new", label: t("新建会话"), icon: "plus", keywords: "new session chat 新建",
-        run: () => void onOpen({ root: newSessionRoot }).catch(onError) },
+        run: () => void onOpen({ root: newSessionRoot, fresh: true }).catch(onError) },
       { id: "storage", label: t("文件"), icon: "file", keywords: "files storage 文件 存储",
         run: () => onSettings("storage") },
       { id: "ext", label: t("工具与集成"), icon: "plug", keywords: "tools mcp skills 工具 集成",
@@ -127,6 +128,22 @@ export function Sidebar({
   const sessionCount = tree.reduce((n, ws) => n + ws.sessions.filter((session) => !session.archived).length, 0);
   const archivedCount = tree.reduce((n, ws) => n + ws.sessions.filter((session) => session.archived).length, 0);
   const liveCount = liveIds(runtimes.map((rt) => rt.id)).length;
+
+  // The wordmark reports the shell's own version and whether a newer build is
+  // out. Asked once on mount: the answer comes from the network, so a rail that
+  // re-asked on every render would hammer the update endpoint.
+  const [update, setUpdate] = useState<UpdateStatus>({ current: null, available: false, latest: null });
+  useEffect(() => {
+    let alive = true;
+    void host()
+      .updateStatus()
+      .then((s) => {
+        if (alive) setUpdate(s);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const onFold = (root: string, shut: boolean) =>
     setFolded((prev) => {
@@ -164,16 +181,31 @@ export function Sidebar({
       <div className="studio-rail-head">
         <div className="studio-brand" aria-label="Tempora Studio">
           <span className="studio-brand-mark" aria-hidden="true"><StudioIcon name="brand" /></span>
-          <span className="studio-brand-word" aria-hidden="true">
-            <b>reasoni<span className="studio-brand-accent">x</span></b>
-            <small>studio</small>
+          <span className="studio-brand-word">
+            <span className="studio-brand-line">
+              <b>empor<span className="studio-brand-accent">a</span></b>
+              <i className="studio-brand-suffix">studio</i>
+            </span>
+          </span>
+          <span
+            className="studio-brand-meta"
+            data-tip={update.available ? `有新版本 ${update.latest}，点击更新` : "当前已是最新版本"}
+          >
+              <small>{update.current ? `v${update.current}` : ""}</small>
+              <button
+                type="button"
+                className="studio-update-dot"
+                data-state={update.available ? "available" : "current"}
+                aria-label={update.available ? `有新版本 ${update.latest}，点击更新` : "已是最新版本"}
+                onClick={() => host().openUpdater()}
+              />
           </span>
           <button className="studio-collapse" data-action="chrome.rail" onClick={() => onCollapse()} aria-label={t("收起工作区栏")} title={t("收起侧栏")}><StudioIcon name="panel" /></button>
         </div>
         <button
           className="studio-new-task"
           data-action="session.new"
-          onClick={() => void onOpen({ root: newSessionRoot }).catch(onError)}
+          onClick={() => void onOpen({ root: newSessionRoot, fresh: true }).catch(onError)}
         >
           <span aria-hidden="true"><StudioIcon name="plus" /></span>{t("新建会话")}<kbd>Alt N</kbd>
         </button>
@@ -241,11 +273,16 @@ export function Sidebar({
       </div>
       <div className="railfoot">
         <button className="studio-wallet" data-action="settings.section" data-value="usage" onClick={() => onSettings("usage")}><span aria-hidden="true"><StudioIcon name="wallet" /></span><b>{t("钱包与用量")}</b>{wallet && <small>{wallet}</small>}</button>
-        <div className="studio-user-foot">
-          <AccountRow account={account} unread={accountUnread} onOpen={() => onSettings("account")} />
-          <span className="studio-workspace-kind">{t(account?.signedIn ? "个人工作空间" : "本地工作空间")}</span>
-          <button className="studio-settings" data-action="chrome.settings" onClick={() => onSettings()} aria-label={t("设置")}><StudioIcon name="settings" /></button>
-        </div>
+        <WorkspaceFoot
+          tree={tree}
+          activeWorkspace={activeWorkspace}
+          account={account}
+          unread={accountUnread}
+          adder={adder}
+          onOpen={onOpen}
+          onSettings={onSettings}
+          onError={onError}
+        />
       </div>
     </div>
     </>

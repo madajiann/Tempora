@@ -49,6 +49,19 @@ export interface HostPort {
   answerBrowserLogin(id: string, username: string, password: string): void;
   /** Proceed past the certificate this page was refused for, for this run. */
   trustBrowserCertificate(target: string): Promise<boolean>;
+  /** The running shell's own version and whether a newer build is published. */
+  updateStatus(): Promise<UpdateStatus>;
+  /** Open the shell's update window. Nothing happens where there is no shell. */
+  openUpdater(): void;
+}
+
+/** What the version dot next to the wordmark reports. */
+export interface UpdateStatus {
+  /** The running version, "0.1.15" style. null where no shell can answer. */
+  current: string | null;
+  available: boolean;
+  /** The newer version; only carries a value when available is true. */
+  latest: string | null;
 }
 
 export interface BrowserLoadFailure {
@@ -195,6 +208,10 @@ class ElectronHost implements HostPort {
   trustBrowserCertificate(target: string) {
     return this.api.trustBrowserCertificate?.(target) ?? Promise.resolve(false);
   }
+  updateStatus(): Promise<UpdateStatus> {
+    return Promise.resolve({ current: null, available: false, latest: null });
+  }
+  openUpdater() {}
 }
 
 class BrowserHost implements HostPort {
@@ -219,7 +236,7 @@ class BrowserHost implements HostPort {
   saveBytes() {
     return Promise.resolve(null);
   }
-  pickFolder() {
+  pickFolder(_startIn?: string): Promise<string | null> {
     return Promise.resolve(null);
   }
   drawsBrowserViews() {
@@ -241,11 +258,82 @@ class BrowserHost implements HostPort {
   trustBrowserCertificate() {
     return Promise.resolve(false);
   }
+  updateStatus(): Promise<UpdateStatus> {
+    return Promise.resolve({ current: null, available: false, latest: null });
+  }
+  openUpdater() {}
+}
+
+/** The Tauri global arrives in different shapes across versions; every call in
+ *  this file goes through whichever one is actually here. */
+function tauriInvoke(): ((cmd: string, args?: Record<string, unknown>) => Promise<unknown>) | null {
+  const tauri = (window as unknown as { __TAURI__?: Record<string, unknown> }).__TAURI__;
+  if (!tauri) return null;
+  const core = tauri["core"] as { invoke?: (c: string, a?: Record<string, unknown>) => Promise<unknown> } | undefined;
+  if (core?.invoke) return (cmd, args) => core.invoke!(cmd, args);
+  if (typeof tauri["invoke"] === "function") {
+    return tauri["invoke"] as (cmd: string, args?: Record<string, unknown>) => Promise<unknown>;
+  }
+  const ns = tauri["tauri"] as { invoke?: (c: string, a?: Record<string, unknown>) => Promise<unknown> } | undefined;
+  if (ns?.invoke) return (cmd, args) => ns.invoke!(cmd, args);
+  return null;
+}
+
+// The Tauri shell (tempora-shell.exe) runs the visible window and exposes the
+// global Tauri API. It has no Electron bridge, but it does register a
+// `pick_folder` command, so the native dialog opens on the shell's own UI thread
+// — owned by the visible window, not the kernel process. That is what makes the
+// folder picker actually appear in front instead of getting stuck behind the app.
+class TauriHost extends BrowserHost {
+  private call(cmd: string, args?: Record<string, unknown>): Promise<unknown> | null {
+    const invoke = tauriInvoke();
+    return invoke ? invoke(cmd, args) : null;
+  }
+
+  pickFolder(startIn?: string): Promise<string | null> {
+    const call = this.call("pick_folder", { startIn: startIn ?? "" });
+    if (!call) return Promise.resolve(null);
+    // A picked folder comes back as its absolute path; cancelling returns "" so
+    // SseHub.pickFolder does NOT fall through to the kernel's loopback picker.
+    // An invoke ERROR (command missing / ACL denied) means this shell cannot
+    // pick at all — return null so the hub falls back to the kernel route
+    // instead of silently pretending the user cancelled.
+    return call
+      .then((p: unknown) => (typeof p === "string" && p ? p : ""))
+      .catch((e: unknown) => {
+        console.warn("[host] pick_folder invoke failed, falling back:", e);
+        return null;
+      });
+  }
+
+  updateStatus(): Promise<UpdateStatus> {
+    const call = this.call("update_status");
+    if (!call) return Promise.resolve({ current: null, available: false, latest: null });
+    return call
+      .then((raw: unknown) => {
+        const r = raw as { current?: unknown; available?: unknown; latest?: unknown } | null;
+        return {
+          current: typeof r?.current === "string" ? r.current : null,
+          available: r?.available === true,
+          latest: typeof r?.latest === "string" ? r.latest : null,
+        };
+      })
+      .catch((e: unknown) => {
+        console.warn("[host] update_status invoke failed:", e);
+        return { current: null, available: false, latest: null };
+      });
+  }
+
+  openUpdater() {
+    const call = this.call("open_updater");
+    if (call) call.catch((e: unknown) => console.warn("[host] open_updater invoke failed:", e));
+  }
 }
 
 function pick(): HostPort {
   const api = bridge();
   if (api) return new ElectronHost(api);
+  if (typeof (window as unknown as { __TAURI__?: unknown }).__TAURI__ !== "undefined") return new TauriHost();
   return new BrowserHost();
 }
 

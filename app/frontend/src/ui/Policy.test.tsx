@@ -29,7 +29,21 @@ describe("execution permission control", () => {
   it("keeps the dangerous state visible on the closed trigger", () => {
     const { container } = draw("yolo");
     expect(container.querySelector(".polrisk")?.textContent).toContain("全部放行");
-    expect(container.querySelector(".polwarn svg")).not.toBeNull();
+    expect(container.querySelector('.policy .mode[data-tier="4"] .studio-approval-mark')).not.toBeNull();
+  });
+
+  // One icon per choice, and the ladder has to be readable without the text:
+  // four distinct marks, tier 1→4, and the level bar filled to the same number.
+  it("gives every choice its own mark on an escalating tier", async () => {
+    draw();
+    await userEvent.click(screen.getByRole("button", { name: "执行权限：询问" }));
+    const group = screen.getByRole("group", { name: "执行权限" });
+    const rows = [...group.querySelectorAll(".studio-permission-option")];
+    expect(rows.map((r) => r.getAttribute("data-tier"))).toEqual(["1", "2", "3", "4"]);
+    const marks = rows.map((r) => r.querySelector(".studio-permission-icon .studio-approval-mark path")?.getAttribute("d"));
+    expect(marks.every(Boolean)).toBe(true);
+    expect(new Set(marks).size).toBe(4);
+    expect(rows.map((r) => r.querySelectorAll(".studio-approval-level i[data-on]").length)).toEqual([1, 2, 3, 4]);
   });
 
   it("contains permission choices only", async () => {

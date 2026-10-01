@@ -6,6 +6,10 @@ import type { AgentPort, Money, UsageDay, UsageReport } from "../port/port";
 
 const RANGES: [number, string][] = [[7, "7 天"], [30, "30 天"], [365, "全部"]];
 
+// 切到设置页再切回来不应每次都重新拉。按天数缓存上次结果：先即时显示，
+// 后台静默刷新，避免「正在读取记录…」的等待感。
+const usageCache = new Map<number, UsageReport>();
+
 /** The window this panel opens on. Exported because the settings contents list
  *  reports the same total beside "用量", and two windows would be two numbers. */
 export const DEFAULT_DAYS = 30;
@@ -135,8 +139,11 @@ export function Usage({ port }: { port: AgentPort }) {
   useEffect(() => {
     let live = true;
     setErr("");
+    // 命中缓存立即显示，后台再静默刷新一次。
+    const cached = usageCache.get(days);
+    if (cached) setReport(cached);
     port.usage(days).then(
-      (r) => live && setReport(r),
+      (r) => { usageCache.set(days, r); live && setReport(r); },
       (e) => live && setErr(reason(e)),
     );
     return () => { live = false; };

@@ -10,6 +10,7 @@ import { download } from "../port/download";
 import { host } from "../port/host";
 import { useTreeKeys } from "./tree";
 import { useDismiss } from "./dismiss";
+import { useIme } from "./ime";
 
 const parentOf = (root: string) => root.replace(/[/\\]+$/, "").split(/[/\\]/).slice(-2, -1)[0] ?? "";
 
@@ -23,7 +24,7 @@ interface Props {
   folded: Set<string>;
   onFold: (root: string, folded: boolean) => void;
   reload: () => Promise<void>;
-  onOpen: (req: { root?: string; sessionPath?: string }) => Promise<void>;
+  onOpen: (req: { root?: string; sessionPath?: string; fresh?: boolean }) => Promise<void>;
   onFocus: (id: string) => void;
   onClose: (ids: string[]) => Promise<void>;
   // Which of these panes are mid-turn. A callback rather than a prop: run state
@@ -58,9 +59,11 @@ const rowLabel = (session: TreeSession) =>
 
 function WorkspacesView({ hub, tree, runtimes, active, folded, reload, onFold, onOpen, onFocus, onClose, liveIds, runs, scope = "all", pinned = new Set(), onPin = () => {}, onPause = () => {}, onArchive = async () => {}, onRename, onError, adder, children }: Props) {
   const [busy, setBusy] = useState("");
+  // 会话重命名输入框同样要挡住输入法组合态下的回车（选词不是提交）
+  const ime = useIme();
   // Folding a machine is the reader's own preference, held the way a host row
   // holds it.
-  const [hereShut, setHereShut] = useState(false);
+  const [hereShut] = useState(false);
   const [confirm, setConfirm] = useState("");
   const needle = useRailQuery();
   const treeKeys = useTreeKeys();
@@ -125,17 +128,6 @@ function WorkspacesView({ hub, tree, runtimes, active, folded, reload, onFold, o
     setBusy(session.path);
     try {
       await onOpen({ root: ws.root, sessionPath: session.path });
-    } catch (e) {
-      onError(e);
-    } finally {
-      setBusy("");
-    }
-  };
-
-  const startSession = async (ws: TreeWorkspace) => {
-    setBusy("new:" + ws.root);
-    try {
-      await onOpen({ root: ws.root });
     } catch (e) {
       onError(e);
     } finally {
@@ -238,40 +230,10 @@ function WorkspacesView({ hub, tree, runtimes, active, folded, reload, onFold, o
     <>
       <div className="scroll">
         <div role="tree" aria-label={t("机器、工作区与会话")} data-action-keydown="tree.navigate" ref={treeKeys.ref} onKeyDown={treeKeys.onKeyDown}>
-          {/* This machine is the first row of the list rather than another kind of
-              thing, and its add button sits where a host's does: open a folder
-              on this machine. */}
-          <div
-            className="machrow"
-            data-here=""
-            role="treeitem"
-            aria-expanded={!shutHere}
-            onClick={() => setHereShut((v) => !v)}
-          >
-            <button className="twist" tabIndex={-1} aria-hidden="true">
-              <svg viewBox="0 0 10 10">
-                <path d="M3.4 1.6 6.8 5 3.4 8.4" />
-              </svg>
-            </button>
-            <i className="rmtpip" aria-hidden="true" />
-            <span className="rmtname">{t("这台机器")}</span>
-            <span className="rmtsub">{t("{n} 个项目", { n: tree.length })}</span>
-            <button
-              className="machpick"
-              data-busy={adder.busy ? "" : undefined}
-              title={t("打开或新建项目…")}
-              aria-label={t("打开或新建项目…")}
-              data-action="workspace.add"
-              onClick={(ev) => {
-                ev.stopPropagation();
-                adder.add();
-              }}
-            >
-              <svg viewBox="0 0 16 16" aria-hidden="true">
-                <path d="M8 3.7v8.6M3.7 8h8.6" />
-              </svg>
-            </button>
-          </div>
+          {/* 扁平会话列表：去掉「这台机器 > 工作区」两级嵌套，直接列出会话，
+              学 WorkBuddy。多工作区时才显示小标题（wshead）；单工作区时连标题
+              都不显示。「添加项目」能力移到列表底部的 ws-add-project 按钮。 */}
+
           {shutHere ? null : shownTree.map((ws) => {
             // A fold is a resting-state preference; while a query is on it would hide
             // the very rows the query just found.
@@ -279,8 +241,10 @@ function WorkspacesView({ hub, tree, runtimes, active, folded, reload, onFold, o
             // Only while the question is on screen: panesOf walks every runtime.
             const doomed = confirm === ws.root ? panesOf(ws.root) : [];
             const busyPanes = liveIds(doomed).length;
+            // 扁平化：多工作区时才需要小标题区分；单工作区直接铺会话。
+            const multi = shownTree.length > 1;
             return (
-              <div className="wsnode" key={ws.root} data-current={panesOf(ws.root).includes(active) ? "" : undefined} data-missing={ws.missing ? "" : undefined}>
+              <div className="wsnode" key={ws.root} data-solo={!multi ? "" : undefined} data-current={panesOf(ws.root).includes(active) ? "" : undefined} data-missing={ws.missing ? "" : undefined}>
                 {confirm === ws.root ? (
                   <Confirm
                     what={t("从列表移除「{name}」？", { name: ws.name })}
@@ -291,85 +255,79 @@ function WorkspacesView({ hub, tree, runtimes, active, folded, reload, onFold, o
                     onCancel={() => setConfirm("")}
                   />
                 ) : (
-                  <div
-                    ref={sessionMenu === ws.root ? sessionMenuBox : undefined}
-                    className="wsrow"
-                    role="treeitem"
-                    aria-expanded={!shut}
-                    onClick={() => onFold(ws.root, !shut)}
-                  >
-                    <button className="twist" tabIndex={-1} aria-hidden="true">
-                      <svg viewBox="0 0 10 10">
-                        <path d="M3.4 1.6 6.8 5 3.4 8.4" />
-                      </svg>
-                    </button>
-                    <i className="wsdot" aria-hidden="true" />
-                    <span className="wsname" title={ws.root}>
-                      {ws.name}
-                    </span>
-                    {/* 第二行是这个项目的身份，不是它的动作。名字于是拿到整行宽——
-                        在 214px 的栏里，名字、标签、计数、删除挤在一行，被截的总是名字。 */}
-                    <span className="wsmeta">
-                      {(ws.isolated || twice.has(ws.name)) && (
-                        <em className="wstag">{ws.isolated ? t("隔离") : parentOf(ws.root)}</em>
+                  multi && !shut && (
+                    <div
+                      ref={sessionMenu === ws.root ? sessionMenuBox : undefined}
+                      className="wshead"
+                      data-current={panesOf(ws.root).includes(active) ? "" : undefined}
+                      data-missing={ws.missing ? "" : undefined}
+                      role="treeitem"
+                      aria-expanded={!shut}
+                      onClick={() => onFold(ws.root, !shut)}
+                    >
+                      <i className="wsdot" aria-hidden="true" />
+                      <span className="wsname" title={ws.root}>{ws.name}</span>
+                      <span className="wsmeta">
+                        {(ws.isolated || twice.has(ws.name)) && (
+                          <em className="wstag">{ws.isolated ? t("隔离") : parentOf(ws.root)}</em>
+                        )}
+                        {t("{n} 会话", { n: ws.sessions.length })}
+                      </span>
+                      <span className="wsacts">
+                        <button
+                          data-action="session.new"
+                          className="wsadd"
+                          disabled={ws.missing}
+                          title={t("在 {name} 下新建会话", { name: ws.name })}
+                          aria-label={t("在 {name} 下新建会话", { name: ws.name })}
+                          onClick={(ev) => {
+                            ev.stopPropagation();
+                            void onOpen({ root: ws.root, fresh: true }).catch(onError);
+                          }}
+                        >
+                          <svg viewBox="0 0 16 16" aria-hidden="true">
+                            <path d="M8 3.7v8.6M3.7 8h8.6" />
+                          </svg>
+                        </button>
+                        <button
+                          className="wsmore"
+                          data-action="workspace.menu"
+                          data-target={ws.root}
+                          title={t("更多操作")}
+                          aria-label={t("项目操作：{name}", { name: ws.name })}
+                          aria-expanded={sessionMenu === ws.root}
+                          onClick={(ev) => {
+                            ev.stopPropagation();
+                            const opening = sessionMenu !== ws.root;
+                            if (opening) {
+                              const anchor = ev.currentTarget.getBoundingClientRect();
+                              setSessionMenuAt({
+                                left: Math.min(window.innerWidth - 240, anchor.right + 8),
+                                top: Math.max(12, Math.min(window.innerHeight - 140, anchor.top - 7)),
+                              });
+                            }
+                            setSessionMenu(opening ? ws.root : "");
+                          }}
+                        >
+                          <StudioIcon name="more" />
+                        </button>
+                      </span>
+                      {sessionMenu === ws.root && createPortal(
+                        <div ref={sessionMenuPortal} className="session-pop" role="menu" aria-label={t("项目操作")} style={sessionMenuAt} onClick={(ev) => ev.stopPropagation()}>
+                          <div className="session-pop-head">
+                            <b>{ws.name}</b>
+                            <small title={ws.root}>{ws.root}</small>
+                          </div>
+                          <div className="session-pop-group">
+                            <button className="danger" role="menuitem" data-action="workspace.remove" onClick={() => { setConfirm(ws.root); setSessionMenu(""); }}>
+                              <StudioIcon name="close" /><span>{t("从列表移除")}</span><small>{t("不删除文件")}</small>
+                            </button>
+                          </div>
+                        </div>,
+                        document.body,
                       )}
-                      {t("{n} 会话", { n: ws.sessions.length })}
-                    </span>
-                    <span className="wsacts">
-                      <button
-                        data-action="session.new"
-                        className="wsadd"
-                        data-busy={busy === "new:" + ws.root ? "" : undefined}
-                        disabled={ws.missing}
-                        title={t("在 {name} 下新建会话", { name: ws.name })}
-                        aria-label={t("在 {name} 下新建会话", { name: ws.name })}
-                        onClick={(ev) => {
-                          ev.stopPropagation();
-                          void startSession(ws);
-                        }}
-                      >
-                        <svg viewBox="0 0 16 16" aria-hidden="true">
-                          <path d="M8 3.7v8.6M3.7 8h8.6" />
-                        </svg>
-                      </button>
-                      <button
-                        className="wsmore"
-                        data-action="workspace.menu"
-                        data-target={ws.root}
-                        title={t("更多操作")}
-                        aria-label={t("项目操作：{name}", { name: ws.name })}
-                        aria-expanded={sessionMenu === ws.root}
-                        onClick={(ev) => {
-                          ev.stopPropagation();
-                          const opening = sessionMenu !== ws.root;
-                          if (opening) {
-                            const anchor = ev.currentTarget.getBoundingClientRect();
-                            setSessionMenuAt({
-                              left: Math.min(window.innerWidth - 240, anchor.right + 8),
-                              top: Math.max(12, Math.min(window.innerHeight - 140, anchor.top - 7)),
-                            });
-                          }
-                          setSessionMenu(opening ? ws.root : "");
-                        }}
-                      >
-                        <StudioIcon name="more" />
-                      </button>
-                    </span>
-                    {sessionMenu === ws.root && createPortal(
-                      <div ref={sessionMenuPortal} className="session-pop" role="menu" aria-label={t("项目操作")} style={sessionMenuAt} onClick={(ev) => ev.stopPropagation()}>
-                        <div className="session-pop-head">
-                          <b>{ws.name}</b>
-                          <small title={ws.root}>{ws.root}</small>
-                        </div>
-                        <div className="session-pop-group">
-                          <button className="danger" role="menuitem" data-action="workspace.remove" onClick={() => { setConfirm(ws.root); setSessionMenu(""); }}>
-                            <StudioIcon name="close" /><span>{t("从列表移除")}</span><small>{t("不删除文件")}</small>
-                          </button>
-                        </div>
-                      </div>,
-                      document.body,
-                    )}
-                  </div>
+                    </div>
+                  )
                 )}
 
                 {/* 子项自己成一块，才能拿到那条层级引导线。缩进单独说不清楚层级：
@@ -379,6 +337,14 @@ function WorkspacesView({ hub, tree, runtimes, active, folded, reload, onFold, o
                 {(whole.has(ws.root) ? ws.sessions : ws.sessions.slice(0, SHOWN)).map((session) => {
                     const on = session.runtimeId === active;
                     const run = session.runtimeId ? runs[session.runtimeId]?.run : undefined;
+                    // 状态圆点语义：active/running=绿（当前/进行中），halt=橙（需确认），
+                    // done=红（已交付），其余=灰（新建/无活动）。
+                    const status =
+                      on ? "active"
+                      : run === "running" ? "running"
+                      : run === "halt" ? "halt"
+                      : run === "done" ? "done"
+                      : "idle";
                     if (confirm === session.path) {
                       return (
                         <Confirm
@@ -407,6 +373,7 @@ function WorkspacesView({ hub, tree, runtimes, active, folded, reload, onFold, o
                         role="treeitem"
                         aria-selected={on}
                         data-on={on ? "" : undefined}
+                        data-status={status}
                         data-live={session.runtimeId ? "" : undefined}
                         data-run={run === "idle" ? undefined : run}
                         data-just-done={session.runtimeId && justDone.has(session.runtimeId) ? "" : undefined}
@@ -436,7 +403,11 @@ function WorkspacesView({ hub, tree, runtimes, active, folded, reload, onFold, o
                             }}
                             data-action-keydown="session.rename"
                             data-target={session.path}
+                            onCompositionStart={ime.handlers.onCompositionStart}
+                            onCompositionEnd={ime.handlers.onCompositionEnd}
                             onKeyDown={(ev) => {
+                              // 中文/日文输入法用回车确认候选词，那不是提交重命名
+                              if (ime.isIme(ev)) return;
                               if (ev.key === "Enter") {
                                 // The aimed-at commit. Blur saves too, and its
                                 // own guard keeps that from sending twice.
@@ -634,6 +605,25 @@ function WorkspacesView({ hub, tree, runtimes, active, folded, reload, onFold, o
             <div className="ws-empty">{t("没有匹配的会话")}</div>
           )}
           {!shutHere && tree.length === 0 && <div className="ws-empty">{t("尚无文件夹")}</div>}
+          {/* 「添加项目」从被删掉的「这台机器」行挪到这里，扁平化后依然可达。 */}
+          {!shutHere && (
+            <button
+              className="ws-add-project"
+              data-action="workspace.add"
+              data-busy={adder.busy ? "" : undefined}
+              title={t("打开或新建项目…")}
+              aria-label={t("打开或新建项目…")}
+              onClick={(ev) => {
+                ev.stopPropagation();
+                adder.add();
+              }}
+            >
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M8 3.7v8.6M3.7 8h8.6" />
+              </svg>
+              {t("添加项目")}
+            </button>
+          )}
           {children}
         </div>
       </div>

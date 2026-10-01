@@ -165,8 +165,8 @@ export function Onboarding({ port, setup, onDone }: Props) {
   return (
     <div className="onb-stage">
       <header className="onb-brandbar" onDoubleClick={zoomOnTitleBar}>
-        <span className="onb-brandmark" aria-hidden="true">R</span>
-        <span className="onb-brandname"><b>tempora</b><small>studio</small></span>
+        <span className="onb-brandmark" aria-hidden="true">T</span>
+        <span className="onb-brandname"><b>empora</b><small>studio</small></span>
         <WindowControls />
       </header>
       <div className="onb-shell">
