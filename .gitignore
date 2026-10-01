@@ -25,6 +25,9 @@ tools/
 
 # ===== 运营态发布 JSON（发布产物走 API 提交到 updates/，本地留档不入库）=====
 latest*.json
+# updates/latest.json 是更新通道清单（jsdelivr / raw / release-asset 三个端点
+# 都读它），必须入库，故开例外。
+!updates/latest.json
 SHA256SUMS*.txt
 *.key
 *.key.bak*
