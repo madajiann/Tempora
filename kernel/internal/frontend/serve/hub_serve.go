@@ -35,6 +35,12 @@ func (h *Hub) StartRecoveryGC(ctx context.Context) {
 // EnableProviderSetupForListener opens the credential-writing setup surface on
 // loopback only, for every runtime. Reported once for the hub: the panes share
 // one listener, so they share its verdict.
+//
+// The loopback listener also carries the full provider-edit routes: the shell
+// serves its own window over 127.0.0.1, and first-run onboarding needs
+// /providers/probe + POST /providers to save a brand-new provider (the
+// /provider-setup surface only tops up a key for an existing one). Paired
+// devices still hold none of this — hostGrants.at refuses them regardless.
 func (h *Hub) EnableProviderSetupForListener(addr string) bool {
 	if !isLoopbackHost(addr) {
 		return false
@@ -44,6 +50,7 @@ func (h *Hub) EnableProviderSetupForListener(addr string) bool {
 	h.mu.Unlock()
 	for _, rt := range h.localRuntimes() {
 		rt.Server.EnableProviderSetupForListener(addr)
+		rt.Server.AllowProviderEdit()
 	}
 	return true
 }
@@ -57,6 +64,7 @@ func (h *Hub) adoptHostDecisions(rt *Runtime) {
 	h.mu.RUnlock()
 	if addr != "" {
 		rt.Server.EnableProviderSetupForListener(addr)
+		rt.Server.AllowProviderEdit()
 	}
 	if gcCtx != nil {
 		// Its own cancel, so closing one pane stops that pane's sweep rather

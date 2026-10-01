@@ -559,6 +559,7 @@ func (h *Hub) routeDefault(w http.ResponseWriter, r *http.Request) {
 		// A reload with every pane closed still needs the page back. Only past
 		// the gate: "/" is public in token mode so a bare shell can bootstrap.
 		if r.Method == http.MethodGet && r.URL.Path == "/" && h.opts.Page != nil && h.auth.authenticated(r) {
+			w.Header().Set("Cache-Control", "no-cache")
 			http.ServeFileFS(w, r, h.opts.Page, "index.html")
 			return
 		}

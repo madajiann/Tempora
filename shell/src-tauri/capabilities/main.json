@@ -1,0 +1,16 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main-capability",
+  "description": "主窗口权限：应用命令 pick_folder（工作区目录选择）+ 核心 API。SPA 由内核从 http://127.0.0.1:8787 服务，属远程源——必须显式声明 remote，否则 IPC 一律被 ACL 拒绝。",
+  "windows": ["main"],
+  "local": true,
+  "remote": {
+    "urls": ["http://127.0.0.1:8787/*"]
+  },
+  "permissions": [
+    "core:default",
+    "allow-pick-folder",
+    "allow-update-status",
+    "allow-open-updater"
+  ]
+}

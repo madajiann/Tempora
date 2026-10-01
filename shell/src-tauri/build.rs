@@ -16,5 +16,13 @@ fn drop_console_subsystem() {}
 
 fn main() {
     drop_console_subsystem();
-    tauri_build::build();
+    // 应用自有命令必须在这里登记，tauri-build 才会为它们自动生成
+    // allow-/deny- 权限文件（否则 capability 里写 allow-pick-folder 会
+    // 报 "Permission allow-pick-folder not found"，运行期则报
+    // "Command pick_folder not allowed by ACL"）。
+    tauri_build::try_build(
+        tauri_build::Attributes::new()
+            .app_manifest(tauri_build::AppManifest::new().commands(&["pick_folder", "update_status", "open_updater"])),
+    )
+    .expect("failed to run tauri-build");
 }
