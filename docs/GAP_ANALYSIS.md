@@ -110,7 +110,7 @@
 | 项 | 上游 | 本地现状 |
 |---|---|---|
 | 启动等待延长到 60s、3s 显示「正在启动」、提前退出重试一次 | 2.24.0 #11479 | 缺（**直击历史"打开卡死"**） |
-| 每个模型单独设上下文窗口与最大输出 | 2.24.0 #11422 | 缺 |
+| 每个模型单独设上下文窗口与最大输出 | 2.24.0 #11422 | ✅ **已补**（0.1.18，含 per-model 地基） |
 | 每个服务商单独设流空闲超时 `idle_timeout_seconds` | 2.23.0 #11258 | 只有硬编码 `defaultStreamIdleTimeout = 120s`（`model/responses/responses.go:26`） |
 | 一键服务商预设：OpenRouter / OpenAI / Gemini / 火山方舟 | 2.22.0 #11193 | 缺 |
 | 输入框草稿按会话保存，刷新后恢复 | 2.22.0 #11176 | 缺 |
@@ -169,7 +169,7 @@ Pro 模式（GPT-5.6/GPT-6）、完整推理档位、显示隐藏文件、项目
 | 1 | 修 `kernel/README.md` 死链 | 10 分钟，零风险 | ✅ **已完成**（23 处，见第 5 节） |
 | 3 | 启动等待放宽 + 提前退出重试（#11479 思路） | 低 | ✅ **已改 + 编译通过**（见第 7 节） |
 | 4a | 一键服务商预设（#11193）+ 每服务空闲超时（#11258） | 低 | ✅ **已移植**（`go build ./...` 与测试均通过） |
-| 4b | 每模型上下文窗口 / 最大输出（#11422） | 高 | ❌ **技术阻塞**，非拖延 —— 见第 8 节 |
+| 4b | 每模型上下文窗口 / 最大输出（#11422） | 高 | ✅ **已完成**（0.1.18）：先补 per-model 地基，再上 ModelLimits + 前端。详见第 8 节 |
 | 5 | 本地服务鉴权 | 中 | ⏳ 待拍板 |
 | 6 | 项目配置收紧（#11209） | 中 | ⏳ 待拍板 |
 | 7 | 会话图片 blob 化（P0） | 中 | ⏳ 待评估（需先定位上游对应 PR） |
@@ -216,33 +216,32 @@ Pro 模式（GPT-5.6/GPT-6）、完整推理档位、显示隐藏文件、项目
 
 ---
 
-## 8. #11422（每模型上下文窗口）为什么这版没做：不是拖延，是缺地基
+## 8. #11422（每模型上下文窗口）—— 2026-10-03 已完成（0.1.18）
 
-**结论：它不是"加一个字段"，而是要先移植一整套 per-model 基础设施。**
+**上一版判定为"技术阻塞"是准确的，现已按计划三步走完其中的地基 + 本体。**
 
-核查证据（本地 `kernel/` 全量 grep）：
+> 上一版的核查证据（本地全量 grep）：`modelOverrideKey()` / `forModel()` / `orNilMap()` /
+> `editRefusal` / `modelEffortsOf` 全不存在，连 `providerView.ModelEfforts` 都没有 ——
+> "每模型能力声明"这条管线是上游 2.20.0 之后才建的。
 
-| #11422 依赖 | 本地（studio 2.20.0） | 说明 |
+**本次补完的内容：**
+
+| 步 | 内容 | 状态 |
 |---|---|---|
-| `modelOverrideKey()` | ❌ 不存在 | per-model override 的键规范化 |
-| `forModel()` | ❌ 不存在 | 按模型解析生效配置 |
-| `orNilMap()` | ❌ 不存在 | serve 层视图工具 |
-| `editRefusal` 类型 | ❌ 不存在（只有 `refuse()` 函数） | 结构化拒绝响应 |
-| `modelEffortsOf` / `inheritedEffortsOf` / `modelProtocolsOf` | ❌ 全不存在 | **连 ModelEfforts 都没有** |
-| `providerView.ModelEfforts` 字段 | ❌ 不存在 | 同上 |
+| 1 | per-model 地基：`forModel()` / `modelOverrideKey()` / `ModelEffortDeclaration` / `SetModelEffortDeclaration` / `InheritedEffortCapability` / `orNilMap` / `editRefusal` / `applyReasoningFields` | ✅ 已移植（上游 commit `40c87d94c`） |
+| 2 | ModelEfforts **内核侧** | ✅ 已移植（前端 UI 未移植，见下） |
+| 3 | ModelLimits + 前端 `ModelLimits.tsx` | ✅ 已移植 |
 
-也就是说：**"每模型能力声明"这条管线，上游是在 2.20.0 之后才建的**（ModelEfforts → ModelProtocols → ModelLimits 逐个加）。
-我们基线停在 2.20.0，连第一环 ModelEfforts 都没有。
+**一个关键认知（写在这里避免下次误判）：**
+`ProviderModelOverride.ContextWindow` / `MaxOutputTokens` 在 **2.20.0 就已存在且生效** ——
+手改 `config.toml` 的 `model_overrides.<model>` 本来就能工作。缺的从来不是存储能力，
+而是**"按模型读写它的 API 与界面"**。所以本次交付的是暴露与管理能力。
 
-要做 #11422，得先补齐 `modelOverrideKey` / `forModel` / `orNilMap` / `editRefusal` 等底层函数——
-这些牵涉 **per-model override 的核心语义**（键规范化规则、模型解析优先级），自行实现很容易与上游行为不一致，
-而它们同时是配置读写的地基，**写错会静默改变已有配置的解析结果**。
+**唯一未移植：`ModelEfforts.tsx`（每模型推理档位 UI）。**
+我们的前端是 2.20.0 基线，整层 per-model UI 都不存在（无该组件、无 `modelEfforts` 字段），
+移植它等于把 effort 地基的前端一半也搬过来，牵动 EditConn 状态机。
+地基的 kernel 侧已就位，届时只需补前端。
 
-因此本版只上依赖面小、语义自洽的两项（#11193 / #11258），#11422 单列一轮专项：
-
-1. 先移植 per-model override 地基（`modelOverrideKey` / `forModel` + 对应测试）
-2. 再移植 ModelEfforts（上游最早的那一环，用来验证地基对不对）
-3. 最后才是 #11422 的 ModelLimits + 前端 `ModelLimits.tsx`
-
-对照之下，#11193（3 文件纯内核）与 #11258（依赖只有 `StreamIdleTimeout` 一个常量，
-本地缺失就用本地既有 120s 补上、默认行为零变更）都不需要动核心语义，所以这版做完并验证过了。
+**验证**：`go build ./...` 零错误；`config` 包全量 243s 通过、`serve` 包 provider 相关 86s 通过；
+前端 `tsc` 通过、`ModelLimits`/`EditConn` 10 个用例全绿；
+前端全量 914 用例中 8 项失败，**经基线比对（stash 后重跑）确认与本次改动无关，均为既有失败**。

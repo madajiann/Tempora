@@ -3113,12 +3113,23 @@
   .addp .fields.compat .tip { font: var(--w-reg) var(--fs-meta)/1.6 var(--ui); font-style: normal; color: var(--ghost) }
   .addp .fields.compat .why { flex-basis: 100%; font: var(--w-reg) var(--fs-meta) var(--ui); color: var(--err) }
   .addp .more { margin-top: 14px }
+  .ml-group { display: flex; flex-direction: column; gap: 4px; margin-top: 14px }
+  .ml-list { max-height: 232px; overflow-y: auto }
+  .ml-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px }
+  .ml-head strong { font: var(--w-semi) var(--fs-ui) var(--ui); color: var(--text) }
+  .ml-head span { font: var(--w-reg) var(--fs-meta) var(--ui); color: var(--faint) }
+  .ml-row { display: grid; grid-template-columns: minmax(0, 1fr) 150px 150px; align-items: center; gap: 6px 10px; padding: 8px 0; border-bottom: 1px solid var(--hair) }
+  .addp .ml-row .unit-field input { padding: 6px 8px; font-size: var(--fs-meta) }
+  .ml-row .me-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: var(--w-med) var(--fs-ui) var(--mono); color: var(--text) }
+  .ml-row input::placeholder { color: var(--ghost) }
+  .ml-row[data-own] .unit-field:has(input:not(:placeholder-shown)) { border-color: var(--accent) }
+  @media (max-width: 640px) { .ml-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) } .ml-row .me-name { grid-column: 1 / -1 } }
   .addp .fields span { font: var(--w-reg) var(--fs-meta) var(--ui); color: var(--faint) }
-  .addp .fields input, .addp .fields select {
+  .addp .fields input, .addp .fields select, .addp .ml-row input {
     padding: 6px 9px; border: 1px solid var(--border); border-radius: var(--r-xs);
     background: var(--raised); color: var(--text); font: var(--w-reg) var(--fs-ui) var(--mono);
   }
-  .addp .fields input:focus, .addp .fields select:focus { outline: 2px solid var(--focus); outline-offset: 1px }
+  .addp .fields input:focus, .addp .fields select:focus, .addp .ml-row input:focus { outline: 2px solid var(--focus); outline-offset: 1px }
   .addp .acts { display: flex; gap: 8px; margin-top: 12px }
   .addp .act[data-primary] { border-color: var(--accent); background: var(--accent); color: var(--accent-fg) }
   .addp .act[data-primary]:disabled { border-color: var(--border); background: transparent; color: var(--ghost) }

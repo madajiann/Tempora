@@ -1,11 +1,11 @@
 {
-  "version": "0.1.17",
-  "notes": "服务商与连接\n- 新增一键服务商预设：OpenRouter、OpenAI、Google Gemini、火山方舟 Ark，填密钥即可用，不必手写配置\n- 服务商可单独设置流空闲超时（idle_timeout_seconds），长时间无响应不再被误判为断线；默认沿用 120 秒，现有行为不变\n\n启动与稳定性\n- 修复启动偶发卡死：内核若启动即退出，不再干等满 30 秒，改为自动重试一次；慢机器的最长等待放宽到 60 秒\n\n工程\n- 清理上游遗留的 Electron 壳、CI 与签名配置（我们使用 Tauri 打包，这些代码从不执行），仓库依赖面收敛",
-  "pub_date": "2026-10-03T04:08:39Z",
+  "version": "0.1.18",
+  "notes": "服务商与连接\n- 新增「按模型设置限制」：一个接入下有多家厂商的模型时，可为单个模型单独指定上下文窗口与最大输出。留空沿用接入设置，输入框灰字显示该模型当前继承到的值\n- 中转站/聚合网关场景（一个地址与密钥下挂多家模型）现在能按模型分别设置，不再被迫共用一套限制\n\n工程\n- 补齐 per-model 能力声明的地基（forModel / modelOverrideKey 等），为后续按模型设置推理档位铺路\n- 内核模型解析逻辑重构为单一入口，行为不变",
+  "pub_date": "2026-10-03T06:31:02Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOGRuakd6Q2dOV1IraldnbEdqNGtxc1dXaWU2a2pkL1JDR0lOajRRRWo0blVkRFJYdGl2OVczMGhQbGxFWmlERWozS0tISGErQUNpcDRJN0x0OEFvUlFzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxMDAwNDI2CWZpbGU6VGVtcG9yYV8wLjEuMTdfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4xNwpvOEpHZk9DdWNzNTl1dDJjTGs4SzZQZ2ZFWGVwRWZvVzhaT1RoblllL0l4K0FaUnFFUWJ1c2ZSb1U2SDJUeUtYSFBJN3dFeGRTMDNCcVVMUDc4SXVCQT09Cg==",
-      "url": "https://tempora.yomm.cc/dl/Tempora_0.1.17_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOGN0akgvenp3Qk1rVE1PVnJ2OUxvRU9FR0dFTzR1cDFvQzJsN2FyNmg3TlA2amZ5SzFhcGhhbzBJNUM3cGpOSFh5SkhoMEhNdHBYVXd4QkhSQVRtNFF3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxMDA5MDE3CWZpbGU6VGVtcG9yYV8wLjEuMThfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4xOApVSU5BOExrRWFtSkJJUGtEbkxBc2Z4RkRPQ3JxMERFdmJoRTZkZUVZTUVKNkVlQ2svUWpWd2h5aG9sUVRvN3VIVXdWdHF1OU9pUy9RODR1aUVSZXFDdz09Cg==",
+      "url": "https://tempora.yomm.cc/dl/Tempora_0.1.18_x64-setup.exe"
     }
   }
 }

@@ -4125,7 +4125,7 @@ dependencies = [
 
 [[package]]
 name = "tempora-shell"
-version = "0.1.17"
+version = "0.1.18"
 dependencies = [
  "indexmap 1.9.3",
  "rfd",

@@ -40,6 +40,10 @@ export interface ProviderEntry {
   // level auto resolves to. Absent is no declaration.
   supportedEfforts?: string[];
   defaultEffort?: string;
+  // Per model: the window and output cap it declares for itself, and the ones
+  // it inherits when it declares none.
+  modelLimits?: Record<string, ModelLimit>;
+  inheritedLimits?: Record<string, ModelLimit>;
   // Removing the one in use would leave the session on a model that no longer
   // resolves, so the row offers no delete.
   inUse: boolean;
@@ -164,6 +168,15 @@ export interface ProviderEdit {
   // An empty list clears the declared vocabulary; omitted leaves it alone.
   supportedEfforts?: string[];
   defaultEffort?: string;
+  // The whole per-model answer for the listed models: a model left out, or sent
+  // empty, inherits the connection's limits again. Omitted leaves every model alone.
+  modelLimits?: Record<string, ModelLimit>;
+}
+
+// One model's own context window and output cap; an absent field inherits.
+export interface ModelLimit {
+  contextWindow?: number;
+  maxOutputTokens?: number;
 }
 
 // What the panel sends back after the user has looked at the probe.
