@@ -305,7 +305,9 @@ func decodeSessionEventMessages(
 	if _, err := dec.Token(); err != nil {
 		return nil, existingCollectionItems, err
 	}
-	return msgs, collectionItems, nil
+	// Resolve blob references back into data URLs: everything downstream
+	// (providers, frontends, digests) expects the inline payload.
+	return inlineSessionImages(store.SessionPathForEventLog(path), msgs), collectionItems, nil
 }
 
 func preflightSessionEventMessages(
@@ -457,7 +459,9 @@ func loadSessionMessagesFromJSONL(path string) ([]provider.Message, error) {
 		}
 		msgs = append(msgs, m)
 	}
-	return msgs, nil
+	// Same contract as the event log: the anchor stores references, callers
+	// get data URLs.
+	return inlineSessionImages(path, msgs), nil
 }
 
 // repairSessionEventLogTail truncates undecodable bytes left by a crash or
@@ -579,6 +583,10 @@ func appendSessionEvent(sessionPath string, rec sessionEventRecord, sync bool) e
 	if rec.WriterID == "" {
 		rec.WriterID = SessionWriterID()
 	}
+	// Lift image payloads out before encoding: the log is append-only and
+	// replay refuses it past sessionEventReplayMaxBytes, so a transcript that
+	// inlines its images can strand the session permanently.
+	rec.Messages = externalizeSessionImages(sessionPath, rec.Messages)
 	buf, err := json.Marshal(rec)
 	if err != nil {
 		return fmt.Errorf("encode session event: %w", err)
@@ -651,7 +659,10 @@ func compactSessionEventLog(sessionPath string, msgs []provider.Message, digest 
 		Type:          sessionEventTypeReplace,
 		Revision:      baseRevision + 1,
 		BaseRevision:  baseRevision,
-		Messages:      append([]provider.Message(nil), msgs...),
+		// The compacted record is the whole transcript, so this is the one
+		// place the complete live blob set is known: externalize and sweep in
+		// the same breath.
+		Messages:      externalizeSessionImages(sessionPath, msgs),
 		ContentDigest: digestString(digest),
 		WriterID:      SessionWriterID(),
 		Reason:        reason,
@@ -662,7 +673,11 @@ func compactSessionEventLog(sessionPath string, msgs []provider.Message, digest 
 		return fmt.Errorf("encode session event: %w", err)
 	}
 	buf = append(buf, '\n')
-	return fileutil.AtomicWriteFile(path, buf, 0o600)
+	if err := fileutil.AtomicWriteFile(path, buf, 0o600); err != nil {
+		return err
+	}
+	pruneSessionImageBlobs(sessionPath, rec.Messages)
+	return nil
 }
 
 func readSessionEventIndex(sessionPath string) (*sessionEventIndex, error) {

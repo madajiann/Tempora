@@ -293,6 +293,29 @@ func SessionPathForOutputsDir(outputsDir string) string {
 	return stem + ".jsonl"
 }
 
+// SessionBlobDir holds content-addressed payloads lifted out of the transcript
+// (<id>.blobs). Session images are the first tenant: a data URL is stored once
+// under its SHA-256 and the transcript keeps a short reference, so a picture-heavy
+// history cannot push the event log past its replay byte budget.
+func SessionBlobDir(sessionPath string) string {
+	sessionPath = strings.TrimSpace(sessionPath)
+	if sessionPath == "" {
+		return ""
+	}
+	return sessionStem(sessionPath) + ".blobs"
+}
+
+// SessionPathForEventLog inverts SessionEventLog: the transcript an event log
+// belongs to, or empty when the path is not one.
+func SessionPathForEventLog(eventsPath string) string {
+	eventsPath = strings.TrimSpace(eventsPath)
+	stem, ok := strings.CutSuffix(eventsPath, ".events.jsonl")
+	if !ok || stem == "" {
+		return ""
+	}
+	return stem + ".jsonl"
+}
+
 // SessionJobsDir is the background-job artifact directory (<id>.jobs).
 func SessionJobsDir(sessionPath string) string {
 	sessionPath = strings.TrimSpace(sessionPath)
@@ -360,5 +383,8 @@ func SessionSidecarDirs(sessionPath string) []string {
 	if sessionPath == "" {
 		return nil
 	}
-	return []string{SessionOutputsDir(sessionPath)}
+	// Blobs die with the transcript: a session deleted while its images were
+	// still referenced leaves them unreachable, and a later session at a
+	// recycled id must not inherit the old one's pictures.
+	return []string{SessionOutputsDir(sessionPath), SessionBlobDir(sessionPath)}
 }

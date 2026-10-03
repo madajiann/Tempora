@@ -1,11 +1,11 @@
 {
-  "version": "0.1.18",
-  "notes": "服务商与连接\n- 新增「按模型设置限制」：一个接入下有多家厂商的模型时，可为单个模型单独指定上下文窗口与最大输出。留空沿用接入设置，输入框灰字显示该模型当前继承到的值\n- 中转站/聚合网关场景（一个地址与密钥下挂多家模型）现在能按模型分别设置，不再被迫共用一套限制\n\n工程\n- 补齐 per-model 能力声明的地基（forModel / modelOverrideKey 等），为后续按模型设置推理档位铺路\n- 内核模型解析逻辑重构为单一入口，行为不变",
-  "pub_date": "2026-10-03T06:31:02Z",
+  "version": "0.1.19",
+  "notes": "会话与数据安全\n- 会话里的图片改为按内容摘要单独存放，事件日志与会话文件只保留引用。图片多的会话不会再因为日志体积过大而无法读取、进而导致后续保存全部失败\n- 会话压缩时自动回收不再被引用的图片；删除会话时图片一并清理\n\n服务商与连接\n- 新增「按模型设置推理档位」：一个接入下有多家厂商的模型时，可为单个模型单独指定它接受的推理强度取值与默认档位。留空沿用接入设置，输入框灰字显示该模型当前继承到的值\n\n工程\n- 未改动会话存储格式版本号；旧版本客户端读到引用只是丢图，不会读坏正文",
+  "pub_date": "2026-10-03T08:36:34Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOGN0akgvenp3Qk1rVE1PVnJ2OUxvRU9FR0dFTzR1cDFvQzJsN2FyNmg3TlA2amZ5SzFhcGhhbzBJNUM3cGpOSFh5SkhoMEhNdHBYVXd4QkhSQVRtNFF3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxMDA5MDE3CWZpbGU6VGVtcG9yYV8wLjEuMThfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4xOApVSU5BOExrRWFtSkJJUGtEbkxBc2Z4RkRPQ3JxMERFdmJoRTZkZUVZTUVKNkVlQ2svUWpWd2h5aG9sUVRvN3VIVXdWdHF1OU9pUy9RODR1aUVSZXFDdz09Cg==",
-      "url": "https://tempora.yomm.cc/dl/Tempora_0.1.18_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOGRyQkR2ckx2Y0tPNDVOSzN6YmJ6Uy95VUZpa2Z4U2R1eWRuVjcwWnZNaHlNbHp2RUluNG03WjFGaURRV0loTysyU1hHN3Fud3RRY2lXdjdHbHU2L2d3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxMDE2NTE5CWZpbGU6VGVtcG9yYV8wLjEuMTlfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4xOQpRM1ZwbGxRZVgvdXFreGNIeVZnSk8zZ3JWRWZ2cW1oaWl5RnRjQnVIN09YRHhoR0Z5QmR0UEhOUWE4d0syQzV5cld0cDNQYWhqTVB3cXdvV3NUSFhCdz09Cg==",
+      "url": "https://tempora.yomm.cc/dl/Tempora_0.1.19_x64-setup.exe"
     }
   }
 }

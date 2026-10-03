@@ -569,6 +569,11 @@ export const EN_SETTINGS: Record<string, string> = {
   "继承 {n}": "Inherits {n}",
   "继承：未声明": "Inherits: not declared",
   "继承：自动": "Inherits: automatic",
+  "按模型设置推理档位": "Effort levels per model",
+  "留空的模型沿用上面的档位，灰字是它当前继承到的值；填写后只对该模型生效。":
+    "A blank field follows the levels above; the grey text is what that model inherits now. A value applies to that model only.",
+  "{model} 的推理档位": "Effort levels for {model}",
+  "{model} 的默认档位": "Default level for {model}",
   "高级连接选项": "Advanced connection options",
   "思考控制、代理与中转站自定义参数": "Thinking controls, proxy and gateway parameters",
   "可选": "Optional",

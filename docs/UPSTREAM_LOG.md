@@ -72,6 +72,7 @@ effort UI 单列一轮。**地基的 kernel 侧已就位，届时只需补前端
 | 项 | 上游 | 为什么不算移植 | 落地 |
 |---|---|---|---|
 | 内核提前退出自动重试一次 + 等待放宽到 60s | #11479 (studio-v2.24.0) | 上游 5 个文件全在 `desktop/electron/{host,main,shelllog,starting}.js` + 测试，**与 Tauri 壳零交集，搬不了**；只取语义自研 | `shell/src-tauri/src/main.rs` `ensure_kernel()`：两轮循环 + `child.try_wait()` 提前退出检测；`cargo check` 通过 |
+| 会话图片按 blob 存（schema 3） | studio-v2.20.2 | 上游走的是它自己的 checkpoint schema 3，我们这边超限的是 **sessionstore 的事件日志**（`sessionEventReplayMaxBytes = 128MiB`），两边结构不同源；按语义自研 | `internal/state/sessionstore/session_image_blobs.go`：data URL 按 SHA-256 落到 `<id>.blobs/`，日志与 .jsonl 只存 `tempora-blob:v1:<digest>`；写入外提、读取回填、压缩时按存活引用回收；blob 目录登记进 `store.SessionSidecarDirs` 随会话删除。**不动 schema 号**——旧版本读到引用只是丢图，不会读坏文本；**已写坏的旧会话不能自愈**（日志超限就读不回来） |
 
 > **判定原则**：上游补丁先查改动文件路径。落在 `desktop/electron/`、`cmd/`（CLI/TUI）
 > 的，对我们基本无移植价值 —— 前者我们已换 Tauri，后者我们没有终端。
