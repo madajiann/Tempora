@@ -70,24 +70,45 @@ fn ensure_kernel() -> Option<Child> {
     let cwd = std::env::var("USERPROFILE").ok().map(std::path::PathBuf::from)
         .or_else(|| std::env::current_dir().ok());
     // 内核是 CLI：不带子命令会去跑 TUI 然后退出，必须显式 serve 到 8787
-    let mut cmd = Command::new(&path);
-    cmd.args(["serve", "--addr", "127.0.0.1:8787"])
-        .creation_flags(0x0800_0000); // CREATE_NO_WINDOW：内核是控制台程序，别让它弹黑窗
-    if let Some(dir) = cwd {
-        let _ = cmd.current_dir(dir);
-    }
-    let child = match cmd.spawn() {
-        Ok(c) => c,
-        Err(_) => return None,
-    };
-    let deadline = Instant::now() + Duration::from_secs(30);
-    while Instant::now() < deadline {
-        if port_up(KERNEL_PORT) {
-            break;
+    // 内核若在 8787 顶起来之前就自己退出（配置坏、端口被别的进程占着、二进制损坏），
+    // 原来的写法会傻等到 30 秒超时，用户只能对着启动页发呆 —— 这正是「打开像卡死」的
+    // 一种真因。这里改为盯着子进程：它提前没了就立刻再试一次（最多两轮），
+    // 于是真正慢的机器能吃满 60 秒，而真崩掉的情况几秒内就有第二次机会。
+    // 思路参考上游 studio-v2.24.0 #11479（其实现在 desktop/electron/，与 Tauri 无关，
+    // 故按同一语义自研，未移植其代码）。
+    for attempt in 0..2 {
+        let mut cmd = Command::new(&path);
+        // 内核是 CLI：不带子命令会去跑 TUI 然后退出，必须显式 serve 到 8787
+        cmd.args(["serve", "--addr", "127.0.0.1:8787"])
+            .creation_flags(0x0800_0000); // CREATE_NO_WINDOW：内核是控制台程序，别让它弹黑窗
+        if let Some(dir) = &cwd {
+            let _ = cmd.current_dir(dir);
         }
-        std::thread::sleep(Duration::from_millis(400));
+        let mut child = match cmd.spawn() {
+            Ok(c) => c,
+            Err(_) => return None,
+        };
+        let deadline = Instant::now() + Duration::from_secs(30);
+        let mut exited_early = false;
+        while Instant::now() < deadline {
+            if port_up(KERNEL_PORT) {
+                return Some(child);
+            }
+            if let Ok(Some(_)) = child.try_wait() {
+                exited_early = true;
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(400));
+        }
+        if !exited_early {
+            // 到点还没起来：交给启动页继续探，不在这里干耗
+            return Some(child);
+        }
+        if attempt == 0 {
+            eprintln!("tempora: kernel exited before 8787 came up; retrying once");
+        }
     }
-    Some(child)
+    None
 }
 
 

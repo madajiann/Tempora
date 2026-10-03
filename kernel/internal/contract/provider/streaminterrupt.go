@@ -3,6 +3,7 @@ package provider
 import (
 	"errors"
 	"io"
+	"time"
 
 	"tempora/internal/base/neterr"
 )
@@ -14,6 +15,39 @@ const (
 	StreamInterruptPrematureEOF    = "premature_eof"
 	StreamInterruptIdleTimeout     = "idle_timeout"
 )
+
+// StreamIdleTimeout is the built-in bound on how long one call may send nothing
+// — before response headers or between stream events — before it is read as
+// dropped. 本地沿用各实现原有的 120s（上游默认 300s）：本次只新增按服务商覆盖的
+// 能力，不改动任何现有默认行为。
+const StreamIdleTimeout = 120 * time.Second
+
+// IdleTimeoutSecondsKey is the Config.Extra key carrying a provider's
+// idle_timeout_seconds: a per-provider override of StreamIdleTimeout.
+const IdleTimeoutSecondsKey = "idle_timeout_seconds"
+
+// MinIdleTimeoutSeconds and MaxIdleTimeoutSeconds bound the override. The
+// ceiling keeps time.Duration(v)*time.Second from overflowing int64 into a
+// negative window the transport reads as "no timeout".
+const (
+	MinIdleTimeoutSeconds = 1
+	MaxIdleTimeoutSeconds = 32767
+)
+
+// IdleTimeoutFromExtra resolves the per-provider stream idle timeout from
+// Config.Extra. Absent, zero and negative keep StreamIdleTimeout, so an unset
+// value stays the default rather than a zero window. A value past the ceiling
+// is clamped: an unbounded multiply wraps int64 negative.
+func IdleTimeoutFromExtra(extra map[string]any) time.Duration {
+	v, ok := extra[IdleTimeoutSecondsKey].(int)
+	if !ok || v <= 0 {
+		return StreamIdleTimeout
+	}
+	if v > MaxIdleTimeoutSeconds {
+		v = MaxIdleTimeoutSeconds
+	}
+	return time.Duration(v) * time.Second
+}
 
 // StreamInterruptedError marks a sampling attempt that never reached a clean
 // provider terminal event and is therefore uncommitted; the Agent may replay

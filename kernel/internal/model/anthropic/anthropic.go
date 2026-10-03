@@ -148,7 +148,7 @@ func New(cfg provider.Config) (provider.Provider, error) {
 		authHeader:       authHeader,
 		defaultMaxTokens: maxOutputTokens,
 		http:             httpClient, // no overall timeout; lifecycle is ctx-driven
-		idleTimeout:      defaultStreamIdleTimeout,
+		idleTimeout:      provider.IdleTimeoutFromExtra(cfg.Extra),
 	}, nil
 }
 

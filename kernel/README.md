@@ -1,3 +1,8 @@
+> [!NOTE]
+> **本目录是上游 [`esengine/DeepSeek-Reasonix`](https://github.com/esengine/DeepSeek-Reasonix)（`studio` 分支，MIT © Reasonix Contributors）内核源码的副本。**
+> 品牌名已全局替换 Reasonix → Tempora；仓库与官网链接已改回上游真名（原写入的
+> `esengine/DeepSeek-Tempora` 与 `tempora.io` 均为无效地址）。**基线版本：studio 2.20.0。**
+
 <p align="center">
   <img src="docs/logo-ghost-wave-effect.svg" alt="Tempora" width="360"/>
 </p>
@@ -15,27 +20,27 @@
   &nbsp;·&nbsp;
   <a href="./docs/SPEC.md">Spec</a>
   &nbsp;·&nbsp;
-  <a href="https://esengine.github.io/DeepSeek-Tempora/">Website</a>
+  <a href="https://esengine.github.io/DeepSeek-Reasonix/">Website</a>
   &nbsp;·&nbsp;
   <strong><a href="https://discord.gg/XF78rEME2D">Discord</a></strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/esengine/DeepSeek-Tempora/releases?q=studio-v&expanded=true"><img src="https://img.shields.io/github/v/release/esengine/DeepSeek-Tempora.svg?filter=studio-v*&include_prereleases&style=flat-square&color=8250df&labelColor=161b22&label=studio%202.x" alt="Tempora Studio 2.x"/></a>
+  <a href="https://github.com/esengine/DeepSeek-Reasonix/releases?q=studio-v&expanded=true"><img src="https://img.shields.io/github/v/release/esengine/DeepSeek-Reasonix.svg?filter=studio-v*&include_prereleases&style=flat-square&color=8250df&labelColor=161b22&label=studio%202.x" alt="Tempora Studio 2.x"/></a>
   <a href="https://www.npmjs.com/package/tempora"><img src="https://img.shields.io/npm/v/tempora.svg?style=flat-square&color=cb3837&labelColor=161b22&logo=npm&logoColor=white" alt="npm version"/></a>
-  <a href="https://github.com/esengine/DeepSeek-Tempora/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/esengine/DeepSeek-Tempora/ci.yml?style=flat-square&label=ci&labelColor=161b22&logo=githubactions&logoColor=white" alt="CI"/></a>
+  <a href="https://github.com/esengine/DeepSeek-Reasonix/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/esengine/DeepSeek-Reasonix/ci.yml?style=flat-square&label=ci&labelColor=161b22&logo=githubactions&logoColor=white" alt="CI"/></a>
   <a href="./LICENSE"><img src="https://img.shields.io/npm/l/tempora.svg?style=flat-square&color=8b949e&labelColor=161b22" alt="license"/></a>
   <a href="https://www.npmjs.com/package/tempora"><img src="https://img.shields.io/npm/dm/tempora.svg?style=flat-square&color=3fb950&labelColor=161b22&label=downloads" alt="downloads"/></a>
-  <a href="https://github.com/esengine/DeepSeek-Tempora/stargazers"><img src="https://img.shields.io/github/stars/esengine/DeepSeek-Tempora.svg?style=flat-square&color=dbab09&labelColor=161b22&logo=github&logoColor=white" alt="GitHub stars"/></a>
-  <a href="https://atomgit.com/esengine/DeepSeek-Tempora"><img src="https://atomgit.com/esengine/DeepSeek-Tempora/star/badge.svg" alt="AtomGit stars"/></a>
-  <a href="https://github.com/esengine/DeepSeek-Tempora/graphs/contributors"><img src="https://img.shields.io/github/contributors/esengine/DeepSeek-Tempora.svg?style=flat-square&color=bc8cff&labelColor=161b22&logo=github&logoColor=white" alt="contributors"/></a>
-  <a href="https://github.com/esengine/DeepSeek-Tempora/discussions"><img src="https://img.shields.io/github/discussions/esengine/DeepSeek-Tempora.svg?style=flat-square&color=58a6ff&labelColor=161b22&logo=github&logoColor=white" alt="Discussions"/></a>
+  <a href="https://github.com/esengine/DeepSeek-Reasonix/stargazers"><img src="https://img.shields.io/github/stars/esengine/DeepSeek-Reasonix.svg?style=flat-square&color=dbab09&labelColor=161b22&logo=github&logoColor=white" alt="GitHub stars"/></a>
+  <a href="https://atomgit.com/esengine/DeepSeek-Reasonix"><img src="https://atomgit.com/esengine/DeepSeek-Reasonix/star/badge.svg" alt="AtomGit stars"/></a>
+  <a href="https://github.com/esengine/DeepSeek-Reasonix/graphs/contributors"><img src="https://img.shields.io/github/contributors/esengine/DeepSeek-Reasonix.svg?style=flat-square&color=bc8cff&labelColor=161b22&logo=github&logoColor=white" alt="contributors"/></a>
+  <a href="https://github.com/esengine/DeepSeek-Reasonix/discussions"><img src="https://img.shields.io/github/discussions/esengine/DeepSeek-Reasonix.svg?style=flat-square&color=58a6ff&labelColor=161b22&logo=github&logoColor=white" alt="Discussions"/></a>
   <a href="https://discord.gg/XF78rEME2D"><img src="https://img.shields.io/badge/discord-join-5865F2.svg?style=flat-square&labelColor=161b22&logo=discord&logoColor=white" alt="Discord"/></a>
 </p>
 
 <p align="center">
-  <a href="https://trendshift.io/repositories/27020?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-27020" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/27020/monthly?language=Go" alt="esengine/DeepSeek-Tempora | Trendshift" width="250" height="55"/></a>
-  <a href="https://trendshift.io/repositories/27020?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-27020" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/27020" alt="esengine/DeepSeek-Tempora | Trendshift" width="250" height="55"/></a>
+  <a href="https://trendshift.io/repositories/27020?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-27020" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/27020/monthly?language=Go" alt="esengine/DeepSeek-Reasonix | Trendshift" width="250" height="55"/></a>
+  <a href="https://trendshift.io/repositories/27020?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-27020" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/27020" alt="esengine/DeepSeek-Reasonix | Trendshift" width="250" height="55"/></a>
 </p>
 
 <br/>
@@ -51,12 +56,12 @@
 
 ## Versions
 
-Tempora ships on two lines. See the [version roadmap announcement](https://github.com/esengine/DeepSeek-Tempora/discussions/10748) for the reasoning behind the split.
+Tempora ships on two lines. See the [version roadmap announcement](https://github.com/esengine/DeepSeek-Reasonix/discussions/10748) for the reasoning behind the split.
 
 | Line | Branch | Status | Get it |
 | --- | --- | --- | --- |
-| **Tempora 2.x** | `studio` (this branch) | Active development, pre-release | [Studio releases](https://github.com/esengine/DeepSeek-Tempora/releases?q=studio-v&expanded=true) |
-| **Tempora 1.x** | [`main-v2`](https://github.com/esengine/DeepSeek-Tempora/tree/main-v2) | Maintenance / stable | `npm i -g tempora` · [desktop download](https://tempora.io/?download=desktop#start) |
+| **Tempora 2.x** | `studio` (this branch) | Active development, pre-release | [Studio releases](https://github.com/esengine/DeepSeek-Reasonix/releases?q=studio-v&expanded=true) |
+| **Tempora 1.x** | [`main-v2`](https://github.com/esengine/DeepSeek-Reasonix/tree/main-v2) | Maintenance / stable | `npm i -g tempora` · [desktop download](https://reasonix.io/?download=desktop#start) |
 
 - **Want something stable?** Stay on 1.x. It keeps receiving bug fixes,
   provider/API compatibility, updater and security fixes; its core architecture
@@ -97,7 +102,7 @@ Studio, and editor integrations all run the same local Tempora engine.
 ### Tempora Studio (2.x)
 
 Download the package for your platform from the latest
-[Studio release](https://github.com/esengine/DeepSeek-Tempora/releases?q=studio-v&expanded=true)
+[Studio release](https://github.com/esengine/DeepSeek-Reasonix/releases?q=studio-v&expanded=true)
 (tagged `studio-v2.*`, published as pre-releases while 2.x is in active
 development):
 
@@ -124,7 +129,7 @@ brew install esengine/tempora/tempora   # macOS
 ```
 
 The 1.x desktop app is on the
-[official download page](https://tempora.io/?download=desktop#start). Windows
+[official download page](https://reasonix.io/?download=desktop#start). Windows
 installers are code-signed through [SignPath.io](https://signpath.io/) with a
 free certificate provided by the [SignPath Foundation](https://signpath.org/).
 
@@ -143,8 +148,8 @@ selection, and workspace sessions. Install the 1.x CLI first.
 Clone the repository; `studio` builds 2.x and `main-v2` builds 1.x:
 
 ```sh
-git clone https://github.com/esengine/DeepSeek-Tempora.git
-cd DeepSeek-Tempora
+git clone https://github.com/esengine/DeepSeek-Reasonix.git
+cd DeepSeek-Reasonix
 git switch studio
 ```
 
@@ -212,11 +217,11 @@ For advanced CLI usage and configuration, see the **[CLI reference](./docs/CLI.m
 
 ## Star History
 
-<a href="https://www.star-history.com/?repos=esengine%2FDeepSeek-Tempora&type=date&legend=top-left">
+<a href="https://www.star-history.com/?repos=esengine%2FDeepSeek-Reasonix&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/esengine/DeepSeek-Tempora/star-history/assets/star-history/star-history-dark.svg" />
-   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/esengine/DeepSeek-Tempora/star-history/assets/star-history/star-history-light.svg" />
-   <img alt="Star History Chart" src="https://raw.githubusercontent.com/esengine/DeepSeek-Tempora/star-history/assets/star-history/star-history-light.svg" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/esengine/DeepSeek-Reasonix/star-history/assets/star-history/star-history-dark.svg" />
+   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/esengine/DeepSeek-Reasonix/star-history/assets/star-history/star-history-light.svg" />
+   <img alt="Star History Chart" src="https://raw.githubusercontent.com/esengine/DeepSeek-Reasonix/star-history/assets/star-history/star-history-light.svg" />
  </picture>
 </a>
 
@@ -226,7 +231,7 @@ For advanced CLI usage and configuration, see the **[CLI reference](./docs/CLI.m
 
 A small list of folks whose work has shaped Tempora the most — the current top
 20 contributors by commit count. The full contributor graph is on
-[GitHub](https://github.com/esengine/DeepSeek-Tempora/graphs/contributors?all=1).
+[GitHub](https://github.com/esengine/DeepSeek-Reasonix/graphs/contributors?all=1).
 
 <!-- tempora-top-contributors:start -->
 | Contributor | Contributor | Contributor | Contributor |
@@ -241,8 +246,8 @@ A small list of folks whose work has shaped Tempora the most — the current top
 Special thanks to [**Bernardxu123**](https://github.com/Bernardxu123) for designing the project logo and intro video.
 
 <p align="center">
-  <a href="https://github.com/esengine/DeepSeek-Tempora/graphs/contributors">
-    <img src="https://contrib.rocks/image?repo=esengine/DeepSeek-Tempora&max=100&columns=12" alt="Contributors to esengine/DeepSeek-Tempora" width="860"/>
+  <a href="https://github.com/esengine/DeepSeek-Reasonix/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=esengine/DeepSeek-Reasonix&max=100&columns=12" alt="Contributors to esengine/DeepSeek-Reasonix" width="860"/>
   </a>
 </p>
 
@@ -253,7 +258,7 @@ Special thanks to [**Bernardxu123**](https://github.com/Bernardxu123) for design
 <p align="center">
   <sub>MIT — see <a href="./LICENSE">LICENSE</a></sub>
   <br/>
-  <sub>Built by the community at <a href="https://github.com/esengine/DeepSeek-Tempora/graphs/contributors">esengine/DeepSeek-Tempora</a></sub>
+  <sub>Built by the community at <a href="https://github.com/esengine/DeepSeek-Reasonix/graphs/contributors">esengine/DeepSeek-Reasonix</a></sub>
 </p>
 
 ---

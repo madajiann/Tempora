@@ -259,7 +259,7 @@ func New(cfg provider.Config) (provider.Provider, error) {
 		effort:             effort,
 		requestEfforts:     requestEfforts,
 		http:               httpClient,
-		idleTimeout:        defaultStreamIdleTimeout,
+		idleTimeout:        provider.IdleTimeoutFromExtra(cfg.Extra),
 	}, nil
 }
 
@@ -269,7 +269,7 @@ func newHTTPClient(cfg provider.Config) (*http.Client, error) {
 		DialTimeout:           30 * time.Second,
 		KeepAlive:             30 * time.Second,
 		TLSHandshakeTimeout:   15 * time.Second,
-		ResponseHeaderTimeout: 120 * time.Second, // models can think for a while before the first token
+		ResponseHeaderTimeout: provider.IdleTimeoutFromExtra(cfg.Extra), // per-provider idle_timeout_seconds, else 120s
 	})
 }
 
