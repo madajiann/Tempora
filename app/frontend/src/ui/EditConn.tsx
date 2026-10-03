@@ -5,8 +5,9 @@ import { clearModelCheckFacts, ModelChoice, type ModelFact } from "./ModelChoice
 import type { Port } from "./Providers";
 import { reason } from "../i18n/kernel";
 import { THINKING, headerLines, parseEffortLevels, parseExtraBody, parseHeaders } from "./provider_compat";
-import type { ModelLimit } from "../port/port";
+import type { ModelEffort, ModelLimit } from "../port/port";
 import { ModelLimits, limitTextOf, limitsToSend, type LimitText } from "./ModelLimits";
+import { ModelEfforts, effortTextOf, effortsToSend, type EffortText } from "./ModelEfforts";
 
 // Only what this form owns is sent: the entry keeps its prices, effort
 // vocabularies and everything else the panel cannot show.
@@ -43,6 +44,9 @@ export function EditConn({
   const [levelText, setLevelText] = useState((entry.supportedEfforts ?? []).join(", "));
   const [defEffort, setDefEffort] = useState(entry.defaultEffort ?? "");
   const levels = parseEffortLevels(levelText);
+  const [effortText, setEffortText] = useState<Record<string, EffortText>>(
+    () => Object.fromEntries(Object.entries(entry.modelEfforts ?? {}).map(([m, e]) => [m, effortTextOf(e)])),
+  );
   // Kimi K3 carries a fixed vocabulary and "none" sends no reasoning field, so
   // a declared list is kept on file but has nothing to act on under either.
   const levelsDormant = think === "kimi-k3" || think === "none";
@@ -153,6 +157,19 @@ export function EditConn({
     };
   };
 
+  // Same shape for the effort ladder: a level typed at the connection is what
+  // every model without its own inherits, and until it is saved the kernel's
+  // answer describes only what was saved.
+  const inheritedEffortsFor = (model: string): ModelEffort | null | undefined => {
+    const base = entry.inheritedEfforts?.[model];
+    const levelsMoved = levels.join(", ") !== (entry.supportedEfforts ?? []).join(", ");
+    const defMoved = defEffort !== (entry.defaultEffort ?? "");
+    return {
+      supportedEfforts: levelsMoved ? levels : base?.supportedEfforts,
+      defaultEffort: defMoved ? (levels.includes(defEffort) ? defEffort : undefined) : base?.defaultEffort,
+    };
+  };
+
   const save = async () => {
     setBusy(`edit:${entry.name}`);
     setErr("");
@@ -170,6 +187,7 @@ export function EditConn({
         supportedEfforts: levels,
         defaultEffort: levels.includes(defEffort) ? defEffort : "",
         modelLimits: limitsToSend(picked, limitText, entry.modelLimits ?? {}),
+        modelEfforts: effortsToSend(picked, effortText, entry.modelEfforts ?? {}),
         headers: parseHeaders(heads),
         extraBody: parseExtraBody(extra) ?? {},
       });
@@ -308,6 +326,10 @@ export function EditConn({
               </select>
               <i className="tip">{t("推理强度选「自动」时使用的档位。")}</i>
             </label>
+            {(picked.length > 1 || picked.some((m) => entry.modelEfforts?.[m])) && (
+              <ModelEfforts models={picked} value={effortText} onChange={setEffortText}
+                inherited={inheritedEffortsFor} dormant={levelsDormant} />
+            )}
             <label className="grow full">
               <span>{t("额外请求头")}</span>
               <textarea

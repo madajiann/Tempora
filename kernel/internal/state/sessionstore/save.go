@@ -454,7 +454,7 @@ func writeSessionMessages(path string, msgs []provider.Message) error {
 	}
 	tmpPath := tmp.Name()
 	enc := json.NewEncoder(tmp)
-	for _, m := range msgs {
+	for _, m := range externalizeSessionImages(path, msgs) {
 		if err := enc.Encode(m); err != nil {
 			tmp.Close()
 			os.Remove(tmpPath)

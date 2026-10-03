@@ -44,6 +44,10 @@ export interface ProviderEntry {
   // it inherits when it declares none.
   modelLimits?: Record<string, ModelLimit>;
   inheritedLimits?: Record<string, ModelLimit>;
+  // Per model: the effort vocabulary it declares for itself, and the ladder it
+  // inherits when it declares none.
+  modelEfforts?: Record<string, ModelEffort>;
+  inheritedEfforts?: Record<string, ModelEffort>;
   // Removing the one in use would leave the session on a model that no longer
   // resolves, so the row offers no delete.
   inUse: boolean;
@@ -171,12 +175,23 @@ export interface ProviderEdit {
   // The whole per-model answer for the listed models: a model left out, or sent
   // empty, inherits the connection's limits again. Omitted leaves every model alone.
   modelLimits?: Record<string, ModelLimit>;
+  // The whole per-model effort answer for the listed models: a model left out,
+  // or sent empty, inherits the connection's vocabulary again. Omitted leaves
+  // every model alone.
+  modelEfforts?: Record<string, ModelEffort>;
 }
 
 // One model's own context window and output cap; an absent field inherits.
 export interface ModelLimit {
   contextWindow?: number;
   maxOutputTokens?: number;
+}
+
+// One model's own effort vocabulary and default; an absent list inherits. The
+// default must name one of the levels, or the kernel refuses the save.
+export interface ModelEffort {
+  supportedEfforts?: string[];
+  defaultEffort?: string;
 }
 
 // What the panel sends back after the user has looked at the probe.

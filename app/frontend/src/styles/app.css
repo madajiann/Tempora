@@ -3125,11 +3125,15 @@
   .ml-row[data-own] .unit-field:has(input:not(:placeholder-shown)) { border-color: var(--accent) }
   @media (max-width: 640px) { .ml-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) } .ml-row .me-name { grid-column: 1 / -1 } }
   .addp .fields span { font: var(--w-reg) var(--fs-meta) var(--ui); color: var(--faint) }
-  .addp .fields input, .addp .fields select, .addp .ml-row input {
+  /* Per-model effort: the vocabulary field takes the room a list of levels
+     needs, the default menu only ever shows one word. */
+  .ml-row-efforts { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) 130px }
+  .addp .ml-row input, .addp .ml-row select {
     padding: 6px 9px; border: 1px solid var(--border); border-radius: var(--r-xs);
     background: var(--raised); color: var(--text); font: var(--w-reg) var(--fs-ui) var(--mono);
   }
-  .addp .fields input:focus, .addp .fields select:focus, .addp .ml-row input:focus { outline: 2px solid var(--focus); outline-offset: 1px }
+  .addp .ml-row select { font: var(--w-reg) var(--fs-meta) var(--ui) }
+  .addp .fields input:focus, .addp .fields select:focus, .addp .ml-row input:focus, .addp .ml-row select:focus { outline: 2px solid var(--focus); outline-offset: 1px }
   .addp .acts { display: flex; gap: 8px; margin-top: 12px }
   .addp .act[data-primary] { border-color: var(--accent); background: var(--accent); color: var(--accent-fg) }
   .addp .act[data-primary]:disabled { border-color: var(--border); background: transparent; color: var(--ghost) }
