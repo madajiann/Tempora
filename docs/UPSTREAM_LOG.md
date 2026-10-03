@@ -9,6 +9,44 @@
 |---|---|---|
 | studio-v2.22.0 / [#11193](https://github.com/esengine/DeepSeek-Reasonix/pull/11193) | 2026-10-03 | **4 个一键服务商预设**（OpenRouter / OpenAI / Gemini / 火山方舟 Ark）。纯内核 3 文件：新增 `internal/contract/config/global_presets.go` + 测试，接入 `curatedProviderPresets`。本地改动：OpenRouter 归属头（`HTTP-Referer` / `X-OpenRouter-Title`）署名改为 Tempora，让用量算在我们头上 |
 | studio-v2.23.0 / [#11258](https://github.com/esengine/DeepSeek-Reasonix/pull/11258) | 2026-10-03 | **按服务商设置流空闲超时 `idle_timeout_seconds`**。`provider.IdleTimeoutFromExtra()` + `ProviderEntry.IdleTimeoutSeconds` 字段 + 校验 + 渲染 + 三个模型实现接线。⚠️ 本地无 `provider.StreamIdleTimeout` 常量（各实现原为 120s），故**新增该常量时取 120s 而非上游 300s，默认行为零变更**，只是新增可覆盖能力 |
+| 上游 commit `40c87d94c`（2026-09-28，per-model effort 地基）+ [#11422](https://github.com/esengine/DeepSeek-Reasonix/pull/11422) | 2026-10-03 | **每模型上下文窗口 / 最大输出**。先补地基再上本体，详见下表 |
+
+### #11422 的两步落地（2026-10-03）
+
+**背景**：`ProviderModelOverride.ContextWindow` / `MaxOutputTokens` 在 2.20.0 **就已存在且生效**
+（改 `config.toml` 的 `model_overrides.<model>` 本来就能用），缺的是「按模型读写它的 API 和界面」。
+所以本次补的是**暴露与管理能力**，不是新的存储能力。
+
+**第一步 · 地基（commit `40c87d94c`，kernel 侧）** —— 纯重构 + 三个新查询，零行为变更：
+
+| 文件 | 动作 |
+|---|---|
+| `internal/contract/config/model_effort.go` | 新增。抽出 `forModel()` / `modelOverrideKey()`，新增 `ModelEffortDeclaration` / `ModelReasoningProtocol` / `SetModelEffortDeclaration` / `InheritedEffortCapability` |
+| `internal/contract/config/config.go` | `modelOverrideForModel` 改为复用 `modelOverrideKey`；`ResolveModel` 三处内联的 apply 序列改为 `forModel()` |
+| `internal/contract/config/effort.go` | `EffectiveEffort`：存储档位不在菜单内时按 auto 读（`EffortDisplay` 已有此语义）；`normalizedModelOverrides` 复用 `modelOverrideEmpty` |
+| `internal/frontend/serve/provider_model_effort.go` | 新增 `modelEffortView` / `modelEffortsOf` / `inheritedEffortsOf` / `modelProtocolsOf` / `orNilMap` / `applyModelEfforts` / `editRefusal` |
+| `internal/frontend/serve/provider_edit.go` | 三处协议/档位写入合并为 `applyReasoningFields` |
+
+**第二步 · 本体（#11422）**：
+
+| 文件 | 动作 |
+|---|---|
+| `internal/contract/config/model_limits.go` | 新增 `ModelLimits` / `SetModelLimits` / `InheritedLimits`（`ErrModelContextWindowNegative`） |
+| `internal/frontend/serve/provider_model_limits.go` | 新增 `modelLimitsView` / `modelLimitsOf` / `inheritedLimitsOf` / `applyModelLimits` |
+| `internal/frontend/serve/providers.go` | 视图增 `modelLimits` / `inheritedLimits`（连同地基的 `modelEfforts` / `inheritedEfforts` / `modelProtocols`） |
+| `internal/frontend/serve/provider_edit.go` | 编辑接口增 `modelLimits`，走 `applyModelLimits` |
+| 前端 `ui/ModelLimits.tsx` + `ui/EditConn.tsx` + `port/provider.ts` + `port/port.ts` + `styles/app.css` + `i18n/en_settings.ts` | 新增「按模型设置限制」分组：留空继承、灰字显示当前继承值、填写只对该模型生效 |
+
+**未移植**：#11422 前端里的 `ModelEfforts.tsx`（每模型推理档位 UI）。我们的前端是 2.20.0 基线，
+**整层 per-model UI 都不存在**（无 `ModelEfforts.tsx`、无 `modelEfforts` 字段），
+移植它等于把 effort 地基的前端一半也搬过来，牵动 EditConn 的状态机。故只做 limits，
+effort UI 单列一轮。**地基的 kernel 侧已就位，届时只需补前端。**
+
+**本地适配点（与上游不同，别照抄）**：
+- 模块名 `tempora` ≠ `reasonix`
+- `modelOverrideEmpty` 本地是超集（多判 `MaxOutputTokens`），替换内联条件更安全
+- 单位后缀用本地既有写法 `<i>tokens</i>`（上游是 `t("窗口")` / `t("输出")`），避免中英文案不一致
+- i18n 里 `"窗口"` 已存在（= Window），**不要重复添加**
 
 ## 已核对 · 本地已覆盖 · 不移植（2026-10-03 核对）
 

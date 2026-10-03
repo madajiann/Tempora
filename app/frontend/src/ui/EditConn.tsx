@@ -5,6 +5,8 @@ import { clearModelCheckFacts, ModelChoice, type ModelFact } from "./ModelChoice
 import type { Port } from "./Providers";
 import { reason } from "../i18n/kernel";
 import { THINKING, headerLines, parseEffortLevels, parseExtraBody, parseHeaders } from "./provider_compat";
+import type { ModelLimit } from "../port/port";
+import { ModelLimits, limitTextOf, limitsToSend, type LimitText } from "./ModelLimits";
 
 // Only what this form owns is sent: the entry keeps its prices, effort
 // vocabularies and everything else the panel cannot show.
@@ -34,6 +36,9 @@ export function EditConn({
   const [more, setMore] = useState(declare);
   const [win, setWin] = useState(entry.contextWindow ? String(entry.contextWindow) : "");
   const [maxOut, setMaxOut] = useState(entry.maxOutputTokens ? String(entry.maxOutputTokens) : "");
+  const [limitText, setLimitText] = useState<Record<string, LimitText>>(
+    () => Object.fromEntries(Object.entries(entry.modelLimits ?? {}).map(([m, l]) => [m, limitTextOf(l)])),
+  );
   const [think, setThink] = useState(entry.reasoningProtocol ?? "");
   const [levelText, setLevelText] = useState((entry.supportedEfforts ?? []).join(", "));
   const [defEffort, setDefEffort] = useState(entry.defaultEffort ?? "");
@@ -133,6 +138,21 @@ export function EditConn({
     }
   };
 
+  // A provider-wide value typed here is what every model without its own
+  // inherits; until it is saved, the kernel's answer holds only for what was
+  // saved, so an edited field is answered from the form instead.
+  const inheritedLimitsFor = (model: string): ModelLimit | null | undefined => {
+    const typedWin = Number(win) || 0;
+    const typedOut = Number(maxOut) || 0;
+    const base = entry.inheritedLimits?.[model];
+    const winMoved = typedWin !== (entry.contextWindow ?? 0);
+    const outMoved = typedOut !== (entry.maxOutputTokens ?? 0);
+    return {
+      contextWindow: winMoved ? typedWin || undefined : base?.contextWindow,
+      maxOutputTokens: outMoved ? typedOut || undefined : base?.maxOutputTokens,
+    };
+  };
+
   const save = async () => {
     setBusy(`edit:${entry.name}`);
     setErr("");
@@ -149,6 +169,7 @@ export function EditConn({
         reasoningProtocol: think,
         supportedEfforts: levels,
         defaultEffort: levels.includes(defEffort) ? defEffort : "",
+        modelLimits: limitsToSend(picked, limitText, entry.modelLimits ?? {}),
         headers: parseHeaders(heads),
         extraBody: parseExtraBody(extra) ?? {},
       });
@@ -196,6 +217,9 @@ export function EditConn({
             <i className="tip">{t("单轮生成上限；留空使用内核的模型默认值。")}</i>
           </label>
         </div>
+        {(picked.length > 1 || picked.some((m) => entry.modelLimits?.[m])) && (
+          <ModelLimits models={picked} value={limitText} onChange={setLimitText} inherited={inheritedLimitsFor} />
+        )}
       </div>
 
       <div className="mlist">
