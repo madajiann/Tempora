@@ -7,7 +7,8 @@
 
 | 上游版本 | 吸收日期 | 吸收了什么 |
 |---|---|---|
-| — | — | （尚未移植任何上游内容） |
+| studio-v2.22.0 / [#11193](https://github.com/esengine/DeepSeek-Reasonix/pull/11193) | 2026-10-03 | **4 个一键服务商预设**（OpenRouter / OpenAI / Gemini / 火山方舟 Ark）。纯内核 3 文件：新增 `internal/contract/config/global_presets.go` + 测试，接入 `curatedProviderPresets`。本地改动：OpenRouter 归属头（`HTTP-Referer` / `X-OpenRouter-Title`）署名改为 Tempora，让用量算在我们头上 |
+| studio-v2.23.0 / [#11258](https://github.com/esengine/DeepSeek-Reasonix/pull/11258) | 2026-10-03 | **按服务商设置流空闲超时 `idle_timeout_seconds`**。`provider.IdleTimeoutFromExtra()` + `ProviderEntry.IdleTimeoutSeconds` 字段 + 校验 + 渲染 + 三个模型实现接线。⚠️ 本地无 `provider.StreamIdleTimeout` 常量（各实现原为 120s），故**新增该常量时取 120s 而非上游 300s，默认行为零变更**，只是新增可覆盖能力 |
 
 ## 已核对 · 本地已覆盖 · 不移植（2026-10-03 核对）
 
@@ -24,9 +25,19 @@
 
 | 项 | 上游版本 / PR | 为什么值得 | 本地现状 | 风险 |
 |---|---|---|---|---|
-| 启动等待延长到 60s、3s 后显示「正在启动」、提前退出自动重试一次 | studio-v2.24.0 / #11479 | 直击「打开卡死」痛点 | 有 `public/boot.html`（含启动动画），但内核侧未搜到等待/重试逻辑 | 中（要动启动链路，需回归） |
+| ~~启动等待延长到 60s、3s 后显示「正在启动」、提前退出自动重试一次~~ | studio-v2.24.0 / #11479 | 直击「打开卡死」痛点 | ✅ **已处理**：上游实现在 `desktop/electron/`，与我们 Tauri 壳无交集，按语义自研（见下节） | — |
 | 输入框草稿按会话保存，刷新/重开会话后恢复 | studio-v2.22.0 / #11176 | 体验提升，纯前端 | 未核 | 低 |
 | 项目「⋯」菜单新增「在文件管理器中显示」 | studio-v2.25.0 / #11533 | 与已做的原生文件夹选择框同源 | 未核 | 低 |
+
+## 已按语义自研（非代码移植，2026-10-03）
+
+| 项 | 上游 | 为什么不算移植 | 落地 |
+|---|---|---|---|
+| 内核提前退出自动重试一次 + 等待放宽到 60s | #11479 (studio-v2.24.0) | 上游 5 个文件全在 `desktop/electron/{host,main,shelllog,starting}.js` + 测试，**与 Tauri 壳零交集，搬不了**；只取语义自研 | `shell/src-tauri/src/main.rs` `ensure_kernel()`：两轮循环 + `child.try_wait()` 提前退出检测；`cargo check` 通过 |
+
+> **判定原则**：上游补丁先查改动文件路径。落在 `desktop/electron/`、`cmd/`（CLI/TUI）
+> 的，对我们基本无移植价值 —— 前者我们已换 Tauri，后者我们没有终端。
+> 只有落在 `internal/**`（内核）与 `desktop/frontend-next/src/**`（前端）的才值得搬。
 
 ## 明确不碰（与轻便版定位冲突或撞红线）
 
@@ -37,8 +48,23 @@
 
 ## 待补的基础设施
 
-- **前端基线版本未知**：`app/frontend/package.json` 未标、`CUTLIST.md` 未记，
-  导致无法判断前端相对上游落后多少。下次复制上游代码时应记录对应的上游 tag。
+- ✅ **前端基线版本已确定（2026-10-03）：`studio 2.20.0`**
+  证据：`kernel/release-notes/studio/` 最新为 `2.20.0.md`；`kernel/desktop/frontend-next/src`
+  即 2.20.0 基线前端（433 文件），可直接与 `app/frontend/src`（435 文件）diff 出我们的全部改动。
+  完整差距清单见 `docs/GAP_ANALYSIS.md`。
+
+- ⚠️ **比对范围纠正（重要）**：上游是**两条并行线、代码不同源**
+  - 2.x = `studio` 分支（**我们基于这条**，最新 2.26.0）
+  - 1.x = `main-v2` 分支（v1.39.x，另一份代码）
+  → 本表上半部分拿 v1.39.x 的 PR 去核我们 2.x 内核，**方向本身不成立**，那些结论不可作为依据。
+  → 正确的比对范围是 **studio 2.20.1 → 2.26.0**。
+
 - 参考副本 `G:/Tempora/reference/DeepSeek-Reasonix` 停在 **2026-09-25**（落后 8 天），
   下次做上游比对前需先更新它（`git fetch`；本机直连 github.com 不稳，必要时用
   `GET /repos/esengine/DeepSeek-Reasonix/tarball/studio` 拉归档）。
+  > 注：其实**不必先更新副本** —— `kernel/desktop/frontend-next` 就是现成的 2.20.0 基线，
+  > 直接 diff 更快；取上游新改动用 `GET /repos/{repo}/pulls/{n}/files` 拿 patch。
+
+- ⚠️ **diff 前必须剥 CR**：基线前端与我们前端的行尾符不同，
+  不剥会把整个文件误报成差异（`diff --strip-trailing-cr`）。
+  实测 `ui/App.tsx`：不剥 = +799/-777（假），剥后 = +28/-6（真）。

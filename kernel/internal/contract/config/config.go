@@ -1240,6 +1240,10 @@ type ProviderEntry struct {
 	// CacheTTLMinutes overrides the vendor-default prefix-cache retention used by
 	// cold-resume prune. Zero uses the vendor default (DeepSeek/unknown 24h, DashScope/Anthropic 5m).
 	CacheTTLMinutes int `toml:"cache_ttl_minutes"`
+	// IdleTimeoutSeconds overrides the stream idle watchdog: how long a call may
+	// send nothing — before headers or between events — before it is dropped.
+	// Zero keeps the 120s default.
+	IdleTimeoutSeconds int `toml:"idle_timeout_seconds"`
 }
 
 type ProviderModelOverride struct {

@@ -151,7 +151,7 @@ func New(cfg Config) provider.Provider {
 	httpClient := &http.Client{Timeout: 300 * time.Second}
 	if built, err := netclient.NewHTTPClient(cfg.Proxy, netclient.TransportOptions{
 		DialTimeout: 30 * time.Second, KeepAlive: 30 * time.Second,
-		TLSHandshakeTimeout: 15 * time.Second, ResponseHeaderTimeout: 120 * time.Second,
+		TLSHandshakeTimeout: 15 * time.Second, ResponseHeaderTimeout: provider.IdleTimeoutFromExtra(cfg.Extra),
 	}); err == nil {
 		httpClient = built
 	}
@@ -165,7 +165,7 @@ func New(cfg Config) provider.Provider {
 		baseURL: baseURL, requestURL: requestURL, model: cfg.Model, effort: cfg.Effort,
 		vendor: vendor, caps: cap, mode: cfg.mode(), sessionCache: sessionCache, webSearch: cfg.WebSearch, maxOutputTokens: maxOutputTokens,
 		vision: vision,
-		http:   httpClient, idleTimeout: defaultStreamIdleTimeout,
+		http:   httpClient, idleTimeout: provider.IdleTimeoutFromExtra(cfg.Extra),
 	}
 }
 
