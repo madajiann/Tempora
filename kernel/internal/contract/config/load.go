@@ -7,10 +7,10 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"tempora/internal/contract/pricing"
 	"reflect"
 	"slices"
 	"strings"
+	"tempora/internal/contract/pricing"
 
 	"github.com/BurntSushi/toml"
 
@@ -127,6 +127,7 @@ func (r Roots) loadForRoot(root string, migrateOnDisk bool) (*Config, error) {
 	globalCLI := cfg.CLI
 	globalSecrets := cfg.Secrets
 	globalSandbox := holdUserSandbox(cfg.Sandbox)
+	globalPermissions := holdUserPermissions(cfg.Permissions)
 	globalRemote, globalStorage := cfg.Remote.Clone(), maps.Clone(cfg.Storage)
 	globalDesktopLanguage := cfg.Desktop.Language
 	globalPricingCurrency := cfg.Desktop.Currency
@@ -157,6 +158,18 @@ func (r Roots) loadForRoot(root string, migrateOnDisk bool) (*Config, error) {
 	cfg.Secrets = globalSecrets
 	// Sandbox grants are the same kind of control (see heldSandbox).
 	globalSandbox.restore(&cfg.Sandbox)
+	// Permission grants are the same kind of control and the sharpest one:
+	// permissions.allow is a standing approval to act without asking, so a
+	// repository may never supply one (see heldPermissions).
+	if projectMeta.IsDefined("permissions", "allow") {
+		if ignored := globalPermissions.ignoredProjectGrants(cfg.Permissions.Allow); len(ignored) > 0 {
+			cfg.addLoadWarning(fmt.Sprintf(
+				"project config sets permissions.allow (%s); a repository may only narrow your permissions, so those rules are ignored for this workspace",
+				strings.Join(ignored, ", "),
+			))
+		}
+	}
+	globalPermissions.restore(&cfg.Permissions)
 	// Remote SSH hosts and storage locations are equally user-global: a cloned
 	// repo must not inject hosts, jump chains, or port forwards, nor redirect
 	// where this machine keeps its transcripts, catalogs, and checkouts.

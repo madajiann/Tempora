@@ -1,11 +1,11 @@
 {
-  "version": "0.1.21",
-  "notes": "修复\n- 修复 0.1.20 引入的启动卡死：带令牌鉴权后前端脚本与样式被一并拦截，页面永远停在启动画面。现在内核的静态资源（脚本、样式、字体、图标）在令牌交换完成前即可加载，真正的数据接口（会话、配置、执行命令等）仍然必须携带令牌\n\n安全\n- 本地内核服务默认开启令牌鉴权：壳启动内核时生成一次性的 256 位随机令牌，经临时文件交接后立即删除；需要完全开放时显式传 --auth none 或在配置里写 auth_mode = \"none\"\n- 手机/远程访问入口（tempora web）维持令牌强制，即使配置写了开放也会被覆盖为令牌模式",
-  "pub_date": "2026-10-04T06:02:14Z",
+  "version": "0.1.22",
+  "notes": "安全\n- 项目配置不能再给自己发权限：仓库里的 tempora.toml 此前可以直接写 permissions.allow 或把 mode 放宽成 allow，打开一个来路不明的项目就会被静默预授权。现在权限授予只认你自己的，仓库只能收紧不能放宽（沙盒、密钥、远程主机、遥测此前已经是这个规则，本轮补上权限）\n- 在项目里点的「总是允许」改存到你的 Tempora 主目录，不再写进仓库文件——否则它会跟着仓库一起分发出去\n\n说明\n- 如果你此前在项目里存过允许规则，升级后它们不再生效，重新点一次「总是允许」即可（这次会记到主目录，对所有项目都有效）",
+  "pub_date": "2026-10-04T08:48:56Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOGJaUGorWlcwSkNZV1pBa1dWbTE3UGZmWTVrYTc4ZGhqTmpUV1FzR1BFWWRuRWZJNGhWcm9wOW42dUI3ang4U1EweXpCbWxoeFo5K1RvZUg0eVN5eUF3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxMDkzNzExCWZpbGU6VGVtcG9yYV8wLjEuMjFfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4yMQpaQkZsdm9nY2lIMEQ4T01YTnNjTmx3RzR3bjJpQXIwSnFiQVcxazJDVmtyeXp5dmVLeEZhOTVKVVEzQnYxTktJb1UzNDdxYjZFMmNqUnYxQTVuS3REdz09Cg==",
-      "url": "https://tempora.yomm.cc/dl/Tempora_0.1.21_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFdIWW1SYWhiMHMrK3pOcjZjR0lrVkxqZnVYb3ZhTXA5VmJKMDBINDZXZmtvZEZ5Y2xoZ3dXS3ZWNmVxWnR3NFJTQjZmNTdoNG9ZbVJjbW04WXhHV3c0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxMTAzNzE4CWZpbGU6VGVtcG9yYV8wLjEuMjJfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4yMgpMdmtaVEp2Tmt6TmxaSmVnT2ozVEtNS1BUcy9mV3hJWFlld3BEN3N6K2xMcitHQm1oZVZwQ3d6NVRmcXplVUY3ZjRLUThQTnJZckdlWHlMSkQ1Y2pDQT09Cg==",
+      "url": "https://tempora.yomm.cc/dl/Tempora_0.1.22_x64-setup.exe"
     }
   }
 }
