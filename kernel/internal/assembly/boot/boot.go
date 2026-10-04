@@ -108,6 +108,13 @@ func rememberPermissionRule(roots config.Roots, workspaceRoot, rule string) cont
 }
 
 func rememberPermissionConfigPath(roots config.Roots, workspaceRoot string) string {
+	// "Always allow" is a user trust decision, so it is remembered in the
+	// Tempora home rather than the workspace: written into a repository it
+	// would travel with that repository, and would read back here as a grant
+	// the repo gave itself (see config.holdUserPermissions).
+	if dir := roots.Home(); dir != "" {
+		return filepath.Join(dir, "config.toml")
+	}
 	workspaceRoot = strings.TrimSpace(workspaceRoot)
 	if workspaceRoot != "" {
 		return filepath.Join(workspaceRoot, "tempora.toml")

@@ -2962,7 +2962,7 @@ func shellQuoteForTest(s string) string {
 	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
 }
 
-func TestRememberPermissionRuleUsesWorkspaceRoot(t *testing.T) {
+func TestRememberPermissionRuleSkipsCwdConfig(t *testing.T) {
 	home := robustTempDir(t)
 	t.Setenv("HOME", home)
 	t.Setenv("USERPROFILE", home)
@@ -2976,19 +2976,19 @@ func TestRememberPermissionRuleUsesWorkspaceRoot(t *testing.T) {
 [permissions]
 allow = ["Bash(cwd*)"]
 `)
-	writeFile(t, workspace, "tempora.toml", `
+	writeFile(t, workspace, "config.toml", `
 [permissions]
 allow = ["Bash(workspace*)"]
 `)
 
 	const rule = "Bash(go test ./...)"
-	rememberPermissionRule(config.Roots{}, workspace, rule)
+	rememberPermissionRule(config.RootsForHome(workspace), workspace, rule)
 
 	cwdCfg := config.LoadForEdit(filepath.Join(cwd, "tempora.toml"))
 	if hasPermissionRule(cwdCfg.Permissions.Allow, rule) {
 		t.Fatalf("remembered rule was written to cwd config: %v", cwdCfg.Permissions.Allow)
 	}
-	workspaceCfg := config.LoadForEdit(filepath.Join(workspace, "tempora.toml"))
+	workspaceCfg := config.LoadForEdit(filepath.Join(workspace, "config.toml"))
 	if !hasPermissionRule(workspaceCfg.Permissions.Allow, rule) {
 		t.Fatalf("remembered rule missing from workspace config: %v", workspaceCfg.Permissions.Allow)
 	}
@@ -2996,7 +2996,7 @@ allow = ["Bash(workspace*)"]
 
 func TestRememberPermissionRulePreservesPermissionPolicyAndComments(t *testing.T) {
 	workspace := robustTempDir(t)
-	writeFile(t, workspace, "tempora.toml", `
+	writeFile(t, workspace, "config.toml", `
 [permissions]
 # Keep this rationale with the policy.
 mode = "deny"
@@ -3010,12 +3010,12 @@ legacy_preference = "keep"
 `)
 
 	const rule = "Edit(src/app.go)"
-	result := rememberPermissionRule(config.Roots{}, workspace, rule)
+	result := rememberPermissionRule(config.RootsForHome(workspace), workspace, rule)
 	if result.Err != nil || !result.Saved {
 		t.Fatalf("remember result = %+v, want saved without error", result)
 	}
 
-	path := filepath.Join(workspace, "tempora.toml")
+	path := filepath.Join(workspace, "config.toml")
 	got := config.LoadForEdit(path)
 	if got.Permissions.Mode != "deny" {
 		t.Errorf("permissions.mode = %q, want deny", got.Permissions.Mode)
@@ -3051,7 +3051,7 @@ legacy_preference = "keep"
 
 func TestRememberPermissionRuleIgnoresTOMLExampleInMultilineSystemPrompt(t *testing.T) {
 	workspace := robustTempDir(t)
-	writeFile(t, workspace, "tempora.toml", `[agent]
+	writeFile(t, workspace, "config.toml", `[agent]
 system_prompt = """
 Example only:
 [permissions]
@@ -3065,12 +3065,12 @@ deny = ["Bash(rm:*)"]
 `)
 
 	const rule = "Edit(src/app.go)"
-	result := rememberPermissionRule(config.Roots{}, workspace, rule)
+	result := rememberPermissionRule(config.RootsForHome(workspace), workspace, rule)
 	if result.Err != nil || !result.Saved {
 		t.Fatalf("remember result = %+v, want saved without error", result)
 	}
 
-	path := filepath.Join(workspace, "tempora.toml")
+	path := filepath.Join(workspace, "config.toml")
 	got, err := config.LoadForEditReadOnlyStrict(path)
 	if err != nil {
 		t.Fatalf("updated config does not parse: %v", err)
@@ -3085,13 +3085,13 @@ deny = ["Bash(rm:*)"]
 
 func TestRememberPermissionRuleRejectsMalformedConfigWithoutWriting(t *testing.T) {
 	workspace := robustTempDir(t)
-	path := filepath.Join(workspace, "tempora.toml")
+	path := filepath.Join(workspace, "config.toml")
 	original := []byte("[permissions]\nmode = \"deny\"\nallow = [\n")
 	if err := os.WriteFile(path, original, 0o644); err != nil {
 		t.Fatal(err)
 	}
 
-	result := rememberPermissionRule(config.Roots{}, workspace, "Edit(src/app.go)")
+	result := rememberPermissionRule(config.RootsForHome(workspace), workspace, "Edit(src/app.go)")
 	if result.Err == nil || result.Saved {
 		t.Fatalf("remember result = %+v, want parse error without save", result)
 	}
@@ -3106,7 +3106,7 @@ func TestRememberPermissionRuleRejectsMalformedConfigWithoutWriting(t *testing.T
 
 func TestRememberPermissionRuleSerializesConcurrentWriters(t *testing.T) {
 	workspace := robustTempDir(t)
-	writeFile(t, workspace, "tempora.toml", "[permissions]\nallow = []\n")
+	writeFile(t, workspace, "config.toml", "[permissions]\nallow = []\n")
 
 	const writers = 32
 	start := make(chan struct{})
@@ -3117,7 +3117,7 @@ func TestRememberPermissionRuleSerializesConcurrentWriters(t *testing.T) {
 		go func(n int) {
 			defer wg.Done()
 			<-start
-			results <- rememberPermissionRule(config.Roots{}, workspace, fmt.Sprintf("Edit(file-%02d)", n))
+			results <- rememberPermissionRule(config.RootsForHome(workspace), workspace, fmt.Sprintf("Edit(file-%02d)", n))
 		}(i)
 	}
 	close(start)
@@ -3129,7 +3129,7 @@ func TestRememberPermissionRuleSerializesConcurrentWriters(t *testing.T) {
 		}
 	}
 
-	got := config.LoadForEdit(filepath.Join(workspace, "tempora.toml"))
+	got := config.LoadForEdit(filepath.Join(workspace, "config.toml"))
 	for i := range writers {
 		rule := fmt.Sprintf("Edit(file-%02d)", i)
 		if !hasPermissionRule(got.Permissions.Allow, rule) {
@@ -3140,7 +3140,7 @@ func TestRememberPermissionRuleSerializesConcurrentWriters(t *testing.T) {
 
 func TestRememberPermissionRuleSerializesCrossProcessWriters(t *testing.T) {
 	workspace := robustTempDir(t)
-	writeFile(t, workspace, "tempora.toml", "[permissions]\nallow = []\n")
+	writeFile(t, workspace, "config.toml", "[permissions]\nallow = []\n")
 	readyDir := robustTempDir(t)
 	startPath := filepath.Join(readyDir, "start")
 
@@ -3194,7 +3194,7 @@ func TestRememberPermissionRuleSerializesCrossProcessWriters(t *testing.T) {
 		}
 	}
 
-	got := config.LoadForEdit(filepath.Join(workspace, "tempora.toml"))
+	got := config.LoadForEdit(filepath.Join(workspace, "config.toml"))
 	for worker := range workers {
 		for n := range rulesPerWorker {
 			rule := fmt.Sprintf("Edit(process-%d-file-%02d)", worker, n)
@@ -3236,14 +3236,18 @@ func TestRememberPermissionRuleProcessHelper(t *testing.T) {
 	}
 	for n := range rules {
 		rule := fmt.Sprintf("Edit(process-%d-file-%02d)", worker, n)
-		result := rememberPermissionRule(config.Roots{}, workspace, rule)
+		result := rememberPermissionRule(config.RootsForHome(workspace), workspace, rule)
 		if result.Err != nil || !result.Saved {
 			t.Fatalf("remember result = %+v, want saved without error", result)
 		}
 	}
 }
 
-func TestRememberPermissionRuleCreatesWorkspaceConfigOverUserConfig(t *testing.T) {
+func TestRememberPermissionRulePrefersUserHomeOverWorkspaceConfig(t *testing.T) {
+	// "Always allow" is a user trust decision, so it is remembered in the
+	// Tempora home rather than the workspace: written into a repository it
+	// would travel with that repository and read back as a grant the repo
+	// gave itself.
 	home := robustTempDir(t)
 	t.Setenv("HOME", home)
 	t.Setenv("USERPROFILE", home)
@@ -3259,17 +3263,16 @@ allow = ["Bash(user)"]
 
 	const rule = "Edit(src/app.go)"
 	res := rememberPermissionRule(config.Roots{}, workspace, rule)
-	if !res.Saved || res.Path != filepath.Join(workspace, "tempora.toml") {
-		t.Fatalf("remember result = %+v, want saved to workspace config", res)
+	if !res.Saved || res.Path != userConfig {
+		t.Fatalf("remember result = %+v, want saved to the user config", res)
 	}
 
 	userCfg := config.LoadForEdit(userConfig)
-	if hasPermissionRule(userCfg.Permissions.Allow, rule) {
-		t.Fatalf("workspace rule was written to user config: %v", userCfg.Permissions.Allow)
+	if !hasPermissionRule(userCfg.Permissions.Allow, rule) {
+		t.Fatalf("rule missing from user config: %v", userCfg.Permissions.Allow)
 	}
-	workspaceCfg := config.LoadForEdit(filepath.Join(workspace, "tempora.toml"))
-	if !hasPermissionRule(workspaceCfg.Permissions.Allow, rule) {
-		t.Fatalf("workspace rule missing from project config: %v", workspaceCfg.Permissions.Allow)
+	if _, err := os.Stat(filepath.Join(workspace, "tempora.toml")); !os.IsNotExist(err) {
+		t.Fatalf("remember wrote into the workspace config (err=%v); it belongs in the user's home", err)
 	}
 }
 
@@ -3305,16 +3308,16 @@ allow = ["Bash(user*)"]
 
 func TestRememberPermissionRuleSkipsRuleCoveredByExistingAllow(t *testing.T) {
 	workspace := robustTempDir(t)
-	writeFile(t, workspace, "tempora.toml", `
+	writeFile(t, workspace, "config.toml", `
 [permissions]
 allow = ["Bash(go test:*)"]
 `)
 
-	res := rememberPermissionRule(config.Roots{}, workspace, "Bash(go test ./...)")
+	res := rememberPermissionRule(config.RootsForHome(workspace), workspace, "Bash(go test ./...)")
 	if res.Saved || res.CoveredBy != "Bash(go test:*)" {
 		t.Fatalf("remember result = %+v, want already covered", res)
 	}
-	cfg := config.LoadForEdit(filepath.Join(workspace, "tempora.toml"))
+	cfg := config.LoadForEdit(filepath.Join(workspace, "config.toml"))
 	if len(cfg.Permissions.Allow) != 1 || cfg.Permissions.Allow[0] != "Bash(go test:*)" {
 		t.Fatalf("allow rules = %v, want only existing prefix", cfg.Permissions.Allow)
 	}
@@ -3322,26 +3325,26 @@ allow = ["Bash(go test:*)"]
 
 func TestRememberDynamicBashLiteralIsNotCoveredByBroadRule(t *testing.T) {
 	workspace := robustTempDir(t)
-	writeFile(t, workspace, "tempora.toml", `
+	writeFile(t, workspace, "config.toml", `
 [permissions]
 allow = ["Bash(git*)"]
 `)
 
 	const literal = "Bash=git status $(touch /tmp/tempora-dynamic-approval)"
-	res := rememberPermissionRule(config.Roots{}, workspace, literal)
+	res := rememberPermissionRule(config.RootsForHome(workspace), workspace, literal)
 	if !res.Saved || res.CoveredBy != "" || res.Err != nil {
 		t.Fatalf("remember dynamic literal = %+v, want newly saved rule", res)
 	}
-	cfg := config.LoadForEdit(filepath.Join(workspace, "tempora.toml"))
+	cfg := config.LoadForEdit(filepath.Join(workspace, "config.toml"))
 	if !hasPermissionRule(cfg.Permissions.Allow, "Bash(git*)") || !hasPermissionRule(cfg.Permissions.Allow, literal) {
 		t.Fatalf("allow rules = %v, want broad rule and dynamic literal", cfg.Permissions.Allow)
 	}
 
-	res = rememberPermissionRule(config.Roots{}, workspace, literal)
+	res = rememberPermissionRule(config.RootsForHome(workspace), workspace, literal)
 	if res.Saved || res.CoveredBy != literal || res.Err != nil {
 		t.Fatalf("remember duplicate dynamic literal = %+v, want exact deduplication", res)
 	}
-	cfg = config.LoadForEdit(filepath.Join(workspace, "tempora.toml"))
+	cfg = config.LoadForEdit(filepath.Join(workspace, "config.toml"))
 	count := 0
 	for _, rule := range cfg.Permissions.Allow {
 		if rule == literal {
@@ -3355,16 +3358,16 @@ allow = ["Bash(git*)"]
 
 func TestRememberPermissionRulePrunesNarrowRulesWhenSavingBroaderRule(t *testing.T) {
 	workspace := robustTempDir(t)
-	writeFile(t, workspace, "tempora.toml", `
+	writeFile(t, workspace, "config.toml", `
 [permissions]
 allow = ["Bash(go test ./...)", "Bash(go build ./...)"]
 `)
 
-	res := rememberPermissionRule(config.Roots{}, workspace, "Bash(go test:*)")
+	res := rememberPermissionRule(config.RootsForHome(workspace), workspace, "Bash(go test:*)")
 	if !res.Saved || res.CoveredBy != "" {
 		t.Fatalf("remember result = %+v, want saved broader rule", res)
 	}
-	cfg := config.LoadForEdit(filepath.Join(workspace, "tempora.toml"))
+	cfg := config.LoadForEdit(filepath.Join(workspace, "config.toml"))
 	if hasPermissionRule(cfg.Permissions.Allow, "Bash(go test ./...)") {
 		t.Fatalf("narrow go test rule should be pruned: %v", cfg.Permissions.Allow)
 	}
