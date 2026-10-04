@@ -21,8 +21,25 @@ import (
 	"tempora/internal/state/store"
 )
 
+// serveConfigWithCommandDefaults settles the auth default before anything is
+// bound. A loopback kernel still answers every process on the machine, and it
+// is the thing holding the file and command permissions, so an unauthenticated
+// one is an open door for any local code (#11110). Both `web` and `serve`
+// therefore default to a generated token.
+//
+// Two operator decisions are left alone: an explicit --auth flag, and an
+// explicit auth_mode in config. Only the unset default flips.
 func serveConfigWithCommandDefaults(command string, authExplicit bool, cfg config.ServeConfig) config.ServeConfig {
-	if command == "web" && !authExplicit {
+	if authExplicit {
+		return cfg
+	}
+	// `web` is the surface a phone or another machine is pointed at, so it
+	// takes a token even when config asks for an open door.
+	if command == "web" {
+		cfg.AuthMode = "token"
+		return cfg
+	}
+	if strings.TrimSpace(cfg.AuthMode) == "" {
 		cfg.AuthMode = "token"
 	}
 	return cfg

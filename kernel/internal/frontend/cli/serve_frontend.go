@@ -158,8 +158,10 @@ func reportServeFrontend(ctrl *control.Controller, srv serveHost, cfg config.Ser
 	if public := strings.TrimRight(strings.TrimSpace(opts.publicURL), "/"); public != "" {
 		origin = public
 	}
-	// Supervised Serve already owns the token file, so avoid logging its value.
-	supervised := opts.portFile != "" && opts.tokenFile != ""
+	// A token handed over in a file is not ours to print: the supervisor that
+	// wrote it already knows the value, and a console log is the one place a
+	// secret outlives the session that needed it.
+	supervised := opts.tokenFile != ""
 	if srv.AuthMode() == "token" {
 		fmt.Println("  auth: token")
 		if supervised {
@@ -241,10 +243,7 @@ func runServeWithOptions(args []string, opts serveRunOptions) int {
 	if opts.command == "web" {
 		sessionID = fs.String("session-id", "", "bind a fresh Web session identity (used by /web handoff)")
 	}
-	authHelp := "auth mode: none, token, or password (default: config/none)"
-	if opts.command == "web" {
-		authHelp = "auth mode: none, token, or password (default: generated token)"
-	}
+	authHelp := "auth mode: none, token, or password (default: generated token)"
 	auth := fs.String("auth", "", authHelp)
 	token := fs.String("token", "", "pre-shared token for auth=token (auto-generated if empty)")
 	password := fs.String("password", "", "password for auth=password (use --hash-password to store a hash instead)")
@@ -324,6 +323,10 @@ func runServeWithOptions(args []string, opts serveRunOptions) int {
 			return 1
 		}
 		serveCfg.Token = tok
+		// The file was the handoff, and the handoff is over: this process now
+		// holds the only copy it needs. Leaving a bearer credential in a temp
+		// directory would put it back where any local process can read it.
+		_ = os.Remove(*tokenFile)
 	}
 	if *behindProxy {
 		serveCfg.BehindProxy = true

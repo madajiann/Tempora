@@ -22,7 +22,7 @@ fn main() {
     // "Command pick_folder not allowed by ACL"）。
     tauri_build::try_build(
         tauri_build::Attributes::new()
-            .app_manifest(tauri_build::AppManifest::new().commands(&["pick_folder", "update_status", "open_updater"])),
+            .app_manifest(tauri_build::AppManifest::new().commands(&["pick_folder", "update_status", "open_updater", "kernel_token"])),
     )
     .expect("failed to run tauri-build");
 }

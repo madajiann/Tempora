@@ -7,6 +7,7 @@
 
 | 上游版本 | 吸收日期 | 吸收了什么 |
 |---|---|---|
+| studio-v2.21.0 / [#11110](https://github.com/esengine/DeepSeek-Reasonix/pull/11110) | 2026-10-04 | **本地服务默认鉴权 + 启动令牌**。内核本来就有完整 authGate（token/password），缺的只是默认不开：`serve` 与 `web` 现在都默认 `auth=token`，显式 `--auth` 与 config `auth_mode` 仍说了算；`web` 即使 config 写 none 也强制 token（它是给别人连的入口）。桌面壳生成 256 位令牌（RtlGenRandom）经临时文件交接、内核读到即删，启动页经 IPC 命令 `kernel_token` 取令牌放 URL fragment，由内核页既有引导脚本换 HttpOnly cookie。⚠️ `--token-file` 语义变了一点：读完后删除该文件（令牌只活在壳与内核内存里），supervised 判定也从「port-file+token-file」放宽为「有 token-file 即不打印明文」 |
 | studio-v2.22.0 / [#11193](https://github.com/esengine/DeepSeek-Reasonix/pull/11193) | 2026-10-03 | **4 个一键服务商预设**（OpenRouter / OpenAI / Gemini / 火山方舟 Ark）。纯内核 3 文件：新增 `internal/contract/config/global_presets.go` + 测试，接入 `curatedProviderPresets`。本地改动：OpenRouter 归属头（`HTTP-Referer` / `X-OpenRouter-Title`）署名改为 Tempora，让用量算在我们头上 |
 | studio-v2.23.0 / [#11258](https://github.com/esengine/DeepSeek-Reasonix/pull/11258) | 2026-10-03 | **按服务商设置流空闲超时 `idle_timeout_seconds`**。`provider.IdleTimeoutFromExtra()` + `ProviderEntry.IdleTimeoutSeconds` 字段 + 校验 + 渲染 + 三个模型实现接线。⚠️ 本地无 `provider.StreamIdleTimeout` 常量（各实现原为 120s），故**新增该常量时取 120s 而非上游 300s，默认行为零变更**，只是新增可覆盖能力 |
 | 上游 commit `40c87d94c`（2026-09-28，per-model effort 地基）+ [#11422](https://github.com/esengine/DeepSeek-Reasonix/pull/11422) | 2026-10-03 | **每模型上下文窗口 / 最大输出**。先补地基再上本体，详见下表 |
