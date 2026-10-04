@@ -1,11 +1,11 @@
 {
-  "version": "0.1.20",
-  "notes": "安全\n- 本地内核服务默认开启令牌鉴权：此前 127.0.0.1:8787 上任何本机进程都能直接调用内核（内核有读写文件、执行命令的权限）。现在壳启动内核时生成一次性的 256 位随机令牌，经临时文件交接后立即删除，令牌只存活在壳与内核的内存里；页面的所有请求自动携带\n- 命令行 tempora serve 同样默认生成令牌并在启动时打印带令牌的访问地址；需要完全开放时显式传 --auth none 或在配置里写 auth_mode = \"none\"\n- 手机/远程访问入口（tempora web）维持令牌强制，即使配置写了开放也会被覆盖为令牌模式",
-  "pub_date": "2026-10-04T02:35:08Z",
+  "version": "0.1.21",
+  "notes": "修复\n- 修复 0.1.20 引入的启动卡死：带令牌鉴权后前端脚本与样式被一并拦截，页面永远停在启动画面。现在内核的静态资源（脚本、样式、字体、图标）在令牌交换完成前即可加载，真正的数据接口（会话、配置、执行命令等）仍然必须携带令牌\n\n安全\n- 本地内核服务默认开启令牌鉴权：壳启动内核时生成一次性的 256 位随机令牌，经临时文件交接后立即删除；需要完全开放时显式传 --auth none 或在配置里写 auth_mode = \"none\"\n- 手机/远程访问入口（tempora web）维持令牌强制，即使配置写了开放也会被覆盖为令牌模式",
+  "pub_date": "2026-10-04T06:02:14Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFlnNFp1ell1OFZxajRkM294VUZYZWpZWlBweGZnMGU4ZDhXbXhCSU9Ib3EySG9QQ2hKa0dxblh2VE1TT0xyQU1oaEdEK3M3K0JzTExHUHhKVmoyTUFrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxMDgxMjk0CWZpbGU6VGVtcG9yYV8wLjEuMjBfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4yMAp2Z3lGNUthV2FvWE4yUkNWUWVkRGF3emVwWkhNSUhLSis0Y1Byc3lCTGhsU2M4QU5rSnZqcTJTejJyRGlRMGNCN201SG9nZ2syMVFEYlhuMGVhUVRBZz09Cg==",
-      "url": "https://tempora.yomm.cc/dl/Tempora_0.1.20_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOGJaUGorWlcwSkNZV1pBa1dWbTE3UGZmWTVrYTc4ZGhqTmpUV1FzR1BFWWRuRWZJNGhWcm9wOW42dUI3ang4U1EweXpCbWxoeFo5K1RvZUg0eVN5eUF3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxMDkzNzExCWZpbGU6VGVtcG9yYV8wLjEuMjFfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4yMQpaQkZsdm9nY2lIMEQ4T01YTnNjTmx3RzR3bjJpQXIwSnFiQVcxazJDVmtyeXp5dmVLeEZhOTVKVVEzQnYxTktJb1UzNDdxYjZFMmNqUnYxQTVuS3REdz09Cg==",
+      "url": "https://tempora.yomm.cc/dl/Tempora_0.1.21_x64-setup.exe"
     }
   }
 }
