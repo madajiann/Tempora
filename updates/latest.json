@@ -1,11 +1,11 @@
 {
-  "version": "0.1.19",
-  "notes": "会话与数据安全\n- 会话里的图片改为按内容摘要单独存放，事件日志与会话文件只保留引用。图片多的会话不会再因为日志体积过大而无法读取、进而导致后续保存全部失败\n- 会话压缩时自动回收不再被引用的图片；删除会话时图片一并清理\n\n服务商与连接\n- 新增「按模型设置推理档位」：一个接入下有多家厂商的模型时，可为单个模型单独指定它接受的推理强度取值与默认档位。留空沿用接入设置，输入框灰字显示该模型当前继承到的值\n\n工程\n- 未改动会话存储格式版本号；旧版本客户端读到引用只是丢图，不会读坏正文",
-  "pub_date": "2026-10-03T08:36:34Z",
+  "version": "0.1.20",
+  "notes": "安全\n- 本地内核服务默认开启令牌鉴权：此前 127.0.0.1:8787 上任何本机进程都能直接调用内核（内核有读写文件、执行命令的权限）。现在壳启动内核时生成一次性的 256 位随机令牌，经临时文件交接后立即删除，令牌只存活在壳与内核的内存里；页面的所有请求自动携带\n- 命令行 tempora serve 同样默认生成令牌并在启动时打印带令牌的访问地址；需要完全开放时显式传 --auth none 或在配置里写 auth_mode = \"none\"\n- 手机/远程访问入口（tempora web）维持令牌强制，即使配置写了开放也会被覆盖为令牌模式",
+  "pub_date": "2026-10-04T02:35:08Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOGRyQkR2ckx2Y0tPNDVOSzN6YmJ6Uy95VUZpa2Z4U2R1eWRuVjcwWnZNaHlNbHp2RUluNG03WjFGaURRV0loTysyU1hHN3Fud3RRY2lXdjdHbHU2L2d3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxMDE2NTE5CWZpbGU6VGVtcG9yYV8wLjEuMTlfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4xOQpRM1ZwbGxRZVgvdXFreGNIeVZnSk8zZ3JWRWZ2cW1oaWl5RnRjQnVIN09YRHhoR0Z5QmR0UEhOUWE4d0syQzV5cld0cDNQYWhqTVB3cXdvV3NUSFhCdz09Cg==",
-      "url": "https://tempora.yomm.cc/dl/Tempora_0.1.19_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFlnNFp1ell1OFZxajRkM294VUZYZWpZWlBweGZnMGU4ZDhXbXhCSU9Ib3EySG9QQ2hKa0dxblh2VE1TT0xyQU1oaEdEK3M3K0JzTExHUHhKVmoyTUFrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxMDgxMjk0CWZpbGU6VGVtcG9yYV8wLjEuMjBfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4yMAp2Z3lGNUthV2FvWE4yUkNWUWVkRGF3emVwWkhNSUhLSis0Y1Byc3lCTGhsU2M4QU5rSnZqcTJTejJyRGlRMGNCN201SG9nZ2syMVFEYlhuMGVhUVRBZz09Cg==",
+      "url": "https://tempora.yomm.cc/dl/Tempora_0.1.20_x64-setup.exe"
     }
   }
 }

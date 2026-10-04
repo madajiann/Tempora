@@ -213,7 +213,16 @@
       function go() {
         if (moved) return;
         moved = true;
-        location.replace(TOKEN ? KERNEL + "#token=" + encodeURIComponent(TOKEN) : KERNEL);
+        // 令牌要等到、但最多等 1.5 秒 —— 拿不到就裸跳，绝不让 IPC 挂起
+        // 把整个启动拖死（内核页自己的引导脚本会兜底报错）。
+        var deadline = Date.now() + 1500;
+        (function wait() {
+          if (gotToken || Date.now() > deadline) {
+            location.replace(TOKEN ? KERNEL + "#token=" + encodeURIComponent(TOKEN) : KERNEL);
+          } else {
+            window.setTimeout(wait, 50);
+          }
+        })();
       }
 
       function warn() {
@@ -230,8 +239,11 @@
         });
       }
 
-      // 先拿到令牌再开探：跳的时候令牌必须已经在手上，否则第一帧就 401。
-      shellToken().then(function (v) { TOKEN = v; }, function () { TOKEN = ""; }).then(probe, probe);
+      // 令牌与探测并行：谁先到都行，跳转时令牌在手最好，不在也照跳。
+      var gotToken = false;
+      shellToken().then(function (v) { TOKEN = v || ""; gotToken = true; },
+                        function () { gotToken = true; });
+      probe();
     })();
   </script>
   </body>

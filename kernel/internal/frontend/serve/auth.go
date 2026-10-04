@@ -249,11 +249,48 @@ func tokenBootstrapPublicPath(r *http.Request) bool {
 	if r.URL.Path == "/" || r.URL.Path == "/assets/logo-wordmark.svg" {
 		return true
 	}
+	// The shell is not inert: index.html pulls its bundle with a <script> tag,
+	// and the browser issues that request while the inline bootstrap below is
+	// still trading the fragment for a cookie. Refusing it leaves the page on
+	// the boot screen forever, so the built interface's own files stay public.
+	if staticAssetPath(r) || r.URL.Path == "/favicon.ico" || r.URL.Path == "/boot.html" || r.URL.Path == "/updater.html" {
+		return true
+	}
 	// Only one non-empty session segment is an inert shell entry point; this
 	// prevents API-like paths from becoming public in token mode.
 	const prefix = "/sessions/"
 	id := strings.TrimPrefix(r.URL.Path, prefix)
 	return id != r.URL.Path && id != "" && !strings.Contains(id, "/")
+}
+
+// staticAssetExtensions are the file types the built interface ships: scripts,
+// styles, fonts, and images. None of them carry user data.
+var staticAssetExtensions = map[string]struct{}{
+	".js": {}, ".mjs": {}, ".css": {}, ".map": {},
+	".svg": {}, ".png": {}, ".jpg": {}, ".jpeg": {}, ".gif": {}, ".webp": {}, ".ico": {},
+	".woff": {}, ".woff2": {}, ".ttf": {}, ".otf": {}, ".eot": {},
+}
+
+// staticAssetPath reports whether r is a GET for one of the files the built
+// interface ships. It only accepts a known asset extension below the asset
+// directories, so a handler mounted under those prefixes later on cannot turn
+// public by accident.
+func staticAssetPath(r *http.Request) bool {
+	if r.Method != http.MethodGet && r.Method != http.MethodHead {
+		return false
+	}
+	p := r.URL.Path
+	if !strings.HasPrefix(p, "/assets/") && !strings.HasPrefix(p, "/fonts/") {
+		return false
+	}
+	if strings.Contains(p, "..") {
+		return false
+	}
+	if dot := strings.LastIndexByte(p, '.'); dot >= 0 {
+		_, ok := staticAssetExtensions[strings.ToLower(p[dot:])]
+		return ok
+	}
+	return false
 }
 
 // handleTokenBootstrap validates a token delivered from the URL fragment by

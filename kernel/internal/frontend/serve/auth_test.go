@@ -111,6 +111,74 @@ func TestTokenModeNoAuthReturns401(t *testing.T) {
 	}
 }
 
+// The shell's index.html pulls its bundle with a <script> tag, so the browser
+// asks for /assets/*.js before the inline bootstrap has traded the fragment for
+// a cookie. Refusing those requests leaves the window on the boot screen.
+func TestTokenModeBuiltInterfaceAssetsArePublic(t *testing.T) {
+	ag := newAuthGate(config.ServeConfig{AuthMode: "token", Token: "secret"})
+	ts := httptest.NewServer(ag.middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})))
+	defer ts.Close()
+
+	for _, path := range []string{
+		"/assets/index-iv_G96mB.js",
+		"/assets/index-DYMqFDs4.css",
+		"/assets/react-runtime-D0Ec-185.js",
+		"/fonts/inter-4.woff2",
+		"/favicon.ico",
+		"/boot.html",
+		"/updater.html",
+	} {
+		resp, err := http.Get(ts.URL + path)
+		if err != nil {
+			t.Fatalf("GET %s: %v", path, err)
+		}
+		resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			t.Errorf("GET %s = %d, want 200 (the interface must load before the cookie exists)", path, resp.StatusCode)
+		}
+	}
+}
+
+// Only the file types the interface actually ships are public: a handler later
+// mounted under /assets/ must not inherit that exemption.
+func TestTokenModeNonAssetPathsStayPrivate(t *testing.T) {
+	ag := newAuthGate(config.ServeConfig{AuthMode: "token", Token: "secret"})
+	ts := httptest.NewServer(ag.middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})))
+	defer ts.Close()
+
+	for _, path := range []string{
+		"/assets/session-export.json",
+		"/assets/",
+		"/fonts",
+		"/assets/../../etc/passwd.js",
+		"/runtimes",
+	} {
+		resp, err := http.Get(ts.URL + path)
+		if err != nil {
+			t.Fatalf("GET %s: %v", path, err)
+		}
+		resp.Body.Close()
+		if resp.StatusCode != http.StatusUnauthorized {
+			t.Errorf("GET %s = %d, want 401", path, resp.StatusCode)
+		}
+	}
+
+	// A write under an asset prefix is never public either.
+	req, _ := http.NewRequest(http.MethodPost, ts.URL+"/assets/index.js", nil)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusUnauthorized {
+		t.Errorf("POST /assets/index.js = %d, want 401", resp.StatusCode)
+	}
+}
+
 func TestTokenModeValidCookie(t *testing.T) {
 	ag := newAuthGate(config.ServeConfig{AuthMode: "token", Token: "secret"})
 	ts := httptest.NewServer(ag.middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
