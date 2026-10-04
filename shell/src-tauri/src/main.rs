@@ -29,6 +29,67 @@ const KERNEL_PORT: u16 = 8787;
 /// 内核进程持有者；托盘退出时回收，避免留下没人管的 tempora.exe
 struct Kernel(Mutex<Option<Child>>);
 
+/// 内核的启动令牌。
+///
+/// 内核监听 127.0.0.1:8787 却谁问都答，同机任何进程都能借它的手读写文件、
+/// 执行命令——窗口关在托盘里，用户根本不知道后面开着这么一扇门（#11110）。
+/// 壳拉内核时生成一个随机令牌，内核只认带它的请求；令牌经文件交接，内核
+/// 读到即删，之后只活在壳和内核的内存里。
+///
+/// 全壳只生成一次：保活线程重拉内核时沿用同一个，否则页面刚换到的 cookie
+/// 会立刻失效。
+struct KernelToken(String);
+
+#[cfg(windows)]
+mod osrandom {
+    // RtlGenRandom：advapi32 的系统随机源，不额外拉 crate。
+    #[link(name = "advapi32")]
+    extern "system" {
+        fn SystemFunction036(buffer: *mut std::ffi::c_void, length: u32) -> u8;
+    }
+
+    pub fn fill(buf: &mut [u8]) -> bool {
+        unsafe { SystemFunction036(buf.as_mut_ptr() as *mut std::ffi::c_void, buf.len() as u32) != 0 }
+    }
+}
+
+/// 256 位随机令牌，十六进制。系统随机不可用时不退化为可预测值——
+/// 宁可不让内核起来，也不能发一个猜得到的令牌。
+fn kernel_token_hex() -> Option<String> {
+    let mut buf = [0u8; 32];
+    #[cfg(windows)]
+    let ok = osrandom::fill(&mut buf);
+    #[cfg(not(windows))]
+    let ok = false;
+    if !ok {
+        return None;
+    }
+    Some(buf.iter().map(|b| format!("{b:02x}")).collect())
+}
+
+/// 把令牌写到一个只有当前用户能读的临时文件，交给内核的 --token-file。
+/// 内核启动后读完即删，所以路径固定、内容每次重写即可（保活重拉也走这里）。
+fn write_token_file(token: &str) -> Option<PathBuf> {
+    let path = std::env::temp_dir().join(format!("tempora-kernel-{}.token", std::process::id()));
+    std::fs::write(&path, format!("{token}\n")).ok()?;
+    Some(path)
+}
+
+/// 当前令牌。窗口可能比 setup 先被问到（此时还没有状态），那时给空串，
+/// 启动页就按「没有令牌」跳——总比把内核锁在门外好。
+fn current_kernel_token(app: &tauri::AppHandle) -> String {
+    app.try_state::<KernelToken>()
+        .map(|t| t.0.clone())
+        .unwrap_or_default()
+}
+
+/// 启动页要把窗口送进内核页面，得先拿到令牌：它把令牌放进 fragment 带过去，
+/// 内核页面的引导脚本再用它换一个 HttpOnly cookie。
+#[tauri::command]
+fn kernel_token(app: tauri::AppHandle) -> String {
+    current_kernel_token(&app)
+}
+
 fn port_up(port: u16) -> bool {
     TcpStream::connect_timeout(
         &SocketAddr::from(([127, 0, 0, 1], port)),
@@ -59,7 +120,11 @@ fn kernel_candidates() -> Vec<PathBuf> {
 }
 
 /// 拉起内核并等它把 8787 顶起来；没找到内核就给个说清楚的提示窗口
-fn ensure_kernel() -> Option<Child> {
+///
+/// token 非空时内核开启令牌鉴权：令牌经临时文件交接（不进 argv，argv 在同机
+/// 是公开的），内核读到即删。传空串则按内核自身默认走——只有壳拿不到系统
+/// 随机源时才会这样，此时内核会因缺少令牌而拒绝启动。
+fn ensure_kernel(token: &str) -> Option<Child> {
     if port_up(KERNEL_PORT) {
         return None; // 已经有一个在跑，别抢
     }
@@ -77,9 +142,19 @@ fn ensure_kernel() -> Option<Child> {
     // 思路参考上游 studio-v2.24.0 #11479（其实现在 desktop/electron/，与 Tauri 无关，
     // 故按同一语义自研，未移植其代码）。
     for attempt in 0..2 {
+        // 内核读到令牌文件就删掉，所以每一轮都重写一份——第一次内核崩在读完
+        // 之后时，第二轮才有文件可读。
+        let token_file = if token.is_empty() { None } else { write_token_file(token) };
         let mut cmd = Command::new(&path);
         // 内核是 CLI：不带子命令会去跑 TUI 然后退出，必须显式 serve 到 8787
-        cmd.args(["serve", "--addr", "127.0.0.1:8787"])
+        let mut args: Vec<String> = vec!["serve".into(), "--addr".into(), format!("127.0.0.1:{KERNEL_PORT}")];
+        if let Some(f) = &token_file {
+            args.push("--auth".into());
+            args.push("token".into());
+            args.push("--token-file".into());
+            args.push(f.to_string_lossy().into_owned());
+        }
+        cmd.args(&args)
             .creation_flags(0x0800_0000); // CREATE_NO_WINDOW：内核是控制台程序，别让它弹黑窗
         if let Some(dir) = &cwd {
             let _ = cmd.current_dir(dir);
@@ -144,7 +219,7 @@ fn show_main(app: &tauri::AppHandle) {
     if let Some(w) = app.get_webview_window("main") {
         if !port_up(KERNEL_PORT) {
             // 用户主动唤出但内核不在：先试着救回来
-            let owned = ensure_kernel();
+            let owned = ensure_kernel(&current_kernel_token(app));
             if app.try_state::<Kernel>().is_none() {
                 app.manage(Kernel(Mutex::new(owned)));
             }
@@ -342,7 +417,7 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
-        .invoke_handler(tauri::generate_handler![pick_folder, update_status, open_updater])
+        .invoke_handler(tauri::generate_handler![pick_folder, update_status, open_updater, kernel_token])
         .setup(|app| {
             let show = MenuItem::with_id(app, "show", "显示主窗口", true, None::<&str>)?;
             let update = MenuItem::with_id(app, "update", "检查更新", true, None::<&str>)?;
@@ -355,8 +430,13 @@ fn main() {
             let loop_handle = handle.clone();
             boot_main_window(&handle);
 
-            // 内核托管：8787 无人监听就拉起内核，否则用户看到的永远是一张白窗
-            let owned = ensure_kernel();
+            // 令牌先生成：主窗口的启动页马上就要问它要（它比内核先出场）。
+            let token = kernel_token_hex().unwrap_or_default();
+            if token.is_empty() {
+                eprintln!("tempora: no system randomness for the kernel token; kernel left unstarted");
+            }
+            app.manage(KernelToken(token.clone()));
+            let owned = ensure_kernel(&token);
             app.manage(Kernel(Mutex::new(owned)));
 
             TrayIconBuilder::with_id("main")
@@ -423,7 +503,7 @@ fn main() {
                                     if let Some(mut old) = g.take() {
                                         let _ = old.kill();
                                     }
-                                    *g = ensure_kernel();
+                                    *g = ensure_kernel(&current_kernel_token(&wh));
                                 }
                             }
                         }

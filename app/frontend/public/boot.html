@@ -186,6 +186,24 @@
       var started = Date.now();
       var moved = false;
       var warned = false;
+      // 内核只认带令牌的请求（#11110），令牌在壳手里。启动页向壳要一次，
+      // 跳过去时放进 fragment —— fragment 浏览器不会发给服务器，内核页的
+      // 引导脚本再拿它换一个 HttpOnly cookie。要不到（比如直接用浏览器打开
+      // 这个文件）就照旧裸跳，由内核自己决定答不答。
+      var TOKEN = "";
+
+      function shellToken() {
+        try {
+          var core = window.__TAURI__ && window.__TAURI__.core;
+          if (!core || !core.invoke) return Promise.resolve("");
+          return core.invoke("kernel_token").then(
+            function (v) { return (v || "").trim(); },
+            function () { return ""; }
+          );
+        } catch (e) {
+          return Promise.resolve("");
+        }
+      }
       var line = document.querySelector(".bline");
       // 步进点的第一个点常亮呼吸 —— 内核页在等内核时就是这个样子
       // （.boot[data-wait]），这里手工打上，免得等待期间屏幕上没有动静。
@@ -195,7 +213,7 @@
       function go() {
         if (moved) return;
         moved = true;
-        location.replace(KERNEL);
+        location.replace(TOKEN ? KERNEL + "#token=" + encodeURIComponent(TOKEN) : KERNEL);
       }
 
       function warn() {
@@ -212,7 +230,8 @@
         });
       }
 
-      probe();
+      // 先拿到令牌再开探：跳的时候令牌必须已经在手上，否则第一帧就 401。
+      shellToken().then(function (v) { TOKEN = v; }, function () { TOKEN = ""; }).then(probe, probe);
     })();
   </script>
   </body>

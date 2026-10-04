@@ -11,6 +11,7 @@
     "core:default",
     "allow-pick-folder",
     "allow-update-status",
-    "allow-open-updater"
+    "allow-open-updater",
+    "allow-kernel-token"
   ]
 }
