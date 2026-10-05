@@ -51,8 +51,10 @@ export interface HostPort {
   trustBrowserCertificate(target: string): Promise<boolean>;
   /** The running shell's own version and whether a newer build is published. */
   updateStatus(): Promise<UpdateStatus>;
-  /** Open the shell's update window. Nothing happens where there is no shell. */
-  openUpdater(): void;
+  /** Install the newer build. Resolves once the shell has it or reports there
+   *  is nothing to do; rejects when the install failed. null where there is no
+   *  shell — a page in a browser has nothing to update and must not throw. */
+  openUpdater(): Promise<UpdateInstall | null>;
 }
 
 /** What the version dot next to the wordmark reports. */
@@ -62,6 +64,14 @@ export interface UpdateStatus {
   available: boolean;
   /** The newer version; only carries a value when available is true. */
   latest: string | null;
+}
+
+/** What an install attempt comes back as. */
+export interface UpdateInstall {
+  /** true once the new build is on disk; the shell restarts itself after. */
+  updated: boolean;
+  /** The version that was installed, when updated is true. */
+  version: string | null;
 }
 
 export interface BrowserLoadFailure {
@@ -211,7 +221,9 @@ class ElectronHost implements HostPort {
   updateStatus(): Promise<UpdateStatus> {
     return Promise.resolve({ current: null, available: false, latest: null });
   }
-  openUpdater() {}
+  openUpdater(): Promise<UpdateInstall | null> {
+    return Promise.resolve(null);
+  }
 }
 
 class BrowserHost implements HostPort {
@@ -261,7 +273,9 @@ class BrowserHost implements HostPort {
   updateStatus(): Promise<UpdateStatus> {
     return Promise.resolve({ current: null, available: false, latest: null });
   }
-  openUpdater() {}
+  openUpdater(): Promise<UpdateInstall | null> {
+    return Promise.resolve(null);
+  }
 }
 
 /** The Tauri global arrives in different shapes across versions; every call in
@@ -324,9 +338,20 @@ class TauriHost extends BrowserHost {
       });
   }
 
-  openUpdater() {
+  /** Install the newer build straight away — no window in between.
+   *  The shell restarts itself once it is on disk, so a resolve that says
+   *  updated=false ("nothing to install") is the only resolve the caller sees;
+   *  a real failure rejects, and the page says so instead of sitting silent. */
+  openUpdater(): Promise<UpdateInstall | null> {
     const call = this.call("open_updater");
-    if (call) call.catch((e: unknown) => console.warn("[host] open_updater invoke failed:", e));
+    if (!call) return Promise.resolve(null);
+    return call.then((raw: unknown) => {
+      const r = raw as { updated?: unknown; version?: unknown } | null;
+      return {
+        updated: r?.updated === true,
+        version: typeof r?.version === "string" ? r.version : null,
+      };
+    });
   }
 }
 

@@ -130,20 +130,61 @@ export function Sidebar({
   const liveCount = liveIds(runtimes.map((rt) => rt.id)).length;
 
   // The wordmark reports the shell's own version and whether a newer build is
-  // out. Asked once on mount: the answer comes from the network, so a rail that
-  // re-asked on every render would hammer the update endpoint.
+  // out. Asked on mount and then every half hour — never per render, which
+  // would hammer the update endpoint.
   const [update, setUpdate] = useState<UpdateStatus>({ current: null, available: false, latest: null });
+  // idle → installing → failed. 装完壳会自己重启，所以「成功」这一态根本不会
+  // 留在屏幕上 —— failed 才是唯一需要画出来的结果。
+  const [install, setInstall] = useState<"idle" | "installing" | "failed">("idle");
   useEffect(() => {
     let alive = true;
-    void host()
-      .updateStatus()
-      .then((s) => {
-        if (alive) setUpdate(s);
-      });
+    let asked = 0;
+    const ask = () => {
+      asked = Date.now();
+      void host()
+        .updateStatus()
+        .then((s) => {
+          if (alive) setUpdate(s);
+        });
+    };
+    ask();
+    // 半小时复查一次：只在挂载时问一次的话，运行期间发布的新版本要等下次重启
+    // 才看得见，用户看到的就是「明明发了新版却一直不提示」。间隔取半小时而不是
+    // 更短，是因为版本是小时级变化的事，不该按分钟去敲更新端点。
+    const timer = window.setInterval(ask, 30 * 60 * 1000);
+    // 窗口重新可见时补一次（切回来、从最小化恢复），五分钟内的重复不算。
+    const onVisible = () => {
+      if (document.visibilityState === "visible" && Date.now() - asked > 5 * 60 * 1000) ask();
+    };
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       alive = false;
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
+
+  // 直接装，中间不开窗口：壳历史上把 updater.html 加载成 about:blank，弹出的
+  // 是一扇没有关闭按钮的空白窗，看着就是「点了之后卡死」。
+  const installUpdate = () => {
+    if (install === "installing") return;
+    setInstall("installing");
+    void host()
+      .openUpdater()
+      .then(() => setInstall("idle"))
+      .catch((e: unknown) => {
+        console.warn("[sidebar] update install failed:", e);
+        setInstall("failed");
+      });
+  };
+
+  // 版本号挂在按钮上而不是写进词条：「v0.1.22」这种东西不该进翻译表。
+  const updateLabel =
+    install === "failed"
+      ? t("安装失败，点击重试")
+      : install === "installing"
+        ? t("正在安装 v{version}…", { version: update.latest ?? "" })
+        : t("有新版本 v{version}", { version: update.latest ?? "" });
 
   const onFold = (root: string, shut: boolean) =>
     setFolded((prev) => {
@@ -197,11 +238,26 @@ export function Sidebar({
                 className="studio-update-dot"
                 data-state={update.available ? "available" : "current"}
                 aria-label={update.available ? `有新版本 ${update.latest}，点击更新` : "已是最新版本"}
-                onClick={() => host().openUpdater()}
+                onClick={() => installUpdate()}
               />
           </span>
           <button className="studio-collapse" data-action="chrome.rail" onClick={() => onCollapse()} aria-label={t("收起工作区栏")} title={t("收起侧栏")}><StudioIcon name="panel" /></button>
         </div>
+        {update.available && (
+          <button
+            type="button"
+            className="studio-update-bar"
+            data-action="chrome.update"
+            data-phase={install}
+            aria-label={updateLabel}
+            onClick={() => installUpdate()}
+          >
+            <span className="studio-update-bar-mark" aria-hidden="true">
+              <StudioIcon name={install === "installing" ? "refresh" : "download"} />
+            </span>
+            <span className="studio-update-bar-label">{updateLabel}</span>
+          </button>
+        )}
         <button
           className="studio-new-task"
           data-action="session.new"

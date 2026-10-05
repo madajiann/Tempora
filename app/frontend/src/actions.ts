@@ -71,6 +71,9 @@ export const ACTIONS: UIAction[] = [
   { id: "transcript.fold-preset", kind: "view", target: "none", proof: "interaction" },
   { id: "transcript.fold-preview", kind: "view", target: "none", proof: "interaction" },
   { id: "chrome.account", kind: "navigation", target: "none", proof: "interaction" },
+  // Installing a published build from the rail. It replaces the running shell,
+  // which is why it is navigation and not a view: nothing is left to look at.
+  { id: "chrome.update", kind: "navigation", target: "none", proof: "interaction" },
   { id: "metrics.details", kind: "view", target: "optional", proof: "interaction" },
   { id: "session.menu", kind: "view", target: "entity", proof: "interaction" },
   { id: "workspace.menu", kind: "view", target: "entity", proof: "interaction" },
