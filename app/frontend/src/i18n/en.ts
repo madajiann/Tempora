@@ -698,6 +698,9 @@ export const EN: Record<string, string> = {
     "This pin no longer describes anything real, so automatic updates treat it as unpinned.",
   "切换版本期间请勿关闭窗口。较新版本写入的会话在旧版本中暂时无法打开，升级回去后即可恢复。":
     "Do not close the window while versions are switching. A session written by a newer version will not open on an older one until you upgrade again.",
+  "有新版本 v{version}": "Version v{version} is out",
+  "正在安装 v{version}…": "Installing v{version}…",
+  "安装失败，点击重试": "Install failed — click to retry",
 
   // ── 账号 ─────────────────────────────────────────────────────────
   "正在检查登录状态…": "Checking sign-in status…",

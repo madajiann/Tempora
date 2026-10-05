@@ -1,11 +1,11 @@
 {
-  "version": "0.1.22",
-  "notes": "安全\n- 项目配置不能再给自己发权限：仓库里的 tempora.toml 此前可以直接写 permissions.allow 或把 mode 放宽成 allow，打开一个来路不明的项目就会被静默预授权。现在权限授予只认你自己的，仓库只能收紧不能放宽（沙盒、密钥、远程主机、遥测此前已经是这个规则，本轮补上权限）\n- 在项目里点的「总是允许」改存到你的 Tempora 主目录，不再写进仓库文件——否则它会跟着仓库一起分发出去\n\n说明\n- 如果你此前在项目里存过允许规则，升级后它们不再生效，重新点一次「总是允许」即可（这次会记到主目录，对所有项目都有效）",
-  "pub_date": "2026-10-04T08:48:56Z",
+  "version": "0.1.23",
+  "notes": "更新提示\n- 有新版本时，侧栏「新建会话」上方会出现一整行提示，写明版本号，点一下就直接装。此前只有品牌区一个 7px 的小圆点，太容易看不见——上一版发出去三天没人升级，问起来是「不知道有更新」\n- 安装过程中提示会变成「正在安装 vX…」，失败则变成可点的「安装失败，点击重试」，不再点了没有任何反应\n- 版本检查改为每半小时一次，另外切回窗口时补一次：运行中发布的新版本不必重启软件也能看到提示\n\n说明\n- 点击后是直接下载安装，装完软件会自行重启，中间不开更新窗口（那个窗口历史上会加载成一片空白，看着像卡死）",
+  "pub_date": "2026-10-05T02:04:40Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFdIWW1SYWhiMHMrK3pOcjZjR0lrVkxqZnVYb3ZhTXA5VmJKMDBINDZXZmtvZEZ5Y2xoZ3dXS3ZWNmVxWnR3NFJTQjZmNTdoNG9ZbVJjbW04WXhHV3c0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxMTAzNzE4CWZpbGU6VGVtcG9yYV8wLjEuMjJfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4yMgpMdmtaVEp2Tmt6TmxaSmVnT2ozVEtNS1BUcy9mV3hJWFlld3BEN3N6K2xMcitHQm1oZVZwQ3d6NVRmcXplVUY3ZjRLUThQTnJZckdlWHlMSkQ1Y2pDQT09Cg==",
-      "url": "https://tempora.yomm.cc/dl/Tempora_0.1.22_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFZlSU1NQlNzOUQxc2E0UUR0WHByTDVvMUd2YzQxd21ua2F6alVKU3Bjd3JVSUliNjVGVFFjZ1JGV1hueStzT3dvK1VGMkRSbGdiaHpVTFdaU0JqL0FJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxMTY1ODE0CWZpbGU6VGVtcG9yYV8wLjEuMjNfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4yMwpNbjR5TjUrYkpXSU1VZzAxb1hEM01iVnhFZGNFdVdRR24yczZJTHlUZWRLL2s4LzNrYzlIV0YreHBSV09UOVBmT3dDVzJQa1FCbmlBY1p1K29WeGZBQT09Cg==",
+      "url": "https://tempora.yomm.cc/dl/Tempora_0.1.23_x64-setup.exe"
     }
   }
 }

@@ -248,6 +248,39 @@ body { background: var(--page); }
 .studio-new-task:hover { background: var(--overlay); border-color: var(--faint); }
 .studio-new-task > span { color: var(--faint); font-size: 17px; }
 .studio-new-task kbd { margin-left: auto; color: var(--ghost); font: 500 10.5px/1 var(--mono); }
+/* 有新版本时的整行提示。品牌区那个 7px 圆点太容易被忽略——发出去的版本三天
+   没人装，问起来是「不知道有更新」。做成一行按钮，点了直接装：不弹窗口，
+   弹窗历史上把 updater.html 加载成 about:blank，用户看到的就是卡死。 */
+.studio-update-bar {
+  width: 100%;
+  min-height: 34px;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid color-mix(in srgb, var(--dot-avail) 45%, var(--border));
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--dot-avail) 12%, var(--raised));
+  color: var(--text);
+  font: var(--w-med) 12px/1.3 var(--ui);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--m-line), border-color var(--m-line);
+}
+.studio-update-bar:hover {
+  background: color-mix(in srgb, var(--dot-avail) 20%, var(--raised));
+  border-color: var(--dot-avail);
+}
+.studio-update-bar-mark { flex: none; display: grid; place-items: center; color: var(--dot-avail); font-size: 15px; }
+.studio-update-bar-label { min-width: 0; }
+/* 安装中不可再点。失败态换红：它是要被看见的结果，不是装饰。 */
+.studio-update-bar[data-phase="installing"] { cursor: progress; opacity: .72; }
+.studio-update-bar[data-phase="failed"] {
+  border-color: color-mix(in srgb, var(--err) 55%, var(--border));
+  background: color-mix(in srgb, var(--err) 12%, var(--raised));
+}
+.studio-update-bar[data-phase="failed"] .studio-update-bar-mark { color: var(--err); }
 .wsfind {
   width: calc(100% - 24px);
   margin: 2px 12px 10px;
