@@ -191,10 +191,19 @@ def main():
     if st != 200:
         print(json.dumps(res, ensure_ascii=False)[:300])
         sys.exit(1)
-    # 记录断点：远端是重建后的 sha，本地原始 sha 无法从远端反查
+    # 5) 把本地分支指针也移到重建后的 commit。重建只换 commit 对象（内容完全相同），
+    #    用 --soft 移动指针：工作区与索引一律不动，两边历史从此一致，不再分叉。
+    rc = subprocess.run(["git", "reset", "--soft", parent], cwd=ROOT,
+                        capture_output=True, text=True)
+    if rc.returncode == 0:
+        print(f"本地 {BRANCH} 已对齐到 {parent[:10]}（--soft，工作区未动）")
+    else:
+        print(f"警告：本地分支对齐失败，可手动执行 git reset --soft {parent}")
+        print(rc.stderr.strip()[:200])
+    # 记录断点：重建后的 sha 即两端共同的历史点
     with open(last_file, "w", encoding="utf-8") as f:
-        f.write(pending[-1])
-    print(f"推送完成，{BRANCH} -> {parent[:10]}（断点已记录 {pending[-1][:10]}）")
+        f.write(parent)
+    print(f"推送完成，{BRANCH} -> {parent[:10]}")
 
 
 def git_api_tree_of(commit_sha: str) -> str:
