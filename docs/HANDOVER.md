@@ -133,11 +133,21 @@ G:/Tempora/
 |---|---|---|
 | Go | `G:/Tempora/tools/go/bin/go.exe` | 不在 PATH 里，用绝对路径 |
 | Node | `C:/Users/Administrator/.workbuddy/binaries/node/versions/<ver>/node.exe` | WorkBuddy 托管 |
-| Python | `C:/Users/Administrator/.workbuddy/binaries/python/versions/3.13.12/python.exe` | 同上 |
+| Python | `C:/Users/Administrator/.workbuddy/binaries/python/embed/python.exe` | ⚠️ **用这个**，见下 |
 | Rust | 系统 cargo | 打包 Tauri 用 |
 | SSH 密钥 | `~/.ssh/id_ed25519_deploy` | comment `relay-deploy-20260826` |
 | GitHub PAT | `~/.tempora/token`（`ghp_`，scope=repo） | |
 | 更新签名私钥 | `~/.tauri/tempora.key` | **泄漏 = 别人能推任意"官方更新"** |
+
+> ⚠️ **Python 运行时注意（2026-10-14）**：
+> WorkBuddy 托管的 `versions/3.13.12/` 目录**缺 `Lib/` 与 `python313.zip`**（标准库文件丢失），
+> 任何 `python.exe` 调用都会报 `ModuleNotFoundError: No module named 'encodings'`。
+> 已用官方 embeddable 包重建可用运行时：
+> `C:/Users/Administrator/.workbuddy/binaries/python/embed/python.exe`
+> （`python313._pth` 里已加 `import site` + venv 的 site-packages 路径，PIL / cryptography 都能用；
+> 仓库所有 scripts 只依赖标准库，够用）。
+> 若哪天 `embed/python.exe` 也报同样错，去 `python.org/ftp/python/3.13.14/` 重新下
+> `python-3.13.14-embed-amd64.zip` 解压即可。
 
 ### 3.2 编译内核
 
@@ -309,7 +319,7 @@ PowerShell 的 `Add-Type` 会被安全策略拦（"compiles .NET code at runtime
 
 | 脚本 | 用途 |
 |---|---|
-| `push_via_api.py` | 推 commit（走 Git Data API，不用 git 协议）。**只推已 commit 的内容 —— 改动必须先 commit** |
+| `push_via_api.py` | 推 commit（走 Git Data API）。⚠️ **会造孤儿 commit** —— 它按本地断点记录重建 blob/tree/commit，\n  每次推送都生成与本地 sha 不同的新 commit，导致本地与远端历史分叉。**优先用 `git push`**，详见 §6.4 |
 | `upload_hk_direct.py` | 上传安装包到香港镜像（4MB 分片 + scp stdin，不落本地临时文件，可续传） |
 | `device_publish.py` | 建 GitHub Release（**只建 Release，资产一定失败**，是旧两阶段流程的残留） |
 | `upload_assets.py` | 一步式上传三个资产（`.sig` / `latest.json` / 安装包），回读只认 `state == "uploaded"` |
@@ -339,7 +349,7 @@ PowerShell 的 `Add-Type` 会被安全策略拦（"compiles .NET code at runtime
 #    platforms.windows-x86_64 { signature, url }
 
 # 4) ★先生成再提交：把 updates/latest.json 一起 commit
-cd /g/Tempora && git add ... && git commit -m "..." && "<python>" scripts/push_via_api.py
+cd /g/Tempora && git add ... && git commit -m "..." && git push origin main
 #    （0.1.21 踩过：先提交后生成，仓库里留的是上一版清单）
 
 # 5) 香港镜像（客户端第一端点）
@@ -387,6 +397,25 @@ curl -sI https://tempora.yomm.cc/dl/Tempora_<ver>_x64-setup.exe   # 200 + Conten
 - [ ] 真实壳启动截图：主界面渲染正常、无白屏、版本提示条状态正确
 - [ ] `git status` 干净，commit 已推
 
+### 6.4 推送代码：用 `git push`，别用 push_via_api.py
+
+**2026-10-14 实测：普通 `git push` 直连 github.com 是通的**（此前记忆里的「被沙箱代理掐掉」已不成立）。
+所以推送就是：
+
+```bash
+cd /g/Tempora && git add -A && git commit -m "..." && git push origin main
+```
+
+若确实只能用 API（`scripts/push_via_api.py`），**推送后必须检查历史是否分叉**：
+
+```bash
+git fetch origin && git log --oneline origin/main -3   # sha 与本地不同 = 又造了孤儿 commit
+git diff --stat main origin/main                        # 内容应无差异
+git push origin main --force-with-lease                # 对齐回线性历史（内容一致才安全）
+```
+
+⚠️ 分叉不处理会累积：仓库会出现两条内容相同的平行线，且远端 tag 指向的 commit 不在 main 线上。
+
 ---
 
 ## 7. 更新通道与排障
@@ -428,6 +457,8 @@ curl -sI https://tempora.yomm.cc/dl/Tempora_<ver>_x64-setup.exe   # 200 + Conten
 | 旧壳 + 新内核进不去 | 旧壳没有 `kernel_token` IPC，令牌拿不到 | 换新壳；`D:/Tempora` 的 exe 要整套同步 |
 | `package os/user is not in std` | `tools/go/src` 残缺 | 解压 `go.zip` 只取 `go/src/` |
 | `*.test.exe: Access is denied` | 沙箱内跑 Go 编译/测试 | 前台 + 脱离沙箱执行 |
+| `No module named 'encodings'` | WorkBuddy 托管 Python 缺标准库 | 换 `binaries/python/embed/python.exe`（见 §3.1） |
+| `git push` 被拒 / 远端有本地没有的 commit | `push_via_api.py` 造的孤儿 commit 导致历史分叉 | 内容一致则 `git push origin main --force-with-lease` 对齐（见 §6.4） |
 
 ---
 
@@ -610,8 +641,8 @@ cd /g/Tempora/app/frontend && "<node>" node_modules/vitest/vitest.mjs run
 cd /g/Tempora/shell && TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/tempora.key)" \
   TAURI_SIGNING_PRIVATE_KEY_PASSWORD="" cargo tauri build
 
-# 推代码（先 commit！）
-cd /g/Tempora && git add -A && git commit -m "..." && "<python>" scripts/push_via_api.py
+# 推代码（先 commit！用 git push，别用 push_via_api.py）
+cd /g/Tempora && git add -A && git commit -m "..." && git push origin main
 
 # 上传香港镜像 + 清单
 cd /g/Tempora && "<python>" scripts/upload_hk_direct.py \

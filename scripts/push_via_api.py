@@ -3,7 +3,17 @@
 """
 不走 git 协议，改用 GitHub Git Data API 推送本地待推送的 commit。
 
-为什么需要它：本机 `git push` 走 github.com 会被沙箱代理掐掉
+⚠️ 2026-10-14 起：**优先直接用 `git push origin main`**（实测直连 github.com 是通的，
+下面写的「沙箱代理掐掉 git 协议」已不成立）。
+
+⚠️ 本脚本会造孤儿 commit：它按「与远端历史的重合基点」重建 blob/tree/commit，
+生成的新 commit sha 与本地不同，于是本地 main 与远端 main 变成两条内容相同的平行线，
+反复使用会累积分叉、让远端 tag 指向的 commit 不在 main 线上。
+用完请检查并对齐：
+    git fetch origin && git diff --stat main origin/main   # 内容应无差异
+    git push origin main --force-with-lease                 # 对齐回线性历史
+
+为什么当初需要它：本机 `git push` 走 github.com 曾被沙箱代理掐掉
 （`CONNECT tunnel failed, response 502`），而 api.github.com 是通的。
 于是把 commit 拆成 blob/tree/commit/ref 四步 API 调用完成推送。
 
