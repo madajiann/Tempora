@@ -20,6 +20,7 @@ import { useRewindActions } from "./rewind";
 import { initialTraj, reduceTraj } from "../state/trajectory";
 import { Transcript } from "./Transcript";
 import { Composer } from "./Composer";
+import { draftKey } from "./drafts";
 import { Queue } from "./Queue";
 import { SlottedView } from "./SlottedView";
 import { key as slotKey, placement } from "./slots";
@@ -727,7 +728,7 @@ function PaneView({ port, rt, title, active, visible, sideHost, side, onFocus, o
           )}
         </div>
         {alert && <div className="cmpalert">{alert}</div>}
-        <Composer port={port} status={status} running={s.running} quote={quote} focus={askFocus} onSubmit={submit} onChanged={refreshStatus} onError={fail} onSettings={onSettings} changeCount={tree?.repo ? tree.changes.length : 0} pulse={pulse} />
+        <Composer port={port} status={status} running={s.running} quote={quote} focus={askFocus} onSubmit={submit} onChanged={refreshStatus} onError={fail} onSettings={onSettings} changeCount={tree?.repo ? tree.changes.length : 0} pulse={pulse} draftKey={draftKey(rt.host ?? "", rt.root, rt.sessionPath || status?.sessionPath || "")} />
         {active && meterHost && createPortal(
           <div className="studio-meterrail" ref={meterRef} aria-label={t("运行统计")}>
           <MeterStat k={t("模型")} v={modelLabel} title={status?.modelRef} />

@@ -14,6 +14,7 @@ import type { Dropped } from "./filedrop";
 import type { Quote } from "./cards/SayCard";
 import { StudioIcon } from "./StudioIcon";
 import { usePromptRefine } from "./PromptRefine";
+import { useDraft } from "./useDraft";
 
 interface Props {
   port: AgentPort;
@@ -35,6 +36,9 @@ interface Props {
   changeCount?: number;
   // Bumped when settings change; a source edited there can change the ladder.
   pulse?: number;
+  // Names where an unsent draft lives: host, workspace root and session path.
+  // Empty while a new session has no path yet, so nothing is saved or restored.
+  draftKey?: string;
 }
 
 // What is riding along with this turn. An attachment travels as bytes or a path
@@ -106,7 +110,7 @@ function releaseChip(c: Chip) {
 let chipSeq = 0;
 const chipId = () => `c${++chipSeq}`;
 
-export function Composer({ port, status, running, quote, focus, onSubmit, onChanged, onError, onSettings = () => {}, changeCount = 0, pulse = 0 }: Props) {
+export function Composer({ port, status, running, quote, focus, onSubmit, onChanged, onError, onSettings = () => {}, changeCount = 0, pulse = 0, draftKey = "" }: Props) {
   const [branch, setBranch] = useState("");
   useEffect(() => {
     let alive = true;
@@ -115,12 +119,12 @@ export function Composer({ port, status, running, quote, focus, onSubmit, onChan
       .catch(() => alive && setBranch(""));
     return () => { alive = false; };
   }, [port, status?.workspaceRoot]);
-  const [text, setText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const { text, setText, beginSubmit, finishSubmit } = useDraft(draftKey, submitting);
   // The caret decides which token is being completed, so it is state here
   // rather than something read off the element when a menu happens to open.
   const [caret, setCaret] = useState(0);
   const [shots, setShots] = useState<Chip[]>([]);
-  const [submitting, setSubmitting] = useState(false);
   const [stopping, setStopping] = useState(false);
   const submittingRef = useRef(false);
   const stoppingRef = useRef(false);
@@ -237,6 +241,9 @@ export function Composer({ port, status, running, quote, focus, onSubmit, onChan
     const quotes = shots.flatMap((c) => (c.k === "quote" ? [quoteBlock(c)] : []));
     const line = [...quotes, [...refs, v].filter(Boolean).join(" "), ...pastes].filter(Boolean).join("\n\n");
     const draft = { text, shots, caret: caretRef.current };
+    // The draft survives a reload that lands mid-submit: it is only cleared
+    // once the host confirms the line actually left.
+    beginSubmit(text);
     submittingRef.current = true;
     setSubmitting(true);
     type("", 0);
@@ -244,14 +251,19 @@ export function Composer({ port, status, running, quote, focus, onSubmit, onChan
     void (async () => {
       try {
         const sent = await onSubmit(line);
-        if (sent) draft.shots.forEach(releaseChip);
+        if (sent) {
+          finishSubmit(true);
+          draft.shots.forEach(releaseChip);
+        }
         else {
+          finishSubmit(false);
           pending.current = draft.caret;
           type(draft.text, draft.caret);
           setShots((current) => [...draft.shots, ...current]);
           queueMicrotask(() => box.current?.focus());
         }
       } catch (e) {
+        finishSubmit(false);
         pending.current = draft.caret;
         type(draft.text, draft.caret);
         setShots((current) => [...draft.shots, ...current]);
