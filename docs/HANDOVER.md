@@ -349,7 +349,7 @@ PowerShell 的 `Add-Type` 会被安全策略拦（"compiles .NET code at runtime
 #    platforms.windows-x86_64 { signature, url }
 
 # 4) ★先生成再提交：把 updates/latest.json 一起 commit
-cd /g/Tempora && git add ... && git commit -m "..." && git push origin main
+cd /g/Tempora && git add ... && git commit -m "..." && git push origin main   # 502 就 scripts/push_via_api.py
 #    （0.1.21 踩过：先提交后生成，仓库里留的是上一版清单）
 
 # 5) 香港镜像（客户端第一端点）
@@ -397,24 +397,43 @@ curl -sI https://tempora.yomm.cc/dl/Tempora_<ver>_x64-setup.exe   # 200 + Conten
 - [ ] 真实壳启动截图：主界面渲染正常、无白屏、版本提示条状态正确
 - [ ] `git status` 干净，commit 已推
 
-### 6.4 推送代码：用 `git push`，别用 push_via_api.py
+### 6.4 推送代码：`git push` 优先，502 时用 API 兜底
 
-**2026-10-14 实测：普通 `git push` 直连 github.com 是通的**（此前记忆里的「被沙箱代理掐掉」已不成立）。
-所以推送就是：
+**首选（历史干净，一条命令）**：
 
 ```bash
 cd /g/Tempora && git add -A && git commit -m "..." && git push origin main
 ```
 
-若确实只能用 API（`scripts/push_via_api.py`），**推送后必须检查历史是否分叉**：
+**但要知道 `git push` 会间歇性失败**（2026-10-14 连续实测）：失败信息恒定是
 
-```bash
-git fetch origin && git log --oneline origin/main -3   # sha 与本地不同 = 又造了孤儿 commit
-git diff --stat main origin/main                        # 内容应无差异
-git push origin main --force-with-lease                # 对齐回线性历史（内容一致才安全）
+```
+fatal: unable to access 'https://github.com/madajiann/Tempora.git/': CONNECT tunnel failed, response 502
 ```
 
-⚠️ 分叉不处理会累积：仓库会出现两条内容相同的平行线，且远端 tag 指向的 commit 不在 main 线上。
+这是**沙箱代理间歇性掐断 github.com 的 CONNECT**，不是凭据或仓库问题。
+同一次会话里可能连着成功 3 次、然后连着失败 5 次，**等 1~2 分钟通常恢复**。
+`api.github.com` 走的是另一条路，多数时候是通的。
+
+**兜底：`scripts/push_via_api.py`**（用 Git Data API 逐个重建 commit 再 PATCH ref）。
+2026-10-14 已改进：推送成功后会自动 `fetch` + `reset --soft` 把本地分支指针移到重建后的 commit，
+所以**正常情况下不会再分叉**。仍然要抽一眼：
+
+```bash
+git fetch origin && git rev-parse main origin/main     # 两个 sha 相同 = 对齐好了
+git merge-base --is-ancestor origin/main main && echo 无分叉
+```
+
+**若真的出现分叉**（远端 tip 不是本地祖先），且 `git diff --stat main origin/main` 只显示
+「你自己刚提交但还没推上去」的那点差异时，可以安全强推：
+
+```bash
+git push origin main --force-with-lease
+```
+
+⚠️ 强推前**必须**先看那个 diff —— 差异若包含别人的提交就不能强推。
+分叉不处理会累积：仓库会出现两条内容相同的平行线，且远端 tag 指向的 commit 不在 main 线上。
+（本项目 2026-10-14 做过一次这样的清理，`git push origin main --force-with-lease` 一次搞定。）
 
 ---
 
@@ -641,7 +660,7 @@ cd /g/Tempora/app/frontend && "<node>" node_modules/vitest/vitest.mjs run
 cd /g/Tempora/shell && TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/tempora.key)" \
   TAURI_SIGNING_PRIVATE_KEY_PASSWORD="" cargo tauri build
 
-# 推代码（先 commit！用 git push，别用 push_via_api.py）
+# 推代码（先 commit！优先 git push，遇到 502 就 scripts/push_via_api.py）
 cd /g/Tempora && git add -A && git commit -m "..." && git push origin main
 
 # 上传香港镜像 + 清单
