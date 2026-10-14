@@ -193,13 +193,34 @@ def main():
         sys.exit(1)
     # 5) 把本地分支指针也移到重建后的 commit。重建只换 commit 对象（内容完全相同），
     #    用 --soft 移动指针：工作区与索引一律不动，两边历史从此一致，不再分叉。
-    rc = subprocess.run(["git", "reset", "--soft", parent], cwd=ROOT,
-                        capture_output=True, text=True)
-    if rc.returncode == 0:
-        print(f"本地 {BRANCH} 已对齐到 {parent[:10]}（--soft，工作区未动）")
-    else:
+    #    前提是本地有那个对象 —— 重建发生在 GitHub 侧，本地得先 fetch 下来。
+    def _align_local() -> bool:
+        rc = subprocess.run(["git", "reset", "--soft", parent], cwd=ROOT,
+                            capture_output=True, text=True)
+        if rc.returncode == 0:
+            print(f"本地 {BRANCH} 已对齐到 {parent[:10]}（--soft，工作区未动）")
+            return True
+        if "Could not parse object" not in (rc.stderr or ""):
+            print(f"警告：本地分支对齐失败，可手动执行 git reset --soft {parent}")
+            print((rc.stderr or "").strip()[:200])
+            return False
+        # 对象不在本地：先把它拉下来（git 通道不通时下面会给出手动指令）
+        frc = subprocess.run(["git", "fetch", "origin", BRANCH], cwd=ROOT,
+                             capture_output=True, text=True)
+        if frc.returncode != 0:
+            print("提示：git 通道暂时不通（常见 CONNECT tunnel failed 502），"
+                  "对象已在远端。等通道恢复后执行：")
+            print(f"    git fetch origin && git push origin main --force-with-lease")
+            return False
+        rc = subprocess.run(["git", "reset", "--soft", parent], cwd=ROOT,
+                            capture_output=True, text=True)
+        if rc.returncode == 0:
+            print(f"本地 {BRANCH} 已对齐到 {parent[:10]}（fetch + --soft，工作区未动）")
+            return True
         print(f"警告：本地分支对齐失败，可手动执行 git reset --soft {parent}")
-        print(rc.stderr.strip()[:200])
+        return False
+
+    _align_local()
     # 记录断点：重建后的 sha 即两端共同的历史点
     with open(last_file, "w", encoding="utf-8") as f:
         f.write(parent)
