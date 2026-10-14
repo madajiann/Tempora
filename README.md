@@ -67,6 +67,9 @@ python scripts/release_updater.py --version 0.1.16 --notes "更新说明"
 - 内核改为 GUI 子系统 + 托盘常驻
 - 接入 Tauri 官方自动更新
 
+**接手前请先读 [`docs/HANDOVER.md`](docs/HANDOVER.md)** —— 架构、构建、发版全流程、
+服务器运维、踩坑速查与待办都在那里。
+
 许可：**MIT**（见 [`LICENSE`](LICENSE)）。按 MIT 要求，上游 Reasonix Contributors 的版权声明
 在根目录与 `kernel/LICENSE` 中均予保留。
 
