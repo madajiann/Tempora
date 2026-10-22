@@ -107,7 +107,10 @@ curl -s https://cdn.jsdelivr.net/gh/madajiann/Tempora@main/updates/latest.json
 
 ## 5. 挂着的事（按优先级，接手即做）
 
-### P0 —— 发版 0.1.24（唯一差临门一脚的事）
+### P0 —— 发版 0.1.24 ✅ **已完成（2026-10-22）**
+
+**实际发版内容**：草稿保存（b3dfefc）+ **字体清晰度修复**（户主 10-22 明示的自研改动：字号全档上调、中文字重修真、默认对比度 normal，详见 commit `7e6d9f3` 与 HANDOVER §10.5）+ 上游蒸馏台账（UPSTREAM_LOG 末章，8 项移植待拍板）。
+发版结果：`main @ 7e6d9f3` 已推；HK/ GitHub 双端点 0.1.24 生效（sha256 三方一致 `529c105c…3898a3d`）；jsdelivr 已 purge；真机 v0.1.24 验证通过。原文步骤存档如下：
 
 草稿功能已在仓库和 `D:/Tempora`，但线上通道还是 0.1.23，老用户拿不到。步骤照 HANDOVER §6.2 走，要点：
 
