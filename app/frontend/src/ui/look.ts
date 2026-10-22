@@ -5,33 +5,45 @@ import { refresh as refreshWidth } from "./viewport";
 /** 正文起点。汉字同字号下笔画更密，中文高一档。求值留到调用时：模块加载早于
  *  i18n 定语言。这一档和 --doc 一起定行长：两个数只有一起看才有意义。
  *  这就是界面实际渲染的字号 —— 各个阅读面从它换算，不再各写各的字面值。 */
-export const readDefault = (): number => (current() === "zh" ? 13 : 12.5);
+export const readDefault = (): number => (current() === "zh" ? 15 : 14);
 
-/** 正文曾被各个阅读面写死，档位是围着那时的字号排的。存下来的是"哪一档"而不
- *  是像素，所以旧值按档位读回，选过"标准"的人还是标准。 */
-const RETIRED_STEPS: Record<string, number[]> = { zh: [14.5, 16, 18, 20], en: [13.5, 15, 17, 19] };
+/** 历史字号档位，按代记账。存下来的是"哪一档"而不是像素，所以旧值按档位映射
+ *  到当前档：选过"标准"的人还是标准 —— 只是随清晰度调整一起上了一级。 */
+const RETIRED_STEPS: Record<string, number[][]> = {
+  zh: [
+    [14.5, 16, 18, 20],
+    [12, 13, 15, 17],
+  ],
+  en: [
+    [13.5, 15, 17, 19],
+    [11.5, 12.5, 14.5, 16.5],
+  ],
+};
 
 export function readSizeOf(stored?: number): number {
   if (!stored) return readDefault();
-  const retired = RETIRED_STEPS[current() === "zh" ? "zh" : "en"];
-  const rung = retired.indexOf(stored);
-  return rung < 0 ? stored : readSteps()[rung][0];
+  const rungs = readSteps();
+  for (const gen of RETIRED_STEPS[current() === "zh" ? "zh" : "en"]) {
+    const rung = gen.indexOf(stored);
+    if (rung >= 0) return rungs[rung][0];
+  }
+  return stored;
 }
 
 /** 字号档位。中间那档就是 readDefault()，两边一起改。 */
 export const readSteps = (): [number, string][] =>
   current() === "zh"
     ? [
-        [12, "小"],
-        [13, "标准"],
-        [15, "大"],
-        [17, "更大"],
+        [14, "小"],
+        [15, "标准"],
+        [17, "大"],
+        [19, "更大"],
       ]
     : [
-        [11.5, "小"],
-        [12.5, "标准"],
-        [14.5, "大"],
-        [16.5, "更大"],
+        [13, "小"],
+        [14, "标准"],
+        [16, "大"],
+        [18, "更大"],
       ];
 
 // The user's own settings, applied after a pack so they win: a pack is a
@@ -98,8 +110,11 @@ export function apply(look: Appearance | null, busy = false) {
 // A chosen family is a first choice, never the only one: a name that stops
 // resolving — an uninstalled font, a synced config from another machine —
 // must not take the interface's legibility with it.
-const FALLBACK_UI = `"Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", "HarmonyOS Sans SC", "Source Han Sans SC", "Noto Sans SC", "PingFang SC", system-ui, sans-serif`;
-const FALLBACK_MONO = `"Cascadia Mono", "Cascadia Code", Consolas, "Microsoft YaHei UI", "Microsoft YaHei", ui-monospace, "SF Mono", Menlo, monospace`;
+// "Noto Sans SC var" 是中文分片 webfont（tokens.css 里带 unicode-range），
+// 有真实 100-900 字重轴 —— 中文的 --w-reg: 500 才能渲染成 Medium 而不是
+// 退回雅黑 Regular（Windows 雅黑只有 400/700，500 静默变 400，笔画发虚）。
+const FALLBACK_UI = `"Segoe UI Variable Text", "Segoe UI", "Noto Sans SC var", "Microsoft YaHei UI", "Microsoft YaHei", "HarmonyOS Sans SC", "Source Han Sans SC", "Noto Sans SC", "PingFang SC", system-ui, sans-serif`;
+const FALLBACK_MONO = `"Cascadia Mono", "Cascadia Code", Consolas, "Noto Sans SC var", "Microsoft YaHei UI", "Microsoft YaHei", ui-monospace, "SF Mono", Menlo, monospace`;
 
 function pct(v: number): number {
   if (!Number.isFinite(v)) return 50;

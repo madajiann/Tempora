@@ -1,11 +1,11 @@
 {
-  "version": "0.1.23",
-  "notes": "更新提示\n- 有新版本时，侧栏「新建会话」上方会出现一整行提示，写明版本号，点一下就直接装。此前只有品牌区一个 7px 的小圆点，太容易看不见——上一版发出去三天没人升级，问起来是「不知道有更新」\n- 安装过程中提示会变成「正在安装 vX…」，失败则变成可点的「安装失败，点击重试」，不再点了没有任何反应\n- 版本检查改为每半小时一次，另外切回窗口时补一次：运行中发布的新版本不必重启软件也能看到提示\n\n说明\n- 点击后是直接下载安装，装完软件会自行重启，中间不开更新窗口（那个窗口历史上会加载成一片空白，看着像卡死）",
-  "pub_date": "2026-10-05T02:04:40Z",
+  "version": "0.1.24",
+  "notes": "字体清晰度\n- 全站字号上调一档：正文默认 15px（原 13px），界面标签最小 11px（原 9px），中文界面不再发灰发虚\n- 中文字重修真：中文的「中等字重」现在真的渲染成 Medium，不再被微软雅黑静默降回细一档——小字号下笔画明显更扎实\n- 文字对比度默认提一档（设置里仍可调回柔和），并放松了中文字距，不再挤在一起\n\n会话草稿\n- 输入框的草稿按会话保存：切换会话、刷新甚至重启后，没发出去的字都还在；只有真正发送成功才会清掉\n\n说明\n- 点击更新提示直接下载安装，装完自行重启",
+  "pub_date": "2026-10-22T04:13:52Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFZlSU1NQlNzOUQxc2E0UUR0WHByTDVvMUd2YzQxd21ua2F6alVKU3Bjd3JVSUliNjVGVFFjZ1JGV1hueStzT3dvK1VGMkRSbGdiaHpVTFdaU0JqL0FJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxMTY1ODE0CWZpbGU6VGVtcG9yYV8wLjEuMjNfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4yMwpNbjR5TjUrYkpXSU1VZzAxb1hEM01iVnhFZGNFdVdRR24yczZJTHlUZWRLL2s4LzNrYzlIV0YreHBSV09UOVBmT3dDVzJQa1FCbmlBY1p1K29WeGZBQT09Cg==",
-      "url": "https://tempora.yomm.cc/dl/Tempora_0.1.23_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFU2V3BqRk5rejZCU0JBdnBxRW9odVEweSt0Nnlaa3VwODl4T1Q0NzN3Ym9vcGlyZ2pRaDBCSWw5WlB3dW5ncmhWYi9KcWgvN3IvNzJwY3BFWm40WFFvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyNjQyMzkzCWZpbGU6VGVtcG9yYV8wLjEuMjRfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4yNApabGtZeHFNY3RKYnZnVFBlb2R5OE1ibzRYdzBmQ3JBelhlODNCcEM3RW9SN3VMc1l1YXczeWxhT21VUGdLMWhKaVJjdDN3NFpSTkE2QzVYclhoTEdEUT09Cg==",
+      "url": "https://tempora.yomm.cc/dl/Tempora_0.1.24_x64-setup.exe"
     }
   }
 }
