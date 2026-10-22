@@ -1,7 +1,7 @@
 # Tempora 交接文档
 
 > 写给下一个接手的人（也写给三个月后的我自己）。
-> 最后更新：**2026-10-22** · 对应版本 **0.1.24**（仓库 `main @ 7e6d9f3`，已发版，见 §10.5）
+> 最后更新：**2026-10-22** · 对应版本 **0.1.25**（仓库 `main @ e376ebd`，已发版，见 §10.5）
 >
 > **换号/换人接手 → 先读 `docs/TAKEOVER.md`**（上次工作快照、挂事的优先级、接手自检）。
 >
@@ -609,7 +609,21 @@ MSYS_NO_PATHCONV=1 ssh -i ~/.ssh/id_ed25519_deploy -o HostKeyAlgorithms=+ssh-rsa
 - 「总是允许」存 `Roots.Home()/config.toml`（主目录），**不存仓库里**。
 - `boot.go` 的 `rememberPermissionConfigPath` 已改指主目录。
 
-### 10.5 0.1.24 发版内容（2026-10-22，已上线）
+### 10.5 0.1.25 发版内容（2026-10-22，已上线）
+
+- **功能对齐上游第一波**（6 项移植，commit `e376ebd`）：
+  - #13391 停止单个工具调用（StopCall 组件 + `call_stop.go` 内核链路 + `tool.stop` action）
+  - #11236 对话内 Ctrl+F 查找（Enter/Shift+Enter 跳命中）
+  - 会话重命名（双击改名 + 右键「自动命名」`session.auto-name`）
+  - #11533 工作区「在文件管理器中显示」（`workspace.reveal`）
+  - 界面文字四档独立缩放（侧栏/设置文字与界面缩放、正文字号解耦）
+  - 工具卡 10s+ 显示「只停止这一条调用」
+- **修复**：Workspaces 项目头恒显（折叠陷阱）、studio-theme 选中条恢复、session-new 确定性导航、删除 AccountRow 死代码 + chrome.account 孤儿注册
+- **i18n**：23 条欠账补齐 + 更新提示 t() 化 + kernel 2 条新错误码
+- 发版实录：NSIS 40MB + sig 440B；GitHub Release `id=665123285`；latest.json 1289B 已同步仓库 + jsdelivr purge OK
+- **待补**：HK 镜像上传（沙箱拦 SSH key，需手动跑 `upload_hk_direct.py`）；四端点回读（本机 SSL 问题）
+
+### 10.5.1 0.1.24 发版内容（2026-10-22，已上线）
 
 - **输入框草稿按会话保存**（上游 #11176 移植，commit `b3dfefc`，+240/-9）：
   `ui/drafts.ts`（localStorage 按 主机+工作区+会话路径 三元组隔离，32KB 上限，前缀
