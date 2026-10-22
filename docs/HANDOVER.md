@@ -1,7 +1,7 @@
 # Tempora 交接文档
 
 > 写给下一个接手的人（也写给三个月后的我自己）。
-> 最后更新：**2026-10-22** · 对应版本 **0.1.25**（仓库 `main @ e376ebd`，已发版，见 §10.5）
+> 最后更新：**2026-10-22** · 对应版本 **0.1.26**（仓库 `main @ f8ebf9ae`，已发版，见 §10.4）
 >
 > **换号/换人接手 → 先读 `docs/TAKEOVER.md`**（上次工作快照、挂事的优先级、接手自检）。
 >
@@ -608,6 +608,18 @@ MSYS_NO_PATHCONV=1 ssh -i ~/.ssh/id_ed25519_deploy -o HostKeyAlgorithms=+ssh-rsa
 - `allow` 认用户授予；`ask`/`deny` 只能叠加（仓库不能给自己发权限）。
 - 「总是允许」存 `Roots.Home()/config.toml`（主目录），**不存仓库里**。
 - `boot.go` 的 `rememberPermissionConfigPath` 已改指主目录。
+
+### 10.4 0.1.26 发版内容（2026-10-22，已上线）
+
+- **字体全部换掉为 Windows 原生字体**（用户反馈「又粗又糊又长」，commit `7e65c93` + `46af3dc` + `1abcb5a`）：
+  - 弃用 `Segoe UI Variable Text`（窄体字形拉长）和 `Noto Sans SC var` 子集 woff2（无 hinting 发糊）
+  - `--ui`: Segoe UI + Microsoft YaHei UI（ClearType hinting）；`--mono`: Consolas + Cascadia Mono
+  - 中文 `--w-reg` 500→400（雅黑下 500 被合成粗体，是「又粗」根因）
+  - `text-rendering: optimizeLegibility`→`auto`（Windows 强制字距微调发糊）
+  - 移除 `font-optical-sizing: auto`；look.ts FALLBACK_UI/FALLBACK_MONO 同步更换
+- **字号全档上调 + 亚像素清理**（commit `46af3dc`）：micro 12→13 / meta 13→14 / ui 14→15 / lead 16→17 / title 18→20 / display 23→25；9.5/10.5/11.5px 全部取整
+- 发版实录：NSIS 40MB + sig 440B；GitHub Release `asset_id=665464312`；latest.json 1255B 已同步仓库 + jsdelivr purge OK
+- **待补**：HK 镜像上传（沙箱拦 SSH key）；四端点回读（本机 SSL 握手异常）
 
 ### 10.5 0.1.25 发版内容（2026-10-22，已上线）
 
