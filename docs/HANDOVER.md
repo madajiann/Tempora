@@ -1,7 +1,9 @@
 # Tempora 交接文档
 
 > 写给下一个接手的人（也写给三个月后的我自己）。
-> 最后更新：**2026-10-14** · 对应版本 **0.1.23** · 仓库 `main @ 9cd858c`
+> 最后更新：**2026-10-22** · 对应版本 **0.1.23**（仓库 `main @ b3dfefc`，已含一笔未发版的草稿功能，见 §10.5）
+>
+> **换号/换人接手 → 先读 `docs/TAKEOVER.md`**（上次工作快照、挂事的优先级、接手自检）。
 >
 > 配套文档：差距分析 `docs/GAP_ANALYSIS.md` · 上游台账 `docs/UPSTREAM_LOG.md` ·
 > 瘦身记录 `docs/CUTLIST.md` · 开源边界 `docs/OPENSOURCE.md`
@@ -416,8 +418,22 @@ fatal: unable to access 'https://github.com/madajiann/Tempora.git/': CONNECT tun
 `api.github.com` 走的是另一条路，多数时候是通的。
 
 **兜底：`scripts/push_via_api.py`**（用 Git Data API 逐个重建 commit 再 PATCH ref）。
-2026-10-14 已改进：推送成功后会自动 `fetch` + `reset --soft` 把本地分支指针移到重建后的 commit，
-所以**正常情况下不会再分叉**。仍然要抽一眼：
+2026-10-14 已改进：推送成功后会自动 `fetch` + `reset --soft` 把本地分支指针移到重建后的 commit。
+
+⚠️ **但 2026-10-14 下午实测：改进版仍会翻车**。它的断点取自"上次断点文件"，若断点是**更早会话**留下的
+（落后于远端 tip），它会把**已经在远端的 commit 再重建一遍** → 远端出现内容重复的平行线，
+且"自动 reset --soft 对齐"没有生效（本地仍指旧 commit）。实测修复配方（树内容一致才允许强推）：
+
+```bash
+git fetch origin
+git diff --stat main origin/main        # 必须为空（仅历史线不同、内容一致）才能强推
+git push origin main --force-with-lease
+git fetch origin && git rev-parse main origin/main   # 两个 sha 相同 = 对齐完成
+```
+
+结论：**优先等 `git push` 恢复**（等 1~2 分钟再试）；确实要用脚本兜底，推送后**必须**按上面配方核验对齐。
+修复脚本的断点逻辑（断点先与远端 tip 比对，落后即弃用）在 `docs/TAKEOVER.md` §5 P1 排了队。
+仍然要抽一眼：
 
 ```bash
 git fetch origin && git rev-parse main origin/main     # 两个 sha 相同 = 对齐好了
@@ -553,7 +569,7 @@ MSYS_NO_PATHCONV=1 ssh -i ~/.ssh/id_ed25519_deploy -o HostKeyAlgorithms=+ssh-rsa
 
 | 项 | 状态 |
 |---|---|
-| 仓库版本 | 0.1.23（`main @ 9cd858c`） |
+| 仓库版本 | 0.1.23（`main @ b3dfefc`，含一笔未发版改动，见 §10.5） |
 | HK 镜像 `latest.json` | 0.1.23 ✅ |
 | 香港镜像 `dl/` | 0.1.22 / 0.1.23（76M，10-05 清理过） |
 | GitHub Release | v0.1.23（清理后只留最近 2 个） |
@@ -593,6 +609,16 @@ MSYS_NO_PATHCONV=1 ssh -i ~/.ssh/id_ed25519_deploy -o HostKeyAlgorithms=+ssh-rsa
 - 「总是允许」存 `Roots.Home()/config.toml`（主目录），**不存仓库里**。
 - `boot.go` 的 `rememberPermissionConfigPath` 已改指主目录。
 
+### 10.5 未发版改动（2026-10-14，等发 0.1.24）
+
+- **输入框草稿按会话保存**（上游 #11176 移植，commit `b3dfefc`，+240/-9）：
+  新增 `ui/drafts.ts`（localStorage 按 主机+工作区+会话路径 三元组隔离，32KB 上限，前缀
+  `tempora-draft-v1:`）与 `ui/useDraft.ts`（250ms 防抖、pagehide 冲刷、送达才清）；
+  Composer/Pane/App/Workspaces/RemoteHosts/roots 六处接线；新增 3 单测 + 6 交互用例。
+  tsc 零错；vitest 基线比对零新增失败（session-new 一条既有失败与本改动无关）。
+- 已 vite build + 同步 `D:/Tempora` + 真机抓屏验证主界面正常；**线上通道仍是 0.1.23**，
+  发版步骤见 `docs/TAKEOVER.md` §5 P0。
+
 ---
 
 ## 11. 待办与待拍板
@@ -603,7 +629,7 @@ MSYS_NO_PATHCONV=1 ssh -i ~/.ssh/id_ed25519_deploy -o HostKeyAlgorithms=+ssh-rsa
 
 | 项 | 上游 | 成本 |
 |---|---|---|
-| 输入框草稿按会话保存，刷新后恢复 | #11176 | 纯前端，低 |
+| 输入框草稿按会话保存，刷新后恢复 | #11176 | ✅ **已完成**（0.1.23+未发版，见 §10.5） |
 | 对话内 Ctrl+F 查找 | #11236 | 低 |
 | 项目「⋯」菜单「在文件管理器中显示」 | #11533 | 低（与已做的原生文件夹选择框同源） |
 | 多轮无进展 / 重复输出提示 | #11160 #11183 | 中 |
