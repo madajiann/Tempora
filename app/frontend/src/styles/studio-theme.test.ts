@@ -50,8 +50,8 @@ describe("the Studio shell closes over the active theme", () => {
     // A size is the type scale whether it is written as the number or as the
     // --fs-scale multiple the interface-text steps drive; a pack can move
     // neither.
-    expect(closure).toMatch(/\.compose \.queue\s*\{[^}]*font:\s*500 (?:calc\(var\(--fs-scale, 1\) \* )?12px\)?\/1\.35 var\(--ui\)/s);
-    expect(closure).toMatch(/\.compose \.mode,[\s\S]*?font-size:\s*(?:calc\(var\(--fs-scale, 1\) \* )?11px\)? !important/s);
+    expect(closure).toMatch(/\.compose \.queue\s*\{[^}]*font:\s*500 (?:calc\(var\(--fs-scale, 1\) \* )?13px\)?\/1\.35 var\(--ui\)/s);
+    expect(closure).toMatch(/\.compose \.mode,[\s\S]*?font-size:\s*(?:calc\(var\(--fs-scale, 1\) \* )?13px\)? !important/s);
   });
 
   it("keeps the sidebar brand on the same title-bar row as the chrome", () => {

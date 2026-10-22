@@ -9,11 +9,14 @@
     margin: 0; padding: 0; background: var(--page); color: var(--text);
     font: var(--w-reg) var(--fs-lead)/1.6 var(--ui);
     height: calc(100dvh / var(--zoom, 1)); overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-optical-sizing: auto;
+    font-kerning: normal;
   }
 
-  [data-platform="darwin"] body { -webkit-font-smoothing: antialiased }
-
-  body { font-synthesis-weight: none }
+  body { font-synthesis-weight: none; font-synthesis-style: none }
 
   :lang(zh) :is(.lbl, .dgrp-h, .side .lbl) {
     font-family: var(--ui); font-size: var(--fs-ui); color: var(--muted);
@@ -1344,7 +1347,7 @@
   .nest-bd .call > .g .sym { width: 17px; height: 17px; margin-top: 6px; font-size: var(--fs-micro) }
   .nest-bd .call > .c { padding: 6px 0 6px }
   .nest-bd .hl .nm { font-size: var(--fs-ui) }
-  .nest-ret { margin: 0 11px 10px; padding: 6px 0 6px 11px; border-left: 1px solid var(--border); font-size: var(--fs-ui); line-height: 1.6; color: var(--muted) }
+  .nest-ret { margin: 0 13px 10px; padding: 6px 0 6px 11px; border-left: 1px solid var(--border); font-size: var(--fs-ui); line-height: 1.6; color: var(--muted) }
   .enterbox[data-enter] .nest-ret { animation: card var(--t-card) var(--ease-out) both }
 
   .pip[data-settled] { background: var(--ok) !important }
@@ -1443,7 +1446,7 @@
 
   .apv-note { margin-top: var(--y-close); font: var(--w-reg) var(--fs-ui)/1.7 var(--ui); color: var(--faint) }
   .apv-ft .hint b { color: var(--faint); font-weight: var(--w-reg) }
-  .apv-done { padding: 10px 12px; font-size: var(--fs-ui); line-height: 1.65; color: var(--muted); border-top: 1px solid var(--hair) }
+  .apv-done { padding: 10px 13px; font-size: var(--fs-ui); line-height: 1.65; color: var(--muted); border-top: 1px solid var(--hair) }
   .apv-done b { color: var(--text); font-weight: var(--w-med) }
   .apv[data-sealed="deny"] .apv-done b { color: var(--err) }
   .apv[data-sealed] .apv-hd { background: transparent }
@@ -5214,7 +5217,7 @@
 .utile .v { margin-top: 6px; font: var(--w-med) var(--fs-display)/1.1 var(--mono); font-variant-numeric: tabular-nums; letter-spacing: var(--track-tight) }
 .utile .m { margin-top: 4px; color: var(--muted); font: var(--w-reg) var(--fs-meta) var(--ui) }
 
-.ucard { padding: 16px 18px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md) }
+.ucard { padding: 16px 18px 13px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md) }
 .uhero, .utile, .ucard, .storage .item {
   transition: border-color var(--t-card) var(--ease-out), box-shadow var(--t-card) var(--ease-out);
 }
@@ -5227,7 +5230,7 @@
 .ucard-h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px }
 .ucard-h h3 { margin: 0; font: var(--w-med) var(--fs-ui) var(--ui) }
 .ucard-h .hint { color: var(--muted); font: var(--w-reg) var(--fs-ui) var(--ui) }
-.ucard-s { margin: 2px 0 12px; color: var(--muted); font: var(--w-reg) var(--fs-ui) var(--ui) }
+.ucard-s { margin: 2px 0 13px; color: var(--muted); font: var(--w-reg) var(--fs-ui) var(--ui) }
 .utwo { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px }
 .unote { margin-top: 12px; padding: 10px 12px; background: var(--overlay); border-radius: var(--r-sm);
   color: var(--fg-2, var(--muted)); font: var(--w-reg) var(--fs-ui)/1.55 var(--ui) }

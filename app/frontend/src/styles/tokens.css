@@ -102,10 +102,10 @@
 
     /* Interface text rides --fs-scale (appearance "界面文字"): type alone moves,
        spacing and controls stay. calc keeps every consumer honest. */
-    --fs-micro: calc(var(--fs-scale, 1) * 12px); --fs-meta: calc(var(--fs-scale, 1) * 13px); --fs-ui: calc(var(--fs-scale, 1) * 14px);
-    --fs-lead: calc(var(--fs-scale, 1) * 16px); --fs-title: calc(var(--fs-scale, 1) * 18px); --fs-display: calc(var(--fs-scale, 1) * 23px);
+    --fs-micro: calc(var(--fs-scale, 1) * 13px); --fs-meta: calc(var(--fs-scale, 1) * 14px); --fs-ui: calc(var(--fs-scale, 1) * 15px);
+    --fs-lead: calc(var(--fs-scale, 1) * 17px); --fs-title: calc(var(--fs-scale, 1) * 20px); --fs-display: calc(var(--fs-scale, 1) * 25px);
 
-    --read: 16px;
+    --read: 17px;
 
     --doc: min(100%, 706px); --wide: min(100%, 1120px);
 
