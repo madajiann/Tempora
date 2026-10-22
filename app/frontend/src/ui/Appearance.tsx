@@ -1,7 +1,7 @@
 import { ApplyNote } from "./Group";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import type { TrayPrefs, AgentPort, Appearance as Look, ThemePack } from "../port/port";
-import { MONO_FAMILIES, UI_FAMILIES, installed, readSizeOf, readSteps } from "./look";
+import { MONO_FAMILIES, TEXT_STEPS, UI_FAMILIES, installed, readSizeOf, readSteps } from "./look";
 import { STORAGE as LANG_KEY, t } from "../i18n";
 import { pct } from "../i18n/format";
 import { reason } from "../i18n/kernel";
@@ -343,7 +343,7 @@ export function Appearance({ port, theme, onTheme, contrast, onContrast, weight,
         <div className="grp-hd">
           <h3>{t("大小")}</h3>
         </div>
-        <p className="hint">{t("「界面」会同时缩放边距与控件，「正文」仅调整对话中的文字大小，两者独立设置。")}</p>
+        <p className="hint">{t("「界面」会同时缩放边距与控件，「界面文字」只放大侧栏、设置等处的文字，「正文」仅调整对话中的文字大小，三者独立设置。")}</p>
         <div className="grp-items">
           <div className="prow">
             <span className="tx">{t("界面")}</span>
@@ -370,6 +370,16 @@ export function Appearance({ port, theme, onTheme, contrast, onContrast, weight,
               onChange={(e) => set({ zoom: Number(e.target.value) })}
             />
             <span className="now">{pct(look.zoom || 1)}</span>
+          </div>
+          <div className="prow">
+            <span className="tx">{t("界面文字")}</span>
+            <div className="seg" data-text role="group" aria-label={t("界面文字大小")}>
+              {TEXT_STEPS.map(([v, name]) => (
+                <button key={v} data-action="appearance.text-size" aria-pressed={(look.textSize || 1) === v} onClick={() => set({ textSize: v })}>
+                  {t(name)}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="prow">
             <span className="tx">{t("正文")}</span>

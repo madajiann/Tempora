@@ -46,6 +46,15 @@ export const readSteps = (): [number, string][] =>
         [18, "更大"],
       ];
 
+/** 界面文字档位：只放大侧栏、设置、标签等处的文字，不动边距和控件。
+ *  落在样式表字号的一个倍率上；标准档存为不设。 */
+export const TEXT_STEPS: [number, string][] = [
+  [0.9, "小"],
+  [1, "标准"],
+  [1.15, "大"],
+  [1.3, "更大"],
+];
+
 // The user's own settings, applied after a pack so they win: a pack is a
 // palette somebody else authored, and the size someone reads at is not
 // something an author gets to overrule.
@@ -77,6 +86,10 @@ export function apply(look: Appearance | null, busy = false) {
   // Zoom changes how much room the layout has without the window moving, so the
   // resize observer has nothing to report. Say so directly.
   refreshWidth();
+
+  // Text size moves type alone, so the layout keeps the room it was drawn with.
+  if (look?.textSize && look.textSize !== 1) style.setProperty("--fs-scale", String(look.textSize));
+  else style.removeProperty("--fs-scale");
 
   // Reading size moves the transcript's prose alone, so the frame around it
   // stays where the layout put it.

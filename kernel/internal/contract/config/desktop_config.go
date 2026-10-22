@@ -99,6 +99,7 @@ type DesktopConfig struct {
 type AppearanceConfig struct {
 	Zoom      float64         `toml:"zoom"`      // whole-interface scale, 0.8..1.6; 0 = 1.0
 	ReadSize  float64         `toml:"read_size"` // transcript body size in px; 0 = the stylesheet's
+	TextSize  float64         `toml:"text_size"` // interface text scale, 0.85..1.6, spacing untouched; 0 = 1.0
 	FontUI    string          `toml:"font_ui"`   // CSS font-family list for the interface
 	FontMono  string          `toml:"font_mono"` // CSS font-family list for code and output
 	Wallpaper WallpaperConfig `toml:"wallpaper"`

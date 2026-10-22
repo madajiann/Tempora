@@ -663,6 +663,10 @@ export class MockPort extends MockTheme implements AgentPort {
     this.state = { ...this.state, jobs: this.state.jobs?.map((j) => (j === job ? { ...j, status: "killed" } : j)) };
   }
 
+  async stopToolCall(_callId: string) {
+    throw new HttpError(409, "no running tool call with this id", { code: "tool_call.not_running" });
+  }
+
   async retryQueued(itemId: string) {
     void itemId;
   }

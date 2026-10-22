@@ -60,6 +60,7 @@ effort UI 单列一轮。**地基的 kernel 侧已就位，届时只需补前端
 | 空闲复用连接被对端断开 → 下一轮 `unexpected EOF` | [#11271](https://github.com/esengine/DeepSeek-Reasonix/pull/11271) (v1.39.6) | 用 `httptrace` 探测「走了复用空闲连接 + 零响应字节」，仅在此时重发一次 | `internal/contract/provider/retry.go` 是 `for attempt <= retryLimit` 循环，`httpClient.Do` 失败即 `continue` 重试，**本就覆盖** | 不移植 |
 | 上下文整理（compact）无限等待 | [#11171](https://github.com/esengine/DeepSeek-Reasonix/pull/11171) (v1.39.5) | 统一 5 分钟上限；摘要失败保留最后一次确认的上下文 | `internal/runtime/agent/compact.go` 有 `summaryTimeout = 90 * time.Second`，**比上游更严** | 不移植 |
 | 启动时同步整理会话历史拖慢冷启动 | [#11488](https://github.com/esengine/DeepSeek-Reasonix/pull/11488) (studio-v2.25.0) | 新增 `session_sweep.go`，启动改后台 | `internal/assembly/boot/isolation.go:53` 已是 `go store.SweepExpired(...)` 异步 goroutine | 不移植 |
+| 只思考无答案 → 重试一次（含 `answeringRecovery`） | [#13966](https://github.com/esengine/DeepSeek-Reasonix/pull/13966)（**PR base=main-v2，1.x 线**） | 1.x 线在「只思考就结束」时强制续答一次 | 2.x 线（studio）现行 2.48 仍保留 `reasoningOnlyFinishHonoured`（**有意**「只思考就 honor stop」防反复空转）且无 `answeringRecovery`——PR base 决定适用性，**2.x 不算差距** | 不移植（其 `emptyFinalRetryMessage` 文案改进属低风险可选项，留待顺手吸收） |
 
 ## 待户主拍板（2026-10-03 提出）
 
@@ -138,10 +139,10 @@ effort UI 单列一轮。**地基的 kernel 侧已就位，届时只需补前端
 |---|---|---|---|---|
 | 1 | Go 1.26.10 重建内核（证书修复 GO-2026-6809） | #14034 | 低 | 纯工具链升级，源码零改动；本地 tools/go 是 1.26.8，**没有**这个修复 |
 | 2 | JSONL 检查点 symlink 逃逸检查 | #14086 | 低~中 | 先核对 load 路径是否跟随符号链接 |
-| 3 | 对话内 Ctrl+F | #11236 | 低 | GAP P1 既列 |
-| 4 | 项目「在文件管理器中显示」 | #11533 | 低 | 与已做的原生文件夹选择框同源 |
-| 5 | 界面文字四档（UI 字号独立于正文） | #11577 | 低 | 与 0.1.24 字体清晰度调整同源，正好接上 |
-| 6 | 只思考无答案 → 重试一次 + 明确报错 | #13966 | 中 | 自主任务可靠性直接受益，先核对 2.x 内核是否同病 |
+| 3 | 对话内 Ctrl+F | #11236 | 低 | ✅ 已移植，随 0.1.25 发版 |
+| 4 | 项目「在文件管理器中显示」 | #11533 | 低 | ✅ 已移植（内核一步式 reveal，见下节），随 0.1.25 发版 |
+| 5 | 界面文字四档（UI 字号独立于正文） | #11577 | 低 | ✅ 已按语义落地（--fs-scale token 体系），随 0.1.25 发版 |
+| 6 | 只思考无答案 → 重试一次 + 明确报错 | #13966 | 中 | ❌ **不移植**（1.x 线专属，见「已核对」新行），结论已出 |
 | 7 | 工具卡懒挂载/长输出截断 | #13899 系列 | 高 | 值得但单独排期（前端大改） |
 | 8 | 多轮无进展/重复输出提示 | #11160 #11183 | 中 | GAP P1 既列 |
 
@@ -159,3 +160,18 @@ effort UI 单列一轮。**地基的 kernel 侧已就位，届时只需补前端
 
 - 0.1.23 更新提示条（已做）；草稿保存 #11176 已移植，随 0.1.24 发版
 - push_via_api 陈旧断点、README 过时两处 —— TAKEOVER §5 P1 文档债，仍挂着
+
+## 2026-10-22 第一波功能同步（0.1.25 发版）
+
+> 户主指令：「按你的想法去执行，首先保证功能同步上游」。本节是执行记录。补丁原文落档 `build/patches/pr_*.patch.txt`。
+
+| 项 | 来源 | 落地 | 本地适配点 |
+|---|---|---|---|
+| 对话内 Ctrl+F 查找 | #11236 | `ui/windowkeys.ts`（新建，快捷键框架）+ `keys.ts`（pressedChord/typingElsewhere）+ `usefind.ts`（nth 多命中）+ `findpaint.ts`/`findland.ts`（重写）+ Transcript/Find/Chrome/Sidebar/Composer 接线；上游 7 用例全量移植 **7/7 通过** | 当前命中用 `::highlight(rx-find-now)` accent 高亮；AltGr 排除、IME composing 守卫 |
+| 会话双击重命名 | #12977 | `ui/Workspaces.tsx` 会话行 `onDoubleClick`（避开 input/button/[role=menu]） | — |
+| 会话自动命名 | #13199（简报记 #13195 有误） | 内核 `sessionstore.UserMessagesTitleSource`（全部用户消息后 300 rune）+ `hub_tree.go` `POST /tree/sessions/auto-name` + 前端会话菜单项 | 2.20 内核已有完整标题子系统（generateTitle/titleProv/titlecache），只缺端点与标题源 |
+| 在文件管理器中显示 | #11533 | 内核 `hub_locate.go` `POST /host/workspaces/reveal`（`revealFolder` 复用 themes_install.go 的 explorer.exe 调用）+ `Workspaces.tsx` 工作区菜单项 | **偏离上游两步式**（locate→shell open）：走内核一步式 reveal，免 Rust 壳重编 |
+| 界面文字四档 | #11577/#13580 语义（#13575 全量重构不搬） | `tokens.css` `--fs-*` 六档套 `--fs-scale` calc；studio.css/app.css 244 处硬编码字号批量 calc 包裹；`look.ts` TEXT_STEPS 四档（0.9/1/1.15/1.3）+ `Appearance.tsx`「界面文字」seg；内核 `AppearanceConfig.TextSize` 持久化 | 上游靠全量重构才有 --fs-scale；我们用确定性正则批量包裹实现同等效果。中文字体分片红线未动 |
+| 停止单个工具调用 | #13391 | 内核 `call_stop.go`（callStops + `Agent.CancelToolCall` + `stoppedByUser`→`tool.Refusal{Code: tool.cancelled_by_user}`）+ `tool_calls.go` `POST /tool-calls/{id}/cancel`（409 `tool_call.not_running`）+ 控制层 `ToolCallStopper`；前端 `StopCall.tsx`（10 秒后出现）+ ToolCard/Transcript/Pane 穿 `onStopCall` + `port.stopToolCall` | 上游 Transcript 走 `port` prop；本地走 `onStopCall` 回调（与 onPrepareFileRevert 同构）。`.stop-call` 样式入 studio.css（本地无 waitnote.css），`--dim`→`--ghost` 对齐本地 token |
+
+**顺手修掉的自有欠账**：i18n 目录守卫 23 条中文键无英文对照（HEAD 就缺，Pane/WorkspaceFoot/Workspaces 计量栏与工作区菜单文案）——补齐后 `i18n.test.ts` 5/5 转绿。

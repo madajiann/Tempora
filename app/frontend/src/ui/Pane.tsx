@@ -610,6 +610,7 @@ function PaneView({ port, rt, title, active, visible, sideHost, side, onFocus, o
         onUndoRewind={onUndoRewind}
         onPrepareFileRevert={onPrepareFileRevert}
         onCommitFileRevert={onCommitFileRevert}
+        onStopCall={(id) => void port.stopToolCall(id).catch(() => {})}
         needsProject={needsProject}
         onOpenProject={onOpenProject}
         onKeepHere={onKeepHere}

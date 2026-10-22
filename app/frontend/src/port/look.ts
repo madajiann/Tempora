@@ -56,6 +56,9 @@ export interface Appearance {
   language?: string;
   zoom?: number;
   readSize?: number;
+  // Interface text alone, as a scale over the stylesheet's sizes; zoom moves
+  // spacing and controls with it, this does not.
+  textSize?: number;
   fontUi?: string;
   fontMono?: string;
   // How far prose may run: "standard" holds it to a reading line length,

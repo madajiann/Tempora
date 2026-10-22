@@ -40,7 +40,7 @@ interface Props {
   // node you clicked. The nonce, not the id, is what makes asking twice land
   // twice; null while nothing has been asked for.
   focus: { call: string; n: number } | null;
-  find?: { id: string; n: number } | null;
+  find?: { id: string; nth: number; n: number } | null;
   query?: string;
   onApprove: (itemId: string, id: string, v: ApprovalVerdict) => Promise<void>;
   onFullAccess: (itemId: string) => Promise<void>;
@@ -69,6 +69,8 @@ interface Props {
   onPrepareRewind: (turn: number, scope: RewindScope) => Promise<RewindPlan>;
   onPrepareFileRevert: (path: string) => Promise<RewindPlan>;
   onCommitFileRevert: (planId: string, resolution?: string) => Promise<RewindResult>;
+  // Ends one running call without ending the turn. Absent outside a live pane.
+  onStopCall?: (callId: string) => void;
   onCommitRewind: (planId: string) => Promise<RewindResult>;
   onUndoRewind: (transactionId: string) => Promise<void>;
   /** Cards that have not had their one entrance yet. Owed by the projection,
@@ -78,7 +80,7 @@ interface Props {
   onEntered: (ids: string[]) => void;
 }
 
-export function Transcript({ items, entering, onEntered, revision, waiting, scroll, hidden, onPinned, jump, focus, find, query, onApprove, onFullAccess, onPlan, onAnswer, onForget, onExtInvoke, onExtSubmit, reply, onResend, takeovers = {}, checkpoints, onPrepareRewind, onCommitRewind, onUndoRewind, onPrepareFileRevert, onCommitFileRevert, needsProject, onOpenProject, onKeepHere }: Props) {
+export function Transcript({ items, entering, onEntered, revision, waiting, scroll, hidden, onPinned, jump, focus, find, query, onApprove, onFullAccess, onPlan, onAnswer, onForget, onExtInvoke, onExtSubmit, reply, onResend, takeovers = {}, checkpoints, onPrepareRewind, onCommitRewind, onUndoRewind, onPrepareFileRevert, onCommitFileRevert, onStopCall, needsProject, onOpenProject, onKeepHere }: Props) {
   // A block the selection touches must not leave the DOM. Unmounting the node a
   // selection is anchored to makes the browser remap that selection onto
   // whatever is still mounted — which reads as "I selected up there and the
@@ -130,7 +132,7 @@ export function Transcript({ items, entering, onEntered, revision, waiting, scro
     });
   }, [scroll]);
 
-  useFindPaint(flow, hidden, query ?? "", find?.id ?? null);
+  useFindPaint(flow, hidden, query ?? "", find?.id ?? null, find?.nth ?? 0);
 
   useEffect(() => {
     const onSelect = () => {
@@ -310,11 +312,14 @@ export function Transcript({ items, entering, onEntered, revision, waiting, scro
   // pass then puts the message itself under the reader. Marked as a gesture,
   // or the follow would read this scroll as the transcript moving and stay
   // pinned to the bottom the reader just left.
+  const landing = useRef(0);
   const land = useCallback(
-    (block: number, into: number, selector: string, clear = 12) => {
+    (block: number, into: number, selector: string, clear = 12, then?: (found: HTMLElement, root: HTMLElement) => boolean) => {
       const root = scroll.current;
       const inner = flow.current;
       if (!root || !inner) return;
+      // A newer landing owns the scroll; an older one still settling stops.
+      const mine = ++landing.current;
       gesture.current = 0;
       at.current = false;
       setPinned(false);
@@ -324,9 +329,13 @@ export function Transcript({ items, entering, onEntered, revision, waiting, scro
       // ancestor is .pane, which does not scroll, so offsetTop answers "where
       // in the window" — writing that back as scrollTop barely moves anything.
       const topOf = (el: HTMLElement) => el.getBoundingClientRect().top - root.getBoundingClientRect().top + root.scrollTop;
+      // A caller that can place a mounted target itself spares the row-top hop.
+      const ready = then && inner.querySelector<HTMLElement>(selector);
+      if (ready && then(ready, root)) return;
       const chunk = inner.querySelectorAll<HTMLElement>(".chunk")[block];
       if (chunk) root.scrollTop = topOf(chunk) + into * chunk.offsetHeight - clear;
       const settle = (tries: number, last = NaN) => {
+        if (mine !== landing.current) return;
         const found = inner.querySelector<HTMLElement>(selector);
         if (found) {
           const el = landingBox(found);
@@ -340,6 +349,7 @@ export function Transcript({ items, entering, onEntered, revision, waiting, scro
           }
           el.setAttribute("data-hit", "");
           setTimeout(() => el.removeAttribute("data-hit"), 1200);
+          then?.(found, root);
           return;
         }
         if (tries > 0) requestAnimationFrame(() => settle(tries - 1));
@@ -387,7 +397,7 @@ export function Transcript({ items, entering, onEntered, revision, waiting, scro
   const live = last?.t === "say" && !last.done ? last : undefined;
   const blocks = useBlocks(items, live ? items.length - 1 : items.length, revision);
 
-  useFindLanding(find, hidden, blocks, live, land);
+  useFindLanding(find, query ?? "", hidden, blocks, live, land);
 
   // Which block holds a given call, so the graph can land on one the way the
   // rail lands on a message: the card may sit in a block that is not mounted
@@ -423,7 +433,7 @@ export function Transcript({ items, entering, onEntered, revision, waiting, scro
   }, [entering, onEntered]);
   const owed = useMemo(() => new Set(entering), [entering]);
 
-  const rowProps = { owed, onApprove, onFullAccess, onPlan, onAnswer, onForget, onExtInvoke, takeovers, onExtSubmit, onPrepareRewind, onCommitRewind, onUndoRewind, onPrepareFileRevert, onCommitFileRevert, reply, onResend };
+  const rowProps = { owed, onApprove, onFullAccess, onPlan, onAnswer, onForget, onExtInvoke, takeovers, onExtSubmit, onPrepareRewind, onCommitRewind, onUndoRewind, onPrepareFileRevert, onCommitFileRevert, onStopCall, reply, onResend };
 
   // What you said, and where it sits. Derived from the same blocks the
   // transcript renders, so a mark always knows which block holds it — that is
@@ -562,6 +572,7 @@ interface RowHandlers {
   reply: Props["reply"];
   onResend: Props["onResend"];
   onCommitFileRevert: Props["onCommitFileRevert"];
+  onStopCall: Props["onStopCall"];
 }
 
 const ActivityGroup = memo(function ActivityGroup({
@@ -634,6 +645,7 @@ const Row = memo(function Row({
   onUndoRewind,
   onPrepareFileRevert,
   onCommitFileRevert,
+  onStopCall,
   afterAnswer,
   activity = false,
 }: RowHandlers & { it: Item; cp?: Checkpoint; afterAnswer?: ReactNode; activity?: boolean }) {
@@ -679,6 +691,7 @@ const Row = memo(function Row({
             onExtInvoke={onExtInvoke}
             onPrepareFileRevert={onPrepareFileRevert}
             onCommitFileRevert={onCommitFileRevert}
+            onStop={onStopCall && it.tool.id ? () => onStopCall(it.tool.id!) : undefined}
           />
       );
     case "reads":

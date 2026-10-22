@@ -69,3 +69,34 @@ func TruncatePreview(s string) string {
 	}
 	return s
 }
+
+// UserMessagesTitleSource returns the last 300 runes of all human-authored
+// turns joined in order — the text an automatic session title is generated
+// from. Host-composed prompts and paste labels are skipped so the title names
+// what the user asked, not what the UI injected.
+// Ported from DeepSeek-Reasonix (MIT).
+func UserMessagesTitleSource(path string) (string, error) {
+	msgs, _, _, err := loadSessionMessages(path)
+	if err != nil {
+		return "", err
+	}
+	var parts []string
+	for _, m := range msgs {
+		if m.Role != provider.RoleUser || m.HostAuthored {
+			continue
+		}
+		text := UserMessageText(m)
+		if !IsUserAuthoredTurn(text) {
+			continue
+		}
+		text = strings.TrimSpace(StripPasteDisplayLabel(text))
+		if text != "" {
+			parts = append(parts, text)
+		}
+	}
+	runes := []rune(strings.Join(parts, "\n"))
+	if len(runes) > 300 {
+		runes = runes[len(runes)-300:]
+	}
+	return string(runes), nil
+}

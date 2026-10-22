@@ -176,6 +176,23 @@ function WorkspacesView({ hub, tree, runtimes, active, folded, reload, onFold, o
     }
   };
 
+  // Generates a title from the conversation's own user messages and renames
+  // with it. Ported from DeepSeek-Reasonix (MIT) #13195/#13199.
+  const autoName = async (session: TreeSession) => {
+    setBusy("name:" + session.path);
+    try {
+      const { title } = await hub.autoNameSession(session.path);
+      renamed.current[session.path] = title;
+      // onRename owns the kernel rename and the tree reload behind it.
+      onRename(session.path, title);
+    } catch (e) {
+      onError(e);
+    } finally {
+      setBusy("");
+      setSessionMenu("");
+    }
+  };
+
   const saveSession = async (session: TreeSession) => {
     setBusy("export:" + session.path);
     try {
@@ -257,7 +274,11 @@ function WorkspacesView({ hub, tree, runtimes, active, folded, reload, onFold, o
                     onCancel={() => setConfirm("")}
                   />
                 ) : (
-                  multi && !shut && (
+                  // 项目头恒显（含折叠后）：它是折叠开关与项目操作（重命名/移除/在文件
+                  // 管理器中显示）的唯一入口。早先「单工作区不显示标题」的扁平化写法把
+                  // 操作入口藏没了，`!shut` 再把开关本身跟着内容一起藏掉，折叠过的项目
+                  // 再也点不回来。折叠只收起下面的会话列表。
+                  (
                     <div
                       ref={sessionMenu === ws.root ? sessionMenuBox : undefined}
                       className="wshead"
@@ -321,6 +342,19 @@ function WorkspacesView({ hub, tree, runtimes, active, folded, reload, onFold, o
                             <small title={ws.root}>{ws.root}</small>
                           </div>
                           <div className="session-pop-group">
+                            <button
+                              role="menuitem"
+                              data-action="workspace.reveal"
+                              data-target={ws.root}
+                              disabled={ws.missing}
+                              onClick={() => {
+                                setSessionMenu("");
+                                hub.revealWorkspace(ws.root).catch(onError);
+                              }}
+                            >
+                              <StudioIcon name="folder" /><span>{t("在文件管理器中显示")}</span>
+                              {ws.missing && <small>{t("文件夹已不在磁盘上")}</small>}
+                            </button>
                             <button className="danger" role="menuitem" data-action="workspace.remove" onClick={() => { setConfirm(ws.root); setSessionMenu(""); }}>
                               <StudioIcon name="close" /><span>{t("从列表移除")}</span><small>{t("不删除文件")}</small>
                             </button>
@@ -381,6 +415,11 @@ function WorkspacesView({ hub, tree, runtimes, active, folded, reload, onFold, o
                         data-just-done={session.runtimeId && justDone.has(session.runtimeId) ? "" : undefined}
                         data-busy={busy === session.path ? "" : undefined}
                         onClick={() => void pick(ws, session)}
+                        data-action-dblclick={editing === session.path ? undefined : "session.rename"}
+                        onDoubleClick={(ev) => {
+                          if ((ev.target as HTMLElement).closest("input, button, [role='menu']")) return;
+                          setEditing(session.path);
+                        }}
                         tabIndex={0}
                         onKeyDown={(ev) => {
                           if (ev.target !== ev.currentTarget) return;
@@ -485,6 +524,9 @@ function WorkspacesView({ hub, tree, runtimes, active, folded, reload, onFold, o
                               </button>
                               <button role="menuitem" data-action="session.rename" data-target={session.path} onClick={() => { setEditing(session.path); setSessionMenu(""); }}>
                                 <StudioIcon name="edit" /><span>{t("重命名")}</span>
+                              </button>
+                              <button role="menuitem" data-action="session.auto-name" data-target={session.path} disabled={busy === "name:" + session.path} onClick={() => void autoName(session)}>
+                                <StudioIcon name="spark" /><span>{busy === "name:" + session.path ? t("命名中…") : t("自动命名")}</span>
                               </button>
                               {session.runtimeId && liveIds([session.runtimeId]).length > 0 && (
                                 <button role="menuitem" data-action="session.pause" data-target={session.path} onClick={() => { onPause(session.runtimeId!); setSessionMenu(""); }}>

@@ -71,9 +71,14 @@ export interface HubPort extends SharePort {
   tree(): Promise<TreeWorkspace[]>;
   addWorkspace(path: string): Promise<TreeWorkspace>;
   removeWorkspace(path: string): Promise<void>;
+  /** Open a listed project's folder in the system file manager. */
+  revealWorkspace(path: string): Promise<void>;
   removeSession(path: string): Promise<void>;
   archiveSession(path: string, archived: boolean): Promise<void>;
   renameSession(path: string, title: string): Promise<void>;
+  // Generates a short title from the conversation's user messages and returns
+  // it unsaved — rename with it only once the user keeps it.
+  autoNameSession(path: string): Promise<{ title: string }>;
   exportSession(path: string): Promise<{ name: string; content: string }>;
   importLegacySessions(path: string, workspace: string): Promise<{ summary: string; imported: number; warnings: number }>;
   // The host book with each link's state, or null where this kernel refuses
@@ -214,6 +219,14 @@ export class SseHub implements HubPort {
 
   async renameSession(path: string, title: string) {
     await this.post<void>("/tree/sessions/rename", { path, title });
+  }
+
+  autoNameSession(path: string) {
+    return this.post<{ title: string }>("/tree/sessions/auto-name", { path });
+  }
+
+  async revealWorkspace(path: string) {
+    await this.post<{ path: string }>("/host/workspaces/reveal", { root: path });
   }
 
   exportSession(path: string) {

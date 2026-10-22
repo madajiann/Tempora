@@ -51,6 +51,12 @@ const SAID: Record<string, string> = {
   "request.not_found": "找不到名为「{name}」的{kind}",
   "project.unknown": "该项目未在当前窗口中打开",
   "workspace.unknown": "该工作区未在当前窗口中打开",
+  "workspace.not_listed": "这个文件夹不在当前窗口的项目列表里。",
+  "workspace.folder_missing": "项目文件夹已不在磁盘上。",
+  "workspace.reveal_failed": "没能打开文件管理器：{error}",
+  "session.title_no_message": "这个会话还没有用户消息，起不了名字。",
+  "session.title_unavailable": "没有配置用于命名的模型服务。",
+  "session.title_failed": "模型没能生成标题。",
   "busy.session_in_use": "该会话正被其他位置占用：{detail}",
   "busy.session_running": "该会话正在运行，此消息已排入队列",
   "busy.session_active": "这是当前打开的会话，请先切换后再删除",
@@ -201,6 +207,8 @@ const SAID: Record<string, string> = {
 
   // ── 待送达：条目、队列、这份存档各自会拒 ─────────────────────────
   "inbox.not_found": "该条已不在待送达队列中",
+  "tool_call.not_running": "这条调用已经结束了",
+  "tool.cancelled_by_user": "你停止了这条调用，它在外部已经做了什么无法确定",
   "job.not_running": "这个后台任务已经不在运行了",
   "inbox.invalid_state": "该条当前状态不允许此操作",
   "inbox.paused": "待送达已暂停，请先恢复派发再进行操作",

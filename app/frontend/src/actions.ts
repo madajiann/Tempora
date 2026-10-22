@@ -70,13 +70,14 @@ export const ACTIONS: UIAction[] = [
   { id: "transcript.fold", kind: "view", target: "none", proof: "interaction" },
   { id: "transcript.fold-preset", kind: "view", target: "none", proof: "interaction" },
   { id: "transcript.fold-preview", kind: "view", target: "none", proof: "interaction" },
-  { id: "chrome.account", kind: "navigation", target: "none", proof: "interaction" },
   // Installing a published build from the rail. It replaces the running shell,
   // which is why it is navigation and not a view: nothing is left to look at.
   { id: "chrome.update", kind: "navigation", target: "none", proof: "interaction" },
   { id: "metrics.details", kind: "view", target: "optional", proof: "interaction" },
   { id: "session.menu", kind: "view", target: "entity", proof: "interaction" },
+  { id: "session.auto-name", kind: "kernel-mutation", target: "entity", proof: "interaction" },
   { id: "workspace.menu", kind: "view", target: "entity", proof: "interaction" },
+  { id: "workspace.reveal", kind: "shell-native", target: "entity", proof: "interaction" },
   { id: "session.pin", kind: "view", target: "entity", proof: "interaction" },
   { id: "session.pause", kind: "kernel-mutation", target: "entity", proof: "interaction" },
   // Closing a conversation's pane ends its runtime and keeps the transcript;
@@ -102,6 +103,7 @@ export const ACTIONS: UIAction[] = [
   // live turn the first steers and the second cancels the current turn.
   { id: "session.send", kind: "kernel-mutation", target: "none", proof: "authority-effect" },
   { id: "session.stop", kind: "kernel-mutation", target: "none", proof: "authority-effect" },
+  { id: "tool.stop", kind: "kernel-mutation", target: "entity", proof: "interaction" },
   { id: "job.cancel", kind: "kernel-mutation", target: "entity", proof: "authority-effect" },
   { id: "plan.mode", kind: "kernel-mutation", target: "none", proof: "interaction" },
   // A rewrite is asked of the kernel but changes nothing there; taking it only
@@ -309,6 +311,7 @@ export const ACTIONS: UIAction[] = [
   { id: "appearance.language", kind: "kernel-mutation", target: "none", proof: "authority-effect" },
   { id: "appearance.zoom", kind: "kernel-mutation", target: "none", proof: "authority-effect" },
   { id: "appearance.reading-size", kind: "kernel-mutation", target: "none", proof: "authority-effect" },
+  { id: "appearance.text-size", kind: "kernel-mutation", target: "none", proof: "authority-effect" },
   { id: "appearance.measure", kind: "kernel-mutation", target: "none", proof: "authority-effect" },
   { id: "appearance.background", kind: "kernel-mutation", target: "none", proof: "authority-effect" },
   { id: "appearance.font", kind: "kernel-mutation", target: "entity", proof: "authority-effect" },

@@ -307,6 +307,11 @@ type BackgroundJobs interface {
 	CancelJob(id string) bool
 }
 
+// ToolCallStopper ends one running tool call and leaves its turn going.
+type ToolCallStopper interface {
+	CancelToolCall(id string) bool
+}
+
 // SessionPersistence covers snapshotting a session and tearing down its on-disk
 // state.
 type SessionPersistence interface {
@@ -372,6 +377,7 @@ type SessionAPI interface {
 	Inbox
 	Provenance
 	BackgroundJobs
+	ToolCallStopper
 }
 
 // EditorAPI is what an editor integration drives over ACP: turns, approvals and
@@ -400,6 +406,7 @@ var (
 	_ Approvals          = (*Controller)(nil)
 	_ Goals              = (*Controller)(nil)
 	_ BackgroundJobs     = (*Controller)(nil)
+	_ ToolCallStopper    = (*Controller)(nil)
 	_ SessionHistory     = (*Controller)(nil)
 	_ MemoryControl      = (*Controller)(nil)
 	_ SlashDispatch      = (*Controller)(nil)

@@ -1,6 +1,7 @@
 package serve
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"log/slog"
@@ -11,6 +12,7 @@ import (
 	"strings"
 
 	"tempora/internal/base/fileutil"
+	"tempora/internal/base/nilutil"
 	"tempora/internal/contract/config"
 	"tempora/internal/contract/event"
 	"tempora/internal/platform/worktree"
@@ -71,6 +73,7 @@ func (h *Hub) registerTreeRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /tree/sessions/remove", h.removeSession)
 	mux.HandleFunc("POST /tree/sessions/archive", h.archiveSession)
 	mux.HandleFunc("POST /tree/sessions/rename", h.renameSession)
+	mux.HandleFunc("POST /tree/sessions/auto-name", h.autoNameSession)
 	mux.HandleFunc("POST /tree/sessions/export", h.exportSession)
 	mux.HandleFunc("POST /tree/sessions/import-legacy", h.importLegacySessions)
 }
@@ -433,6 +436,84 @@ func (h *Hub) renameSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// autoNameSession generates a short title from the conversation's own user
+// messages and returns it unsaved — the frontend renames with it only once the
+// user keeps it. The same workspace boundary as rename applies.
+// Ported from DeepSeek-Reasonix (MIT) (#1315 / #13199 semantics).
+func (h *Hub) autoNameSession(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		Path string `json:"path"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		badBody(w)
+		return
+	}
+	path, err := filepath.Abs(strings.TrimSpace(body.Path))
+	if err != nil || !store.IsSessionTranscriptName(filepath.Base(path)) {
+		refuse(w, http.StatusBadRequest, codeSessionBadPath, "the session path could not be resolved", nil)
+		return
+	}
+	if !h.ownsSessionDir(filepath.Dir(path)) {
+		refuse(w, http.StatusForbidden, "session.outside_workspace", "path outside a known workspace", nil)
+		return
+	}
+	source, err := sessionstore.UserMessagesTitleSource(path)
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, err)
+		return
+	}
+	if source == "" {
+		refuse(w, http.StatusBadRequest, "session.title_no_message", "the session has no user message", nil)
+		return
+	}
+	generator := h.titleGeneratorFor(filepath.Dir(path))
+	if generator == nil {
+		refuse(w, http.StatusServiceUnavailable, "session.title_unavailable", "no title model is configured", nil)
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), titleFillTimeout)
+	defer cancel()
+	title := generator.generateTitle(ctx, source)
+	if title == "" {
+		refuse(w, http.StatusBadGateway, "session.title_failed", "the model did not generate a title", nil)
+		return
+	}
+	writeJSON(w, struct {
+		Title string `json:"title"`
+	}{Title: title})
+}
+
+// titleGeneratorFor returns a server whose title provider is configured,
+// preferring one whose session directory matches. With no open pane a
+// throwaway generator answers — titles are best-effort and hold no session
+// state. Returns nil when no title model is configured at all.
+func (h *Hub) titleGeneratorFor(dir string) *Server {
+	h.mu.RLock()
+	var any *Server
+	for _, rt := range h.runtimes {
+		if rt.Server == nil || nilutil.IsNil(rt.Server.titleProv) {
+			continue
+		}
+		if rt.Server.Controller().SessionDir() == dir {
+			h.mu.RUnlock()
+			return rt.Server
+		}
+		if any == nil {
+			any = rt.Server
+		}
+	}
+	h.mu.RUnlock()
+	if any != nil {
+		return any
+	}
+	fallback := &Server{}
+	fallback.initTitleProvider()
+	if nilutil.IsNil(fallback.titleProv) {
+		return nil
+	}
+	return fallback
 }
 
 // exportSession returns the transcript only after applying the same workspace

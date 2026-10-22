@@ -661,6 +661,9 @@ export class SsePort extends SseTheme implements AgentPort {
   cancelJob(jobId: string) {
     return this.post("/jobs/" + encodeURIComponent(jobId) + "/cancel");
   }
+  stopToolCall(callId: string) {
+    return this.post("/tool-calls/" + encodeURIComponent(callId) + "/cancel");
+  }
   retryQueued(itemId: string) {
     return this.post("/inbox/items/" + encodeURIComponent(itemId) + "/retry");
   }

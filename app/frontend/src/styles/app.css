@@ -813,7 +813,7 @@
   .hero .rmark path:nth-child(2) { animation-delay: .22s }
   .hero .rmark path:nth-child(3) { animation-delay: .44s }
   .hero .t {
-    margin-top: 26px; font: var(--w-reg) 25px/1.25 var(--ui);
+    margin-top: 26px; font: var(--w-reg) calc(var(--fs-scale, 1) * 25px)/1.25 var(--ui);
     letter-spacing: var(--track-display); color: var(--text);
   }
   .hero .s { margin-top: 12px; max-width: 48ch; font-size: var(--fs-ui); line-height: 1.75; color: var(--faint) }
@@ -1943,7 +1943,7 @@
   }
 
   ::highlight(rx-find) { background-color: color-mix(in srgb, var(--warn) 26%, transparent); color: var(--text) }
-  ::highlight(rx-find-now) { background-color: color-mix(in srgb, var(--accent) 45%, transparent); color: var(--text) }
+  ::highlight(rx-find-now) { background-color: var(--accent); color: var(--accent-fg) }
 
   .acctrow {
     display: flex; align-items: center; gap: 9px; width: 100%; flex: none; text-align: left;
@@ -4027,7 +4027,7 @@
                          100% { opacity: 0; stroke-dashoffset: -20 } }
 
   .oobe-brand {
-    margin: 26px 0 0; font: 300 40px/1.15 var(--mono); letter-spacing: -.02em; white-space: nowrap;
+    margin: 26px 0 0; font: 300 calc(var(--fs-scale, 1) * 40px)/1.15 var(--mono); letter-spacing: -.02em; white-space: nowrap;
     background: linear-gradient(100deg,
       #7C766A 0%, #7C766A 34%, #FFEFCB 45%, #FFFFFF 50%, #FFEFCB 55%, #7C766A 66%, #7C766A 100%);
     background-size: 260% 100%; background-position: 130% 0;
@@ -4051,7 +4051,7 @@
 
   .oobe-lines { position: relative; height: 96px; width: 100%; margin-top: 4px }
   .oobe-line { position: absolute; inset: 0; display: grid; place-items: center; opacity: 0 }
-  .oobe-line b { display: block; font: 300 30px/1.35 var(--ui); color: #fff }
+  .oobe-line b { display: block; font: 300 calc(var(--fs-scale, 1) * 30px)/1.35 var(--ui); color: #fff }
   .oobe-line span { display: block; margin-top: 12px; max-width: 40ch;
                     font: 300 var(--fs-lead)/1.7 var(--ui); color: rgb(255 255 255 / .5) }
   .oobe[data-play] .l1 { animation: oobesay 2.6s var(--ease-out) 4s forwards }
@@ -4092,7 +4092,7 @@
     .oobe[data-play][data-held] .onb { opacity: 1 }
     .oobe[data-play] .oobe-brand { background-position: -40% 0 }
   }
-  [data-fold~="scene"] .oobe-brand { font-size: 32px }
+  [data-fold~="scene"] .oobe-brand { font-size: calc(var(--fs-scale, 1) * 32px) }
   [data-fold~="scene"] .oobe-line b { font-size: var(--fs-display) }
 
   .onb-chips { display: flex; flex-wrap: wrap; gap: 6px; width: 100% }
@@ -4219,7 +4219,7 @@
     text-align: center; color: var(--faint);
     animation: card var(--t-card) var(--ease-out) both;
   }
-  .panes-empty .mk { font: 300 30px/1 var(--ui); color: var(--ghost); margin-bottom: 2px }
+  .panes-empty .mk { font: 300 calc(var(--fs-scale, 1) * 30px)/1 var(--ui); color: var(--ghost); margin-bottom: 2px }
   .panes-empty .t { margin: 0; font: var(--w-med) var(--fs-lead) var(--ui); color: var(--muted) }
   .panes-empty .h { margin: 0 0 4px; font: var(--w-reg) var(--fs-ui)/1.6 var(--ui); color: var(--faint); max-width: 34ch }
   .panes-empty button {
@@ -5201,7 +5201,7 @@
 .uhero { padding: 22px 24px; background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-md) }
 .uhero-k { color: var(--muted); font: var(--w-med) var(--fs-meta) var(--ui); letter-spacing: var(--track-lead); text-transform: uppercase }
 .uhero-fig { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-top: 10px }
-.uhero-v { font: var(--w-med) 38px/1 var(--mono); font-variant-numeric: tabular-nums; letter-spacing: var(--track-tight) }
+.uhero-v { font: var(--w-med) calc(var(--fs-scale, 1) * 38px)/1 var(--mono); font-variant-numeric: tabular-nums; letter-spacing: var(--track-tight) }
 .uhero-scope {
   padding: 4px 10px; border-radius: var(--r-pill); background: var(--overlay);
   color: var(--muted); font: var(--w-med) var(--fs-ui) var(--ui);

@@ -36,18 +36,22 @@ describe("a new session opens in the workspace on screen", () => {
 
     render(<App hub={hub} />);
 
-    // The tree is the only place a workspace is named now. Folders other than
-    // the focused one open shut, so this is the whole way in: unfold, then work
-    // in it.
-    await userEvent.click(await screen.findByRole("treeitem", { name: /my-website/ }));
+    // The tree names every folder and session. Folders other than the focused
+    // one open shut (seeded once from the tree) — wait for that seed to land,
+    // then unfold my-website and work in it. Working in it is what focuses it.
+    const head = await screen.findByRole("treeitem", { name: /my-website/ });
+    await waitFor(() => {
+      if (head.getAttribute("aria-expanded") !== "false") throw new Error("seed has not landed");
+    });
+    await userEvent.click(head);
     await userEvent.click(await screen.findByRole("treeitem", { name: /站点改版/ }));
     await waitFor(() => expect(asked).toEqual([SECOND]));
 
     asked.length = 0;
     // The button in the rail's head, which is the one that has no folder of its
     // own to belong to — the rows below name theirs.
-    const head = document.querySelector(".studio-rail-head") as HTMLElement;
-    await userEvent.click(within(head).getByRole("button", { name: /新建会话/ }));
+    const railHead = document.querySelector(".studio-rail-head") as HTMLElement;
+    await userEvent.click(within(railHead).getByRole("button", { name: /新建会话/ }));
     await waitFor(() => expect(asked).toEqual([SECOND]));
   });
 

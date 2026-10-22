@@ -47,6 +47,7 @@ type appearanceView struct {
 	Language string  `json:"language,omitempty"`
 	Zoom     float64 `json:"zoom,omitempty"`
 	ReadSize float64 `json:"readSize,omitempty"`
+	TextSize float64 `json:"textSize,omitempty"`
 	FontUI   string  `json:"fontUi,omitempty"`
 	FontMono string  `json:"fontMono,omitempty"`
 	// standard | full — how far the transcript's prose runs.
@@ -69,7 +70,7 @@ func appearanceDir() string {
 }
 
 func viewOf(a config.AppearanceConfig, language, width string) appearanceView {
-	out := appearanceView{Language: language, Zoom: a.Zoom, ReadSize: a.ReadSize, FontUI: a.FontUI, FontMono: a.FontMono, Width: width}
+	out := appearanceView{Language: language, Zoom: a.Zoom, ReadSize: a.ReadSize, TextSize: a.TextSize, FontUI: a.FontUI, FontMono: a.FontMono, Width: width}
 	if a.Wallpaper.File != "" {
 		out.Wallpaper = &wallpaperView{
 			URL:     "/appearance/wallpaper/" + a.Wallpaper.File,
@@ -98,6 +99,7 @@ func (s *Server) saveAppearance(w http.ResponseWriter, r *http.Request) {
 		Language string  `json:"language"`
 		Zoom     float64 `json:"zoom"`
 		ReadSize float64 `json:"readSize"`
+		TextSize float64 `json:"textSize"`
 		FontUI   string  `json:"fontUi"`
 		FontMono string  `json:"fontMono"`
 		Width    string  `json:"width"`
@@ -122,6 +124,10 @@ func (s *Server) saveAppearance(w http.ResponseWriter, r *http.Request) {
 	a := &edit.Desktop.Appearance
 	a.Zoom = clampOrZero(body.Zoom, 0.7, 1.8)
 	a.ReadSize = clampOrZero(body.ReadSize, 10, 26)
+	// Interface text moves type alone, where Zoom moves everything, so its
+	// range is narrower: past these ends spacing written in pixels stops
+	// keeping up.
+	a.TextSize = clampOrZero(body.TextSize, 0.85, 1.6)
 	a.FontUI = sanitizeFamily(body.FontUI)
 	a.FontMono = sanitizeFamily(body.FontMono)
 	// Anything but the one named alternative is the default, the same way the

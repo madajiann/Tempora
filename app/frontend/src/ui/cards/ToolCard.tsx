@@ -11,6 +11,7 @@ import { Cost } from "../Cost";
 import { seconds, tokens } from "../../i18n/format";
 import { currentStep, parsePlan, stepDone } from "../../state/session";
 import { DiffView } from "./DiffView";
+import { StopCall } from "./StopCall";
 import { Term, ToolOutput } from "./ToolOutput";
 import { ExtensionView } from "./ExtensionView";
 import { toolFailed, toolFailureLabel } from "./outcome";
@@ -56,7 +57,7 @@ function useSettling(running: boolean): { pop: boolean; swap: boolean } {
 }
 
 export function ToolCard({
-  tool, running, children = [], takeover, onExtInvoke, onPrepareFileRevert, onCommitFileRevert, activity = false,
+  tool, running, children = [], takeover, onExtInvoke, onPrepareFileRevert, onCommitFileRevert, onStop, activity = false,
 }: {
   tool: Tool;
   running: boolean;
@@ -66,6 +67,9 @@ export function ToolCard({
   // pane (history, a fixture) has nothing to revert against.
   onPrepareFileRevert?: (path: string) => Promise<RewindPlan>;
   onCommitFileRevert?: (planId: string, resolution?: string) => Promise<RewindResult>;
+  // Ends this call alone and leaves the turn running. Absent where no live
+  // session stands behind the card.
+  onStop?: () => void;
   // A view an extension published against this call. It replaces the body only.
   takeover?: ExtensionSurface;
   onExtInvoke?: (actionId: string) => void;
@@ -267,6 +271,7 @@ export function ToolCard({
         ) : (
           <div className="hl" data-swap={settling.swap ? "" : undefined}>{heading}</div>
         )}
+        {running && onStop && tool.id && <StopCall onStop={onStop} />}
       </div>
     </div>
   );
