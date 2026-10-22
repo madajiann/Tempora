@@ -11,9 +11,7 @@
     height: calc(100dvh / var(--zoom, 1)); overflow: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-    font-optical-sizing: auto;
-    font-kerning: normal;
+    text-rendering: auto;
   }
 
   body { font-synthesis-weight: none; font-synthesis-style: none }

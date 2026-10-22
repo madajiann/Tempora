@@ -1869,8 +1869,9 @@ body { background: var(--page) !important; }
    No !important: this sheet already loads after the tokens it is replacing, and
    marking one would outrank the reader's own font and size as well. */
 :root {
-  --ui: "Segoe UI Variable Text", "Segoe UI", "Noto Sans SC var", "Microsoft YaHei UI", "Microsoft YaHei", "HarmonyOS Sans SC", "Source Han Sans SC", "Noto Sans SC", "PingFang SC", system-ui, sans-serif;
-  --mono: "Cascadia Mono", "Cascadia Code", Consolas, "Noto Sans SC var", "Microsoft YaHei UI", "Microsoft YaHei", ui-monospace, monospace;
+  /* Windows 原生字体优先，不依赖 web font / Segoe UI Variable Text */
+  --ui: "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
+  --mono: Consolas, "Cascadia Mono", "Cascadia Code", "Microsoft YaHei UI", "Microsoft YaHei", ui-monospace, monospace;
   --fs-lead: 16px;
 }
 body,

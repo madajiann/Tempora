@@ -123,11 +123,11 @@ export function apply(look: Appearance | null, busy = false) {
 // A chosen family is a first choice, never the only one: a name that stops
 // resolving — an uninstalled font, a synced config from another machine —
 // must not take the interface's legibility with it.
-// "Noto Sans SC var" 是中文分片 webfont（tokens.css 里带 unicode-range），
-// 有真实 100-900 字重轴 —— 中文的 --w-reg: 500 才能渲染成 Medium 而不是
-// 退回雅黑 Regular（Windows 雅黑只有 400/700，500 静默变 400，笔画发虚）。
-const FALLBACK_UI = `"Segoe UI Variable Text", "Segoe UI", "Noto Sans SC var", "Microsoft YaHei UI", "Microsoft YaHei", "HarmonyOS Sans SC", "Source Han Sans SC", "Noto Sans SC", "PingFang SC", system-ui, sans-serif`;
-const FALLBACK_MONO = `"Cascadia Mono", "Cascadia Code", Consolas, "Noto Sans SC var", "Microsoft YaHei UI", "Microsoft YaHei", ui-monospace, "SF Mono", Menlo, monospace`;
+// 2026-10-22：弃用 Noto Sans SC var / Segoe UI Variable Text webfont 回退链。
+// 前者在 Windows 无 hinting 发糊，后者窄体字形拉长；中文 --w-reg: 500 在
+// 雅黑下还会被合成粗体。统一改走 Windows 原生字体。
+const FALLBACK_UI = `"Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif`;
+const FALLBACK_MONO = `Consolas, "Cascadia Mono", "Cascadia Code", "Microsoft YaHei UI", "Microsoft YaHei", ui-monospace, monospace`;
 
 function pct(v: number): number {
   if (!Number.isFinite(v)) return 50;
