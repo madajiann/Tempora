@@ -1,7 +1,7 @@
 # Tempora 交接文档
 
 > 写给下一个接手的人（也写给三个月后的我自己）。
-> 最后更新：**2026-10-22** · 对应版本 **0.1.24**（仓库 `main @ 7e6d9f3`，已发版，见 §10.5）
+> 最后更新：**2026-10-22** · 对应版本 **0.1.23**（仓库 `main @ b3dfefc`，已含一笔未发版的草稿功能，见 §10.5）
 >
 > **换号/换人接手 → 先读 `docs/TAKEOVER.md`**（上次工作快照、挂事的优先级、接手自检）。
 >
@@ -569,12 +569,12 @@ MSYS_NO_PATHCONV=1 ssh -i ~/.ssh/id_ed25519_deploy -o HostKeyAlgorithms=+ssh-rsa
 
 | 项 | 状态 |
 |---|---|
-| 仓库版本 | 0.1.24（`main @ 7e6d9f3`，已发版） |
-| HK 镜像 `latest.json` | 0.1.24 ✅ |
-| 香港镜像 `dl/` | 0.1.23 / 0.1.24（只留最近 2 个） |
-| GitHub Release | v0.1.24（保留最近 2 个） |
-| jsdelivr | 0.1.24（GET purge 已发，本机回读被网络挡，purge 状态 finished） |
-| 本机 `D:/Tempora` | 0.1.24 壳 + 内核 + 前端 |
+| 仓库版本 | 0.1.23（`main @ b3dfefc`，含一笔未发版改动，见 §10.5） |
+| HK 镜像 `latest.json` | 0.1.23 ✅ |
+| 香港镜像 `dl/` | 0.1.22 / 0.1.23（76M，10-05 清理过） |
+| GitHub Release | v0.1.23（清理后只留最近 2 个） |
+| jsdelivr | 0.1.23（GET purge 后） |
+| 本机 `D:/Tempora` | 0.1.23 壳 + 内核 + 前端 |
 
 ### 10.2 已完成的上游吸收
 
@@ -609,20 +609,15 @@ MSYS_NO_PATHCONV=1 ssh -i ~/.ssh/id_ed25519_deploy -o HostKeyAlgorithms=+ssh-rsa
 - 「总是允许」存 `Roots.Home()/config.toml`（主目录），**不存仓库里**。
 - `boot.go` 的 `rememberPermissionConfigPath` 已改指主目录。
 
-### 10.5 0.1.24 发版内容（2026-10-22，已上线）
+### 10.5 未发版改动（2026-10-14，等发 0.1.24）
 
 - **输入框草稿按会话保存**（上游 #11176 移植，commit `b3dfefc`，+240/-9）：
-  `ui/drafts.ts`（localStorage 按 主机+工作区+会话路径 三元组隔离，32KB 上限，前缀
-  `tempora-draft-v1:`）+ `ui/useDraft.ts`（250ms 防抖、pagehide 冲刷、送达才清）。
-- **字体清晰度修复**（自研，户主明示，commit `7e6d9f3`）：字号全档上调（正文 zh 默认 13→15px，
-  tokens `--fs-*` 各 +1~2px，studio.css 77 处 9/10/11.5px 硬编码→11/12px）；
-  `--ui`/`--mono` 把 `"Noto Sans SC var"`（unicode-range 分片 webfont，100-900 真字重轴）
-  接回雅黑之前，修复 zh `--w-reg:500` 被雅黑（仅 400/700）静默降 400 的笔画发虚；
-  默认文字对比度 soft→normal（soft 保留可选）；zh 字距 `--track-tight` 放松至 -.004em。
-  `look.ts` 字号档位做代际迁移（旧存值按档位映射到新档，不降档）。
-  验证：tsc 零错、appearance-actions 6/6、真机前后截图对比（`build/shot_compare_*.png`）。
-- 发版实录：sha256 `529c105c…3898a3d` 三方一致；GitHub Release `id=420315783`；
-  上游蒸馏台账见 `docs/UPSTREAM_LOG.md` 末章（8 项移植待户主拍板）。
+  新增 `ui/drafts.ts`（localStorage 按 主机+工作区+会话路径 三元组隔离，32KB 上限，前缀
+  `tempora-draft-v1:`）与 `ui/useDraft.ts`（250ms 防抖、pagehide 冲刷、送达才清）；
+  Composer/Pane/App/Workspaces/RemoteHosts/roots 六处接线；新增 3 单测 + 6 交互用例。
+  tsc 零错；vitest 基线比对零新增失败（session-new 一条既有失败与本改动无关）。
+- 已 vite build + 同步 `D:/Tempora` + 真机抓屏验证主界面正常；**线上通道仍是 0.1.23**，
+  发版步骤见 `docs/TAKEOVER.md` §5 P0。
 
 ---
 
