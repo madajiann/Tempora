@@ -1,11 +1,11 @@
 {
-  "version": "0.1.26",
-  "notes": "字体全部换掉，解决模糊/发粗/字形拉长\n- 界面字体换成 Windows 原生：Segoe UI + 微软雅黑 UI，ClearType 字形微调，笔画干净锐利\n- 代码字体换成 Consolas + Cascadia Mono，等宽场景清晰可读\n- 中文正文字重从 500 恢复 400，不再被合成粗体\n- 移除导致发糊的渲染设置（强制字距微调），Windows 上直接走系统 ClearType\n- 设置页「字体」选择器的回退链同步更换，切换字体不会再跳回旧 web font\n\n说明\n- 点击更新提示直接下载安装，装完自行重启",
-  "pub_date": "2026-10-22T10:25:10Z",
+  "version": "0.1.27",
+  "notes": "长时间无进展时，宿主替你看住任务\n\n- 新增「无进展检测」：连续多轮没有文件改动、检查变化、任务推进或新读取时，输入框上方给出提示条\n- 可选自动暂停：设置 → 会话 → 长时间无进展，开启后达标即暂停（已完成的工作保留，发一条消息继续）\n- 两个阈值可调：连续无进展轮数（默认 20 轮）、输入 token 上限（默认上下文窗口 8 倍）\n- 判定只看宿主能观察到的效果，不看命令内容；提示与暂停都不向模型发送任何内容，也不拒绝任何调用\n- 设置即时生效，无需重启任务\n\n内核\n- Go 工具链升级到 1.26.10，修复 Go 官方证书安全公告 GO-2026-6809\n\n说明\n- 点击更新提示直接下载安装，装完自行重启",
+  "pub_date": "2026-10-23T03:27:13Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFdFMHl4aDNDRmdqeGlLblpIUHV5Y2V3d3RkWlRmNmdWaUJkSW55NnM3L0wzaEJ4SkdTNWhNb2o5dHh1M2JJY3plZlJHaXhXNkpsbUhLelM1aU5GRndBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyNjY0MTQ4CWZpbGU6VGVtcG9yYV8wLjEuMjZfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4yNgpYSGNja2l1TkNTUFp4UlFHZVYyZkJEdDdUam9VRUFLVmZIMjlkRXBqNnU4K1ExenZmd21NSkl1eTUySyttY2xFekduYzg3MHNVOW13WnYzZEhMd0dCZz09Cg==",
-      "url": "https://api.github.com/repos/madajiann/Tempora/releases/assets/665464312"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOGRYTlFISVVoS0VMUnNvMDNVMUJHdFRmZTNqQW5iejdoclA4LzA4TW40YTU5UmFFWUpIYUNkMFVKcEFuczhxSzA0R0VKVXZDeW5LZ2xDUlRwNFgxc3drPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyNzI0NzgyCWZpbGU6VGVtcG9yYV8wLjEuMjdfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4yNworZFZ4UzVQNG9qNXkvZU9DaDZCb0RCdlVkNktMczV4dWREbkw3Ritya1VvMzNhWmF0bHIzVHZLSXhtQVZwNDNjY3VwRHR5VFdObGlQTjJOeFQwV2RCQT09Cg==",
+      "url": "https://api.github.com/repos/madajiann/Tempora/releases/assets/667826409"
     }
   }
 }
