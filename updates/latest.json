@@ -1,11 +1,11 @@
 {
   "version": "0.1.27",
   "notes": "长时间无进展时，宿主替你看住任务\n\n- 新增「无进展检测」：连续多轮没有文件改动、检查变化、任务推进或新读取时，输入框上方给出提示条\n- 可选自动暂停：设置 → 会话 → 长时间无进展，开启后达标即暂停（已完成的工作保留，发一条消息继续）\n- 两个阈值可调：连续无进展轮数（默认 20 轮）、输入 token 上限（默认上下文窗口 8 倍）\n- 判定只看宿主能观察到的效果，不看命令内容；提示与暂停都不向模型发送任何内容，也不拒绝任何调用\n- 设置即时生效，无需重启任务\n\n内核\n- Go 工具链升级到 1.26.10，修复 Go 官方证书安全公告 GO-2026-6809\n\n说明\n- 点击更新提示直接下载安装，装完自行重启",
-  "pub_date": "2026-10-23T04:39:32Z",
+  "pub_date": "2026-10-23T05:49:42Z",
   "platforms": {
     "windows-x86_64": {
       "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFNDU2RPQkFjUTBWRHRib1prYk1CY1ZYdUZwWE9JVS9aR28zcEE3YnVVY0haRGkxSVAxOTQrbFpEYUVORnpXZlo1N282TmsranF0dWF3TlZ0WldYcEFjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyNzI4NDYxCWZpbGU6VGVtcG9yYV8wLjEuMjdfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4yNwppYkUyanlUOVVzbENieUN0QWFwejVzRHJ0MVhLTFhTZjhCNUJiMDRJK0hKSmVCKy9sMnEwK1lnb3BDME5mNmJkYVF1ZUsxbEExV3BhUW53RTZablZCdz09Cg==",
-      "url": "https://api.github.com/repos/madajiann/Tempora/releases/assets/667936283"
+      "url": "https://api.github.com/repos/madajiann/Tempora/releases/assets/668106363"
     }
   }
 }
