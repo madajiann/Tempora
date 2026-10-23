@@ -35,7 +35,7 @@ export type { AccountState, AccountUser, ApprovalMode, ApprovalVerdict, Capabili
 import type { ExecutionGraphRead, TrajectoryRead, WireEvent } from "./wire";
 import type { PluginExport, PluginInstallRequest, PluginPackage, PluginPlan } from "./plugin";
 import type { Appearance, ThemeImport, ThemePack } from "./look";
-import type { ConfigProblem, ConfigRepair, PermissionLists, PermissionRules, SandboxSettings } from "./boundary";
+import type { ConfigProblem, ConfigRepair, PermissionLists, PermissionRules, ProgressWatchSettings, SandboxSettings } from "./boundary";
 import type { Protocol, ProviderCheck, ProviderDraft, ProviderEdit, ProviderEntry, ProviderModelCheck, ProviderModelCheckRequest, ProviderProbe, ProviderSetup } from "./provider";
 export type { ModelEffort, ModelLimit, Protocol, ProviderCheck, ProviderDraft, ProviderEdit, ProviderEntry, ProviderModelCheck, ProviderModelCheckRequest, ProviderProbe, ProviderSetup } from "./provider";
 import type { StoragePlan, StorageState } from "./storage";
@@ -209,6 +209,10 @@ export interface AgentPort {
   revokeSessionGrant(rule: string): Promise<PermissionRules>;
   sandbox(): Promise<SandboxSettings>;
   saveSandbox(s: SandboxSettings): Promise<SandboxSettings>;
+  // When a run reads as no longer moving. Only the user file holds it.
+  progressWatch(): Promise<ProgressWatchSettings>;
+  // Applies to the running turn at its next round; no rebuild.
+  saveProgressWatch(s: Pick<ProgressWatchSettings, "pause" | "rounds" | "tokenMultiple">): Promise<ProgressWatchSettings>;
   // null in a browser tab: there is no window to keep running.
   trayPrefs(): Promise<TrayPrefs | null>;
   setTrayPrefs(icon: boolean, closeToTray: boolean): Promise<TrayPrefs | null>;

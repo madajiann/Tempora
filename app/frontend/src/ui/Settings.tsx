@@ -25,6 +25,7 @@ import { Rules } from "./Rules";
 import { ConfigTrouble } from "./ConfigTrouble";
 import { Compaction } from "./Compaction";
 import { Sandbox } from "./Sandbox";
+import { ProgressWatch } from "./ProgressWatch";
 import { Account } from "./Account";
 import { Providers } from "./Providers";
 import { activeKind, groupVendors } from "./Models";
@@ -488,6 +489,7 @@ export function Settings({ hub, onError, port, networkPort, networkHost, status,
                   />
                 </div>
               </Group>
+              <ProgressWatch port={port} />
               <Group id="session-dir" title={t("会话写入位置")}>
                 <div className="kv">
                   <span className="k">{t("工作目录")}</span>

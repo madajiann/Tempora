@@ -280,6 +280,10 @@ const SAID: Record<string, string> = {
   "update.rejected": "本次启动未能记录为健康状态：{detail}",
   "browser_host.bad_frames": "内置浏览器的消息格式不正确，本次回传被丢弃",
 
+  // ── 长时间无进展：宿主看得见的判定 ─────────────────────────────
+  "progress_watch.save_failed": "无进展设置未能保存：{detail}",
+  "progress_watch.out_of_range": "该数值超出允许范围，未做任何修改：{detail}",
+
   // ── 版本：这个内核背后有没有一个可更新的 Studio ─────────────────
   "studio.no_install": "这个 Studio 不是安装版（从源码启动），没有可以查看或切换的版本",
   "studio.pin_rejected": "版本固定未能保存：{detail}",

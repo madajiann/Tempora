@@ -66,6 +66,8 @@ type turnRuntime struct {
 	reviewWarnings []string
 	// lastReadiness is the verdict the turn last asked to stop under.
 	lastReadiness *finalReadinessCheck
+	// watch counts rounds since this run last did something observable.
+	watch progressRun
 }
 
 // pendingTurn is what someone outside the Run arms for the next one: a

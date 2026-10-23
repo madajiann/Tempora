@@ -347,6 +347,11 @@ type Settings interface {
 	SetResponseLanguage(lang string)
 	SetReasoningLanguage(lang string)
 	SetDisplayRecorder(fn func(content, display string))
+	// ProgressWatchSettings reads the user's no-progress watch with its defaults
+	// resolved; SaveProgressWatchSettings persists it and hands it to the
+	// running executor without a rebuild.
+	ProgressWatchSettings() ProgressWatchSettings
+	SaveProgressWatchSettings(in ProgressWatchSettings) error
 }
 
 // Provenance is input a networked frontend relays for someone acting from a

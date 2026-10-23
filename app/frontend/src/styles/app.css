@@ -3655,6 +3655,17 @@
     flex: none; border: 0; background: transparent; cursor: pointer; color: inherit;
     font: var(--w-med) var(--fs-meta) var(--ui); text-decoration: underline; text-underline-offset: 3px;
   }
+  /* The stall strip: one sentence, then the reason, then the two things the
+     reader can do about it. The reason never wraps — it is a fact, not a
+     paragraph. */
+  .stallbar .why { white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+  .stallbar[data-paused] { border-color: color-mix(in srgb, var(--warn) 55%, var(--border)) }
+
+  /* The no-progress watch: one switch, two thresholds under it. Each threshold
+     is a number with a unit, so the field and its unit sit together and the
+     sentence beside them keeps the room. */
+  .lrow.threshold-row { align-items: flex-start }
+  .lrow.threshold-row .threshold-control { padding-top: 2px }
 
   .rc { margin: 4px 0 2px; padding-left: calc(var(--call-sym) + var(--call-gap)) }
   .rc-ok {

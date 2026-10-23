@@ -234,4 +234,6 @@ export const EN_KERNEL: Record<string, string> = {
   "该路径不在当前工作区内": "That path is outside the current workspace",
   "无法读取工作区文件列表": "The workspace file list could not be read",
   "该文件不是可编辑文本或超过大小限制": "The file is not editable text or exceeds the size limit",
+  "无进展设置未能保存：{detail}": "The progress settings were not saved: {detail}",
+  "该数值超出允许范围，未做任何修改：{detail}": "That value is out of range; nothing was changed: {detail}",
 };

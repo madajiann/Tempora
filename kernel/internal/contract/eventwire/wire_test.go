@@ -153,7 +153,7 @@ func TestDesktopWireEventTypeCoversSharedPayloadFields(t *testing.T) {
 	ts := readDesktopTypes(t)
 	for _, want := range []string{
 		"detail?: string;",
-		`outcome?: "final_readiness" | "recovery_paused";`,
+		`outcome?: "final_readiness" | "recovery_paused" | "no_progress";`,
 		"checkpointTurn?: number;",
 		"retryAttempt?: number;",
 		"retryMax?: number;",
@@ -312,13 +312,17 @@ func TestToWireMessageMemoryCitations(t *testing.T) {
 	}
 }
 
+// readDesktopTypes reads the desktop's own hand-written copy of the wire
+// types. The path is the product frontend, not the upstream baseline copy
+// under desktop/frontend-next: the baseline is a diffing reference, and a
+// parity check that reads it checks upstream instead of what we ship.
 func readDesktopTypes(t *testing.T) string {
 	t.Helper()
 	_, file, _, ok := runtime.Caller(0)
 	if !ok {
 		t.Fatal("runtime caller unavailable")
 	}
-	path := filepath.Join(filepath.Dir(file), "..", "..", "..", "desktop", "frontend-next", "src", "port", "wire.ts")
+	path := filepath.Join(filepath.Dir(file), "..", "..", "..", "..", "app", "frontend", "src", "port", "wire.ts")
 	b, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("read desktop types: %v", err)

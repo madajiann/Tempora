@@ -133,6 +133,7 @@ func (r Roots) loadForRoot(root string, migrateOnDisk bool) (*Config, error) {
 	globalPricingCurrency := cfg.Desktop.Currency
 	globalBillingDisplayCurrency := cfg.Billing.DisplayCurrency
 	globalTelemetry := cfg.Telemetry
+	globalProgressWatch := cfg.ProgressWatch
 
 	tomlSources = append(tomlSources, projectTOML)
 	projectMeta, err := mergeTOML(cfg, projectTOML)
@@ -182,6 +183,9 @@ func (r Roots) loadForRoot(root string, migrateOnDisk bool) (*Config, error) {
 	// CLI telemetry is an explicit user-global privacy choice. Project config
 	// cannot opt a user in or out, including when the global value is absent.
 	cfg.Telemetry = globalTelemetry
+	// The progress watch decides when the user's own runs pause, so it is
+	// theirs: a repository's tempora.toml cannot quiet the notice either.
+	cfg.ProgressWatch = globalProgressWatch
 	// TOML decoding replaces [[plugins]] wholesale, so cfg.Plugins now holds
 	// only the last file's. Re-merge by name across all sources (later wins) so a
 	// project tempora.toml doesn't drop the global config's MCP servers.

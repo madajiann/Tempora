@@ -261,6 +261,7 @@ type Agent struct {
 	// sessionstate.go.
 	sess              sessionRuntime
 	responseLanguage  atomic.Value // string: auto|zh|en
+	progressWatch     atomic.Pointer[ProgressWatch]
 	reasoningLanguage atomic.Value // string: auto|zh|en
 
 	// unwrittenResolve is the resolve watermark a failed state write still owes.
@@ -668,6 +669,7 @@ func New(prov provider.Provider, tools *tool.Registry, session *sessionstore.Ses
 			workspaceID:        strings.TrimSpace(opts.WorkspaceID),
 			classifierTaskText: opts.ClassifierTaskText,
 			writeWorkspaceRoot: strings.TrimSpace(opts.WriteWorkspaceRoot),
+			observeRoot:        opts.observeRoot(),
 			renderRoot:         strings.TrimSpace(opts.RenderRoot),
 			workspaceVCS:       strings.TrimSpace(opts.WorkspaceVCS),
 			subagentDepth:      subagentDepth,
@@ -717,6 +719,7 @@ func New(prov provider.Provider, tools *tool.Registry, session *sessionstore.Ses
 	a.SetAgentPreset(preset)
 	a.SetResponseLanguage(opts.ResponseLanguage)
 	a.SetReasoningLanguage(opts.ReasoningLanguage)
+	a.SetProgressWatch(opts.ProgressWatch)
 	return a
 }
 

@@ -29,6 +29,7 @@ func (s *Server) routes() http.Handler {
 	s.registerPluginRoutes(mux)
 	s.registerThemeRoutes(mux)
 	s.registerAppearanceRoutes(mux)
+	s.registerProgressWatchRoutes(mux)
 	s.registerSurfaceRoutes(mux)
 	s.registerInboxRoutes(mux)
 	s.registerJobRoutes(mux)

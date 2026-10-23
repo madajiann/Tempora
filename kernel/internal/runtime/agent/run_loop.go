@@ -657,6 +657,7 @@ func (a *Agent) handleToolRound(ctx context.Context, state *turnRuntime, step in
 		return false, boundaryErr
 	}
 
+	mark := a.markProgressRound()
 	batch := a.executeBatch(ctx, state, calls)
 	results, images := batch.results, batch.images
 	flagged := a.screenExternal(ctx, calls, batch)
@@ -697,6 +698,9 @@ func (a *Agent) handleToolRound(ctx context.Context, state *turnRuntime, step in
 	if ctx.Err() != nil {
 		a.recordInterruptedDisplay("", "", nil, true, state.workDurationMs())
 		return false, ctx.Err()
+	}
+	if pause := a.settleProgressRound(state, mark); pause != nil {
+		return false, pause
 	}
 	if len(unavailableContextTools) > 0 {
 		if hasVisibleFinalAnswer(text) {

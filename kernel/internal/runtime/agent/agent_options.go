@@ -2,6 +2,8 @@
 package agent
 
 import (
+	"strings"
+
 	"tempora/internal/contract/ablation"
 	"tempora/internal/contract/provider"
 	"tempora/internal/contract/tool"
@@ -116,6 +118,9 @@ type Options struct {
 	WriteScheduler *writeclaim.SubagentScheduler
 	// WriteWorkspaceRoot normalizes parent write reservations.
 	WriteWorkspaceRoot string
+	// ObserveRoot is the workspace the host observes effects in. Empty falls back
+	// to WriteWorkspaceRoot.
+	ObserveRoot string
 	// RenderRoot is the workspace a written page or image is opened from to look
 	// at it. Empty when this agent has no browser or its model cannot see one.
 	RenderRoot string
@@ -202,4 +207,17 @@ type Options struct {
 	// (or cloned for) sub-agents. nil disables v2 capture. Does not affect
 	// provider-visible tool schemas or prompts.
 	MutationObserver *checkpoint.MutationObserver
+
+	// ProgressWatch is the no-progress watch this agent runs under. The zero
+	// value watches nothing, which is what a sub-agent gets.
+	ProgressWatch ProgressWatch
+}
+
+// observeRoot is the workspace effects are observed in: the shell operand is
+// resolved against it, so a path on disk is told apart from text.
+func (o Options) observeRoot() string {
+	if root := strings.TrimSpace(o.ObserveRoot); root != "" {
+		return root
+	}
+	return strings.TrimSpace(o.WriteWorkspaceRoot)
 }
