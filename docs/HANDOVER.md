@@ -1,7 +1,7 @@
 # Tempora 交接文档
 
 > 写给下一个接手的人（也写给三个月后的我自己）。
-> 最后更新：**2026-10-22** · 对应版本 **0.1.26**（仓库 `main @ f8ebf9ae`，已发版，见 §10.4）
+> 最后更新：**2026-10-23** · 对应版本 **0.1.27**（仓库 `main`，已发版，见 §10.6）
 >
 > **换号/换人接手 → 先读 `docs/TAKEOVER.md`**（上次工作快照、挂事的优先级、接手自检）。
 >
@@ -609,6 +609,33 @@ MSYS_NO_PATHCONV=1 ssh -i ~/.ssh/id_ed25519_deploy -o HostKeyAlgorithms=+ssh-rsa
 - 「总是允许」存 `Roots.Home()/config.toml`（主目录），**不存仓库里**。
 - `boot.go` 的 `rememberPermissionConfigPath` 已改指主目录。
 
+### 10.6 0.1.27 发版内容（2026-10-23，已上线）
+
+- **功能对齐上游第二波**（上游 PR **#11160** `feat(studio): say when a run stops producing observable progress`，完整移植）：
+  - **内核**：新增 `internal/runtime/agent/progress_watch.go`（每轮结算「可观察进展」）、
+    `internal/safety/evidence/effect_watch.go`（效果观测器：文件改动 / 检查结果变化 / 任务步骤推进 /
+    读到新内容 / 子代理返回）、`internal/contract/config/progress_watch.go`（`[progress_watch]` 用户全局节，
+    项目 `tempora.toml` **不能**设置）、事件与线协议（`ProgressWatchEvent` + `TurnOutcomeNoProgress`）、
+    控制层与路由（`GET/POST /progress-watch`）。
+  - **前端**：新增 `state/stall.ts`（状态折叠）、`ui/StallBar.tsx`（输入框上方的提示条）、
+    `ui/ProgressWatch.tsx`（设置面板）；`RuntimeBar` 加 `watch`/`onStall` 两个 prop；设置挂「会话」段。
+  - **行为**：判定只看宿主可观察的效果，不看命令内容；提示与暂停都**不向模型发送任何内容**、
+    也不拒绝任何调用；默认 `rounds=20`、`token_multiple=8`，**提示默认开、暂停默认关**；
+    暂停走可续跑的停止（已完成的工作保留，发一条消息继续）；设置即时生效、无需重建。
+  - **本地适配**：上游 `a.observeRoot` 本地没有 → 新增 `Options.ObserveRoot` + `observeRoot()`（回落
+    `WriteWorkspaceRoot`，与上游同语义）；`evidence` / `shellparse` 的依赖本地**全部已具备**，零改动直接可用。
+- **Go 工具链 1.26.8 → 1.26.10**：补上 **GO-2026-6809**（Go 官方证书安全公告，上游 #14034）。
+  纯工具链升级，源码零改动。旧版留在 `tools/go-1.26.8-bak`。
+- **修掉一个实质问题**：`kernel/internal/contract/eventwire/wire_test.go` 读的是**上游基线副本**
+  `kernel/desktop/frontend-next/src/port/wire.ts`，不是我们发货的 `app/frontend/src/port/wire.ts`
+  —— 线协议一致性测试一直在校验上游。路径改指产品前端后复跑仍绿。
+- **台账纠错**：`UPSTREAM_LOG` 把 #14086 记成「symlink 逃逸检查」，实为「旧会话渐进加载与后台调度」；
+  #11420（会话排序）GitHub API **404**，该 PR 号不存在。两条结论作废。
+- 测试：前端 `vitest` **150 文件 / 943 用例全绿**（新增 `stall.test.ts` 5 例 + `StallBar.test.tsx` 3 例）；
+  内核 `go build` + `go vet` 干净，改动相关包全绿；`cmd/e2ebench`、`cmd/signpath-contract` 两条失败
+  经 `git stash` 基线比对**确认为既有遗留**（与本波无关）。
+- **待补**：HK 镜像上传（沙箱拦 SSH key，需手动跑 `upload_hk_direct.py`）；四端点回读（本机 SSL 握手异常）。
+
 ### 10.4 0.1.26 发版内容（2026-10-22，已上线）
 
 - **字体全部换掉为 Windows 原生字体**（用户反馈「又粗又糊又长」，commit `7e65c93` + `46af3dc` + `1abcb5a`）：
@@ -663,7 +690,7 @@ MSYS_NO_PATHCONV=1 ssh -i ~/.ssh/id_ed25519_deploy -o HostKeyAlgorithms=+ssh-rsa
 | 输入框草稿按会话保存，刷新后恢复 | #11176 | ✅ **已完成**（0.1.23+未发版，见 §10.5） |
 | 对话内 Ctrl+F 查找 | #11236 | 低 |
 | 项目「⋯」菜单「在文件管理器中显示」 | #11533 | 低（与已做的原生文件夹选择框同源） |
-| 多轮无进展 / 重复输出提示 | #11160 #11183 | 中 |
+| 多轮无进展 / 重复输出提示 | #11160 #11183 | 中 | ✅ **无进展提示已完成**（0.1.27，见 §10.6）；#11183 重复输出检测与重试下一波 |
 | 子代理记录入口 | #11529 | 中 |
 | 内置浏览器工具独立开关 | #10898 | 低 |
 | 模型服务可排序 | #10864 | 低 |

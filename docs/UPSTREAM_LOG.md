@@ -175,3 +175,53 @@ effort UI 单列一轮。**地基的 kernel 侧已就位，届时只需补前端
 | 停止单个工具调用 | #13391 | 内核 `call_stop.go`（callStops + `Agent.CancelToolCall` + `stoppedByUser`→`tool.Refusal{Code: tool.cancelled_by_user}`）+ `tool_calls.go` `POST /tool-calls/{id}/cancel`（409 `tool_call.not_running`）+ 控制层 `ToolCallStopper`；前端 `StopCall.tsx`（10 秒后出现）+ ToolCard/Transcript/Pane 穿 `onStopCall` + `port.stopToolCall` | 上游 Transcript 走 `port` prop；本地走 `onStopCall` 回调（与 onPrepareFileRevert 同构）。`.stop-call` 样式入 studio.css（本地无 waitnote.css），`--dim`→`--ghost` 对齐本地 token |
 
 **顺手修掉的自有欠账**：i18n 目录守卫 23 条中文键无英文对照（HEAD 就缺，Pane/WorkspaceFoot/Workspaces 计量栏与工作区菜单文案）——补齐后 `i18n.test.ts` 5/5 转绿。
+
+## 2026-10-23 第二波功能同步（0.1.27 发版）
+
+> 户主指令不变：「首先保证功能同步上游」。本波主线是**上游的 agent 自监控能力** ——
+> 回合跑着跑着没有可观察进展时，宿主替用户发现并说出来。这是「长时间自主任务」定位
+> 的核心配套：用户不在旁边盯着时，机器得自己承认卡住了。
+
+### 一、本波移植（上游 PR #11160 `feat(studio): say when a run stops producing observable progress`）
+
+| 项 | 上游 | 本地落地 | 本地适配点 |
+|---|---|---|---|
+| 无进展判定内核 | `internal/runtime/agent/progress_watch.go`(+138) | 同名新建 | 上游用 `a.observeRoot`；本地无此字段，**新增 `Options.ObserveRoot` + `observeRoot()` 方法**（回落 `WriteWorkspaceRoot`，与上游同语义） |
+| 效果观测器 | `internal/safety/evidence/effect_watch.go`(+140) | 同名新建 | 本地 `evidence.Receipt` 字段、`IsDeliveryVerificationCommand`/`VerificationIdentity`/`NormalizePath`、`shellparse.ParseBash`/`StaticWord` **全部已具备**，零改动直接可用 |
+| 配置节 | `internal/contract/config/progress_watch.go`(+67) | 同名新建 | `[progress_watch]` 用户全局节；项目 `tempora.toml` **不能**设置（load.go 合并后强制还原用户值） |
+| 事件与线协议 | `contract/event/progress_watch.go` / `eventwire/progress_watch.go` | 同名新建 + `event.go`/`wire.go` 接线 | 新增 `ProgressWatchEvent` kind（插在 `KindCount` 前保持序号稳定）+ `TurnOutcomeNoProgress` |
+| 控制层与路由 | `session/control/progress_watch_settings.go` / `frontend/serve/progress_watch_settings.go` | 同名新建 | `SessionAPI.Settings` 子接口加两个方法；`GET/POST /progress-watch`，越界返回 400 `progress_watch.out_of_range` |
+| 运行循环接线 | `run_loop.go`（mark→settle）、`turnruntime.go`（`watch` 字段）、`errors.go`（`PauseClass`/`InspectRunPause`） | 同步 | `settleProgressRound` 返回 `noProgressPause`，走**可续跑**的停止（与预算耗尽同一条路） |
+| 前端状态折叠 | `state/stall.ts`(+47) | 同名新建 | `foldStall` 折 `progress_watch` 帧；静音/关闭是本地手势；`turn_done` 落一条 info notice |
+| 停顿提示条 | `ui/StallBar.tsx`(+35) | 同名新建 | 挂在 `RuntimeBar` 里（本地上游把 `RuntimeBar` 做窄了，本地照上游加 `watch`/`onStall` 两个 prop） |
+| 设置面板 | `ui/ProgressWatch.tsx`(+116) | 同名新建 | 挂在「会话」段 `session-dir` 之前；prefsnav 目录加 `progress-watch` 条目（`scope: machine` / `apply: immediate`） |
+| 动作声明 | `actions.ts` +7 条 | 同步 | `progress-watch.pause/rounds/token-multiple`（kernel-mutation）+ `stall.stop/continue/mute/dismiss` |
+| 文案 | `en.ts` +9、`en_settings.ts` +12、`en_kernel.ts` +2、`kernel.ts` +2 | 同步 | 中英对照齐全，i18n 目录守卫通过 |
+
+**行为要点（移植后核对无误）**：
+- 判定只看**宿主可观察的效果**（文件改动 / 检查结果变化 / 任务步骤推进 / 读到新内容 /
+  子代理返回），不看命令内容；不向模型发送任何内容，也不拒绝任何调用。
+- 默认参数：`rounds = 20`、`token_multiple = 8`，**提示默认开、暂停默认关**。
+- 提示永远说；只有用户打开「长时间无进展时暂停任务」开关，达标才暂停（已完成的工作保留，
+  发一条消息即继续，计数清零）。
+- 设置**无需重建**：控制器把新值直接交给运行中的 executor，下一轮生效。
+
+### 二、本波同时修掉的实质问题（不是移植，是核对时发现的真 bug）
+
+| 问题 | 症状 | 处理 |
+|---|---|---|
+| `eventwire/wire_test.go` 读的是**上游基线副本** `kernel/desktop/frontend-next/src/port/wire.ts`，不是我们发货的 `app/frontend/src/port/wire.ts` | 线协议一致性测试一直在校验上游，没校验我们 | 路径改指产品前端；改完复跑仍绿，说明本地前端与 Go 侧本来就一致 |
+| 蒸馏台账把 **#14086** 记成「JSONL 检查点 symlink 逃逸检查」 | 该 PR 实际是 `fix(history): progressive legacy discovery and background scheduling`（旧会话渐进加载与后台调度，+2590/-344，53 文件） | 台账纠正；symlink 那条**另找 PR**，本波不做 |
+| 台账里的 **#11420**（会话排序） | GitHub API 返回 **404**，该 PR 号不存在 | 结论作废，本波不做；要会话排序得重新找上游 PR |
+
+### 三、Go 工具链升级（独立于移植的低风险项）
+
+- 本地 `tools/go` 是 **1.26.8**，缺 **GO-2026-6809**（Go 1.26.10 证书修复，上游 #14034）。
+- 升级到 **go1.26.10** 后重建内核：纯工具链变更，源码零改动。
+
+### 四、留到下一波（明确不丢）
+
+- **#11183 重复输出循环检测 + 提醒后重试一次**（perseveration_guard，+3451 行）：依赖 #11160
+  的 `progress_watch.go`，本波已铺好地基，下一波做。
+- #14086 旧会话渐进加载（+2590 行，前端基线漂移 28 个小版本）：单独排期。
+- 会话排序、子代理记录入口（#11529）、MCP 单工具禁用（#11468）、定时任务（#11406）。
