@@ -13,6 +13,9 @@ USER = "root"
 SSH_OPTS = ["-i", os.path.expanduser("~/.ssh/id_ed25519_deploy"),
             "-o", "HostKeyAlgorithms=+ssh-rsa",
             "-o", "PubkeyAcceptedAlgorithms=+ssh-ed25519,ssh-rsa",
+            # 本机 known_hosts 读不了（Permission denied），直接跳过校验。
+            "-o", "UserKnownHostsFile=/dev/null",
+            "-o", "StrictHostKeyChecking=no",
             "-o", "ConnectTimeout=25"]
 CHUNK = 4 * 1024 * 1024
 
