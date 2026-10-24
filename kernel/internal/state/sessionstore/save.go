@@ -1,3 +1,4 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #14086.
 package sessionstore
 
 import (
@@ -1105,9 +1106,16 @@ func messageForSessionIdentity(m provider.Message) provider.Message {
 // digestAndSizeSessionMessages also reports the encoded transcript size, which
 // the save path uses to bound the event log relative to the live content.
 func digestAndSizeSessionMessages(msgs []provider.Message) ([sha256.Size]byte, int64, error) {
+	return digestAndSizeSessionMessagesContext(context.Background(), msgs)
+}
+
+func digestAndSizeSessionMessagesContext(ctx context.Context, msgs []provider.Message) ([sha256.Size]byte, int64, error) {
 	h := sha256.New()
 	size := int64(0)
 	for _, m := range msgs {
+		if err := ctx.Err(); err != nil {
+			return [sha256.Size]byte{}, 0, err
+		}
 		m = messageForSessionIdentity(m)
 		b, err := json.Marshal(m)
 		if err != nil {
@@ -1391,7 +1399,13 @@ func LoadSession(path string) (*Session, error) {
 }
 
 func loadSessionUnlocked(path string) (*Session, error) {
-	msgs, _, damaged, err := loadSessionMessages(path)
+	return loadSessionUnlockedContext(context.Background(), path)
+}
+
+func loadSessionUnlockedContext(ctx context.Context, path string) (*Session, error) {
+	limits := defaultSessionReplayLimits
+	limits.ctx = ctx
+	msgs, _, damaged, err := loadSessionMessagesWithLimits(path, limits)
 	if err != nil {
 		return nil, err
 	}
@@ -1417,7 +1431,10 @@ func loadSessionUnlocked(path string) (*Session, error) {
 		s.rawMessages = msgs
 	}
 	s.Messages = normalized
-	if digest, err := DigestSessionMessages(s.Messages); err == nil {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	if digest, _, err := digestAndSizeSessionMessagesContext(ctx, s.Messages); err == nil {
 		if meta, ok, metaErr := loadBranchMetaRetry(path); metaErr != nil {
 			// The sidecar exists but is unreadable even after retries (torn or
 			// corrupt). The session must still open, but revision 0 must not
@@ -1433,6 +1450,9 @@ func loadSessionUnlocked(path string) (*Session, error) {
 			}
 			s.markPersistedFromLoad(path, digest, s.version, revision, s.rewriteVersion)
 		}
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, err
 	}
 	return s, nil
 }
@@ -2027,12 +2047,18 @@ func ListSessionOrder(dir string) ([]SessionOrderInfo, error) {
 	return out, nil
 }
 
-// ListSessions returns every non-empty *.jsonl session under dir,
-// most-recently-active first, each with a preview line so the picker can show
-// something the user recognises. It never decodes a transcript: legacy counts
-// remain explicitly unknown until the session catalog's single repair worker
-// validates them. A missing directory is not an error.
+// ListSessions returns complete listing metadata, replaying uncached foreign
+// sessions. Interactive callers use ListNativeSessions and LegacyListings.
 func ListSessions(dir string) ([]SessionInfo, error) {
+	out, err := ListNativeSessions(dir)
+	if err != nil {
+		return nil, err
+	}
+	return withV4Sessions(dir, out), nil
+}
+
+// ListNativeSessions reads metadata without consulting foreign transcript stores.
+func ListNativeSessions(dir string) ([]SessionInfo, error) {
 	ordered, err := ListSessionOrder(dir)
 	if err != nil {
 		return nil, err
@@ -2057,7 +2083,7 @@ func ListSessions(dir string) ([]SessionInfo, error) {
 		}
 		out = append(out, sessionInfoFromOrder(session, preview, turns, true))
 	}
-	return withV4Sessions(dir, out), nil
+	return out, nil
 }
 
 // ContinueSessionPath returns where a conversation carried into a rebuilt

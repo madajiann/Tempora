@@ -1,9 +1,15 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #14086.
 // Keeping the .jsonl checkpoint and the event log describing one transcript:
 // which one answers a torn replay, and how a declined in-place append is undone.
 package sessionstore
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
 	"log/slog"
+	"os"
+	"path/filepath"
 
 	"tempora/internal/contract/provider"
 )
@@ -14,8 +20,16 @@ import (
 // already durable there, and taking the shorter log alone is what let an
 // unclean exit lose them. damaged still rides out so the next save heals.
 func resolveReplayedMessages(sessionPath string, replay sessionEventReplay) ([]provider.Message, bool, bool, error) {
+	return resolveReplayedMessagesWithLimits(sessionPath, replay, defaultSessionReplayLimits)
+}
+
+func resolveReplayedMessagesWithLimits(sessionPath string, replay sessionEventReplay, limits sessionReplayLimits) ([]provider.Message, bool, bool, error) {
 	if replay.damaged {
-		if healed, ok := checkpointExtendingReplay(sessionPath, replay.msgs); ok {
+		healed, ok := checkpointExtendingReplayWithLimits(sessionPath, replay.msgs, limits)
+		if err := limits.err(); err != nil {
+			return nil, false, false, err
+		}
+		if ok {
 			return healed, false, true, nil
 		}
 	}
@@ -26,14 +40,78 @@ func resolveReplayedMessages(sessionPath string, replay sessionEventReplay) ([]p
 // the log still replays. One that is shorter is a read model that has not
 // caught up; one that contradicts what survived is another writer's file.
 func checkpointExtendingReplay(sessionPath string, replayed []provider.Message) ([]provider.Message, bool) {
-	msgs, err := loadSessionMessagesFromJSONL(sessionPath)
-	if err != nil || len(msgs) <= len(replayed) {
+	return checkpointExtendingReplayWithLimits(sessionPath, replayed, defaultSessionReplayLimits)
+}
+
+func checkpointExtendingReplayWithLimits(sessionPath string, replayed []provider.Message, limits sessionReplayLimits) ([]provider.Message, bool) {
+	msgs, err := loadSessionMessagesFromJSONLWithLimits(sessionPath, limits)
+	if limits.err() != nil {
+		return nil, false
+	}
+	if err != nil {
+		// The checkpoint's tail is torn. Keep what decodes rather than reading
+		// the tear as "a stranger's file": that fold returned the shorter replay
+		// as a clean success and let the next save rewrite it from that.
+		msgs = loadSessionMessagesFromJSONLKeepingDecodedTailWithLimits(sessionPath, limits)
+	}
+	if len(msgs) <= len(replayed) {
 		return nil, false
 	}
 	if !messagesHavePrefix(msgs, replayed) && !messagesHavePrefixWithCompatibleSystem(msgs, replayed) {
 		return nil, false
 	}
 	return msgs, true
+}
+
+// loadSessionMessagesFromJSONLKeepingDecodedTail reads the checkpoint and
+// keeps the records that decode even when the last one is torn: the checkpoint
+// is written by an in-place append, so its records decode, and a torn FINAL
+// line — the half-written in-place append a crash leaves — costs only the
+// record it truncated.
+func loadSessionMessagesFromJSONLKeepingDecodedTail(path string) []provider.Message {
+	return loadSessionMessagesFromJSONLKeepingDecodedTailWithLimits(path, defaultSessionReplayLimits)
+}
+
+func loadSessionMessagesFromJSONLKeepingDecodedTailWithLimits(path string, limits sessionReplayLimits) []provider.Message {
+	f, err := os.OpenInRoot(filepath.Dir(path), filepath.Base(path))
+	if err != nil {
+		return nil
+	}
+	defer f.Close()
+	data, err := io.ReadAll(limits.reader(f))
+	if err != nil {
+		return nil
+	}
+	lines := bytes.Split(data, []byte("\n"))
+	last := -1
+	for i, line := range lines {
+		if limits.err() != nil {
+			return nil
+		}
+		if len(bytes.TrimSpace(line)) > 0 {
+			last = i
+		}
+	}
+	var msgs []provider.Message
+	for i, line := range lines {
+		if limits.err() != nil {
+			return nil
+		}
+		if len(bytes.TrimSpace(line)) == 0 {
+			continue
+		}
+		if i > last {
+			break
+		}
+		var m provider.Message
+		if err := json.Unmarshal(line, &m); err != nil {
+			// The tear can only be the last record: a checkpoint is appended
+			// in place, so everything before it decodes.
+			break
+		}
+		msgs = append(msgs, m)
+	}
+	return inlineSessionImages(path, msgs)
 }
 
 // settleDisplayReadModel republishes the read model whole when the in-place

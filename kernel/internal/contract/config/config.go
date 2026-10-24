@@ -1175,7 +1175,9 @@ type ProviderEntry struct {
 	// 65536 heavy reasoning/long tools; 131072 only after finish_reason=length.
 	// A negative value omits optional wire limits when the protocol allows;
 	// Anthropic still requires max_tokens. Never feeds compact_ratio.
-	MaxOutputTokens int                          `toml:"max_output_tokens"`
+	MaxOutputTokens int `toml:"max_output_tokens"`
+	// PerseverationRetries overrides [progress_watch].perseveration_retries; nil inherits the global default.
+	PerseverationRetries *int                         `toml:"perseveration_retries"`
 	Price           *provider.Pricing            `toml:"price"`  // legacy/provider-wide fallback
 	Prices          map[string]*provider.Pricing `toml:"prices"` // optional per-model prices; keys are model ids
 	// BillingCurrency is the frozen list-price currency (ISO-4217). Independent

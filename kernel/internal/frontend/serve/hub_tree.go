@@ -1,3 +1,4 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #14086.
 package serve
 
 import (
@@ -11,6 +12,7 @@ import (
 	"tempora/internal/state/sessionstore"
 	"strings"
 
+	"tempora/internal/base/backgroundwork"
 	"tempora/internal/base/fileutil"
 	"tempora/internal/base/nilutil"
 	"tempora/internal/contract/config"
@@ -33,8 +35,18 @@ const maxRecoveryLineageWalk = 16
 // treeWorkspace is one folder in the sidebar: what it is called, whether a pane
 // is driving it, and the conversations saved under it.
 type treeWorkspace struct {
-	Root string `json:"root"`
-	Name string `json:"name"`
+	// ListingState says how far the progressive listing of this folder has
+	// come: discovering (the rows are still being found), indexing (the rows
+	// are known, their summaries are still being read), ready, or degraded.
+	ListingState    string `json:"listingState,omitempty"`
+	ListingRevision uint64 `json:"listingRevision,omitempty"`
+	// CountsComplete says the count beside this folder is final. While it is
+	// false the count is what has been found so far, not what exists.
+	CountsComplete  *bool `json:"countsComplete,omitempty"`
+	PendingMetadata int   `json:"pendingMetadata,omitempty"`
+	FailedMetadata  int   `json:"failedMetadata,omitempty"`
+	Root            string `json:"root"`
+	Name            string `json:"name"`
 	// Isolated marks a delivery worktree. Its folder name is the project's, so
 	// without this the sidebar shows two rows with one name.
 	Isolated bool `json:"isolated,omitempty"`
@@ -51,12 +63,17 @@ type treeWorkspace struct {
 // open, which is what lets the sidebar focus that pane instead of opening a
 // second writer for the same transcript.
 type treeSession struct {
-	Path      string `json:"path"`
-	Name      string `json:"name"`
-	Title     string `json:"title,omitempty"`
-	Turns     int    `json:"turns,omitempty"`
-	RuntimeID string `json:"runtimeId,omitempty"`
-	Archived  bool   `json:"archived,omitempty"`
+	// MetadataState says whether this row's summary has been read yet:
+	// pending, ready, or error.
+	MetadataState string `json:"metadataState,omitempty"`
+	// CountsKnown says the turn count of this row is real rather than absent.
+	CountsKnown *bool `json:"countsKnown,omitempty"`
+	Path        string `json:"path"`
+	Name        string `json:"name"`
+	Title       string `json:"title,omitempty"`
+	Turns       int    `json:"turns,omitempty"`
+	RuntimeID   string `json:"runtimeId,omitempty"`
+	Archived    bool   `json:"archived,omitempty"`
 	// Copies are this conversation's conflict-recovery copies. A save that
 	// keeps conflicting writes one file per turn, all under the one title, and
 	// unfolded that is a sidebar of rows the user never made.
@@ -81,7 +98,15 @@ func (h *Hub) registerTreeRoutes(mux *http.ServeMux) {
 // tree answers the whole sidebar in one request: every remembered workspace
 // with the sessions saved under it. Titles come from each project's cache and
 // are never generated here — the pane that opens a session does that.
-func (h *Hub) tree(w http.ResponseWriter, _ *http.Request) {
+//
+// In progressive mode the rows a folder has found so far come back with the
+// state of the listing beside them, and the summaries still being read are
+// filled in by a later read.
+func (h *Hub) tree(w http.ResponseWriter, r *http.Request) {
+	defer backgroundwork.Shared.Read()()
+	query := r.URL.Query()
+	progressive := query.Get("progressive") == "1"
+	retryMetadata := query.Get("retryMetadata") == "1"
 	open := h.openSessions()
 	roots := h.roots()
 	out := make([]treeWorkspace, 0, len(roots))
@@ -97,7 +122,13 @@ func (h *Hub) tree(w http.ResponseWriter, _ *http.Request) {
 		if st, err := os.Stat(ref.dir); err != nil || !st.IsDir() {
 			node.Missing = true
 		}
-		node.Sessions = append(node.Sessions, h.workspaceSessions(ref.dir, open)...)
+		status := listingStatusFor(progressive)
+		node.Sessions = append(node.Sessions, h.workspaceSessions(ref.dir, open, status, retryMetadata)...)
+		if status != nil {
+			node.ListingState, node.ListingRevision = status.ListingState, status.ListingRevision
+			node.CountsComplete = &status.CountsComplete
+			node.PendingMetadata, node.FailedMetadata = status.PendingMetadata, status.FailedMetadata
+		}
 		out = append(out, node)
 	}
 	writeJSON(w, out)
@@ -106,11 +137,13 @@ func (h *Hub) tree(w http.ResponseWriter, _ *http.Request) {
 // workspaceSessions lists one folder's conversations, hiding what the pickers
 // hide: subagent traces and redundant recovery copies. A copy that a pane has
 // open stays, because something is driving it.
-func (h *Hub) workspaceSessions(root string, open map[string]string) []treeSession {
+func (h *Hub) workspaceSessions(root string, open map[string]string, status *sessionstore.ListingStatus, retry bool) []treeSession {
 	dir := SessionDirFor(root)
-	listed, err := sessionstore.ListSessions(dir)
-	if err != nil {
-		return nil
+	var listed []sessionstore.SessionInfo
+	if status == nil {
+		listed, _ = sessionstore.ListSessions(dir)
+	} else {
+		listed = h.listTreeSessions(dir, status, retry)
 	}
 	titles := h.titleCacheFor(dir)
 	byID := make(map[string]sessionstore.SessionInfo, len(listed))
@@ -155,11 +188,19 @@ func (h *Hub) workspaceSessions(root string, open map[string]string) []treeSessi
 		if folds {
 			lead[recoveryLineageRoot(si, byID)] = len(out)
 		}
-		out = append(out, treeSession{
+		row := treeSession{
 			Path: si.Path, Name: name, Title: title, Turns: si.Turns, RuntimeID: runtimeID, Archived: si.Archived,
-		})
+		}
+		if status != nil {
+			known := si.CountsKnown
+			row.CountsKnown, row.MetadataState = &known, si.MetadataState
+		}
+		out = append(out, row)
 	}
 	attachVersions(dir, out)
+	if status != nil {
+		h.prioritizeTreeRows(dir, out)
+	}
 	return append(h.unlistedOpenSessions(root, out), out...)
 }
 

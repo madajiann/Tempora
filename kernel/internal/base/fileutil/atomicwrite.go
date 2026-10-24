@@ -1,3 +1,4 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #14086.
 package fileutil
 
 import (
@@ -81,6 +82,34 @@ func atomicWriteFile(path string, data []byte, perm os.FileMode, allowCrossDevic
 	if !allowCrossDeviceCopy {
 		_ = syncParentDirFn(path)
 	}
+	return nil
+}
+
+// AtomicWriteFileStrictValidated publishes data like AtomicWriteFileStrict, but
+// refuses the write when the caller's context is already done. A background
+// projection that was preempted must not publish a listing it no longer owns;
+// done is the caller's context error function (context.Context.Err).
+func AtomicWriteFileStrictValidated(path string, data []byte, perm os.FileMode, done func() error) error {
+	if done != nil {
+		if err := done(); err != nil {
+			return err
+		}
+	}
+	tmpPath, err := writeAtomicTemp(path, data, perm)
+	if err != nil {
+		return err
+	}
+	if done != nil {
+		if err := done(); err != nil {
+			os.Remove(tmpPath)
+			return err
+		}
+	}
+	if err := replaceFile(tmpPath, path, false); err != nil {
+		os.Remove(tmpPath)
+		return err
+	}
+	_ = syncParentDirFn(path)
 	return nil
 }
 

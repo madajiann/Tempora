@@ -1,3 +1,4 @@
+// Ported from DeepSeek-Reasonix (MIT)
 // English for the window's own instruments: the run-metrics rail, the task
 // board, the navigation column, and the plan gate. Split out for the reason
 // en_settings and en_kernel were — one screen's worth of wording, read together.
@@ -14,6 +15,12 @@ export const EN_WINDOW: Record<string, string> = {
   "运行详情": "Runtime details",
   "查看全部指标": "View all metrics",
   "子代理": "Subagents",
+  "查看完整记录": "Open full transcript",
+  "查看完整记录：{name}": "Open full transcript: {name}",
+  "子代理完整记录：{name}": "Full transcript of subagent: {name}",
+  "还没有记录到步骤": "No steps recorded yet",
+  "显示全部": "Show all",
+  "输出过长，仅显示前 200000 个字符": "Output too long, showing the first 200000 characters",
   "成本构成": "Cost breakdown",
   "计划待确认": "The plan is yours to decide",
   "计划已生成，如何执行由你决定。": "The plan is written. What happens next is your call.",

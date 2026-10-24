@@ -1,9 +1,11 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #14086.
 package serve
 
 import (
 	"net/http"
 	"tempora/internal/state/sessionstore"
 
+	"tempora/internal/base/backgroundwork"
 	"tempora/internal/contract/eventwire"
 	"tempora/internal/contract/provider"
 )
@@ -111,4 +113,17 @@ func historyMessages(msgs []provider.Message) []historyMessage {
 // 304 Not Modified with no body, saving bandwidth on reconnects.
 func (s *Server) history(w http.ResponseWriter, r *http.Request) {
 	writeJSONCached(w, r, historyMessages(s.ctl().History()))
+}
+
+// registerHistoryRoutes mounts the history read behind the foreground marker:
+// reading the transcript back is what a person is waiting for, so a projection
+// running in the background gives way to it.
+func (s *Server) registerHistoryRoutes(parent *http.ServeMux) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /history", s.history)
+	foreground := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer backgroundwork.Shared.Foreground()()
+		mux.ServeHTTP(w, r)
+	})
+	parent.Handle("GET /history", foreground)
 }

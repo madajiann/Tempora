@@ -1,3 +1,4 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #14086.
 package sessionstore
 
 import (
@@ -84,10 +85,13 @@ func probeSessionEventLogWithLimits(sessionPath string, limits sessionReplayLimi
 			SchemaVersion int    `json:"schema_version"`
 			Type          string `json:"type"`
 		}
-		dec := json.NewDecoder(&io.LimitedReader{R: f, N: limits.maxBytes + 1})
+		dec := json.NewDecoder(&io.LimitedReader{R: limits.reader(f), N: limits.maxBytes + 1})
 		if err := dec.Decode(&header); err == nil {
 			schemaVersion, eventType, ok = header.SchemaVersion, header.Type, true
 		}
+	}
+	if err := limits.err(); err != nil {
+		return probe, err
 	}
 	if !ok {
 		// Nothing decodable at the head: not a native log this build can own.

@@ -1,3 +1,4 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #14086.
 package sessionstore
 
 import (
@@ -101,10 +102,16 @@ func replaySessionDAG(path string, limits sessionReplayLimits) (*sessionDAGState
 	if info.Size() > limits.maxBytes {
 		return st, sessionReplayLimitError(path, "encoded_bytes", info.Size(), limits.maxBytes)
 	}
-	dec := json.NewDecoder(f)
+	dec := json.NewDecoder(limits.reader(f))
 	for {
+		if err := limits.err(); err != nil {
+			return st, err
+		}
 		var e sessionDAGEntry
 		if err := dec.Decode(&e); err != nil {
+			if err := limits.err(); err != nil {
+				return st, err
+			}
 			if !errors.Is(err, io.EOF) {
 				st.damaged = true
 			}
@@ -117,6 +124,9 @@ func replaySessionDAG(path string, limits sessionReplayLimits) (*sessionDAGState
 			return st, sessionReplayLimitError(path, "event_records", int64(st.records+1), int64(limits.maxRecords))
 		}
 		ok, err := st.apply(e, dec.InputOffset(), limits)
+		if err := limits.err(); err != nil {
+			return st, err
+		}
 		if err != nil {
 			return st, err
 		}

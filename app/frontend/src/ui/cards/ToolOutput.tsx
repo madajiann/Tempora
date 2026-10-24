@@ -1,10 +1,11 @@
+// Ported from DeepSeek-Reasonix (MIT)
 // Every shape here was read off real tool results, not inferred: a search hit
 // is "path:line:text", a context line repeats the path with a dash, a summary
 // is "path: N matches", ls is "name<TAB>bytes". Anything that does not parse
 // cleanly falls back to the terminal block rather than being forced into a
 // list — a wrong list reads as authoritative, a raw block only reads as raw.
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { t } from "../../i18n";
 import { useStartsOpen } from "../../state/foldpref";
 import { bytes } from "../../i18n/format";
@@ -193,8 +194,13 @@ const SETTLED = 700;
 // worth, so the block arrives whole.
 const SPLIT_MAX = 300;
 
+// Splitting a 200k-character nested output into lines is the single most
+// expensive thing this component does, and it is pure: the same text always
+// splits the same way. Memoised, so a card that re-renders because a sibling
+// changed does not pay for it again — which is what showing a delegate's whole
+// transcript would otherwise do on every paint.
 export function Term({ text, one }: { text: string; one?: boolean }) {
-  const lines = text.split("\n");
+  const lines = useMemo(() => text.split("\n"), [text]);
   if (lines.length > SPLIT_MAX) return <pre className="term">{text}</pre>;
   return (
     <pre className="term" data-one={one ? "" : undefined}>

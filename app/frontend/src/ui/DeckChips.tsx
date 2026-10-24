@@ -1,9 +1,11 @@
-import { useCallback, useMemo, useRef } from "react";
+// Ported from DeepSeek-Reasonix (MIT)
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { JobEntry } from "../port/port";
 import { t } from "../i18n";
 import { StudioIcon } from "./StudioIcon";
 import { agentsIn } from "./panels/derive";
 import { Agents } from "./panels/Agents";
+import { AgentTranscript } from "./panels/AgentTranscript";
 import { Jobs } from "./panels/Jobs";
 import type { Task } from "./panels/Agents";
 import { useDismiss } from "./dismiss";
@@ -18,19 +20,34 @@ export type Deck = "" | "agents" | "jobs";
 export function DeckChips({ tasks, jobs, open, onOpen, onCancelJob }: { tasks: Task[]; jobs: JobEntry[]; open: Deck; onOpen: (next: (was: Deck) => Deck) => void; onCancelJob?: (id: string) => Promise<void> }) {
   const agentsBox = useRef<HTMLDivElement>(null);
   const jobsBox = useRef<HTMLDivElement>(null);
+  const [viewing, setViewing] = useState("");
+  const viewed = viewing ? tasks.find((x) => x.id === viewing) : undefined;
+  // The transcript is drawn from the task in hand, so a delegate that has left
+  // the list — it was capped off the rail, or the session moved — takes the
+  // overlay with it rather than leaving a record nothing can close.
+  useEffect(() => {
+    if (viewing && !viewed) setViewing("");
+  }, [viewing, viewed]);
+  const closeView = useCallback(() => {
+    setViewing("");
+    // Focus goes back to the chip that opened it: closing an overlay onto the
+    // page behind it is how a keyboard reader ends up at the top of the window.
+    agentsBox.current?.querySelector<HTMLElement>('[data-action="deck.agents"]')?.focus();
+  }, []);
   const shut = useCallback(() => onOpen(() => ""), [onOpen]);
   useDismiss(open === "agents", agentsBox, shut);
   useDismiss(open === "jobs", jobsBox, shut);
   const liveAgents = useMemo(() => agentsIn(tasks.filter((x) => x.running)), [tasks]);
   const liveJobs = useMemo(() => jobs.filter((j) => j.status === "running").length, [jobs]);
-  if (liveAgents === 0 && jobs.length === 0) return null;
+  if (tasks.length === 0 && jobs.length === 0) return null;
 
-  // Only while a delegate is running: a finished one is history, which the
-  // transcript and the side panel keep, and a reading left standing after the
-  // work stopped reads as work still going.
+  // A delegate that finished is still here, because its record is still here:
+  // this is where a sub-agent's own steps are read. Only the live reading
+  // animates — a count that kept ticking after the work stopped would read as
+  // work still going.
   return (
     <>
-      {liveAgents > 0 && (
+      {tasks.length > 0 && (
         <div ref={agentsBox} className="studio-deck-anchor" data-open={open === "agents" ? "" : undefined}>
           <button
             type="button"
@@ -42,14 +59,15 @@ export function DeckChips({ tasks, jobs, open, onOpen, onCancelJob }: { tasks: T
             onClick={() => onOpen((was) => (was === "agents" ? "" : "agents"))}
           >
             <StudioIcon name="branch" />
-            <b>{liveAgents}</b>
+            <b>{agentsIn(tasks)}</b>
             <span>{t("子代理")}</span>
           </button>
           <div className="studio-deck-pop" role="dialog" aria-label={t("子代理")}>
-            <Agents tasks={tasks} />
+            <Agents tasks={tasks} onOpen={(id) => { shut(); setViewing(id); }} />
           </div>
         </div>
       )}
+      {viewed && <AgentTranscript task={viewed} onClose={closeView} />}
       {jobs.length > 0 && (
         <div ref={jobsBox} className="studio-deck-anchor" data-open={open === "jobs" ? "" : undefined}>
           <button

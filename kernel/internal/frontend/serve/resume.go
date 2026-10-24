@@ -1,3 +1,4 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #14086.
 // Session switching over HTTP: /resume binds this runtime to another
 // transcript. It lives apart from serve.go because the swap has three owners to
 // keep in step — the controller's rotation gate, the session lease, and the
@@ -13,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"tempora/internal/base/backgroundwork"
 	"tempora/internal/state/sessionstore"
 	"strings"
 
@@ -40,6 +42,7 @@ func (s *Server) resume(w http.ResponseWriter, r *http.Request) {
 // status a refusal deserves so both the HTTP handler and a hub opening a
 // session in a new pane refuse for the same reasons.
 func (s *Server) resumeInto(path string) (int, error) {
+	defer backgroundwork.Shared.Foreground()()
 	dir := s.ctl().SessionDir()
 	if dir == "" {
 		return http.StatusBadRequest, refusal(http.StatusBadRequest, "session.disabled", errors.New("sessions disabled"), nil)

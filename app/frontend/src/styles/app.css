@@ -4908,6 +4908,28 @@
   .sessmore:hover { color: var(--text); background: var(--overlay) }
   .sessmore:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px }
 
+  /* 渐进列表读历史摘要时的一行说明。它不是错误，也不是空态：文件夹已经在了，
+     还没数完的是它下面的会话，所以这句话挂在会话列表下面而不是替代它。 */
+  .sessnote {
+    display: block; padding: 4px 9px 6px 22px;
+    font: var(--w-reg) var(--fs-micro) var(--ui); color: var(--ghost);
+  }
+  .ws-reading-retry {
+    margin-left: 6px; padding: 0 4px; border: 0; border-radius: var(--r-xs);
+    background: var(--overlay); cursor: pointer;
+    font: var(--w-reg) var(--fs-micro) var(--ui); color: var(--muted);
+  }
+  .ws-reading-retry:hover { color: var(--text); background: var(--raised) }
+  .ws-reading-retry:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px }
+
+  /* 行内那枚：摘要还在读，或读不出来。行本身照常可点，所以它不是状态点，
+     只是一枚说得清「为什么这行还没有标题」的标签。 */
+  .sessflag {
+    flex: none; margin-left: 5px; padding: 0 5px; border-radius: var(--r-pill);
+    font: var(--w-reg) var(--fs-micro) var(--ui); font-style: normal;
+    color: var(--ghost); background: var(--overlay); white-space: nowrap;
+  }
+
   .wstag {
     flex: none; padding: 1px 5px; border-radius: var(--r-pill);
     font: var(--w-reg) var(--fs-micro) var(--ui); color: var(--ghost);

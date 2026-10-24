@@ -1,8 +1,9 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #14086.
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { reason } from "../i18n/kernel";
 import { t } from "../i18n";
 import type { AccountState, AgentPort, ProviderSetup } from "../port/port";
-import type { HubPort, RuntimeView, TreeWorkspace } from "../port/hub";
+import type { HubPort, RuntimeView } from "../port/hub";
 import { Chrome } from "./Chrome";
 import { useLaunchHealth } from "./launchhealth";
 import { Nav } from "./Nav";
@@ -20,6 +21,7 @@ import type { RemoteAsk as RemoteAskT, RemoteHost } from "../port/remote";
 import { Boundary } from "./Boundary";
 import { SettingsUnavailable } from "./SettingsUnavailable";
 import { useMachineBooks } from "./machinebooks";
+import { useTreeRead } from "./useTreeRead";
 import { usePaint } from "./paint";
 import { Sidebar } from "./Sidebar";
 import { Sky } from "./Sky";import { useAddWorkspace } from "./addws";
@@ -76,7 +78,9 @@ export function App({ hub }: { hub: HubPort }) {
   const [runtimes, setRuntimes] = useState<RuntimeView[]>([]);
   const [panesRead, setPanesRead] = useState(false);
   const [active, setActive] = useState("");
-  const [tree, setTree] = useState<TreeWorkspace[]>([]);
+  // 侧栏这棵树由 useTreeRead 持有：渐进列表会先给「已发现的行」，再给「摘要已
+  // 读到的行」，所以重试读与普通刷新不是同一个请求。
+  const { tree, reloadTree, retryTree } = useTreeRead(hub);
   // Null until asked, and null again where this kernel refuses remote panes —
   // which is what keeps the section out of a browser rather than drawing a
   // heading over a feature that cannot work there.
@@ -145,15 +149,6 @@ export function App({ hub }: { hub: HubPort }) {
   useEffect(() => {
     setReport(reportsRef.current[active] ?? NO_REPORT);
   }, [active]);
-
-  const reloadTree = useCallback(
-    () =>
-      hub
-        .tree()
-        .then(setTree)
-        .catch(() => setTree([])),
-    [hub],
-  );
 
   // Held beside this machine's tree, and re-read on the same beat: see
   // useMachineBooks for why that beat is one rather than two.
@@ -634,6 +629,7 @@ export function App({ hub }: { hub: HubPort }) {
           reloadRemoteTrees={reloadRemoteTrees}
           readRemoteTree={readRemoteTree}
           reloadTree={reloadTree}
+          retryTree={retryTree}
           adder={adder}
           onOpen={openPane}
           onOpenRemote={openRemotePane}

@@ -1,11 +1,11 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #11468.
 // Package-internal cache for MCP handshake results. The handshake (initialize +
 // listTools, plus optional listPrompts/listResources) costs hundreds of ms to a
-// few seconds per server on cold start. We persist the tool schema +
-// capabilities under the user cache dir keyed by load-bearing, non-secret Spec
-// fields, so the next launch can register tools optimistically
-// without waiting for the network/subprocess. Caching is purely an
-// optimisation: any failure (missing dir, bad JSON, key mismatch) silently
-// degrades to a fresh handshake.
+// few seconds per server on cold start. We persist the tool schema + capabilities
+// under the user cache dir keyed by load-bearing, non-secret Spec fields, so the
+// next launch can register tools optimistically without waiting for the
+// network/subprocess. Caching is purely an optimisation: any failure (missing
+// dir, bad JSON, key mismatch) silently degrades to a fresh handshake.
 package plugin
 
 import (
@@ -117,6 +117,9 @@ func schemaCacheKeyForURL(s Spec, urlValue string) string {
 	for _, a := range s.Args {
 		writeField(h, "arg", a)
 	}
+	for _, name := range disabledToolNames(s.DisabledTools) {
+		writeField(h, "disabled_tool", name)
+	}
 	writeKeys(h, "env", s.Env)
 	writeKeys(h, "headers", s.Headers)
 	return hex.EncodeToString(h.Sum(nil))
@@ -142,6 +145,7 @@ func LoadCachedSchema(name, expectedKey string) (*CachedSchema, bool) {
 func LoadCachedSchemaForSpec(s Spec) (*CachedSchema, bool) {
 	current := SchemaCacheKey(s)
 	if cs, ok := LoadCachedSchema(s.Name, current); ok {
+		cs.Tools = s.EnabledCachedTools(cs.Tools)
 		return cs, true
 	}
 	legacy, ok := legacySchemaCacheKey(s)
@@ -153,6 +157,7 @@ func LoadCachedSchemaForSpec(s Spec) (*CachedSchema, bool) {
 		return nil, false
 	}
 	cs.CacheKey = current
+	cs.Tools = s.EnabledCachedTools(cs.Tools)
 	_ = SaveCachedSchema(s.Name, *cs)
 	return cs, true
 }

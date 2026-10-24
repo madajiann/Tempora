@@ -1,3 +1,4 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #11468.
 package config
 
 // PluginEntry declares an external MCP server. Type selects the transport:
@@ -25,6 +26,8 @@ type PluginEntry struct {
 	// from this server. Keys are server-local tool names, not model-visible
 	// mcp__server__tool names.
 	ToolTimeoutSeconds map[string]int `toml:"tool_timeout_seconds"`
+	// DisabledTools excludes exact raw names returned by this server in tools/list.
+	DisabledTools []string `toml:"disabled_tools"`
 	// OAuthAllowMissingPKCEMetadata lets OAuth proceed with an authorization
 	// server that does not advertise code_challenge_methods_supported. PKCE
 	// S256 is still sent; it is honoured only from a user-authorized source.

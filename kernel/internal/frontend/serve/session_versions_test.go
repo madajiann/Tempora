@@ -46,7 +46,7 @@ func seedVersionedSession(t *testing.T) (root, parentPath, version string) {
 // The sidebar shows one row for the conversation, with the version under it.
 func TestSidebarHangsVersionsUnderTheirConversation(t *testing.T) {
 	root, parentPath, version := seedVersionedSession(t)
-	rows := NewHub(HubOptions{}).workspaceSessions(root, map[string]string{})
+	rows := NewHub(HubOptions{}).workspaceSessions(root, map[string]string{}, nil, false)
 	if len(rows) != 1 || rows[0].Path != parentPath {
 		t.Fatalf("rows = %+v, want only the conversation", rows)
 	}

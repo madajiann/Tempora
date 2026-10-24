@@ -1,3 +1,4 @@
+// Ported from DeepSeek-Reasonix (MIT)
 // What Studio claims a person can do, as a set of stable identities.
 //
 // The oracle for the census, and deliberately not something production imports:
@@ -97,6 +98,13 @@ export const ACTIONS: UIAction[] = [
 
   { id: "tool.image-open", kind: "view", target: "none", proof: "interaction" },
   { id: "tool.image-close", kind: "view", target: "none", proof: "interaction" },
+  // Letting a nested output out of its preview, and the overlay a delegate's
+  // own steps are read in: one entry point, three controls — the show-all in a
+  // card, the row's chevron, and the scrim behind the overlay.
+  { id: "tool.show-all", kind: "view", target: "none", proof: "interaction" },
+  { id: "agent.open", kind: "view", target: "entity", proof: "interaction" },
+  { id: "agent.focus-trap", kind: "navigation", target: "none", proof: "interaction" },
+  { id: "agent.close", kind: "view", target: "none", proof: "interaction" },
 
   // ── The turn ─────────────────────────────────────────────────────────────
   // Send and stop remain two actions even when they sit together: during a

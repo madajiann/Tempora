@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { SseHub } from "./hub";
+import { SseHub, treeQuery } from "./hub";
 import { HttpError } from "./port";
 
 function answer(status: number, body: string) {
@@ -11,6 +11,36 @@ function answer(status: number, body: string) {
     headers: new Map([["content-type", "text/plain"]]),
   }));
 }
+
+// Progressive listing is the whole tree read, not an option: a sidebar that
+// asked for the finished count would block on every summary a folder has ever
+// had read. The retry rides on the same read because it is the same question —
+// this folder's rows — asked a second time after the first answer stopped.
+describe("reading the tree", () => {
+  const asked = () => {
+    const paths: string[] = [];
+    vi.stubGlobal("fetch", async (path: string) => {
+      paths.push(path);
+      return { ok: true, status: 200, json: async () => [] };
+    });
+    return paths;
+  };
+
+  it("asks progressively, and asks again for failed summaries only when told to", async () => {
+    const paths = asked();
+    const hub = new SseHub();
+    await hub.tree();
+    await hub.tree({ retryMetadata: true });
+    expect(paths).toEqual(["/tree?progressive=1", "/tree?retryMetadata=1&progressive=1"]);
+  });
+
+  it("keeps the retry out of an ordinary read", () => {
+    expect(treeQuery(undefined)).toBe("");
+    expect(treeQuery({})).toBe("");
+    expect(treeQuery({ retryMetadata: false })).toBe("");
+    expect(treeQuery({ retryMetadata: true })).toBe("retryMetadata=1");
+  });
+});
 
 // The same defect SseHttp was fixed for, still standing in the hub port: asking
 // for JSON first threw away every answer that was not an envelope, and what

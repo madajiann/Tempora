@@ -1,3 +1,4 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #14086.
 // Package historycatalog maintains a disposable FTS projection of saved
 // session history. Session JSONL/event/meta files remain authoritative.
 package historycatalog
@@ -7,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"tempora/internal/base/backgroundwork"
 	"tempora/internal/contract/config"
 	"tempora/internal/state/projectiondb"
 )
@@ -33,6 +35,7 @@ type Status struct {
 }
 
 type Options struct {
+	Work              *backgroundwork.Scheduler
 	Path              string
 	InMemory          bool
 	QueueCapacity     int

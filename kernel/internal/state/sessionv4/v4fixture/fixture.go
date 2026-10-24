@@ -1,3 +1,4 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #14086.
 // Package v4fixture writes Tempora 1.x sessions-v4 stores for tests, encoding
 // them independently of the reader so a test checks the reader against the
 // format rather than against itself.
@@ -35,13 +36,13 @@ type Ref struct {
 // Store lays down a 1.x sessions-v4 root the way 1.x writes one: a
 // manifest, and events.frames as begin/event/end batches of zstd frames.
 type Store struct {
-	t    *testing.T
+	t    testing.TB
 	Root string
 	enc  *zstd.Encoder
 	Seq  uint64
 }
 
-func New(t *testing.T) *Store {
+func New(t testing.TB) *Store {
 	t.Helper()
 	enc, err := zstd.NewWriter(nil, zstd.WithEncoderCRC(true))
 	if err != nil {

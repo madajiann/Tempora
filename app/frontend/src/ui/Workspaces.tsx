@@ -1,3 +1,4 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #14086.
 import { Fragment, type ReactNode, memo, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { t } from "../i18n";
@@ -6,6 +7,7 @@ import type { Adder } from "./addws";
 import { useRailQuery } from "./railsearch";
 import { StudioIcon } from "./StudioIcon";
 import { Cross } from "./glyphs";
+import { ListingProgress } from "./ListingProgress";
 import { download } from "../port/download";
 import { host } from "../port/host";
 import { useTreeKeys } from "./tree";
@@ -25,6 +27,9 @@ interface Props {
   folded: Set<string>;
   onFold: (root: string, folded: boolean) => void;
   reload: () => Promise<void>;
+  // Progressive listing: the retry a degraded folder offers. Absent means no
+  // button, which is what a caller with no second ask to make should pass.
+  onRetryTree?: () => void;
   onOpen: (req: { root?: string; sessionPath?: string; fresh?: boolean }) => Promise<void>;
   onFocus: (id: string) => void;
   onClose: (ids: string[]) => Promise<void>;
@@ -58,7 +63,7 @@ const SHOWN = 30;
 const rowLabel = (session: TreeSession) =>
   session.title || (session.runtimeId && !session.turns ? t("新会话") : session.name);
 
-function WorkspacesView({ hub, tree, runtimes, active, folded, reload, onFold, onOpen, onFocus, onClose, liveIds, runs, scope = "all", pinned = new Set(), onPin = () => {}, onPause = () => {}, onArchive = async () => {}, onRename, onError, adder, children }: Props) {
+function WorkspacesView({ hub, tree, runtimes, active, folded, reload, onRetryTree, onFold, onOpen, onFocus, onClose, liveIds, runs, scope = "all", pinned = new Set(), onPin = () => {}, onPause = () => {}, onArchive = async () => {}, onRename, onError, adder, children }: Props) {
   const [busy, setBusy] = useState("");
   // 会话重命名输入框同样要挡住输入法组合态下的回车（选词不是提交）
   const ime = useIme();
@@ -226,7 +231,8 @@ function WorkspacesView({ hub, tree, runtimes, active, folded, reload, onFold, o
     const named = (x: TreeSession) => (x.title || x.name || "").toLowerCase().includes(needle);
     if (ws.name.toLowerCase().includes(needle)) return ws;
     const sessions = ws.sessions.filter(named);
-    return sessions.length ? { ...ws, sessions } : null;
+    // 计数还没读完的文件夹留在这里：它的会话还没被读出来，不是没有匹配。
+    return sessions.length || ws.countsComplete === false ? { ...ws, sessions } : null;
   };
   const searchedTree = needle ? (tree.map(hit).filter(Boolean) as TreeWorkspace[]) : tree;
   const shownTree = searchedTree
@@ -240,9 +246,11 @@ function WorkspacesView({ hub, tree, runtimes, active, folded, reload, onFold, o
         return true;
       }),
     }))
-    .filter((ws) => scope === "all" || ws.sessions.length > 0);
+    // 同理：本范围里一行都没有，可能只是还没读完，而不是真的没有。
+    .filter((ws) => scope === "all" || ws.sessions.length > 0 || ws.countsComplete === false);
   // A fold is a resting-state preference: while a word is being typed it would
   // hide the very rows that word just found.
+  const searching = !!needle;
   const shutHere = needle ? false : hereShut;
 
   return (
@@ -294,7 +302,8 @@ function WorkspacesView({ hub, tree, runtimes, active, folded, reload, onFold, o
                         {(ws.isolated || twice.has(ws.name)) && (
                           <em className="wstag">{ws.isolated ? t("隔离") : parentOf(ws.root)}</em>
                         )}
-                        {t("{n} 会话", { n: ws.sessions.length })}
+                        {/* 计数没读完就不报数：报出来的那个数下一读就会变。 */}
+                        {ws.countsComplete !== false && t("{n} 会话", { n: ws.sessions.length })}
                       </span>
                       <span className="wsacts">
                         <button
@@ -464,7 +473,13 @@ function WorkspacesView({ hub, tree, runtimes, active, folded, reload, onFold, o
                             }}
                           />
                         ) : (
-                          <span className="sesstitle" title={rowLabel(session)}><span>{rowLabel(session)}</span></span>
+                          <span className="sesstitle" title={rowLabel(session)}>
+                            <span>{rowLabel(session)}</span>
+                            {/* 摘要还在后台读、或者读不出来。行照常可点： */}
+                            {/* 一个还没拿到标题的对话仍然是一个对话。 */}
+                            {session.metadataState === "pending" && <em className="sessflag">{t("正在读取摘要")}</em>}
+                            {session.metadataState === "error" && <em className="sessflag">{t("摘要暂不可用")}</em>}
+                          </span>
                         )}
                         {kept.length > 0 && (
                           <button
@@ -632,12 +647,18 @@ function WorkspacesView({ hub, tree, runtimes, active, folded, reload, onFold, o
                     );
                   })}
 
+                {/* 计数没读完时，展开按钮不报数：报出来的那个数下一读就会变， */}
+                {/* 而按钮本身照样能用——它显示的是已经拿在手里的那些行。 */}
+                <ListingProgress workspace={ws} searching={searching} onRetry={onRetryTree} />
+
                 {!whole.has(ws.root) && ws.sessions.length > SHOWN && (
                   <button
                     className="sessmore"
                     onClick={() => setWhole((prev) => new Set(prev).add(ws.root))}
                   >
-                    {t("还有 {n} 个 · 全部显示", { n: ws.sessions.length - SHOWN })}
+                    {ws.countsComplete === false
+                      ? t("显示更多")
+                      : t("还有 {n} 个 · 全部显示", { n: ws.sessions.length - SHOWN })}
                   </button>
                 )}
                   </div>

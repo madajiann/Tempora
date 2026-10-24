@@ -1,3 +1,4 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #14086.
 import { HttpError, type AgentPort } from "./port";
 import type { RemoteAsk, RemoteHost, RemoteHostEdit, RemoteListing, RemoteProbe } from "./remote";
 import type { DeviceSelf, ShareOffer, SharePort, ShareStatus } from "./share";
@@ -32,6 +33,12 @@ export interface RuntimeView {
 }
 
 export interface TreeSession {
+  // Set while this row's summary is still being read in the background, and
+  // when reading it failed. The row is openable either way: a conversation
+  // whose title has not arrived is still a conversation.
+  metadataState?: "pending" | "ready" | "error";
+  // Whether `turns` is a real count rather than an absent one.
+  countsKnown?: boolean;
   path: string;
   name: string;
   title?: string;
@@ -49,6 +56,16 @@ export interface TreeSession {
 }
 
 export interface TreeWorkspace {
+  // How far the progressive listing of this folder has come. Absent on a kernel
+  // that does not do progressive reads at all, which is the same as ready.
+  listingState?: "discovering" | "indexing" | "ready" | "degraded";
+  listingRevision?: number;
+  // Whether the count beside this folder is final. While it is false the count
+  // is what has been found so far, and a reader must not be shown the search
+  // for it as finished.
+  countsComplete?: boolean;
+  pendingMetadata?: number;
+  failedMetadata?: number;
   root: string;
   name: string;
   // A delivery worktree carries the project's own folder name, so the sidebar
@@ -62,13 +79,27 @@ export interface TreeWorkspace {
   sessions: TreeSession[];
 }
 
+// What one read of the tree is asking for. The sidebar reads the whole tree
+// every time — it has no page window and no server-side scope — so the only
+// thing a caller can add is the retry that puts the summaries a degraded read
+// could not produce back on the queue.
+export interface TreeRead {
+  retryMetadata?: boolean;
+}
+
+export function treeQuery(read: TreeRead | undefined): string {
+  const q = new URLSearchParams();
+  if (read?.retryMetadata) q.set("retryMetadata", "1");
+  return q.toString();
+}
+
 // HubPort is the window's view of the kernel: which panes it drives and which
 // folders it can open. One AgentPort hangs off each pane.
 export interface HubPort extends SharePort {
   runtimes(): Promise<RuntimeView[]>;
   open(req: { root?: string; sessionPath?: string }): Promise<RuntimeView>;
   close(id: string): Promise<void>;
-  tree(): Promise<TreeWorkspace[]>;
+  tree(read?: TreeRead): Promise<TreeWorkspace[]>;
   addWorkspace(path: string): Promise<TreeWorkspace>;
   removeWorkspace(path: string): Promise<void>;
   /** Open a listed project's folder in the system file manager. */
@@ -197,8 +228,11 @@ export class SseHub implements HubPort {
     this.ports.delete(id);
   }
 
-  tree() {
-    return this.get<TreeWorkspace[]>("/tree");
+  tree(read?: TreeRead) {
+    const query = treeQuery(read);
+    // progressive=1 asks for the rows a folder has found so far rather than a
+    // count that is only final once every summary has been read.
+    return this.get<TreeWorkspace[]>("/tree" + (query ? `?${query}&` : "?") + "progressive=1");
   }
 
   addWorkspace(path: string) {

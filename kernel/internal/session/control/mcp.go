@@ -1,3 +1,4 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #11468.
 package control
 
 import (
@@ -63,7 +64,7 @@ func (m *mcpManager) connectSpec(s plugin.Spec) (int, error) {
 		}
 		toolsCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
-		tools, err = host.ToolsFor(toolsCtx, s.Name)
+		tools, err = host.ToolsForSpec(toolsCtx, s)
 		if err != nil {
 			return 0, err
 		}
@@ -95,7 +96,7 @@ func (m *mcpManager) registerSpecOnDemand(s plugin.Spec) (int, error) {
 		toolsCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
 		var err error
-		tools, err = host.ToolsFor(toolsCtx, s.Name)
+		tools, err = host.ToolsForSpec(toolsCtx, s)
 		if err != nil {
 			return 0, err
 		}

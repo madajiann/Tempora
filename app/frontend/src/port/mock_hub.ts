@@ -1,5 +1,6 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #14086.
 import type { AgentPort } from "./port";
-import type { HubPort, RuntimeView, TreeWorkspace } from "./hub";
+import type { HubPort, RuntimeView, TreeRead, TreeWorkspace } from "./hub";
 import type { RemoteHost, RemoteListing, RemoteProbe } from "./remote";
 import type { ShareStatus } from "./share";
 import { MockPort } from "./mock";
@@ -158,7 +159,7 @@ export class MockHub implements HubPort {
     return Promise.resolve();
   }
 
-  tree() {
+  tree(_read?: TreeRead) {
     const open = new Map(this.views.filter((v) => v.sessionPath).map((v) => [v.sessionPath!, v.id]));
     return Promise.resolve(
       this.roots.map<TreeWorkspace>((root, i) => ({

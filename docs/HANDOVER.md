@@ -1,7 +1,7 @@
 # Tempora 交接文档
 
 > 写给下一个接手的人（也写给三个月后的我自己）。
-> 最后更新：**2026-10-23** · 对应版本 **0.1.27**（仓库 `main`，已发版，见 §10.6）
+> 最后更新：**2026-10-24** · 对应版本 **0.1.28**（仓库 `main`，已发版，见 §10.7）
 >
 > **换号/换人接手 → 先读 `docs/TAKEOVER.md`**（上次工作快照、挂事的优先级、接手自检）。
 >
@@ -648,6 +648,36 @@ MSYS_NO_PATHCONV=1 ssh -i ~/.ssh/id_ed25519_deploy -o HostKeyAlgorithms=+ssh-rsa
   3. **仓库 `updates/latest.json` 被误回滚**：HANDOVER 那次提交把它退回 0.1.24，
      应用内更新链路直接断掉（第一端点也是 0.1.24）。已恢复并修正。
 
+### 10.7 0.1.28 发版内容（2026-10-24，已上线）
+
+- **一版发四个上游功能**（上游 PR **#11183** / **#14086** / **#11529** / **#11468**，全部已 merged）：
+  - **#11183 重复输出循环检测**（`internal/runtime/agent/perseveration_guard.go`，+357 行核心）：
+    检测模型卡在同一段文字上反复输出。默认**只报不切**（走 progress-watch 通道提示）；
+    `[progress_watch].perseveration_retries` > 0 才**切流 + 提醒重试**，预算用尽以 `perseveration`
+    暂停（可续跑）。敏感度刻意保守：最小周期 128B、最大 2048B、需 8 次重复；思考流与回答流
+    各用独立缓冲。死循环尾巴折叠成「短语 + 最后一次重复」，transcript 与存储一致。
+    三层配置：全局 → provider 级覆盖 → 负值关闭。
+  - **#14086 旧会话渐进加载**（53 文件）：会话多了不再一次性全读，改成边滚边加载 + 后台调度。
+  - **#11529 子代理记录入口**（10 文件）：面板里可点开子代理完整对话，长输出可展开看全。
+  - **#11468 MCP 单工具禁用**：可只关掉某个 MCP 服务器里的某一个工具。
+- **本地适配要点**（踩过的坑，见 `UPSTREAM_LOG` 第三波）：
+  - 上游 module 名 `reasonix` → 本地 `tempora`；上游 `desktop/frontend-next/src/` → 本地 `app/frontend/src/`。
+  - 上游 TUI 目录本地没有 → 跳过 TUI 部分。
+  - 上游测试写 `reasonix.toml` → 本地项目配置是 `tempora.toml`，不改会误连真实 deepseek。
+  - 上游 `approveWorkspace` 助手本地没有 → 改用 `Options.WorkspaceRoot`；**且不能设 `Options.Home`**
+    （会把 assembly 绑到工作区配置，导致用户 `[progress_watch]` 读不到、退回默认值）。
+  - 15 个 testdata 文件用上游 GitHub API 原版字节重取（`merge_commit_sha=6038a6fb`），
+    手工提取会丢末尾换行导致 5 个子用例全挂。
+- **测试**：前端 `vitest` **153 文件 / 963 用例全绿**；`tsc --noEmit` 干净；内核 `go build` +
+  `go vet ./...` 干净；`go test ./...` 的失败清单与 **HEAD 基线 worktree 实跑逐包一致**
+  （`cmd/e2ebench`、`cmd/signpath-contract`、`internal/contract/tool`、
+  `internal/ext/extension/{conformance,protocol,protocolgen}`、`internal/frontend/serve`、
+  `internal/platform/update`、`internal/tools/productdocs`、`boot` 的 `TestGoldenBaselineNoExtensions`）。
+- **环境问题（非本波引入，未擅自批量修）**：本地工作区 **2088 个文件是 CRLF**，而仓库配了
+  `attr/text eol=lf`。这让 `internal/contract/tool` 的 `TestBuiltinToolContractDocumentation`
+  在本地工作区失败、在干净 checkout 的基线 worktree 里通过。已用 `git stash` 推掉全部改动
+  **在同一工作区复现**同一失败，确认为既有问题。批量改行尾会污染 diff，故只记录不擅动。
+
 ### 10.4 0.1.26 发版内容（2026-10-22，已上线）
 
 - **字体全部换掉为 Windows 原生字体**（用户反馈「又粗又糊又长」，commit `7e65c93` + `46af3dc` + `1abcb5a`）：
@@ -701,13 +731,14 @@ MSYS_NO_PATHCONV=1 ssh -i ~/.ssh/id_ed25519_deploy -o HostKeyAlgorithms=+ssh-rsa
 |---|---|---|
 | 输入框草稿按会话保存，刷新后恢复 | #11176 | ✅ **已完成**（0.1.23+未发版，见 §10.5） |
 | 对话内 Ctrl+F 查找 | #11236 | 低 |
+| 旧会话渐进加载与后台调度 | #14086 | 中 | ✅ **已完成**（0.1.28，见 §10.7） |
 | 项目「⋯」菜单「在文件管理器中显示」 | #11533 | 低（与已做的原生文件夹选择框同源） |
-| 多轮无进展 / 重复输出提示 | #11160 #11183 | 中 | ✅ **无进展提示已完成**（0.1.27，见 §10.6）；#11183 重复输出检测与重试下一波 |
-| 子代理记录入口 | #11529 | 中 |
+| 多轮无进展 / 重复输出提示 | #11160 #11183 | 中 | ✅ **全部完成**（0.1.27 无进展提示，见 §10.6；0.1.28 重复输出检测与重试，见 §10.7） |
+| 子代理记录入口 | #11529 | 中 | ✅ **已完成**（0.1.28，见 §10.7） |
 | 内置浏览器工具独立开关 | #10898 | 低 |
 | 模型服务可排序 | #10864 | 低 |
 | 应用内反馈（截图 + 受理编号） | #11432 | 中 |
-| MCP 服务器单独禁用某工具 | #11468 | 中 |
+| MCP 服务器单独禁用某工具 | #11468 | 中 | ✅ **已完成**（0.1.28，见 §10.7） |
 
 **P2**：Pro 模式、显示隐藏文件、项目手写顺序保存、宽屏工作台 1600px、UA 标识、ACP 用量与费用等。
 

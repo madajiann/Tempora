@@ -1,3 +1,4 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #14086.
 // English catalogue, keyed by the Chinese source text. A key that is missing
 // here renders as Chinese rather than as a blank, so an incomplete translation
 // degrades instead of breaking — and i18n.test.ts is what stops it from
@@ -296,6 +297,13 @@ export const EN: Record<string, string> = {
   "空会话": "Empty session",
   "{n} 轮": "{n} turns",
   "还有 {n} 个 · 全部显示": "{n} more · show all",
+  // 渐进列表：文件夹已经在了，历史摘要还在后台读。
+  "正在读取历史摘要…": "Reading history summaries…",
+  "仍在搜索部分历史会话…": "Still searching some historical conversations…",
+  "部分历史摘要暂不可用，可继续打开会话": "Some history summaries are unavailable. You can still open conversations.",
+  "正在读取摘要": "Reading summary",
+  "摘要暂不可用": "Summary unavailable",
+  "显示更多": "Show more",
   "打开或新建项目…": "Open or start a project…",
   "文件夹的完整路径": "Full path to the folder",
   "尚无文件夹": "No folders yet",
@@ -1230,4 +1238,8 @@ export const EN: Record<string, string> = {
   "不再提示（本会话）": "Don’t show again (this session)",
   "任务已按设置暂停：自上次有进展以来的输入已达上下文窗口的 {n} 倍": "Paused by your setting: input since the last progress reached {n}× the context window",
   "任务已按设置暂停：连续 {n} 轮没有可观察的进展": "Paused by your setting: {n} rounds in a row without observable progress",
+  "模型在重复输出同一段文字": "The model is repeating the same text",
+  "同一段内容被逐字重复": "The same block is being repeated verbatim",
+  "任务已按设置暂停：模型卡在重复输出同一段文字": "Paused by your setting: the model is stuck repeating the same text",
+  "模型卡在重复输出同一段文字，这一轮已停止；可以重试、补充引导，或换一个供应商/模型": "The model is stuck repeating the same text; this turn was stopped. Try again, add guidance, or switch provider/model.",
 };

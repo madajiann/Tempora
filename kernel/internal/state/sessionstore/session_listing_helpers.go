@@ -1,3 +1,4 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #14086.
 package sessionstore
 
 import (
@@ -9,6 +10,7 @@ import (
 // disk, when it was created/last active, the first user message as a preview, and
 // a rough turn count.
 type SessionInfo struct {
+	MetadataState  string
 	Path           string
 	CreatedAt      time.Time
 	LastActivityAt time.Time

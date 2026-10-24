@@ -1,3 +1,4 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #14086.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { t } from "../i18n";
 import type { AccountState } from "../port/port";
@@ -36,6 +37,9 @@ interface Props {
   reloadRemoteTrees: () => Promise<void>;
   readRemoteTree: (host: string) => Promise<void>;
   reloadTree: () => Promise<void>;
+  // The explicit second ask, not another reload: this one puts the summaries a
+  // degraded read could not produce back on the kernel's queue.
+  retryTree: () => Promise<void>;
   adder: Adder;
   onOpen: (req: { root?: string; sessionPath?: string; fresh?: boolean }) => Promise<void>;
   onOpenRemote: (host: string, workspace?: string, sessionPath?: string) => Promise<void>;
@@ -74,6 +78,7 @@ export function Sidebar({
   reloadRemoteTrees,
   readRemoteTree,
   reloadTree,
+  retryTree,
   adder,
   onOpen,
   onOpenRemote,
@@ -298,6 +303,7 @@ export function Sidebar({
         folded={folded}
         onFold={onFold}
         reload={reloadTree}
+        onRetryTree={retryTree}
         onOpen={onOpen}
         onFocus={onFocusPane}
         onClose={onClosePanes}

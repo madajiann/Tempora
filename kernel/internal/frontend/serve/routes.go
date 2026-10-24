@@ -1,3 +1,4 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #14086.
 package serve
 
 import "net/http"
@@ -16,7 +17,7 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("POST /provider-setup", s.providerSetupSave)
 	mux.HandleFunc("GET /events", s.events)
 	mux.HandleFunc("GET /events/replay", s.eventsReplay)
-	mux.HandleFunc("GET /history", s.history)
+	s.registerHistoryRoutes(mux)
 	mux.HandleFunc("GET /usage", s.usage)
 	mux.HandleFunc("GET /context", s.context)
 	mux.HandleFunc("GET /adjudications", s.adjudications)

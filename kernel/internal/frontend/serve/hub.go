@@ -1,3 +1,4 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #14086.
 package serve
 
 import (
@@ -16,6 +17,7 @@ import (
 	"tempora/internal/assembly/boot"
 	"tempora/internal/model/billing"
 
+	"tempora/internal/base/backgroundwork"
 	"tempora/internal/base/fileutil"
 	"tempora/internal/contract/config"
 	"tempora/internal/contract/event"
@@ -51,6 +53,9 @@ type Hub struct {
 	runtimes map[string]*Runtime
 	order    []string
 	seq      int
+	// legacy is the background listing of the conversations this build reads
+	// but does not write. It is shared per process and released with the hub.
+	legacy *hubLegacyListings
 
 	opts HubOptions
 	auth *authGate
@@ -271,6 +276,7 @@ func (h *Hub) ownSession(srv *Server) (keeper *control.SessionLeaseKeeper, err e
 // Open builds a runtime for req, or returns the one already driving that
 // session. The caller gets a runtime it can address immediately.
 func (h *Hub) Open(ctx context.Context, req OpenRequest) (*Runtime, error) {
+	defer backgroundwork.Shared.Foreground()()
 	if rt := h.findSession(req.SessionPath); rt != nil {
 		return rt, nil
 	}
@@ -375,6 +381,7 @@ func (h *Hub) Close(id string) error {
 
 // Shutdown closes every runtime, newest first.
 func (h *Hub) Shutdown() {
+	defer h.closeLegacyListings()
 	for _, view := range h.List() {
 		if err := h.Close(view.ID); err != nil {
 			slog.Warn("serve: close runtime", "id", view.ID, "err", err)

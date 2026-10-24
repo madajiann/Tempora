@@ -1,3 +1,5 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #11468.
+
 // MCP placeholder tools. Background startup registers cheap placeholder entries
 // in the tool registry at boot — using the on-disk schema cache when it exists —
 // and kicks the real subprocess spawn / handshake immediately. By the time the
@@ -432,6 +434,9 @@ func LazyToolset(spec Spec, cs *CachedSchema, host *Host, reg *tool.Registry, se
 	} else {
 		out = make([]tool.Tool, 0, len(cs.Tools))
 		for _, ct := range cs.Tools {
+			if !spec.ToolEnabled(ct.Name) {
+				continue
+			}
 			visibleName := ct.Name
 			if spec.StripRawPrefix != "" {
 				visibleName = strings.TrimPrefix(visibleName, spec.StripRawPrefix)

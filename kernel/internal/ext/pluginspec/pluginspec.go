@@ -1,3 +1,4 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #11468.
 // Package pluginspec maps configured plugin entries onto the plugin.Spec the
 // runtime starts servers from. It is the one place that translation lives, so
 // a caller that only needs to describe configured MCP servers — a diagnostic,
@@ -63,6 +64,7 @@ func FromEntry(e config.PluginEntry, workspaceRoot string, opts Options) plugin.
 		Env:                           e.Env,
 		URL:                           e.URL,
 		Headers:                       e.Headers,
+		DisabledTools:                 append([]string(nil), e.DisabledTools...),
 		DefaultStartupTimeout:         opts.DefaultStartupTimeout,
 		StartupTimeout:                secondsDuration(e.StartupTimeoutSeconds),
 		DefaultCallTimeout:            opts.DefaultCallTimeout,

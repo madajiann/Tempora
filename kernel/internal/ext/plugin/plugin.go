@@ -1,3 +1,4 @@
+// Ported from DeepSeek-Reasonix (MIT) — upstream PR #11468.
 // Package plugin is Tempora's MCP client. It connects to external MCP servers and
 // adapts their tools to the tool.Tool interface, so the agent treats plugin
 // tools and built-ins uniformly. The wire protocol is JSON-RPC 2.0 in every
@@ -15,8 +16,8 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"reflect"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -78,6 +79,8 @@ type Spec struct {
 	Env     map[string]string
 	URL     string
 	Headers map[string]string
+	// DisabledTools excludes exact server-local names before schema registration.
+	DisabledTools []string
 	// DefaultStartupTimeout is the background initialize + tools/list safety cap
 	// for this server. Zero keeps Tempora's built-in default.
 	DefaultStartupTimeout time.Duration
@@ -846,14 +849,6 @@ func (h *Host) ToolsForSpec(ctx context.Context, spec Spec) ([]tool.Tool, error)
 	return c.listTools(ctx)
 }
 
-// MCPRuntimeSpecMatches compares the complete host-local runtime behavior of
-// two specs while deliberately excluding non-behavioral handles such as the
-// stderr writer and LaunchManager pointer. Secret values are compared only in
-// memory and are never serialized into diagnostics or provider-visible state.
-func MCPRuntimeSpecMatches(a, b Spec) bool {
-	return reflect.DeepEqual(mcpRuntimeSpecIdentityOf(a), mcpRuntimeSpecIdentityOf(b))
-}
-
 // MCPToolMatchesSpec reports whether a concrete plugin adapter or pinned lazy
 // placeholder belongs to the requested runtime spec. Unknown tool
 // implementations fail closed when a runtime-bound capability frontend asks.
@@ -866,116 +861,6 @@ func MCPToolMatchesSpec(t tool.Tool, spec Spec) bool {
 	default:
 		return false
 	}
-}
-
-type mcpRuntimeSpecIdentity struct {
-	Name                    string
-	Package                 string
-	Type                    string
-	Command                 string
-	Args                    []string
-	Env                     map[string]string
-	URL                     string
-	Headers                 map[string]string
-	DefaultStartupTimeout   time.Duration
-	StartupTimeout          time.Duration
-	DefaultCallTimeout      time.Duration
-	CallTimeout             time.Duration
-	ToolTimeouts            map[string]time.Duration
-	Dir                     string
-	WorkspaceRoot           string
-	LaunchWorkspace         string
-	ConfigSource            string
-	RequireLaunchApproval   bool
-	LaunchArgs              []string
-	LauncherIdentityArgs    []string
-	LauncherLocator         string
-	LauncherResolvedVersion string
-	LauncherDigest          string
-	ProcessMode             MCPProcessMode
-	Sandbox                 sandbox.Spec
-	StateDir                string
-	StripRawPrefix          string
-	LowPriority             bool
-}
-
-func mcpRuntimeSpecIdentityOf(s Spec) mcpRuntimeSpecIdentity {
-	launchWorkspace := ""
-	if s.LaunchManager != nil {
-		launchWorkspace = s.LaunchManager.WorkspaceFingerprint()
-	}
-	return mcpRuntimeSpecIdentity{
-		Name:                    strings.TrimSpace(s.Name),
-		Package:                 strings.TrimSpace(s.Package),
-		Type:                    canonicalMCPRuntimeTransport(s.Type),
-		Command:                 s.Command,
-		Args:                    nonEmptyStrings(s.Args),
-		Env:                     nonEmptyStringMap(s.Env),
-		URL:                     s.URL,
-		Headers:                 nonEmptyStringMap(s.Headers),
-		DefaultStartupTimeout:   s.DefaultStartupTimeout,
-		StartupTimeout:          s.StartupTimeout,
-		DefaultCallTimeout:      s.DefaultCallTimeout,
-		CallTimeout:             s.CallTimeout,
-		ToolTimeouts:            nonEmptyDurationMap(s.ToolTimeouts),
-		Dir:                     s.Dir,
-		WorkspaceRoot:           s.WorkspaceRoot,
-		LaunchWorkspace:         launchWorkspace,
-		ConfigSource:            strings.TrimSpace(s.ConfigSource),
-		RequireLaunchApproval:   s.RequireLaunchApproval,
-		LaunchArgs:              nonEmptyStrings(s.LaunchArgs),
-		LauncherIdentityArgs:    nonEmptyStrings(s.LauncherIdentityArgs),
-		LauncherLocator:         s.LauncherLocator,
-		LauncherResolvedVersion: s.LauncherResolvedVersion,
-		LauncherDigest:          s.LauncherDigest,
-		ProcessMode:             s.ResolvedProcessMode(),
-		Sandbox:                 canonicalMCPRuntimeSandbox(s.Sandbox),
-		StateDir:                s.StateDir,
-		StripRawPrefix:          s.StripRawPrefix,
-		LowPriority:             s.LowPriority,
-	}
-}
-
-func canonicalMCPRuntimeTransport(raw string) string {
-	switch strings.ToLower(strings.TrimSpace(raw)) {
-	case "", "stdio":
-		return "stdio"
-	case "http", "streamable-http", "streamable_http":
-		return "streamable-http"
-	case "sse":
-		return "sse"
-	default:
-		return strings.ToLower(strings.TrimSpace(raw))
-	}
-}
-
-func canonicalMCPRuntimeSandbox(in sandbox.Spec) sandbox.Spec {
-	in.WriteRoots = nonEmptyStrings(in.WriteRoots)
-	in.ReadRoots = nonEmptyStrings(in.ReadRoots)
-	in.AppContainerWriteRoots = nonEmptyStrings(in.AppContainerWriteRoots)
-	in.ForbidReadRoots = nonEmptyStrings(in.ForbidReadRoots)
-	return in
-}
-
-func nonEmptyStrings(in []string) []string {
-	if len(in) == 0 {
-		return nil
-	}
-	return in
-}
-
-func nonEmptyStringMap(in map[string]string) map[string]string {
-	if len(in) == 0 {
-		return nil
-	}
-	return in
-}
-
-func nonEmptyDurationMap(in map[string]time.Duration) map[string]time.Duration {
-	if len(in) == 0 {
-		return nil
-	}
-	return in
 }
 
 func (h *Host) client(name string) *Client { return h.lookupClient(name) }
@@ -1004,14 +889,17 @@ func (h *Host) EnsureConnectedWithLifecycle(lifeCtx, callCtx context.Context, s 
 	if deferredGeneration != 0 && !h.deferredGenerationCurrent(s.Name, deferredGeneration) {
 		return nil, ErrDeferredSpawnCancelled
 	}
-	if tools, err := h.ToolsFor(callCtx, s.Name); err == nil {
+	if tools, err := h.ToolsForSpec(callCtx, s); err == nil {
 		return tools, nil
 	}
-	tools, err := h.addWithLifecycle(lifeCtx, callCtx, s, deferredGeneration)
+	_, err := h.addWithLifecycle(lifeCtx, callCtx, s, deferredGeneration)
 	if IsServerAlreadyConnected(err) {
-		return h.ToolsFor(callCtx, s.Name)
+		return h.ToolsForSpec(callCtx, s)
 	}
-	return tools, err
+	if err != nil {
+		return nil, err
+	}
+	return h.ToolsForSpec(callCtx, s)
 }
 
 // AddWithLifecycle connects one server live, allowing caller to specify separate
@@ -1039,7 +927,7 @@ func (h *Host) addWithLifecycle(lifeCtx, callCtx context.Context, s Spec, deferr
 			if attempt.err != nil {
 				return nil, attempt.err
 			}
-			return append([]tool.Tool(nil), attempt.tools...), nil
+			return h.ToolsForSpec(callCtx, s)
 		case <-callCtx.Done():
 			return nil, callCtx.Err()
 		case <-lifeCtx.Done():
@@ -1336,6 +1224,7 @@ func (c *Client) listTools(ctx context.Context) ([]tool.Tool, error) {
 	if err != nil {
 		return nil, err
 	}
+	out = slices.DeleteFunc(out, func(t mcpTool) bool { return !c.spec.ToolEnabled(t.Name) })
 	if err := validateMCPToolNames(out); err != nil {
 		return nil, fmt.Errorf("plugin %q: %w", c.name, err)
 	}

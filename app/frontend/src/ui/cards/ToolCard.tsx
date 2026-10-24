@@ -1,3 +1,4 @@
+// Ported from DeepSeek-Reasonix (MIT)
 import { useEffect, useRef, useState } from "react";
 import { useStartsOpen } from "../../state/foldpref";
 import { t } from "../../i18n";
@@ -308,11 +309,23 @@ function changeCounts(tool: Tool): { added: number; removed: number } | null {
   return { added, removed };
 }
 
-function NestedCall({ tool }: { tool: Tool }) {
+// A nested step's output is a preview by default — a sub-agent's transcript is
+// mostly other agents' output, and drawing all of it inline buries the row that
+// is being read. `whole` is the overlay's way of saying this one is the record
+// itself: nothing is held back but the cap, because there the clip note and the
+// whole thing sit side by side.
+const NESTED_PREVIEW = 400;
+// Even shown whole, a delegate's output is bounded: an unbounded read is what a
+// transcript has for keeping the window alive, and the note says which bound it
+// hit rather than letting a short one pass for the whole thing.
+const NESTED_WHOLE_CAP = 200_000;
+
+export function NestedCall({ tool, whole = false }: { tool: Tool; whole?: boolean }) {
+  const [all, setAll] = useState(false);
   const shown = tool.resolvedName || tool.name;
   const tag = tagFor(tool);
   const bad = toolFailed(tool);
-  const clipped = (tool.output?.length ?? 0) > 400;
+  const clipped = !whole && (tool.output?.length ?? 0) > NESTED_PREVIEW;
   return (
     <div className="call" data-call={tool.id || undefined} data-k={KINDED.has(categoryOf(shown)) ? categoryOf(shown) : undefined}>
       <div className="g">
@@ -329,8 +342,16 @@ function NestedCall({ tool }: { tool: Tool }) {
         </div>
         {tool.output && (
           <div className="out">
-            <Term text={tool.output.slice(0, 400)} />
-            {clipped && <div className="bound">{t("仅显示前 400 个字符")}</div>}
+            <Term text={clipped && !all ? tool.output.slice(0, NESTED_PREVIEW) : tool.output.slice(0, NESTED_WHOLE_CAP)} />
+            {(whole || all) && tool.output.length > NESTED_WHOLE_CAP && <div className="bound bad">{t("输出过长，仅显示前 200000 个字符")}</div>}
+            {clipped && (
+              <div className="bound">
+                {all ? null : t("仅显示前 400 个字符")}
+                <button type="button" className="out-more" data-action="tool.show-all" aria-expanded={all} onClick={() => setAll(!all)}>
+                  {all ? t("收起") : t("显示全部")}
+                </button>
+              </div>
+            )}
           </div>
         )}
         {tool.err && <div className="out"><div className="txt bad">{tool.err}</div></div>}
