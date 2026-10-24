@@ -677,6 +677,21 @@ MSYS_NO_PATHCONV=1 ssh -i ~/.ssh/id_ed25519_deploy -o HostKeyAlgorithms=+ssh-rsa
   `attr/text eol=lf`。这让 `internal/contract/tool` 的 `TestBuiltinToolContractDocumentation`
   在本地工作区失败、在干净 checkout 的基线 worktree 里通过。已用 `git stash` 推掉全部改动
   **在同一工作区复现**同一失败，确认为既有问题。批量改行尾会污染 diff，故只记录不擅动。
+- **发版实录（2026-10-25 00:00 完成，四端点全部生效）**：
+  - GitHub Release `id=422716823`，三资产（安装包 40,385,856 + `.sig` 440 + `latest.json` 1612）
+    全部 `state=uploaded`。
+  - 香港镜像 `/opt/tempora-site/`：`latest.json`（0.1.28）+ `dl/` 安装包与 `.sig`，
+    SHA-256 `606c19f0028c0a7f32473ff3d8c9cf0978624949938aafaa20d91dd4f1fa17b2`
+    与本地、与 GitHub Release **三处一致**；`dl/` 已清理到只留 0.1.27 + 0.1.28。
+  - 公网验证：`https://tempora.yomm.cc/latest.json` 200 且 `version=0.1.28`；
+    `https://tempora.yomm.cc/dl/Tempora_0.1.28_x64-setup.exe` 200 + Content-Length 一致。
+  - jsdelivr purge `status=finished`（GET 方式）；远端 main = `bda2c8eb919c`。
+  - 本机部署 `D:/Tempora` 已同步（内核 `v0.1.28` / 壳 / 前端 dist 三者核对过）。
+- **本波新增的发布侧踩坑**（详见 `docs/HANDOVER-v0.1.28.md` §4）：
+  本地 commit 时区 `+0800` 被 GitHub 归一成 UTC → 本地与远端 commit sha 必然不同，
+  **验收改用 tree sha + 文件数比对**；API 建 tag 日期要 ISO 8601、object 要指向远端存在的
+  commit、tag ref 要先 POST 再 PATCH；SSH 后台跑不了（沙箱拦 `~/.ssh`）必须前台提权；
+  API 推送时 parent 要用远端 main（新增 `scripts/push_followup.py`）。
 
 ### 10.4 0.1.26 发版内容（2026-10-22，已上线）
 
