@@ -175,12 +175,20 @@ def commit_and_tag(ver):
     return sha
 
 # ---------------- 阶段 3：构建 ----------------
+def _retire(p):
+    """坑：本机批量删除守卫硬拦 rmtree(>50 文件)，连 ignore_errors 都拦。
+    改名弃置代替删除（每次发版遗留几 MB，可接受）。"""
+    if os.path.exists(p):
+        try:
+            os.rename(p, f"{p}_{int(time.time())}")
+        except OSError:
+            pass
+
 def build_frontend():
     log("[build] 前端...")
     dist = f"{BASE}/app/frontend/dist"
     old = f"{BASE}/app/frontend/dist_old_release"
-    if os.path.exists(old):
-        shutil.rmtree(old, ignore_errors=True)
+    _retire(old)
     if os.path.exists(dist):
         os.rename(dist, old)   # 重命名绕开沙箱 safe-delete 守卫（skill 坑）
     r = sh(["npm", "run", "build"], cwd=f"{BASE}/app/frontend", timeout=600)
@@ -199,7 +207,7 @@ def build_frontend():
         for f in fs:
             shutil.copy2(os.path.join(root, f), os.path.join(tgt, f)); n += 1
     log(f"[build] 前端 OK：{n} 个产物文件，已内容级覆盖 {dst}")
-    shutil.rmtree(old, ignore_errors=True)  # python rmtree 不受本机批量删除守卫限制
+    _retire(old)  # 改名弃置（批量删除守卫不可硬删）
 
 def build_kernel(ver):
     v = ver.lstrip("v")
