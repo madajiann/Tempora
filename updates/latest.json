@@ -1,11 +1,11 @@
 {
-  "version": "0.1.28",
-  "notes": "模型卡住时宿主替你看住，旧会话多起来也不卡\n- 新增「重复输出检测」：模型卡在同一段文字上反复输出时，宿主会认出来并提示，不再傻等\n- 可选自动掐断重试：开启后检测到死循环会切断这一轮、提醒模型换个思路重试，重试次数可调\n- 死循环尾巴会被折叠，只留证据交给模型，transcript 里看到的与存储的一致\n- 新增「旧会话渐进加载」：会话多了不再一次性全读，改成边滚边加载，开得多也快\n- 新增「子代理记录入口」：面板里可直接点开子代理的完整对话，长输出可展开看全\n- 新增「MCP 单工具禁用」：可以只关掉某个 MCP 服务器里的某一个工具，其余照常\n- 判定只看模型输出的重复形态，不读命令内容；提示与掐断都不向模型发送多余内容\n\n说明\n- 点击更新提示直接下载安装，装完自行重启",
-  "pub_date": "2026-10-24T12:24:47Z",
+  "version": "0.1.29",
+  "notes": "v0.1.29 工程化版本：一键发版流水线\n\n- 新增 scripts/release.py：把发版 skill 的全部已知坑固化成代码（版本号三处 bump、提交后注入内核版本串、tauri CLI/crate 对齐、dist 重命名绕守卫、签名 keyID 三方真实比对、HK 分片续传上传、GitHub Release 后台归档不阻塞、服务端侧端点验证、真壳端到端 + 自动截图、8 项自检报告）\n- 修复签名校验隐患：原 keyID 比对解出的是恒同前缀\"trusted \"，从未真正校验过；现解析 minisign 内层 blob 真实 keyID，任何签名密钥不匹配在发版前拦截\n- 发版效率：机械环节从半天级压缩到约 30 分钟，HK 主端点生效即发版完成",
+  "pub_date": "2026-10-26T09:19:01Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOGNzVzZ6QlNhMzNMVmFxRjZjRllZM1dYL2dkL0xaOHZENDdTLzhRdDkyMnJpODZsNzBoMDFLNWpFbDRycS8xRkw0bmlEUy9Razd4Qmo5WGVQQjRyb3dnPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyODM3MjExCWZpbGU6VGVtcG9yYV8wLjEuMjhfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4yOApFTWxGSHRtWSsxSmxMSkQxK2w2MVlLa2xHSnpnWlFTUUJvMWtyN3RpZnE4ZHdzQm9xb01BWG9pZ1ZQU1ZRMEx2SExnS2JEcGQ2aXNMd1hWNklpZ0JDQT09Cg==",
-      "url": "https://tempora.yomm.cc/dl/Tempora_0.1.28_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRKy93TUhldWZEOFZvT1A0dVBaSGl6amI3TVNScVdpMnc1Vmt1UllybHB5MGE5Z1NUWDdoajh0cnNWaHBPdmVxZGtDWm5nR3JndDBPREkwODZIOXk3THlTQkcremRwVWdNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkzMDA2MzQxCWZpbGU6VGVtcG9yYV8wLjEuMjlfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMS4yOQpFZjJUYnJSbzZTM1M1RHFCRnRtOUZQOTM2VTZpcTVKT3FMS09sbkN0S3lDNDZiM0hmVkc5anRqNytaK0o0emE1bGQ1SEhGZ3JsUE1xYzBtZXRMckdCQT09Cg==",
+      "url": "https://tempora.yomm.cc/dl/Tempora_0.1.29_x64-setup.exe"
     }
   }
 }
