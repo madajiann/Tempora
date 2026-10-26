@@ -655,6 +655,7 @@ func New(prov provider.Provider, tools *tool.Registry, session *sessionstore.Ses
 	if reasoningByteLimit == 0 {
 		reasoningByteLimit = defaultReasoningByteLimit
 	}
+	perseverationGuard, perseverationMaxRetries := resolvePerseverationGuard(opts.MaxPerseverationRetries)
 	a := &Agent{
 		svc: newAgentServices(prov, tools, sink, gate,
 			sandboxEscapeApprover, configWriteApprover, hooks, opts),
@@ -662,6 +663,8 @@ func New(prov provider.Provider, tools *tool.Registry, session *sessionstore.Ses
 			maxSteps:           opts.MaxSteps,
 			maxStepsKey:        maxStepsKey,
 			reasoningByteLimit: reasoningByteLimit,
+			perseverationGuard:      perseverationGuard,
+			perseverationMaxRetries: perseverationMaxRetries,
 			maxOutputTokens:    opts.MaxOutputTokens,
 			temperature:        opts.Temperature,
 			usageSource:        usageSourceOrDefault(opts.UsageSource, event.UsageSourceExecutor),
@@ -1193,13 +1196,14 @@ func (a *Agent) streamWithFrozen(ctx context.Context, turn int, sink event.Sink,
 	var thought thoughtClock
 	// collect packages the stream state accumulated so far; stored is the
 	// finishReasoning output that becomes the round-tripped reasoning.
+	perseveration, perseverationDetected := newPerseverationGuards(), false
 	collect := func(stored string, err error) streamedTurn {
 		return streamedTurn{
 			text: text.String(), reasoning: stored, signature: signature, thoughtMs: thought.ms(),
 			reasoningID: reasoningID, reasoningStatus: reasoningStatus,
 			calls: calls, responsesItems: responsesItems, usage: usage,
 			partialToolStarted: partialToolStarted, partialCalls: partialCalls,
-			maxArgChars: maxArgChars, err: err,
+			maxArgChars: maxArgChars, err: err, perseverationDetected: perseverationDetected,
 		}
 	}
 	finishReasoning := func() (stored, display string) {
@@ -1265,6 +1269,7 @@ func (a *Agent) streamWithFrozen(ctx context.Context, turn int, sink event.Sink,
 					reasoningID: reasoningID, reasoningStatus: reasoningStatus,
 					calls: calls, responsesItems: responsesItems, usage: usage,
 					partialCalls: partialCalls, maxArgChars: maxArgChars,
+					perseverationDetected: perseverationDetected,
 				}
 			}
 			chunk = c
@@ -1358,6 +1363,10 @@ func (a *Agent) streamWithFrozen(ctx context.Context, turn int, sink event.Sink,
 			}
 			usage = provider.UsageWithRequestAttemptCount(ctx, usage)
 			return collect(stored, chunk.Err)
+		}
+		if cut := a.perseverationStep(perseveration, chunk, sink, &perseverationDetected, perseverationAbort{ctx: ctx, sink: sink,
+			finishReasoning: finishReasoning, collect: collect, reasoningBytes: reasoning.Len(), thoughtMs: thought.ms()}); cut != nil {
+			return *cut
 		}
 	}
 }

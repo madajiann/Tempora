@@ -225,3 +225,51 @@ effort UI 单列一轮。**地基的 kernel 侧已就位，届时只需补前端
   的 `progress_watch.go`，本波已铺好地基，下一波做。
 - #14086 旧会话渐进加载（+2590 行，前端基线漂移 28 个小版本）：单独排期。
 - 会话排序、子代理记录入口（#11529）、MCP 单工具禁用（#11468）、定时任务（#11406）。
+
+
+## 2026-10-24 第三波功能同步（0.1.28 发版）
+
+> 户主指令不变：「首先保证功能同步上游」。本波把上一波台账里「留到下一波」的四条一次性做完，
+> **一版发四个功能**，不再一版挤一个。
+
+### 一、本波移植（四个上游 PR，全部是上游已 merged 的正式功能）
+
+| 项 | 上游 | 本地落地 | 本地适配点 |
+|---|---|---|---|
+| 重复输出循环检测 | **#11183** `feat(studio): cut a perseveration loop and retry once`（perseveration_guard，+3451 行，49 文件） | `internal/runtime/agent/perseveration_guard.go`(357) 新建 + 运行时接线 | 上游 module 名 `reasonix` → 本地 `tempora`；上游 TUI 版 `internal/frontend/tui/progress_watch.go` **本地无 TUI 目录**，跳过；上游 `progress_watch_effect_test.go` 依赖的 `approveWorkspace` 助手本地没有 → 改用 `Options.WorkspaceRoot` + 不设 `Options.Home` |
+| 旧会话渐进加载 | **#14086** `fix(history): progressive legacy discovery and background scheduling`（+2590/-344，53 文件） | `historycatalog/root_scan.go`、`serve/hub_legacy_listings.go`、`serve/hub_progressive_test.go`、`base/backgroundwork/`、前端 `useTreeRead.ts` + `ListingProgress.tsx` | 前端基线比上游漂移 28 个小版本，按本地 `useTreeRead`/`ListingProgress` 结构接，未硬套上游组件 |
+| 子代理记录入口 | **#11529** 子代理 transcript 入口 + 截断输出 show-all（+257/-22，10 文件） | `ui/panels/AgentTranscript.tsx` 新建；改 `DeckChips.tsx`、`cards/ToolCard.tsx`、`cards/ToolOutput.tsx`、`actions.ts`、`i18n/en_window.ts`、`styles/studio.css` | 上游 `desktop/frontend-next/src/` → 本地 `app/frontend/src/`；本地 `actions.ts` 有 action census 棘轮上限，新增 action 须同步登记 |
+| MCP 单工具禁用 | **#11468** 单个 MCP 工具级禁用（8 文件） | `ext/plugin/disabled_tools.go` 新建 + `contract/config/{mcpjson,plugin_entry,render_plugin}.go` + `session/control/mcp*.go` + `assembly/boot/mcp_registration.go` | 本地 MCP 注册在 `boot/mcp_registration.go`（上游在别处），禁用逻辑落在本地注册路径上 |
+
+### 二、判定与行为要点（移植后核对）
+
+- **#11183 重复输出检测**：默认**只报不切**（检测到死循环 → 走 progress-watch 通道提示）；
+  `[progress_watch].perseveration_retries` 设成 >0 才**切流 + 提醒重试**，重试预算用尽则以
+  `perseveration` 暂停（可续跑）。检测只看**输出文本的重复形态**（最小周期块 × 8 次以上），
+  不看命令内容；思考流与回答流**各用独立缓冲**，避免交织打断周期性判定。
+  死循环尾巴会折叠成「短语 + 最后一次重复」再交给模型，transcript 与存储一致。
+- **#11183 敏感度是刻意保守的**：最小周期 128 字节、最大 2048 字节、需 8 次重复，
+  扫描按 1024 字节节奏摊销。宁可晚触发、极少误报。
+- **#11183 三层配置**：全局 `[progress_watch].perseveration_retries` → provider 级
+  `perseveration_retries` 覆盖 → 负值关闭守卫。不设置 = 只报不切。
+
+### 三、本波核对时发现并修掉的实质问题
+
+| 问题 | 症状 | 处理 |
+|---|---|---|
+| **本地工作区 2088 个文件是 CRLF，但仓库配了 `attr/text eol=lf`** | `internal/contract/tool` 的 `TestBuiltinToolContractDocumentation` 在**本地工作区**失败（`docs/TOOL_CONTRACT.md has no tool table to generate into`），在干净 checkout 的基线 worktree 里**通过** | 已用 `git stash` 推掉全部改动**在同一工作区复现**同一失败，确认为**既有环境问题**（工作区行尾未规范化），与本波无关。本波**未**擅自批量改行尾（2088 文件的机械改动会污染 diff），仅记录 |
+| 上游 `progress_watch_effect_test.go` 依赖 `approveWorkspace` 助手 | 本地没有该助手，测试直接编译不过 | 改用本地既有的 `Options.WorkspaceRoot` + `Options.SessionDir`；**且不能设 `Options.Home`**——`Options.Home` 会把这份 assembly 绑到工作区配置，导致用户的 `[progress_watch]` 读不到、退回默认值（探针实测 `rounds=20 mult=8`，应为 `rounds=1000 mult=1`） |
+| 上游测试写 `reasonix.toml` | 本地项目配置文件名是 `tempora.toml`，上游文件不生效 → 测试误连真实 deepseek（HTTP 401） | 全部改为 `tempora.toml` |
+| 上游 testdata `.cost`/`.fixed` 提取时丢末尾换行 | `TestPerseverationGuardEvidence` 5 个子用例全部失败 | 15 个 testdata 文件**全部改用上游 GitHub API 原版字节**（`merge_commit_sha=6038a6fb`），不手工补换行 |
+
+### 四、遗留失败（基线比对确认，与本波无关）
+
+`cmd/e2ebench`、`cmd/signpath-contract`（仓库缺 `.signpath/` 目录）、`internal/contract/tool`
+（见上，CRLF）、`internal/ext/extension/{conformance,protocol,protocolgen}`（缺 SDK fixture）、
+`internal/frontend/serve`（3 个守卫读旧前端副本）、`internal/platform/update`、
+`internal/tools/productdocs`、`internal/assembly/boot` 的 `TestGoldenBaselineNoExtensions`
+（`SystemHash` 与上游 golden 不同）——**逐包用 HEAD 基线 worktree 实跑对比，全部一致复现**。
+
+### 五、留到下一波
+
+- 会话排序（台账里的 #11420 已作废，PR 号不存在，需重新找上游 PR）。
