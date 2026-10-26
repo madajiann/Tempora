@@ -153,7 +153,7 @@ export type TurnTerminal =
   | null;
 
 export interface Stall {
-  cause: "rounds" | "tokens" | "perseveration";
+  cause: "rounds" | "tokens";
   idleRounds: number;
   roundLimit: number;
   promptTokens: number;

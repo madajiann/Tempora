@@ -42,15 +42,7 @@ type streamedTurn struct {
 	maxArgChars        int      // peak streaming tool-arg size for failed-attempt estimates
 	attemptID          string   // the stream attempt this result came from, for usage correlation
 	bodyChain          []string // cumulative hashes of the messages this request actually sent
-	// perseverationAborted marks a stream the opt-in cut path ended early. It is
-	// a clean terminal (err == nil): the caller nudges and retries, then stops
-	// with a perseveration pause once the retry budget is spent.
-	perseverationAborted bool
-	// perseverationDetected marks a stream where the guard saw a degenerate loop
-	// but did not cut it. The round reports it through the progress-watch
-	// channel; the stream itself runs to its own terminal.
-	perseverationDetected bool
-	err                   error
+	err                error
 }
 
 // deferredStreamSink keeps selected stream events local until the caller
@@ -335,18 +327,13 @@ func (a *Agent) runToolLoop(ctx context.Context, state *turnRuntime) error {
 			ReasoningSignature: signature,
 			ReasoningID:        streamed.reasoningID,
 			ReasoningStatus:    streamed.reasoningStatus,
-			ToolCalls:          a.callsToCommit(streamed, calls),
+			ToolCalls:          calls,
 			ResponsesItems:     responsesItems,
 			WorkDurationMs:     state.workDurationMs(),
 			ThoughtMs:          streamed.thoughtMs,
 			ModelRef:           a.modelRef,
 		})
 
-		if cont, perr := a.settlePerseveration(state, streamed); !cont {
-			return perr
-		} else if streamed.perseverationAborted {
-			continue
-		}
 		if len(calls) == 0 {
 			if a.recordTruncationFact(boundary) {
 				// The truncated tail was the whole batch: nothing ran and no

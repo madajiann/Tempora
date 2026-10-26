@@ -34,9 +34,4 @@ describe("the stall strip beside the composer", () => {
     render(<RuntimeBar notices={[]} onSeen={() => {}} watch={{ stall: stall({ cause: "tokens", tokenMultiple: 8, promptTokens: 1234 }) }} onStall={() => {}} />);
     expect(screen.getByRole("status").textContent).toContain("自上次有进展以来已用约 8 倍上下文的输入 token");
   });
-
-  it("says a perseveration stall as perseveration", () => {
-    render(<RuntimeBar notices={[]} onSeen={() => {}} watch={{ stall: stall({ cause: "perseveration" }) }} onStall={() => {}} />);
-    expect(screen.getByRole("status").textContent).toContain("模型在重复输出同一段文字");
-  });
 });
