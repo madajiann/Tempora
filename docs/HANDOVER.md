@@ -1,7 +1,7 @@
 # Tempora 交接文档
 
 > 写给下一个接手的人（也写给三个月后的我自己）。
-> 最后更新：**2026-10-24** · 对应版本 **0.1.28**（仓库 `main`，已发版，见 §10.7）
+> 最后更新：**2026-10-23** · 对应版本 **0.1.27**（仓库 `main`，已发版，见 §10.6）
 >
 > **换号/换人接手 → 先读 `docs/TAKEOVER.md`**（上次工作快照、挂事的优先级、接手自检）。
 >
@@ -634,64 +634,7 @@ MSYS_NO_PATHCONV=1 ssh -i ~/.ssh/id_ed25519_deploy -o HostKeyAlgorithms=+ssh-rsa
 - 测试：前端 `vitest` **150 文件 / 943 用例全绿**（新增 `stall.test.ts` 5 例 + `StallBar.test.tsx` 3 例）；
   内核 `go build` + `go vet` 干净，改动相关包全绿；`cmd/e2ebench`、`cmd/signpath-contract` 两条失败
   经 `git stash` 基线比对**确认为既有遗留**（与本波无关）。
-- **发版时踩到并修掉的三个实质问题**（都不是移植本身，是发布链路）：
-  1. **内核版本串滞后**（用户可见）：内核在功能提交**之前**构建，`--version` 自称
-     `v0.1.26-4-gee530a3`，与发布的 0.1.27 不符（二进制里代码却是新的）。
-     根因是 `git describe --tags --always` 在 tag 未打时给出上一版串。
-     修法：**先提交 + 打 tag，再构建内核**，并显式传
-     `-X main.version -X main.gitCommit -X main.buildTimeUTC`；随后重编内核 + 重打安装包 + 重发资产。
-     已写进 `tempora-release` Skill 的 §2.2。
-  2. **Cloudflare 边缘缓存挡住重发**：安装包同名重传时，CF 按 URL 缓存 4 小时
-     （`Cache-Control: max-age=14400`，`Age` 头可见），客户端会拿到**上一版的字节** → 签名校验失败。
-     修法：Caddy 站点加 `/dl/* Cache-Control "no-store"` + `/latest.json Cache-Control "no-cache"`
-     （已改 `/etc/caddy/Caddyfile`，备份 `Caddyfile.bak-20261023-tempora-dl`），并 reload caddy。
-  3. **仓库 `updates/latest.json` 被误回滚**：HANDOVER 那次提交把它退回 0.1.24，
-     应用内更新链路直接断掉（第一端点也是 0.1.24）。已恢复并修正。
-
-### 10.7 0.1.28 发版内容（2026-10-24，已上线）
-
-- **一版发四个上游功能**（上游 PR **#11183** / **#14086** / **#11529** / **#11468**，全部已 merged）：
-  - **#11183 重复输出循环检测**（`internal/runtime/agent/perseveration_guard.go`，+357 行核心）：
-    检测模型卡在同一段文字上反复输出。默认**只报不切**（走 progress-watch 通道提示）；
-    `[progress_watch].perseveration_retries` > 0 才**切流 + 提醒重试**，预算用尽以 `perseveration`
-    暂停（可续跑）。敏感度刻意保守：最小周期 128B、最大 2048B、需 8 次重复；思考流与回答流
-    各用独立缓冲。死循环尾巴折叠成「短语 + 最后一次重复」，transcript 与存储一致。
-    三层配置：全局 → provider 级覆盖 → 负值关闭。
-  - **#14086 旧会话渐进加载**（53 文件）：会话多了不再一次性全读，改成边滚边加载 + 后台调度。
-  - **#11529 子代理记录入口**（10 文件）：面板里可点开子代理完整对话，长输出可展开看全。
-  - **#11468 MCP 单工具禁用**：可只关掉某个 MCP 服务器里的某一个工具。
-- **本地适配要点**（踩过的坑，见 `UPSTREAM_LOG` 第三波）：
-  - 上游 module 名 `reasonix` → 本地 `tempora`；上游 `desktop/frontend-next/src/` → 本地 `app/frontend/src/`。
-  - 上游 TUI 目录本地没有 → 跳过 TUI 部分。
-  - 上游测试写 `reasonix.toml` → 本地项目配置是 `tempora.toml`，不改会误连真实 deepseek。
-  - 上游 `approveWorkspace` 助手本地没有 → 改用 `Options.WorkspaceRoot`；**且不能设 `Options.Home`**
-    （会把 assembly 绑到工作区配置，导致用户 `[progress_watch]` 读不到、退回默认值）。
-  - 15 个 testdata 文件用上游 GitHub API 原版字节重取（`merge_commit_sha=6038a6fb`），
-    手工提取会丢末尾换行导致 5 个子用例全挂。
-- **测试**：前端 `vitest` **153 文件 / 963 用例全绿**；`tsc --noEmit` 干净；内核 `go build` +
-  `go vet ./...` 干净；`go test ./...` 的失败清单与 **HEAD 基线 worktree 实跑逐包一致**
-  （`cmd/e2ebench`、`cmd/signpath-contract`、`internal/contract/tool`、
-  `internal/ext/extension/{conformance,protocol,protocolgen}`、`internal/frontend/serve`、
-  `internal/platform/update`、`internal/tools/productdocs`、`boot` 的 `TestGoldenBaselineNoExtensions`）。
-- **环境问题（非本波引入，未擅自批量修）**：本地工作区 **2088 个文件是 CRLF**，而仓库配了
-  `attr/text eol=lf`。这让 `internal/contract/tool` 的 `TestBuiltinToolContractDocumentation`
-  在本地工作区失败、在干净 checkout 的基线 worktree 里通过。已用 `git stash` 推掉全部改动
-  **在同一工作区复现**同一失败，确认为既有问题。批量改行尾会污染 diff，故只记录不擅动。
-- **发版实录（2026-10-25 00:00 完成，四端点全部生效）**：
-  - GitHub Release `id=422716823`，三资产（安装包 40,385,856 + `.sig` 440 + `latest.json` 1612）
-    全部 `state=uploaded`。
-  - 香港镜像 `/opt/tempora-site/`：`latest.json`（0.1.28）+ `dl/` 安装包与 `.sig`，
-    SHA-256 `606c19f0028c0a7f32473ff3d8c9cf0978624949938aafaa20d91dd4f1fa17b2`
-    与本地、与 GitHub Release **三处一致**；`dl/` 已清理到只留 0.1.27 + 0.1.28。
-  - 公网验证：`https://tempora.yomm.cc/latest.json` 200 且 `version=0.1.28`；
-    `https://tempora.yomm.cc/dl/Tempora_0.1.28_x64-setup.exe` 200 + Content-Length 一致。
-  - jsdelivr purge `status=finished`（GET 方式）；远端 main = `bda2c8eb919c`。
-  - 本机部署 `D:/Tempora` 已同步（内核 `v0.1.28` / 壳 / 前端 dist 三者核对过）。
-- **本波新增的发布侧踩坑**（详见 `docs/HANDOVER-v0.1.28.md` §4）：
-  本地 commit 时区 `+0800` 被 GitHub 归一成 UTC → 本地与远端 commit sha 必然不同，
-  **验收改用 tree sha + 文件数比对**；API 建 tag 日期要 ISO 8601、object 要指向远端存在的
-  commit、tag ref 要先 POST 再 PATCH；SSH 后台跑不了（沙箱拦 `~/.ssh`）必须前台提权；
-  API 推送时 parent 要用远端 main（新增 `scripts/push_followup.py`）。
+- **待补**：HK 镜像上传（沙箱拦 SSH key，需手动跑 `upload_hk_direct.py`）；四端点回读（本机 SSL 握手异常）。
 
 ### 10.4 0.1.26 发版内容（2026-10-22，已上线）
 
@@ -746,14 +689,13 @@ MSYS_NO_PATHCONV=1 ssh -i ~/.ssh/id_ed25519_deploy -o HostKeyAlgorithms=+ssh-rsa
 |---|---|---|
 | 输入框草稿按会话保存，刷新后恢复 | #11176 | ✅ **已完成**（0.1.23+未发版，见 §10.5） |
 | 对话内 Ctrl+F 查找 | #11236 | 低 |
-| 旧会话渐进加载与后台调度 | #14086 | 中 | ✅ **已完成**（0.1.28，见 §10.7） |
 | 项目「⋯」菜单「在文件管理器中显示」 | #11533 | 低（与已做的原生文件夹选择框同源） |
-| 多轮无进展 / 重复输出提示 | #11160 #11183 | 中 | ✅ **全部完成**（0.1.27 无进展提示，见 §10.6；0.1.28 重复输出检测与重试，见 §10.7） |
-| 子代理记录入口 | #11529 | 中 | ✅ **已完成**（0.1.28，见 §10.7） |
+| 多轮无进展 / 重复输出提示 | #11160 #11183 | 中 | ✅ **无进展提示已完成**（0.1.27，见 §10.6）；#11183 重复输出检测与重试下一波 |
+| 子代理记录入口 | #11529 | 中 |
 | 内置浏览器工具独立开关 | #10898 | 低 |
 | 模型服务可排序 | #10864 | 低 |
 | 应用内反馈（截图 + 受理编号） | #11432 | 中 |
-| MCP 服务器单独禁用某工具 | #11468 | 中 | ✅ **已完成**（0.1.28，见 §10.7） |
+| MCP 服务器单独禁用某工具 | #11468 | 中 |
 
 **P2**：Pro 模式、显示隐藏文件、项目手写顺序保存、宽屏工作台 1600px、UA 标识、ACP 用量与费用等。
 
