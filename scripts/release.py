@@ -260,8 +260,10 @@ def build_shell(ver):
     env["TAURI_SIGNING_PRIVATE_KEY_PASSWORD"] = ""
     r = sh(["cargo", "tauri", "build"], cwd=f"{BASE}/shell", env=env, timeout=3600)
     blob = (r.stdout or "") + (r.stderr or "")
+    with open(f"{BASE}/scripts/_last_shell_build.log", "w", encoding="utf-8", errors="replace") as f:
+        f.write(blob)
     if "__TAURI_BUNDLE_TYPE" in blob or "may not be able to update this package" in blob:
-        die("壳构建出现 updater 标记丢失警告（tauri CLI/crate 版本不一致），安装包不可发布！")
+        die(f"壳构建出现 updater 标记丢失警告（tauri CLI/crate 版本不一致），安装包不可发布！完整日志: scripts/_last_shell_build.log")
     if r.returncode != 0:
         die(f"壳构建失败:\n{blob[-2500:]}")
     exe = f"{NSIS}/Tempora_{v}_x64-setup.exe"
