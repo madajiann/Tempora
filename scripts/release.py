@@ -114,11 +114,14 @@ def preflight(ver):
     m = re.search(r'name = "tauri"\nversion = "(\S+)"', lock)
     crate_v = m.group(1) if m else None
     log(f"  tauri CLI={cli_v}  crate={crate_v}  {'[OK 对齐]' if cli_v and crate_v and cli_v.startswith(crate_v.rsplit('.',1)[0]) or cli_v==crate_v else '[警告: 不一致，构建时会自动对齐]'}")
-    # ssh 连通
-    out = ssh("echo ok")
-    log(f"  [{'OK' if out=='ok' else '失败'}] SSH 连通 {HK_HOST}")
-    if out != "ok":
-        ok = False
+    # ssh 连通（坑4：后台任务读 ~/.ssh 必被沙箱拦，分阶段时后台 build 跳过此项）
+    if os.environ.get("TEMPORA_SKIP_SSH_CHECK") == "1":
+        log("  [SKIP] SSH 连通（分阶段 build，后台不查）")
+    else:
+        out = ssh("echo ok")
+        log(f"  [{'OK' if out=='ok' else '失败'}] SSH 连通 {HK_HOST}")
+        if out != "ok":
+            ok = False
     log("== 自检结束 ==" + ("" if ok else "（存在缺失项，发版会中断）"))
     return ok
 
@@ -501,17 +504,58 @@ def main():
     ap.add_argument("--skip-push", action="store_true")
     ap.add_argument("--skip-github", action="store_true", help="只发 HK 主端点")
     ap.add_argument("--skip-deploy", action="store_true")
+    ap.add_argument("--stage", choices=["all", "build", "ship", "github"], default="all",
+                    help="build=版本bump+构建+推码(无SSH,可后台); ship=HK上传+验证+部署(需SSH前台); github=Release归档(纯HTTPS)")
     args = ap.parse_args()
     ver = args.version.lstrip("v")
     notes = open(args.notes_file, encoding="utf-8").read().strip() if args.notes_file else \
         json.load(open(f"{BASE}/site-version.json", encoding="utf-8")).get("notes", f"Tempora v{ver}")
 
-    if not preflight(ver):
-        if not args.preflight:
-            die("前置自检未过")
-        return
+    exe_default = f"{NSIS}/Tempora_{ver}_x64-setup.exe"
+    sig_default = exe_default + ".sig"
+    latest_default = f"{BASE}/updates/latest.json"
+    local_sha = lambda: subprocess.run(["certutil", "-hashfile", exe_default, "SHA256"],
+                                       capture_output=True, text=True
+                                       ).stdout.splitlines()[1].replace(" ", "").lower()
+
     if args.preflight:
+        preflight(ver)
         return
+
+    if args.stage == "build":
+        if not preflight(ver):
+            die("前置自检未过")
+        bump(ver, notes)
+        commit_and_tag(ver)
+        build_frontend()
+        build_kernel(ver)
+        exe, exe_sig = build_shell(ver)
+        check_sig(ver, exe_sig)
+        make_latest(ver, exe_sig)
+        push_code()
+        log("== build 阶段结束（产物齐备，待 ship）==")
+        return
+
+    if args.stage == "ship":
+        for p in (exe_default, sig_default, latest_default):
+            if not os.path.exists(p):
+                die(f"ship 前置产物缺失: {p}（先跑 --stage build）")
+        if not preflight(ver):
+            die("前置自检未过")
+        s = local_sha()
+        hk_upload(ver, latest_default)
+        verify(ver, s)
+        e2e_ok = deploy_and_e2e(ver)
+        sh(["python", f"{BASE}/scripts/prune_releases.py", "--keep", "5", "--yes"], timeout=300)
+        log(f"== ship 阶段结束：HK 主端点已生效 sha256 {s[:16]}...，端到端 {'通过' if e2e_ok else '有异常项'} ==")
+        return
+
+    if args.stage == "github":
+        github_release(ver, notes)
+        return
+
+    if not preflight(ver):
+        die("前置自检未过")
 
     bump(ver, notes)
     commit_and_tag(ver)
