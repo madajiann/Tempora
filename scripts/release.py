@@ -210,7 +210,7 @@ def build_kernel(ver):
     version = f"v{v}"
     commit = sh(["git", "rev-parse", "--short=12", "HEAD"], cwd=BASE).stdout.strip()
     build_time = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-    r = sh(["go", "build", "-ldflags",
+    r = sh([f"{BASE}/tools/go/bin/go.exe", "build", "-ldflags",
             f"-s -w -X main.version={version} -X main.gitCommit={commit} -X main.buildTimeUTC={build_time} -H windowsgui",
             "-o", "bin/tempora.exe", "./cmd/tempora"],
            cwd=f"{BASE}/kernel", env=env, timeout=1200)
@@ -261,9 +261,22 @@ def build_shell(ver):
     return exe, sig
 
 # ---------------- 阶段 4：签名 keyID 三方比对 ----------------
-def keyid(blob_path):
-    raw = open(blob_path, encoding="utf-8").read().strip()
-    return base64.b64decode(raw)[2:10].hex()
+def keyid(path):
+    """minisign 文件的真实 keyID：外层 base64 → 文本 → 内层 base64 行 → blob[2:10]。
+    坑：blob 顶层解出来是 'trusted comment...' 文本，前缀对所有签名恒同，不能当 keyID。"""
+    text = open(path, encoding="utf-8").read().strip()
+    if not text.startswith(("untrusted", "trusted")):
+        text = base64.b64decode(text).decode("utf-8", "replace")
+    for line in text.splitlines():
+        line = line.strip()
+        if len(line) > 40 and ":" not in line:
+            try:
+                blob = base64.b64decode(line, validate=True)
+            except Exception:
+                continue
+            if len(blob) >= 10 and blob[:2] in (b"\x45\x44", b"\x45\x64"):  # "ED"(Tauri sig) / "Ed"(pub)
+                return blob[2:10].hex()
+    return "parse-failed"
 
 def check_sig(ver, exe_sig):
     v = ver.lstrip("v")
