@@ -634,7 +634,19 @@ MSYS_NO_PATHCONV=1 ssh -i ~/.ssh/id_ed25519_deploy -o HostKeyAlgorithms=+ssh-rsa
 - 测试：前端 `vitest` **150 文件 / 943 用例全绿**（新增 `stall.test.ts` 5 例 + `StallBar.test.tsx` 3 例）；
   内核 `go build` + `go vet` 干净，改动相关包全绿；`cmd/e2ebench`、`cmd/signpath-contract` 两条失败
   经 `git stash` 基线比对**确认为既有遗留**（与本波无关）。
-- **待补**：HK 镜像上传（沙箱拦 SSH key，需手动跑 `upload_hk_direct.py`）；四端点回读（本机 SSL 握手异常）。
+- **发版时踩到并修掉的三个实质问题**（都不是移植本身，是发布链路）：
+  1. **内核版本串滞后**（用户可见）：内核在功能提交**之前**构建，`--version` 自称
+     `v0.1.26-4-gee530a3`，与发布的 0.1.27 不符（二进制里代码却是新的）。
+     根因是 `git describe --tags --always` 在 tag 未打时给出上一版串。
+     修法：**先提交 + 打 tag，再构建内核**，并显式传
+     `-X main.version -X main.gitCommit -X main.buildTimeUTC`；随后重编内核 + 重打安装包 + 重发资产。
+     已写进 `tempora-release` Skill 的 §2.2。
+  2. **Cloudflare 边缘缓存挡住重发**：安装包同名重传时，CF 按 URL 缓存 4 小时
+     （`Cache-Control: max-age=14400`，`Age` 头可见），客户端会拿到**上一版的字节** → 签名校验失败。
+     修法：Caddy 站点加 `/dl/* Cache-Control "no-store"` + `/latest.json Cache-Control "no-cache"`
+     （已改 `/etc/caddy/Caddyfile`，备份 `Caddyfile.bak-20261023-tempora-dl`），并 reload caddy。
+  3. **仓库 `updates/latest.json` 被误回滚**：HANDOVER 那次提交把它退回 0.1.24，
+     应用内更新链路直接断掉（第一端点也是 0.1.24）。已恢复并修正。
 
 ### 10.4 0.1.26 发版内容（2026-10-22，已上线）
 
